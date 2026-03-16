@@ -1,0 +1,83 @@
+'use client';
+
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import type { AppData } from '@/services/storeService';
+
+interface StoreContextType {
+    data: AppData | null;
+    isLoading: boolean;
+    refreshData: () => Promise<void>;
+    updateData: (newData: Partial<AppData>) => Promise<void>;
+}
+
+const StoreContext = createContext<StoreContextType | undefined>(undefined);
+
+export function StoreProvider({ children }: { children: ReactNode }) {
+    const [data, setData] = useState<AppData | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    const fetchData = async () => {
+        try {
+            setIsLoading(true);
+            const res = await fetch('/api/store');
+            if (res.ok) {
+                const json = await res.json();
+                setData(json);
+            }
+        } catch (e) {
+            console.error('Failed to fetch store data', e);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const updateData = async (partial: Partial<AppData>) => {
+        if (!data) return;
+
+        // Optimistic update
+        const optimistic: AppData = { ...data, ...partial };
+
+        // If commitments changed, recalculate dailyProgress optimistically
+        if (partial.commitments !== undefined && data.dailyProgress) {
+            const todayCompleted = partial.commitments.filter((c: any) => c.completed).length;
+            const todayTotal = partial.commitments.length;
+            optimistic.dailyProgress = {
+                ...data.dailyProgress,
+                todayCompleted,
+                todayTotal
+            };
+        }
+
+        setData(optimistic);
+
+        try {
+            await fetch('/api/store', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(partial)
+            });
+            await fetchData();
+        } catch (e) {
+            console.error('Failed to update store data', e);
+            setData(data); // revert
+        }
+    };
+
+    useEffect(() => {
+        fetchData();
+    }, []);
+
+    return (
+        <StoreContext.Provider value={{ data, isLoading, refreshData: fetchData, updateData }}>
+            {children}
+        </StoreContext.Provider>
+    );
+}
+
+export function useStore() {
+    const context = useContext(StoreContext);
+    if (context === undefined) {
+        throw new Error('useStore must be used within a StoreProvider');
+    }
+    return context;
+}

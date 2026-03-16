@@ -1,0 +1,76 @@
+{
+  "events": [
+    {
+      "id": "1772848620759",
+      "title": "Quererte",
+      "date": "2025-02-12",
+      "description": "te quiero"
+    },
+    {
+      "id": "2",
+      "date": "25 de Abril, 2024",
+      "title": "El fin de semana en la cabaña",
+      "description": "Desconectarnos para conectar. Caminar por el bosque nos ayudó a recordar quiénes éramos cuando no estábamos a la defensiva."
+    },
+    {
+      "id": "3",
+      "date": "15 de Junio, 2024",
+      "title": "Acuerdo de Transparencia",
+      "description": "El día que establecimos las reglas de este refugio. Sin secretos, sin mentiras blancas, solo, dolorosa, hermosa verdad mutua."
+    }
+  ],
+  "notes": [
+    "tqm",
+    "Hoy es un buen día para volver a empezar.",
+    "La honestidad construye puentes donde antes había muros.",
+    "Cada pequeño esfuerzo cuenta en nuestra reconstrucción.",
+    "Gracias por estar aquí, trabajando en nosotros.",
+    "La transparencia es el mayor acto de valentía."
+  ],
+  "commitments": [
+    {
+      "id": 1,
+      "text": "Hablar con sinceridad, aunque sea difícil",
+      "completed": false
+    },
+    {
+      "id": 2,
+      "text": "Escuchar activamente antes de responder",
+      "completed": false
+    },
+    {
+      "id": 3,
+      "text": "Reconocer mis errores diarios sin justificaciones",
+      "completed": false
+    },
+    {
+      "id": 1772848674137,
+      "text": "no molestar",
+      "completed": false
+    }
+  ],
+  "victories": [
+    "Pude expresar cómo me sentía sin alterarme."
+  ],
+  "audioStats": {
+    "daysTracking": 14,
+    "lastUpdate": "Hoy a las 09:30 AM"
+  },
+  "audioTrack": {
+    "title": "Fix You",
+    "artist": "Coldplay",
+    "comments": [
+      {
+        "id": 1,
+        "author": "Tú",
+        "text": "Esta canción me recuerda cuando decidimos empezar de nuevo aquel domingo."
+      },
+      {
+        "id": 2,
+        "author": "Yo",
+        "text": "Sí, la letra habla de reconstruir sobre las ruinas. Es muy nuestro."
+      }
+    ],
+    "spotifyUrl": "https://open.spotify.com/track/5QpaGzWp0hwB5faV8dkbAz?si=hODFgJ9QS3uvX1-0MM9OhQ"
+  }
+}

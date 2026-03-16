@@ -1,0 +1,24 @@
+import { NextResponse } from 'next/server';
+import { StoreService } from '@/services/storeService';
+import { createServerClient } from '@/lib/supabase';
+
+export async function GET() {
+    try {
+        const supabase = createServerClient();
+        const data = await StoreService.getStore(supabase);
+        return NextResponse.json(data);
+    } catch (error) {
+        return NextResponse.json({ error: 'Failed to fetch store data' }, { status: 500 });
+    }
+}
+
+export async function PUT(request: Request) {
+    try {
+        const body = await request.json();
+        const supabase = createServerClient();
+        await StoreService.updateStore(body, supabase);
+        return NextResponse.json({ success: true });
+    } catch (error) {
+        return NextResponse.json({ error: 'Failed to update store data' }, { status: 500 });
+    }
+}
