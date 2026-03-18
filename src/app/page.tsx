@@ -14,30 +14,30 @@ export default function Home() {
 
   return (
     <PrivateRoute>
-      <main className="w-full max-w-5xl mx-auto px-6 md:px-12 py-24 space-y-48 flex flex-col items-center justify-center">
+      <main className="w-full max-w-5xl mx-auto px-6 md:px-12 flex flex-col items-center justify-center">
 
         {/* Header Hero Area */}
-        <header id="hero" className="text-center space-y-8 pt-10 w-full max-w-3xl mx-auto flex flex-col items-center">
+        <header id="hero" className="min-h-[100dvh] text-center space-y-8 w-full max-w-3xl mx-auto flex flex-col items-center justify-center pt-20">
           <h1 className="text-4xl md:text-6xl font-light tracking-tight text-stone-800 dark:text-stone-100">
-            Santuario Activo
+            Nuestro Espacio
           </h1>
           <p className="text-stone-500 dark:text-stone-400 text-lg md:text-xl max-w-2xl mx-auto font-light leading-relaxed">
-            Un espacio seguro dedicado a la reconstrucción, la transparencia radical y la honestidad profunda.
+            Me equivoqué y lo reconozco, pero estoy dispuesto a trabajar en ello y hacerte saber que por ti lo doy todo. Te amo y quiero demostrarlo, con gestos como este, que demuestren mi compromiso y mi amor por ti. Este espacio es para ti, para nosotros. <br></br>❤️
           </p>
         </header>
 
         {/* Interactive Dashboard Section */}
-        <section id="dashboard" className="w-full flex justify-center">
+        <section id="dashboard" className="min-h-[100dvh] w-full flex items-center justify-center py-20">
           <TransparencyDashboard />
         </section>
 
         {/* Jar of Notes Section */}
-        <section id="notes" className="w-full flex justify-center">
+        <section id="notes" className="min-h-[100dvh] w-full flex flex-col items-center justify-center py-20 relative">
           <JarOfNotes />
         </section>
 
         {/* Timeline Section */}
-        <section id="timeline" className="w-full space-y-12 flex flex-col items-center">
+        <section id="timeline" className="min-h-[100dvh] w-full space-y-12 flex flex-col items-center justify-center py-24">
           <div className="text-center w-full">
             <h2 className="text-3xl font-light text-stone-800 dark:text-stone-200 mb-3">Nuestra Historia</h2>
             <p className="text-stone-500 font-light">Los pasos que hemos dado juntos.</p>
@@ -46,7 +46,7 @@ export default function Home() {
         </section>
 
         {/* Embedded Audio Section */}
-        <section id="audio" className="w-full pb-20 flex justify-center">
+        <section id="audio" className="min-h-[100dvh] w-full flex items-center justify-center py-24">
           <AudioSection />
         </section>
 

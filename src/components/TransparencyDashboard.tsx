@@ -54,8 +54,8 @@ export function TransparencyDashboard() {
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 style={{ rotate: `${rotation}deg` }}
                 className={`w-full p-6 rounded-sm shadow-sm aspect-square flex flex-col items-center justify-center text-center border transition-transform hover:scale-105 hover:shadow-md cursor-default ${type === 'el'
-                        ? 'bg-amber-50/90 dark:bg-yellow-900/20 border-amber-200/50 dark:border-yellow-700/20'
-                        : 'bg-rose-50/90 dark:bg-rose-900/20 border-rose-200/50 dark:border-rose-700/20'
+                    ? 'bg-amber-50/90 dark:bg-yellow-900/20 border-amber-200/50 dark:border-yellow-700/20'
+                    : 'bg-rose-50/90 dark:bg-rose-900/20 border-rose-200/50 dark:border-rose-700/20'
                     }`}
             >
                 <div className="flex-1 flex items-center">
@@ -83,7 +83,7 @@ export function TransparencyDashboard() {
                         <p className="text-4xl font-light text-stone-800 dark:text-stone-100 flex items-baseline gap-2">
                             {audioStats.daysTracking} <span className="text-lg font-normal text-stone-500">días</span>
                         </p>
-                        <p className="text-stone-500 dark:text-stone-400 text-sm leading-relaxed">trabajando en nuestra mejor versión</p>
+                        <p className="text-stone-500 dark:text-stone-400 text-sm leading-relaxed">trabajando en nuestra relación</p>
                     </div>
                 </div>
 

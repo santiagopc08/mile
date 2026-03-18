@@ -48,7 +48,7 @@ export function AudioSection() {
                     Nuestra Banda Sonora
                 </h2>
                 <p className="text-stone-500 dark:text-stone-400 font-light max-w-md mx-auto">
-                    Música que nos acompaña en este proceso de sanación y reconstrucción mutua.
+                    Música que quiero que escuches y pienses en mí, tanto como yo pienso en ti.
                 </p>
             </div>
 
@@ -62,8 +62,8 @@ export function AudioSection() {
                                 key={track.id}
                                 onClick={() => setActiveTrackId(track.id)}
                                 className={`w-full text-left p-4 rounded-2xl transition-all border ${currentTrackId === track.id
-                                        ? 'bg-white dark:bg-stone-900 border-earth-accent shadow-sm'
-                                        : 'bg-transparent border-transparent hover:bg-stone-100 dark:hover:bg-stone-900/50'
+                                    ? 'bg-white dark:bg-stone-900 border-earth-accent shadow-sm'
+                                    : 'bg-transparent border-transparent hover:bg-stone-100 dark:hover:bg-stone-900/50'
                                     }`}
                             >
                                 <div className="flex items-center gap-4">
