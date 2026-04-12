@@ -17,11 +17,11 @@ interface TimelineProps {
 
 export function Timeline({ events }: TimelineProps) {
     return (
-        <div className="relative py-10 w-full">
-            {/* Central Line */}
-            <div className="absolute left-1/2 top-0 bottom-0 w-px bg-stone-200 dark:bg-stone-800 -translate-x-1/2" />
+        <div className="relative py-10 w-full pl-6 md:pl-0">
+            {/* Central Line - Mobile: Left Aligned | Desktop: Centered */}
+            <div className="absolute left-6 md:left-1/2 top-0 bottom-0 w-px bg-stone-200 dark:bg-stone-800 md:-translate-x-1/2" />
 
-            <div className="space-y-24">
+            <div className="space-y-16 md:space-y-24">
                 {events.map((event, index) => {
                     const isLeft = index % 2 === 0;
 
@@ -32,19 +32,19 @@ export function Timeline({ events }: TimelineProps) {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true, margin: "-100px" }}
                             transition={{ duration: 0.6, ease: 'easeOut' }}
-                            className={`relative flex items-center justify-between w-full ${isLeft ? 'flex-row-reverse' : ''
+                            className={`relative flex items-center justify-between w-full md:flex-row flex-col ${isLeft ? 'md:flex-row-reverse' : ''
                                 }`}
                         >
-                            {/* Timeline dot */}
-                            <div className="absolute left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-earth-base dark:bg-earth-soft border-4 border-stone-50 dark:border-stone-950 z-10" />
+                            {/* Timeline dot - Mobile: Left Aligned | Desktop: Centered */}
+                            <div className="absolute left-0 md:left-1/2 -ml-[2px] md:-translate-x-1/2 w-4 h-4 rounded-full bg-earth-base dark:bg-earth-soft border-4 border-stone-50 dark:border-stone-950 z-10 top-6 md:top-auto" />
 
-                            {/* Empty space for opposite side */}
-                            <div className="w-5/12" />
+                            {/* Empty space for opposite side (Desktop Only) */}
+                            <div className="hidden md:block md:w-5/12" />
 
                             {/* Content Card */}
-                            <div className={`w-5/12 ${isLeft ? 'text-right' : 'text-left'}`}>
-                                <div className="p-6 rounded-2xl bg-white dark:bg-stone-900 border border-stone-100 dark:border-stone-800 shadow-sm hover:shadow-md transition-shadow">
-                                    <div className={`flex items-center gap-2 text-sm text-stone-500 dark:text-stone-400 mb-3 ${isLeft ? 'justify-end' : 'justify-start'}`}>
+                            <div className={`w-full pl-8 md:pl-0 md:w-5/12 ${isLeft ? 'md:text-right text-left' : 'text-left'}`}>
+                                <div className="p-5 md:p-6 rounded-2xl bg-white dark:bg-stone-900 border border-stone-100 dark:border-stone-800 shadow-sm hover:shadow-md transition-shadow">
+                                    <div className={`flex items-center gap-2 text-sm text-stone-500 dark:text-stone-400 mb-3 ${isLeft ? 'md:justify-end justify-start' : 'justify-start'}`}>
                                         <Calendar className="w-4 h-4" />
                                         <time>{event.date}</time>
                                     </div>

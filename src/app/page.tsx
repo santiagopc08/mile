@@ -3,7 +3,9 @@
 import { PrivateRoute } from "@/components/PrivateRoute";
 import { Timeline } from "@/components/Timeline";
 import { JarOfNotes } from "@/components/JarOfNotes";
+import { Mahjong } from "@/components/Mahjong";
 import { TransparencyDashboard } from "@/components/TransparencyDashboard";
+import { PersistentListening } from "@/components/PersistentListening";
 import { AudioSection } from "@/components/AudioSection";
 import { useStore } from "@/context/StoreContext";
 
@@ -34,6 +36,16 @@ export default function Home() {
         {/* Jar of Notes Section */}
         <section id="notes" className="min-h-[100dvh] w-full flex flex-col items-center justify-center py-20 relative">
           <JarOfNotes />
+        </section>
+
+        {/* Persistent Listening Section */}
+        <section id="listening" className="min-h-[100dvh] w-full flex flex-col items-center justify-center py-24 relative">
+          <PersistentListening />
+        </section>
+        
+        {/* Memory Match Game Section */}
+        <section id="game" className="min-h-[100dvh] w-full flex items-center justify-center py-20 relative bg-stone-50 dark:bg-stone-950">
+          <Mahjong />
         </section>
 
         {/* Timeline Section */}

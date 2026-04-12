@@ -3,16 +3,17 @@
 import { useState, useEffect } from 'react';
 import { useProfile } from '@/context/ProfileContext';
 import { NotificationBell } from './NotificationBell';
-import { User, LogOut, Home, History, Music, LayoutDashboard, Settings, Heart } from 'lucide-react';
+import { User, LogOut, Home, History, Music, LayoutDashboard, Settings, Heart, Ear, Menu, X, Gamepad2 } from 'lucide-react';
 import Link from 'next/link';
 
 export function NavBar() {
     const { profile, logout, isAuthenticated } = useProfile();
     const [activeSection, setActiveSection] = useState('hero');
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     useEffect(() => {
         const handleScroll = () => {
-            const sections = ['hero', 'dashboard', 'notes', 'timeline', 'audio'];
+            const sections = ['hero', 'dashboard', 'notes', 'listening', 'game', 'timeline', 'audio'];
             let current = 'hero';
 
             for (const section of sections) {
@@ -36,11 +37,13 @@ export function NavBar() {
     if (!isAuthenticated || !profile) return null;
 
     const navLinks = [
-        { name: 'Inicio', id: 'hero', href: '#hero', icon: Home },
-        { name: 'Progreso', id: 'dashboard', href: '#dashboard', icon: LayoutDashboard },
-        { name: 'Tarro', id: 'notes', href: '#notes', icon: Heart },
-        { name: 'Historia', id: 'timeline', href: '#timeline', icon: History },
-        { name: 'Música', id: 'audio', href: '#audio', icon: Music },
+        { name: 'Inicio', id: 'hero', href: '/#hero', icon: Home },
+        { name: 'Progreso', id: 'dashboard', href: '/#dashboard', icon: LayoutDashboard },
+        { name: 'Tarro', id: 'notes', href: '/#notes', icon: Heart },
+        { name: 'Escucha', id: 'listening', href: '/#listening', icon: Ear },
+        { name: 'Juego', id: 'game', href: '/#game', icon: Gamepad2 },
+        { name: 'Historia', id: 'timeline', href: '/#timeline', icon: History },
+        { name: 'Música', id: 'audio', href: '/#audio', icon: Music },
     ];
 
     return (
@@ -55,30 +58,31 @@ export function NavBar() {
                     <span className="text-stone-800 dark:text-stone-200 font-light tracking-widest text-xs uppercase hidden sm:block">Nuestro Espacio</span>
                 </Link>
 
-                {/* Main Nav */}
-                <div className="hidden md:flex items-center gap-1">
+                {/* Main Nav — Icon-only on desktop to prevent overflow */}
+                <div className="hidden md:flex items-center gap-0.5">
                     {navLinks.map((link) => {
                         const isActive = activeSection === link.id;
                         return (
                             <Link
                                 key={link.name}
                                 href={link.href}
-                                className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all text-sm font-medium ${isActive
-                                        ? 'text-earth-dark bg-stone-100 dark:bg-stone-800 scale-105 shadow-sm font-medium'
-                                        : 'text-stone-500 font-light hover:text-earth-dark hover:bg-stone-50 dark:hover:bg-stone-800/50 hover:scale-105'
+                                title={link.name}
+                                className={`relative p-2.5 rounded-xl transition-all ${isActive
+                                    ? 'text-earth-dark dark:text-amber-400 bg-stone-100 dark:bg-stone-800 scale-110 shadow-sm'
+                                    : 'text-stone-400 hover:text-earth-dark hover:bg-stone-50 dark:hover:bg-stone-800/50 hover:scale-110'
                                     }`}
                             >
                                 <link.icon className="w-4 h-4" />
-                                {link.name}
                             </Link>
                         );
                     })}
+                    <div className="h-5 w-px bg-stone-200 dark:bg-stone-700 mx-1" />
                     <Link
                         href="/admin"
-                        className="flex items-center gap-2 px-4 py-2 rounded-xl text-stone-500 hover:text-earth-dark hover:bg-stone-100 dark:hover:bg-stone-800 transition-all text-sm font-light hover:scale-105"
+                        title="Admin"
+                        className="p-2.5 rounded-xl text-stone-400 hover:text-earth-dark hover:bg-stone-100 dark:hover:bg-stone-800 transition-all hover:scale-110"
                     >
                         <Settings className="w-4 h-4" />
-                        Admin
                     </Link>
                 </div>
 
@@ -105,9 +109,50 @@ export function NavBar() {
                         >
                             <LogOut className="w-4 h-4" />
                         </button>
+
+                        <div className="md:hidden h-6 w-px bg-stone-200 dark:bg-stone-800 mx-1" />
+
+                        <button
+                            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                            className="md:hidden p-2 text-stone-500 hover:text-earth-dark transition-colors"
+                        >
+                            {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                        </button>
                     </div>
                 </div>
             </div>
+
+            {/* Mobile Dropdown */}
+            {isMobileMenuOpen && (
+                <div className="md:hidden mt-2 bg-white/95 dark:bg-stone-900/95 backdrop-blur-xl border border-stone-200/50 dark:border-stone-800/50 rounded-2xl p-4 flex flex-col gap-2 shadow-xl w-full">
+                    {navLinks.map((link) => {
+                        const isActive = activeSection === link.id;
+                        return (
+                            <Link
+                                key={link.name}
+                                href={link.href}
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-base font-medium ${isActive
+                                    ? 'text-earth-dark dark:text-amber-400 bg-stone-100 dark:bg-stone-800 shadow-sm'
+                                    : 'text-stone-500 font-light hover:text-earth-dark hover:bg-stone-50 dark:hover:bg-stone-800/50'
+                                    }`}
+                            >
+                                <link.icon className="w-5 h-5" />
+                                {link.name}
+                            </Link>
+                        );
+                    })}
+                    <div className="h-px bg-stone-100 dark:bg-stone-800 my-2 mx-2" />
+                    <Link
+                        href="/admin"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="flex items-center gap-3 px-4 py-3 rounded-xl text-stone-500 hover:text-earth-dark hover:bg-stone-100 dark:hover:bg-stone-800 transition-all text-base font-light"
+                    >
+                        <Settings className="w-5 h-5" />
+                        Admin
+                    </Link>
+                </div>
+            )}
         </nav>
     );
 }

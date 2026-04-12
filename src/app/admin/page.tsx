@@ -13,7 +13,7 @@ export default function AdminPage() {
     const [passwordInput, setPasswordInput] = useState('');
     const [error, setError] = useState('');
 
-    const [activeTab, setActiveTab] = useState<'events' | 'notes' | 'commitments' | 'audio'>('events');
+    const [activeTab, setActiveTab] = useState<'events' | 'notes' | 'commitments' | 'audio' | 'listening'>('events');
     const [editingEventId, setEditingEventId] = useState<string | null>(null);
 
     useEffect(() => {
@@ -133,14 +133,14 @@ export default function AdminPage() {
                     </button>
                 </header>
 
-                <div className="flex border-b border-stone-100 dark:border-stone-800">
-                    {(['events', 'notes', 'commitments', 'audio'] as const).map(tab => (
+                <div className="flex border-b border-stone-100 dark:border-stone-800 overflow-x-auto custom-scrollbar">
+                    {(['events', 'notes', 'commitments', 'audio', 'listening'] as const).map(tab => (
                         <button
                             key={tab}
                             onClick={() => setActiveTab(tab)}
-                            className={`flex-1 py-4 text-sm font-medium uppercase tracking-wider transition-colors ${activeTab === tab ? 'text-earth-base border-b-2 border-earth-base bg-earth-50/10 dark:bg-earth-900/10' : 'text-stone-500 hover:text-stone-700 dark:hover:text-stone-300'}`}
+                            className={`flex-1 py-4 px-4 whitespace-nowrap text-sm font-medium uppercase tracking-wider transition-colors ${activeTab === tab ? 'text-earth-base border-b-2 border-earth-base bg-earth-50/10 dark:bg-earth-900/10' : 'text-stone-500 hover:text-stone-700 dark:hover:text-stone-300'}`}
                         >
-                            {tab === 'events' ? 'Historia' : tab === 'notes' ? 'Tarro' : tab === 'commitments' ? 'Compromisos' : 'Audio'}
+                            {tab === 'events' ? 'Historia' : tab === 'notes' ? 'Tarro' : tab === 'commitments' ? 'Compromisos' : tab === 'audio' ? 'Audio' : 'Escucha'}
                         </button>
                     ))}
                 </div>
@@ -171,6 +171,68 @@ export default function AdminPage() {
                                         <button onClick={() => handleDeleteNote(idx)} className="text-stone-300 group-hover:text-red-400 transition-colors"><Trash2 className="w-5 h-5" /></button>
                                     </li>
                                 ))}
+                            </ul>
+                        </div>
+                    )}
+
+                    {activeTab === 'listening' && (
+                        <div className="space-y-6">
+                            <h2 className="text-xl font-medium text-stone-800 dark:text-stone-200">Escucha Persistente</h2>
+                            <p className="text-sm text-stone-500 mb-4">Registra aquellas cosas tangibles que conversaron y que son importantes para ella (ej. "Me duele cuando no preguntas sobre mis amigas").</p>
+                            <form
+                                onSubmit={async (e) => {
+                                    e.preventDefault();
+                                    const form = e.currentTarget;
+                                    const topic = (form.elements.namedItem('topic') as HTMLInputElement).value;
+                                    const reflection = (form.elements.namedItem('reflection') as HTMLTextAreaElement).value;
+                                    const date = (form.elements.namedItem('date') as HTMLInputElement).value;
+
+                                    if (topic && reflection && date) {
+                                        const newItem = { id: Date.now().toString(), topic, reflection, date };
+                                        await updateData({ persistentListening: [newItem, ...(data.persistentListening || [])] });
+                                        form.reset();
+                                    }
+                                }}
+                                className="bg-stone-50 dark:bg-stone-950 p-6 rounded-2xl space-y-4"
+                            >
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-1">
+                                        <label className="text-xs text-stone-400 uppercase tracking-wider ml-1">Tema Principal</label>
+                                        <input name="topic" required placeholder="Ej: Visita de amigas..." className="w-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl px-4 py-3 shadow-inner" />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-xs text-stone-400 uppercase tracking-wider ml-1">Fecha de la conversación</label>
+                                        <input name="date" type="date" required className="w-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl px-4 py-3 shadow-inner text-stone-500" />
+                                    </div>
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-xs text-stone-400 uppercase tracking-wider ml-1">Tu Refelxión / Compromiso</label>
+                                    <textarea name="reflection" required placeholder="Entiendo que te lastima cuando no muestro interés... me comprometo a..." className="w-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl px-4 py-3 min-h-[100px] shadow-inner" />
+                                </div>
+                                <button type="submit" className="bg-earth-base text-white px-6 py-3 rounded-xl font-medium w-full flex items-center justify-center gap-2 shadow-md hover:bg-earth-dark transition-all active:scale-[0.98]">
+                                    <Save className="w-5 h-5" /> Guardar Reflexión
+                                </button>
+                            </form>
+                            <ul className="space-y-4 pt-4">
+                                {(data.persistentListening || []).map((item: any) => (
+                                    <li key={item.id} className="flex flex-col sm:flex-row sm:items-start justify-between p-5 bg-white dark:bg-stone-900 border border-stone-100 dark:border-stone-800 rounded-2xl group shadow-sm">
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-3 mb-2">
+                                                <p className="font-semibold text-stone-800 dark:text-stone-200 text-lg">{item.topic}</p>
+                                                <span className="text-[10px] bg-earth-50 text-earth-600 dark:bg-stone-800 dark:text-stone-400 px-2.5 py-1 rounded-full">{item.date}</span>
+                                            </div>
+                                            <p className="text-sm text-stone-600 dark:text-stone-400 leading-relaxed bg-stone-50 dark:bg-stone-950 p-3 rounded-xl border border-stone-100 dark:border-stone-800/50 mt-2">{item.reflection}</p>
+                                        </div>
+                                        <div className="flex gap-3 mt-4 sm:mt-0 shrink-0 sm:ml-6 opacity-0 group-hover:opacity-100 transition-opacity self-center">
+                                            <button onClick={async () => {
+                                                await updateData({ persistentListening: data.persistentListening.filter((x: any) => x.id !== item.id) });
+                                            }} className="p-2 text-stone-400 hover:text-red-500 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-lg transition-colors"><Trash2 className="w-5 h-5" /></button>
+                                        </div>
+                                    </li>
+                                ))}
+                                {(!data.persistentListening || data.persistentListening.length === 0) && (
+                                    <p className="text-center text-stone-400 py-10 font-light italic">No hay reflexiones agregadas aún.</p>
+                                )}
                             </ul>
                         </div>
                     )}

@@ -16,20 +16,22 @@ export interface AppData {
         todayTotal: number;
         todayCompleted: number;
     };
+    persistentListening: any[];
 }
 
 // Data Access Abstraction - Now using Supabase
 export const StoreService = {
     async getStore(supabase: SupabaseClient = defaultSupabase): Promise<AppData> {
         try {
-            const [eventsRes, notesRes, commitmentsRes, victoriesRes, settingsRes, playlistRes, commentsRes] = await Promise.all([
+            const [eventsRes, notesRes, commitmentsRes, victoriesRes, settingsRes, playlistRes, commentsRes, listeningRes] = await Promise.all([
                 supabase.from('events').select('*').order('date', { ascending: false }),
                 supabase.from('notes').select('text').order('created_at', { ascending: false }),
                 supabase.from('commitments').select('*').order('created_at', { ascending: true }),
                 supabase.from('victories').select('*').order('created_at', { ascending: false }),
                 supabase.from('app_settings').select('*').eq('id', 1).single(),
                 supabase.from('audio_track').select('*').order('display_order', { ascending: true }),
-                supabase.from('audio_comments').select('*').order('created_at', { ascending: true })
+                supabase.from('audio_comments').select('*').order('created_at', { ascending: true }),
+                supabase.from('persistent_listening').select('*').order('date', { ascending: false })
             ]);
 
             const settings = settingsRes.data || { connection_date: new Date().toISOString(), last_update: new Date().toISOString() };
@@ -105,6 +107,7 @@ export const StoreService = {
                     lastUpdate: formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1)
                 },
                 audioPlaylist,
+                persistentListening: listeningRes.data || [],
                 dailyProgress: {
                     yesterdayTotal,
                     yesterdayCompleted,
@@ -270,6 +273,37 @@ export const StoreService = {
                 if (toDelete.length > 0) await supabase.from('audio_track').delete().in('id', toDelete);
             }
 
+            // Persistent Listening
+            if (newData.persistentListening !== undefined) {
+                const { data: existingRows } = await supabase.from('persistent_listening').select('id');
+                const existingIds = new Set((existingRows || []).map((r: any) => r.id));
+
+                const toUpsert: any[] = [];
+                const toInsert: any[] = [];
+
+                for (const item of newData.persistentListening) {
+                    if (existingIds.has(item.id)) {
+                        toUpsert.push({ id: item.id, topic: item.topic, reflection: item.reflection, date: item.date });
+                    } else {
+                        toInsert.push({ topic: item.topic, reflection: item.reflection, date: item.date });
+
+                        // Notify her about this new registered reflection
+                        await supabase.from('notifications').insert({
+                            target_profile: 'ella',
+                            type: 'escucha',
+                            message: `Él agregó una nueva reflexión a la Escucha Persistente: "${item.topic}".`
+                        });
+                    }
+                }
+
+                const incomingIds = newData.persistentListening.map((item: any) => item.id);
+                const toDelete = (existingRows || []).filter((r: any) => !incomingIds.includes(r.id)).map((r: any) => r.id);
+
+                if (toDelete.length > 0) await supabase.from('persistent_listening').delete().in('id', toDelete);
+                if (toUpsert.length > 0) await supabase.from('persistent_listening').upsert(toUpsert);
+                if (toInsert.length > 0) await supabase.from('persistent_listening').insert(toInsert);
+            }
+
             // Update App Settings
             await supabase.from('app_settings').update({ last_update: new Date().toISOString() }).eq('id', 1);
 
@@ -323,5 +357,60 @@ export const StoreService = {
             type,
             message
         });
+    },
+
+    async saveMahjongScore(
+        profile: 'el' | 'ella',
+        timeSeconds: number,
+        layout: string,
+        tileCount: number,
+        supabase: SupabaseClient = defaultSupabase
+    ): Promise<void> {
+        try {
+            await supabase.from('mahjong_scores').insert({
+                profile,
+                time_seconds: timeSeconds,
+                layout,
+                tile_count: tileCount
+            });
+        } catch (e) {
+            console.error('Failed to save mahjong score:', e);
+        }
+    },
+
+    async getMahjongLeaderboard(supabase: SupabaseClient = defaultSupabase): Promise<{ el: any[]; ella: any[] }> {
+        try {
+            const { data, error } = await supabase
+                .from('mahjong_scores')
+                .select('*')
+                .order('time_seconds', { ascending: true })
+                .limit(20);
+
+            if (error || !data) return { el: [], ella: [] };
+
+            return {
+                el: data.filter(s => s.profile === 'el').slice(0, 5),
+                ella: data.filter(s => s.profile === 'ella').slice(0, 5)
+            };
+        } catch (e) {
+            console.error('Failed to fetch mahjong leaderboard:', e);
+            return { el: [], ella: [] };
+        }
+    },
+
+    async getMahjongImages(supabase: SupabaseClient = defaultSupabase): Promise<string[]> {
+        // Initially pulls from the existing 'events' table which holds the timeline images.
+        // We do this instead of storage.list() because the events table has proper RLS configured and guarantees we get the valid images.
+        try {
+            const { data, error } = await supabase.from('events').select('image_url').not('image_url', 'is', null);
+            if (error || !data) return [];
+            
+            return data
+                .map(e => e.image_url)
+                .filter(url => url && typeof url === 'string' && url.trim() !== '');
+        } catch (e) {
+            console.error('Failed fetching mahjong images from events table:', e);
+            return [];
+        }
     }
 };
