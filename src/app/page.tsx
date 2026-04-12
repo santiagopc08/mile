@@ -44,7 +44,7 @@ export default function Home() {
         </section>
         
         {/* Memory Match Game Section */}
-        <section id="game" className="min-h-[100dvh] w-full flex items-center justify-center py-20 relative bg-stone-50 dark:bg-stone-950">
+        <section id="game" className="min-h-[100dvh] w-full flex items-center justify-center py-20 relative bg-stone-50 dark:bg-stone-950 px-0 md:px-0 -mx-6 w-[calc(100%+3rem)] md:mx-0 md:w-full">
           <Mahjong />
         </section>
 

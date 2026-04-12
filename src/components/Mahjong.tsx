@@ -415,9 +415,9 @@ export function Mahjong() {
     // Helper to compute tile position
     const getTilePosition = (tile: TileState) => {
         const pxShift = tile.z * -6;
-        const spacingX = isMobile ? 1.25 : 2;
-        const spacingY = isMobile ? 1.5 : 2.2;
-        const halfWidth = isMobile ? 1.3 : 1.75;
+        const spacingX = isMobile ? 1.5 : 2;
+        const spacingY = isMobile ? 1.8 : 2.2;
+        const halfWidth = isMobile ? 1.6 : 1.75;
 
         const xRem = (tile.x - (isMobile ? 5 : 9)) * spacingX; 
         const yRem = tile.y * spacingY;
@@ -444,7 +444,7 @@ export function Mahjong() {
         <div className="w-full flex justify-center items-center flex-col py-8 md:py-12 relative overflow-hidden bg-stone-50 dark:bg-stone-950">
             
             {/* Header */}
-            <div className="w-full max-w-5xl px-4 md:px-6 flex flex-col md:flex-row justify-between items-center gap-4 mb-8 relative z-10">
+            <div className="w-full max-w-5xl px-6 md:px-6 flex flex-col md:flex-row justify-between items-center gap-4 mb-8 relative z-10">
                 <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6">
                     <div className="space-y-1 text-center md:text-left">
                         <h2 className="text-2xl md:text-3xl font-light text-stone-800 dark:text-stone-200">Mahjong<span className="text-earth-base italic font-medium">Vita</span></h2>
@@ -559,8 +559,8 @@ export function Mahjong() {
                 <style dangerouslySetInnerHTML={{__html: `
                     @media (max-width: 768px) {
                         .tile-item {
-                            width: 2.6rem;
-                            height: 3.2rem;
+                            width: 3.2rem;
+                            height: 4.0rem;
                         }
                     }
                     @media (min-width: 769px) {
@@ -617,7 +617,7 @@ export function Mahjong() {
                                     // eslint-disable-next-line @next/next/no-img-element
                                     <img src={tile.content.value} alt="Memory" className="w-full h-full object-cover p-0.5 rounded-md select-none pointer-events-none" />
                                 ) : (
-                                    <span className={`text-xl md:text-2xl leading-none select-none pointer-events-none ${tile.content.value === '🀄' || tile.content.value === '🀆' ? 'text-red-500' : 'text-stone-800 dark:text-stone-300'}`}>
+                                    <span className={`text-5xl md:text-2xl leading-none select-none pointer-events-none ${tile.content.value === '🀄' || tile.content.value === '🀆' ? 'text-red-500' : 'text-stone-800 dark:text-stone-300'}`}>
                                         {tile.content.value}
                                     </span>
                                 )}
