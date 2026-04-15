@@ -399,17 +399,23 @@ export const StoreService = {
     },
 
     async getMahjongImages(supabase: SupabaseClient = defaultSupabase): Promise<string[]> {
-        // Initially pulls from the existing 'events' table which holds the timeline images.
-        // We do this instead of storage.list() because the events table has proper RLS configured and guarantees we get the valid images.
+        // Pulls both from the existing 'events' table and the new local /img folders via API
         try {
-            const { data, error } = await supabase.from('events').select('image_url').not('image_url', 'is', null);
-            if (error || !data) return [];
+            const [eventsRes, localRes] = await Promise.all([
+                supabase.from('events').select('image_url').not('image_url', 'is', null),
+                fetch('/api/mahjong-images').then(r => r.json()).catch(() => [])
+            ]);
             
-            return data
+            const eventData = eventsRes.data || [];
+            const eventImgs = eventData
                 .map(e => e.image_url)
                 .filter(url => url && typeof url === 'string' && url.trim() !== '');
+
+            const localImgs = Array.isArray(localRes) ? localRes : [];
+
+            return [...eventImgs, ...localImgs];
         } catch (e) {
-            console.error('Failed fetching mahjong images from events table:', e);
+            console.error('Failed fetching mahjong images:', e);
             return [];
         }
     }

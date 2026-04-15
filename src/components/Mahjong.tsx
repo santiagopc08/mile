@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { StoreService } from '@/services/storeService';
 import { useProfile } from '@/context/ProfileContext';
-import { Undo2, Shuffle, Trophy, Clock } from 'lucide-react';
+import { Undo2, Trophy, Clock, RotateCcw, Lightbulb } from 'lucide-react';
 
 // Standard Mahjong unicode characters
 const MAHJONG_UNICODE = [
@@ -27,6 +27,7 @@ interface TileState {
     content: TileContent;
     isMatched: boolean;
     isSelected: boolean;
+    isHinted?: boolean;
 }
 
 // Shatter fragment data — pre-computed to avoid hydration mismatches
@@ -39,21 +40,19 @@ interface ShatterFragment {
 }
 
 function createShatterFragments(): ShatterFragment[] {
-    const clips = [
-        'polygon(0% 0%, 50% 30%, 0% 60%)',
-        'polygon(50% 30%, 100% 0%, 100% 50%)',
-        'polygon(0% 60%, 50% 30%, 50% 100%)',
-        'polygon(50% 30%, 100% 50%, 50% 100%)',
-        'polygon(0% 0%, 50% 30%, 100% 0%)',
-        'polygon(0% 60%, 50% 100%, 100% 50%, 50% 30%)',
-    ];
-    return clips.map((clipPath, i) => ({
-        id: i,
-        dx: (Math.random() - 0.5) * 200,
-        dy: (Math.random() - 0.5) * 200,
-        rot: Math.random() * 360 - 180,
-        clipPath,
-    }));
+    const numFragments = 12;
+    return Array.from({ length: numFragments }).map((_, i) => {
+        const angle = (i * (360 / numFragments)) * (Math.PI / 180);
+        const powerX = (150 + Math.random() * 250) * Math.cos(angle);
+        const powerY = (150 + Math.random() * 250) * Math.sin(angle);
+        return {
+            id: i,
+            dx: powerX,
+            dy: powerY,
+            rot: Math.random() * 1080 - 540,
+            clipPath: `polygon(50% 50%, ${50 + Math.cos(angle - 0.3) * 70}% ${50 + Math.sin(angle - 0.3) * 70}%, ${50 + Math.cos(angle + 0.3) * 70}% ${50 + Math.sin(angle + 0.3) * 70}%)`
+        };
+    });
 }
 
 type LayoutType = 'turtle' | 'fortress' | 'peaks' | 'mobile' | 'random';
@@ -68,13 +67,13 @@ const LAYOUT_INFO: Record<LayoutType, { name: string; description: string; tiles
 
 function generateCoordinates(type: LayoutType, isMobile: boolean = false) {
     const coords: { x: number, y: number, z: number }[] = [];
-    
+
     if (type === 'random' || (isMobile && type !== 'mobile')) {
         const target = isMobile ? 72 : 144;
         const maxLayers = isMobile ? 3 : 5;
         const width = isMobile ? 12 : 20;
         const height = isMobile ? 14 : 16;
-        
+
         // Base Layer (Fill ~60% of target)
         for (let x = 0; x < width; x += 2) {
             for (let y = 0; y < height; y += 2) {
@@ -83,7 +82,7 @@ function generateCoordinates(type: LayoutType, isMobile: boolean = false) {
                 }
             }
         }
-        
+
         // Higher Layers (Build only on top of existing support)
         for (let z = 1; z < maxLayers; z++) {
             const potential = coords.filter(c => c.z === z - 1);
@@ -94,7 +93,7 @@ function generateCoordinates(type: LayoutType, isMobile: boolean = false) {
                 }
             });
         }
-        
+
         // Safety-capped fill
         let fillIdx = 0;
         let safety = 0;
@@ -107,7 +106,7 @@ function generateCoordinates(type: LayoutType, isMobile: boolean = false) {
             fillIdx++;
             safety++;
         }
-        
+
         return coords.slice(0, target);
     }
 
@@ -142,15 +141,39 @@ function generateCoordinates(type: LayoutType, isMobile: boolean = false) {
         coords.push({ x: 4 + offset, y: 6, z: 2 });
         for (let x = 4; x <= 14; x += 2) for (let y = 0; y <= 14; y += 2) {
             if (coords.length < 144) {
-               const exists = coords.some(c => c.x === x && c.y === y && c.z === 0);
-               if (!exists) coords.push({ x, y, z: 0 });
+                const exists = coords.some(c => c.x === x && c.y === y && c.z === 0);
+                if (!exists) coords.push({ x, y, z: 0 });
             }
         }
-        let i = 0;
-        while (coords.length < 144) { coords.push({ x: 2 + (i % 8) * 2, y: 0, z: 1 }); i++; }
+        // Fill remaining slots without duplicates
+        let fillI = 0;
+        const fillPositions = [];
+        for (let fx = 0; fx <= 20; fx += 2) {
+            for (let fy = 0; fy <= 14; fy += 2) {
+                for (let fz = 0; fz <= 2; fz++) {
+                    fillPositions.push({ x: fx, y: fy, z: fz });
+                }
+            }
+        }
+        while (coords.length < 144 && fillI < fillPositions.length) {
+            const fp = fillPositions[fillI];
+            const exists = coords.some(c => c.x === fp.x && c.y === fp.y && c.z === fp.z);
+            if (!exists) coords.push(fp);
+            fillI++;
+        }
     }
-    
-    return coords.slice(0, isMobile ? 72 : 144); 
+
+    // Deduplicate coordinates (safety net for all layouts)
+    const seen = new Set<string>();
+    const deduped = coords.filter(c => {
+        const key = `${c.x},${c.y},${c.z}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+    });
+
+    const target = isMobile ? 72 : 144;
+    return deduped.slice(0, target);
 }
 
 // Fisher-Yates array shuffle
@@ -170,6 +193,88 @@ interface LeaderboardEntry {
     created_at: string;
 }
 
+// Checks if a tile is "free" using the same rules as the gameplay isTileFree.
+// A tile is free if: (1) nothing sits on top of it, and (2) it's not blocked on BOTH left AND right.
+function isSlotFree(
+    target: { x: number; y: number; z: number },
+    others: { x: number; y: number; z: number }[]
+): boolean {
+    // Top check
+    const topBlocked = others.some(n =>
+        n.z - target.z === 1 &&
+        Math.abs(n.x - target.x) < 2 &&
+        Math.abs(n.y - target.y) < 2
+    );
+    if (topBlocked) return false;
+
+    // Lateral check
+    const sameRow = others.filter(n => n.z === target.z && Math.abs(n.y - target.y) < 2);
+    const hasLeft = sameRow.some(n => target.x - 2 <= n.x && n.x < target.x);
+    const hasRight = sameRow.some(n => target.x < n.x && n.x <= target.x + 2);
+    if (hasLeft && hasRight) return false;
+
+    return true;
+}
+
+function generateSolvableBoard(rawCoords: { x: number; y: number; z: number }[], pairs: TileContent[]): TileState[] | null {
+    const coords = rawCoords.map((c, i) => ({ ...c, id: `tile_${i}` }));
+
+    for (let attempt = 0; attempt < 100; attempt++) {
+        const pool = coords.map(c => ({ ...c }));
+        const availablePairs = shuffleArray([...pairs]);
+        const assignments = new Map<string, TileContent>();
+        let deadlock = false;
+
+        while (pool.length > 0) {
+            // Find free tiles — exclude each candidate from the "others" list
+            const freeSlots = pool.filter((target, _idx) => {
+                const others = pool.filter(o => o.id !== target.id);
+                return isSlotFree(target, others);
+            });
+
+            if (freeSlots.length < 2) {
+                deadlock = true;
+                break;
+            }
+
+            // Pick 2 distinct random free slots
+            const i1 = Math.floor(Math.random() * freeSlots.length);
+            let i2 = Math.floor(Math.random() * (freeSlots.length - 1));
+            if (i2 >= i1) i2++;
+
+            const slot1 = freeSlots[i1];
+            const slot2 = freeSlots[i2];
+
+            const pair = availablePairs.pop();
+            if (!pair) { deadlock = true; break; }
+
+            assignments.set(slot1.id, pair);
+            assignments.set(slot2.id, pair);
+
+            // Remove both from the pool
+            for (let r = pool.length - 1; r >= 0; r--) {
+                if (pool[r].id === slot1.id || pool[r].id === slot2.id) {
+                    pool.splice(r, 1);
+                }
+            }
+        }
+
+        if (!deadlock && pool.length === 0) {
+            return coords.map(c => ({
+                id: c.id,
+                x: c.x,
+                y: c.y,
+                z: c.z,
+                content: assignments.get(c.id)!,
+                isMatched: false,
+                isSelected: false,
+                isHinted: false
+            }));
+        }
+    }
+    return null;
+}
+
 export function Mahjong() {
     const { profile } = useProfile();
     const [tiles, setTiles] = useState<TileState[]>([]);
@@ -178,7 +283,8 @@ export function Mahjong() {
     const [isLoaded, setIsLoaded] = useState(false);
     const [matchedCount, setMatchedCount] = useState(0);
     const [isMobile, setIsMobile] = useState(false);
-    
+    const [initialDeal, setInitialDeal] = useState<TileState[] | null>(null);
+
     // Timer state
     const [time, setTime] = useState(0);
     const [timerActive, setTimerActive] = useState(false);
@@ -189,6 +295,7 @@ export function Mahjong() {
 
     // Shatter state: tiles waiting for shatter animation before removal
     const [shatteringTiles, setShatteringTiles] = useState<Map<string, { tile: TileState; fragments: ShatterFragment[] }>>(new Map());
+    const [isNewRecord, setIsNewRecord] = useState(false);
 
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -199,7 +306,7 @@ export function Mahjong() {
 
     // Load leaderboard on mount
     useEffect(() => {
-        StoreService.getMahjongLeaderboard().then(setLeaderboard).catch(() => {});
+        StoreService.getMahjongLeaderboard().then(setLeaderboard).catch(() => { });
     }, []);
 
     useEffect(() => {
@@ -216,6 +323,13 @@ export function Mahjong() {
     useEffect(() => {
         if (matchedCount === tiles.length && tiles.length > 0 && timerActive) {
             setTimerActive(false);
+
+            // Check best time
+            const pKey = profile as 'el' | 'ella';
+            const bestScores = leaderboard[pKey] || [];
+            const isRecord = bestScores.length === 0 || time < bestScores[0].time_seconds;
+            setIsNewRecord(isRecord);
+
             // Save to DB
             if (profile && !scoreSaved) {
                 setScoreSaved(true);
@@ -225,7 +339,7 @@ export function Mahjong() {
                     currentLayout,
                     tiles.length
                 ).then(() => {
-                    StoreService.getMahjongLeaderboard().then(setLeaderboard).catch(() => {});
+                    StoreService.getMahjongLeaderboard().then(setLeaderboard).catch(() => { });
                 });
             }
         }
@@ -240,7 +354,7 @@ export function Mahjong() {
     const initializeGame = async () => {
         const mobileState = window.innerWidth <= 768;
         const imageUrls = await StoreService.getMahjongImages();
-        
+
         let selectedLayout: LayoutType;
         if (mobileState) {
             selectedLayout = 'mobile';
@@ -263,26 +377,33 @@ export function Mahjong() {
             emojiIdx++;
         }
 
-        const fullDeck = [...pairs, ...pairs];
-        const shuffledDeck = shuffleArray(fullDeck);
         const rawCoords = generateCoordinates(selectedLayout, mobileState);
 
-        const initialTiles: TileState[] = rawCoords.map((coord, idx) => ({
-            id: `tile_${idx}`,
-            x: coord.x,
-            y: coord.y,
-            z: coord.z,
-            content: shuffledDeck[idx],
-            isMatched: false,
-            isSelected: false
-        }));
+        let initialTiles = generateSolvableBoard(rawCoords, pairs);
 
+        if (!initialTiles) {
+            console.warn("Deadlock simulation hit 50 limit. Falling back to random shuffle.");
+            const fullDeck = shuffleArray([...pairs, ...pairs]);
+            initialTiles = rawCoords.map((coord, idx) => ({
+                id: `tile_${idx}`,
+                x: coord.x,
+                y: coord.y,
+                z: coord.z,
+                content: fullDeck[idx],
+                isMatched: false,
+                isSelected: false,
+                isHinted: false
+            }));
+        }
+
+        setInitialDeal(initialTiles);
         setTiles(initialTiles);
         setMatchedCount(0);
         setUndoStack([]);
         setTime(0);
         setTimerActive(false);
         setScoreSaved(false);
+        setIsNewRecord(false);
         setShatteringTiles(new Map());
         setIsLoaded(true);
     };
@@ -291,7 +412,7 @@ export function Mahjong() {
         if (!isLoaded) {
             initializeGame();
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoaded]);
 
     const isTileFree = (targetId: string, currentTiles: TileState[] = tiles) => {
@@ -301,9 +422,9 @@ export function Mahjong() {
         const unmatchedTiles = currentTiles.filter(t => !t.isMatched && t.id !== targetId);
 
         // Top Check (Z-Axis)
-        const isTopCovered = unmatchedTiles.some(n => 
-            n.z - T.z === 1 && 
-            Math.abs(n.x - T.x) < 2 && 
+        const isTopCovered = unmatchedTiles.some(n =>
+            n.z - T.z === 1 &&
+            Math.abs(n.x - T.x) < 2 &&
             Math.abs(n.y - T.y) < 2
         );
 
@@ -338,7 +459,7 @@ export function Mahjong() {
 
     const handleTileClick = (id: string) => {
         if (!isTileFree(id)) return;
-        
+
         if (!timerActive && matchedCount < tiles.length) {
             setTimerActive(true);
         }
@@ -353,14 +474,14 @@ export function Mahjong() {
 
         if (selectedTile) {
             const clickedTile = tiles.find(t => t.id === clickedId)!;
-            
+
             if (selectedTile.content.value === clickedTile.content.value) {
                 setUndoStack(us => [...us, [selectedTile.id, clickedTile.id]]);
                 setMatchedCount(mc => mc + 2);
-                
+
                 // Trigger the shatter animation
                 triggerShatter(selectedTile, clickedTile);
-                
+
                 setTiles(prev => prev.map(t => {
                     if (t.id === selectedTile.id || t.id === clickedTile.id) {
                         return { ...t, isMatched: true, isSelected: false };
@@ -379,26 +500,60 @@ export function Mahjong() {
         }
     };
 
-    const handleSmartShuffle = () => {
-        setTiles(prev => {
-            const unmatched = prev.filter(t => !t.isMatched);
-            const contents = unmatched.map(t => t.content);
-            const shuffled = shuffleArray(contents);
-            
-            let matchedIdx = 0;
-            return prev.map(t => {
-                if (!t.isMatched) {
-                    const newContent = shuffled[matchedIdx++];
-                    return { ...t, content: newContent, isSelected: false };
+    const handleRestart = () => {
+        if (initialDeal) {
+            setTiles([...initialDeal]);
+            setMatchedCount(0);
+            setUndoStack([]);
+            setTime(0);
+            setTimerActive(false);
+            setScoreSaved(false);
+            setIsNewRecord(false);
+            setShatteringTiles(new Map());
+        }
+    };
+
+    const handleHint = () => {
+        const unmatched = tiles.filter(t => !t.isMatched);
+        const freeUnmatched = unmatched.filter(t => isTileFree(t.id, tiles));
+
+        const groups = new Map<string, TileState[]>();
+        for (const t of freeUnmatched) {
+            const key = t.content.value;
+            if (!groups.has(key)) groups.set(key, []);
+            groups.get(key)!.push(t);
+        }
+
+        let hintFound: TileState[] | null = null;
+        for (const [_, group] of Array.from(groups.entries())) {
+            if (group.length >= 2) {
+                hintFound = [group[0], group[1]];
+                break;
+            }
+        }
+
+        if (hintFound) {
+            setTiles(prev => prev.map(t => {
+                if (hintFound![0].id === t.id || hintFound![1].id === t.id) {
+                    return { ...t, isHinted: true };
                 }
                 return t;
-            });
-        });
+            }));
+
+            setTimeout(() => {
+                setTiles(prev => prev.map(t => {
+                    if (hintFound![0].id === t.id || hintFound![1].id === t.id) {
+                        return { ...t, isHinted: false };
+                    }
+                    return t;
+                }));
+            }, 1500);
+        }
     };
 
     const handleUndo = () => {
         if (undoStack.length === 0) return;
-        
+
         const stackCopy = [...undoStack];
         const [id1, id2] = stackCopy.pop()!;
         setUndoStack(stackCopy);
@@ -419,9 +574,9 @@ export function Mahjong() {
         const spacingY = isMobile ? 1.8 : 2.2;
         const halfWidth = isMobile ? 1.6 : 1.75;
 
-        const xRem = (tile.x - (isMobile ? 5 : 9)) * spacingX; 
+        const xRem = (tile.x - (isMobile ? 5 : 9)) * spacingX;
         const yRem = tile.y * spacingY;
-        
+
         return {
             left: `calc(50% - ${halfWidth}rem + ${xRem}rem + ${pxShift}px)`,
             top: `calc(${yRem}rem + ${pxShift}px)`,
@@ -435,14 +590,14 @@ export function Mahjong() {
     };
 
     if (!isLoaded) {
-        return <div className="min-h-screen flex items-center justify-center pt-20"><div className="animate-pulse flex flex-col items-center gap-4"><div className="w-12 h-12 rounded-full border-4 border-earth-base border-t-transparent animate-spin"/></div></div>;
+        return <div className="min-h-screen flex items-center justify-center pt-20"><div className="animate-pulse flex flex-col items-center gap-4"><div className="w-12 h-12 rounded-full border-4 border-earth-base border-t-transparent animate-spin" /></div></div>;
     }
 
     const gameWon = matchedCount > 0 && matchedCount === tiles.length;
 
     return (
         <div className="w-full flex justify-center items-center flex-col py-8 md:py-12 relative overflow-hidden bg-stone-50 dark:bg-stone-950">
-            
+
             {/* Header */}
             <div className="w-full max-w-5xl px-6 md:px-6 flex flex-col md:flex-row justify-between items-center gap-4 mb-8 relative z-10">
                 <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6">
@@ -452,7 +607,7 @@ export function Mahjong() {
                             {LAYOUT_INFO[currentLayout].name}
                         </span>
                     </div>
-                    
+
                     {/* Timer + Best Times */}
                     <div className="flex items-center gap-4">
                         <div className="flex flex-col items-center">
@@ -479,25 +634,31 @@ export function Mahjong() {
                     </div>
                 </div>
                 <div className="flex gap-3 md:gap-4 w-full md:w-auto justify-center">
-                    <button 
-                        onClick={handleUndo} 
+                    <button
+                        onClick={handleUndo}
                         disabled={undoStack.length === 0}
                         className="flex-1 md:flex-none px-3 md:px-4 py-2 rounded-xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-stone-600 dark:text-stone-300 shadow-sm disabled:opacity-40 hover:scale-105 transition-transform active:scale-95 flex items-center justify-center gap-2 text-xs md:text-sm"
                     >
                         <Undo2 className="w-3 md:w-4 h-3 md:h-4" /> Deshacer
                     </button>
-                    <button 
-                        onClick={handleSmartShuffle}
+                    <button
+                        onClick={handleHint}
+                        className="flex-1 md:flex-none px-3 md:px-4 py-2 rounded-xl bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 text-amber-600 dark:text-amber-400 shadow-sm hover:scale-105 transition-transform active:scale-95 flex items-center justify-center gap-2 text-xs md:text-sm"
+                    >
+                        <Lightbulb className="w-3 md:w-4 h-3 md:h-4" /> Pista
+                    </button>
+                    <button
+                        onClick={handleRestart}
                         className="flex-1 md:flex-none px-3 md:px-4 py-2 rounded-xl bg-earth-base text-white shadow-md shadow-earth-base/20 hover:scale-105 transition-transform active:scale-95 flex items-center justify-center gap-2 text-xs md:text-sm"
                     >
-                        <Shuffle className="w-3 md:w-4 h-3 md:h-4" /> Barajar
+                        <RotateCcw className="w-3 md:w-4 h-3 md:h-4" /> Reiniciar
                     </button>
                 </div>
             </div>
 
             {/* Victory Overlay */}
             {gameWon && (
-                <motion.div 
+                <motion.div
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     className="absolute z-50 top-1/4 left-1/2 -translate-x-1/2 bg-white/95 dark:bg-stone-900/95 backdrop-blur-xl px-8 md:px-12 py-10 md:py-12 rounded-[2.5rem] border border-stone-200 dark:border-stone-800 shadow-2xl flex flex-col items-center max-w-md w-[90%]"
@@ -507,7 +668,18 @@ export function Mahjong() {
                     </div>
                     <h3 className="text-3xl md:text-4xl font-serif italic text-earth-base mb-2">¡Triunfo!</h3>
                     <p className="text-stone-500 font-light mb-6 text-center text-sm">Has liberado todas nuestras memorias.</p>
-                    
+
+                    {isNewRecord && (
+                        <motion.div
+                            initial={{ scale: 0.8, opacity: 0 }}
+                            animate={{ scale: [1, 1.05, 1], opacity: 1 }}
+                            transition={{ repeat: Infinity, duration: 1.5 }}
+                            className="bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-400 px-6 py-2 rounded-full font-bold text-sm mb-4 border border-amber-300 dark:border-amber-700 shadow-lg shadow-amber-300/20"
+                        >
+                            🎉 ¡NUEVO RÉCORD! 🎉
+                        </motion.div>
+                    )}
+
                     {/* Current game score */}
                     <div className="bg-stone-50 dark:bg-stone-800 rounded-2xl p-4 w-full mb-6">
                         <div className="text-center">
@@ -556,7 +728,8 @@ export function Mahjong() {
 
             {/* Board Container */}
             <div className="relative w-full max-w-[800px] h-[700px] md:h-[600px] flex justify-center">
-                <style dangerouslySetInnerHTML={{__html: `
+                <style dangerouslySetInnerHTML={{
+                    __html: `
                     @media (max-width: 768px) {
                         .tile-item {
                             width: 3.2rem;
@@ -570,7 +743,7 @@ export function Mahjong() {
                         }
                     }
                 `}} />
-                
+
                 {/* Main Tiles */}
                 <AnimatePresence>
                     {tiles.map(tile => {
@@ -579,15 +752,15 @@ export function Mahjong() {
                         const isFree = isTileFree(tile.id);
                         const pos = getTilePosition(tile);
                         const vOffset = tile.isSelected ? -8 : 0;
-                        
+
                         return (
                             <motion.div
                                 key={tile.id}
                                 layoutId={tile.id}
                                 initial={{ opacity: 0, scale: 0.5 }}
                                 animate={{ opacity: 1, scale: 1 }}
-                                exit={{ 
-                                    opacity: 0, 
+                                exit={{
+                                    opacity: 0,
                                     scale: 1.3,
                                     transition: { duration: 0.3 }
                                 }}
@@ -601,12 +774,14 @@ export function Mahjong() {
                                 className={`
                                     tile-item rounded-lg flex items-center justify-center overflow-hidden
                                     transition-all duration-300 shadow-md relative
-                                    ${isFree 
-                                        ? 'cursor-pointer hover:brightness-110 active:scale-95 dark:border-stone-600' 
+                                    ${isFree
+                                        ? 'cursor-pointer hover:brightness-110 active:scale-95 dark:border-stone-600'
                                         : 'brightness-50 dark:brightness-[0.35] grayscale-[0.8] cursor-not-allowed opacity-60 dark:opacity-40'}
-                                    ${tile.isSelected 
-                                        ? 'bg-amber-100 dark:bg-amber-900/80 ring-2 ring-earth-base shadow-xl shadow-earth-base/20' 
-                                        : 'bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 border-r-[3px] border-b-[4px]'}
+                                    ${tile.isHinted
+                                        ? 'bg-amber-50 dark:bg-amber-900/60 ring-[5px] ring-amber-400 dark:ring-amber-500 shadow-amber-400/50 shadow-2xl z-50 animate-pulse'
+                                        : tile.isSelected
+                                            ? 'bg-amber-100 dark:bg-amber-900/80 ring-2 ring-earth-base shadow-xl shadow-earth-base/20'
+                                            : 'bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 border-r-[3px] border-b-[4px]'}
                                 `}
                             >
                                 {tile.isSelected && (
@@ -617,9 +792,9 @@ export function Mahjong() {
                                     // eslint-disable-next-line @next/next/no-img-element
                                     <img src={tile.content.value} alt="Memory" className="w-full h-full object-cover p-0.5 rounded-md select-none pointer-events-none" />
                                 ) : (
-                                    <span className={`text-5xl md:text-2xl leading-none select-none pointer-events-none ${tile.content.value === '🀄' || tile.content.value === '🀆' ? 'text-red-500' : 'text-stone-800 dark:text-stone-300'}`}>
+                                    <div className={`w-full h-full flex items-center justify-center text-[clamp(2.5rem,10vmin,4.5rem)] leading-none select-none pointer-events-none ${tile.content.value === '🀄' || tile.content.value === '🀆' ? 'text-red-500' : 'text-stone-800 dark:text-stone-300'}`}>
                                         {tile.content.value}
-                                    </span>
+                                    </div>
                                 )}
                             </motion.div>
                         );
@@ -667,7 +842,7 @@ export function Mahjong() {
                     );
                 })}
             </div>
-            
+
         </div>
     );
 }
