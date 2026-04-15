@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { StoreProvider } from "@/context/StoreContext";
@@ -7,9 +7,22 @@ import { NavBar } from "@/components/NavBar";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
+export const viewport: Viewport = {
+  themeColor: "#f5f5f4", // matches stone-50 background
+};
+
 export const metadata: Metadata = {
   title: "A Safe Space",
   description: "A private journal and track record.",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "A Safe Space",
+  },
+  formatDetection: {
+    telephone: false,
+  },
 };
 
 export default function RootLayout({
