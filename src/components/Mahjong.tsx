@@ -40,17 +40,16 @@ interface ShatterFragment {
 }
 
 function createShatterFragments(): ShatterFragment[] {
-    const numFragments = 12;
+    const numFragments = 16;
     return Array.from({ length: numFragments }).map((_, i) => {
-        const angle = (i * (360 / numFragments)) * (Math.PI / 180);
-        const powerX = (150 + Math.random() * 250) * Math.cos(angle);
-        const powerY = (150 + Math.random() * 250) * Math.sin(angle);
+        const angle = (i * (360 / numFragments) + (Math.random() * 10 - 5)) * (Math.PI / 180);
+        const power = 100 + Math.random() * 200;
         return {
             id: i,
-            dx: powerX,
-            dy: powerY,
-            rot: Math.random() * 1080 - 540,
-            clipPath: `polygon(50% 50%, ${50 + Math.cos(angle - 0.3) * 70}% ${50 + Math.sin(angle - 0.3) * 70}%, ${50 + Math.cos(angle + 0.3) * 70}% ${50 + Math.sin(angle + 0.3) * 70}%)`
+            dx: power * Math.cos(angle),
+            dy: power * Math.sin(angle),
+            rot: Math.random() * 720 - 360,
+            clipPath: `polygon(50% 50%, ${50 + Math.cos(angle - 0.35) * 75}% ${50 + Math.sin(angle - 0.35) * 75}%, ${50 + Math.cos(angle + 0.35) * 75}% ${50 + Math.sin(angle + 0.35) * 75}%)`
         };
     });
 }
@@ -298,7 +297,7 @@ export function Mahjong() {
     const [scoreSaved, setScoreSaved] = useState(false);
 
     // Shatter state: tiles waiting for shatter animation before removal
-    const [shatteringTiles, setShatteringTiles] = useState<Map<string, { tile: TileState; fragments: ShatterFragment[] }>>(new Map());
+    const [shatteringTiles, setShatteringTiles] = useState<Map<string, { tile: TileState; fragments: ShatterFragment[]; dockIndex?: number }>>(new Map());
     const [isNewRecord, setIsNewRecord] = useState(false);
 
     useEffect(() => {
@@ -446,11 +445,21 @@ export function Mahjong() {
         return true;
     };
 
-    const triggerShatter = useCallback((tile1: TileState, tile2: TileState) => {
-        const newMap = new Map(shatteringTiles);
-        newMap.set(tile1.id, { tile: tile1, fragments: createShatterFragments() });
-        newMap.set(tile2.id, { tile: tile2, fragments: createShatterFragments() });
-        setShatteringTiles(newMap);
+    const triggerShatter = useCallback((tile1: TileState, tile2: TileState, dockIndex?: number) => {
+        setShatteringTiles(prev => {
+            const next = new Map(prev);
+            // We mark which tile was in the dock to render the shatter there
+            next.set(tile1.id, { 
+                tile: tile1, 
+                fragments: createShatterFragments(),
+                dockIndex: dockIndex // If provided, shatter appears in tray
+            });
+            next.set(tile2.id, { 
+                tile: tile2, 
+                fragments: createShatterFragments() 
+            });
+            return next;
+        });
 
         // Remove shatter fragments after animation completes
         setTimeout(() => {
@@ -460,8 +469,8 @@ export function Mahjong() {
                 next.delete(tile2.id);
                 return next;
             });
-        }, 600);
-    }, [shatteringTiles]);
+        }, 1200);
+    }, []);
 
     const handleTileClick = (id: string) => {
         if (gameLost || !isTileFree(id) || dockIds.includes(id) || tiles.find(t => t.id === id)?.isMatched) return;
@@ -480,14 +489,16 @@ export function Mahjong() {
 
         if (matchingDockId) {
             const matchingDockTile = tiles.find(t => t.id === matchingDockId)!;
+            const dockIndex = dockIds.indexOf(matchingDockId);
+            
             setUndoStack(us => [...us, [matchingDockTile.id, clickedTile.id]]);
             setMatchedCount(mc => mc + 2);
 
             // Remove from dock
             setDockIds(prev => prev.filter(did => did !== matchingDockId));
 
-            // Trigger shatter
-            triggerShatter(matchingDockTile, clickedTile);
+            // Trigger shatter (passing tray index for the docked tile)
+            triggerShatter(matchingDockTile, clickedTile, dockIndex);
 
             setTiles(prev => prev.map(t => {
                 if (t.id === matchingDockTile.id || t.id === clickedTile.id) {
@@ -624,7 +635,7 @@ export function Mahjong() {
             // eslint-disable-next-line @next/next/no-img-element
             <img src={tile.content.value} alt="Memory" className="w-full h-full object-cover p-0.5 rounded-md select-none pointer-events-none" />
         ) : (
-            <div className={`w-full h-full flex items-center justify-center text-[clamp(2.5rem,10vmin,4.5rem)] leading-none select-none pointer-events-none ${tile.content.value === '🀄' || tile.content.value === '🀆' ? 'text-red-500' : 'text-stone-800 dark:text-stone-300'}`}>
+            <div className={`w-full h-full flex items-center justify-center text-[2rem] md:text-[2.2rem] leading-none select-none pointer-events-none ${tile.content.value === '🀄' || tile.content.value === '🀆' ? 'text-red-500' : 'text-stone-800 dark:text-stone-300'}`}>
                 {tile.content.value}
             </div>
         )
@@ -700,20 +711,56 @@ export function Mahjong() {
                             const dockTile = tileId ? tiles.find(t => t.id === tileId) : null;
                             const isHinted = dockTile?.isHinted;
 
+                            // Check if a tile was JUST in this slot and is now shattering
+                            const shatteringData = Array.from(shatteringTiles.values()).find(s => s.dockIndex === index);
+
                             return (
                                 <div key={`slot-${index}`} className="w-[3.5rem] h-[4.2rem] bg-stone-300/40 dark:bg-stone-900/40 rounded-lg flex items-center justify-center overflow-hidden border-2 border-dashed border-stone-400/30 dark:border-stone-600/30 relative shrink-0">
                                     {dockTile && (
                                         <motion.div
                                             layoutId={dockTile.id}
-                                            initial={{ scale: 0.5, opacity: 0 }}
-                                            animate={{ scale: 1, opacity: 1 }}
-                                            className={`w-full h-full border  shadow-sm flex items-center justify-center rounded-lg absolute inset-0 transition-colors ${isHinted
+                                            initial={{ y: 120, scale: 0.6, opacity: 0 }}
+                                            animate={{ y: 0, scale: 1, opacity: 1 }}
+                                            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                                            className={`w-full h-full border shadow-sm flex items-center justify-center rounded-lg absolute inset-0 transition-colors ${isHinted
                                                     ? 'bg-amber-50 dark:bg-amber-900/60 ring-[4px] ring-amber-400 border-transparent z-50 animate-pulse'
                                                     : 'bg-white dark:bg-stone-800 border-stone-200 dark:border-stone-700'
                                                 }`}
                                         >
                                             <TileVisual tile={dockTile} />
                                         </motion.div>
+                                    )}
+
+                                    {/* Shatter fragments inside the slot */}
+                                    {shatteringData && (
+                                        <div className="absolute inset-0 z-50 pointer-events-none">
+                                            {shatteringData.fragments.map((frag) => (
+                                                <motion.div
+                                                    key={`frag-dock-${frag.id}`}
+                                                    initial={{ x: 0, y: 0, opacity: 1, scale: 1.1 }}
+                                                    animate={{
+                                                        x: frag.dx * 0.4, // Constrained for the slot size
+                                                        y: frag.dy * 0.4,
+                                                        opacity: 0,
+                                                        scale: 0.2,
+                                                        rotate: frag.rot
+                                                    }}
+                                                    transition={{ duration: 1, ease: 'easeOut' }}
+                                                    className="absolute inset-0 rounded-sm shadow-md"
+                                                    style={{
+                                                        clipPath: frag.clipPath,
+                                                        background: `linear-gradient(${frag.rot}deg, #b8860b, #daa520, #f8d48e)`,
+                                                        border: '1px solid rgba(184, 134, 11, 0.5)'
+                                                    }}
+                                                />
+                                            ))}
+                                            <motion.div
+                                                initial={{ opacity: 1, scale: 0.8 }}
+                                                animate={{ opacity: 0, scale: 2 }}
+                                                transition={{ duration: 0.6 }}
+                                                className="absolute inset-0 bg-amber-400/30 blur-sm rounded-lg"
+                                            />
+                                        </div>
                                     )}
                                 </div>
                             );
@@ -887,8 +934,9 @@ export function Mahjong() {
                     })}
                 </AnimatePresence>
 
-                {/* Shatter Fragments Layer */}
-                {Array.from(shatteringTiles.entries()).map(([tileId, { tile, fragments }]) => {
+                {/* Shatter Fragments Layer (Board Tiles only) */}
+                {Array.from(shatteringTiles.entries()).map(([tileId, { tile, fragments, dockIndex }]) => {
+                    if (dockIndex !== undefined) return null; // These shatter in the tray
                     const pos = getTilePosition(tile);
                     return (
                         <div
@@ -904,25 +952,36 @@ export function Mahjong() {
                             {fragments.map((frag) => (
                                 <motion.div
                                     key={frag.id}
-                                    initial={{ x: 0, y: 0, opacity: 1, scale: 1, rotate: 0 }}
+                                    initial={{ x: 0, y: 0, opacity: 1, scale: 1.1, rotate: 0 }}
                                     animate={{
                                         x: frag.dx,
                                         y: frag.dy,
-                                        opacity: 0,
-                                        scale: 0.3,
+                                        opacity: [1, 0.9, 0.6, 0],
+                                        scale: [1.1, 0.8, 0.4],
                                         rotate: frag.rot,
                                     }}
-                                    transition={{ duration: 0.5, ease: 'easeOut' }}
-                                    className="absolute inset-0 bg-white dark:bg-stone-600 rounded-sm"
-                                    style={{ clipPath: frag.clipPath }}
+                                    transition={{ duration: 1, ease: 'easeOut' }}
+                                    className="absolute inset-0 rounded-sm shadow-lg"
+                                    style={{
+                                        clipPath: frag.clipPath,
+                                        background: `linear-gradient(${frag.rot}deg, #b8860b, #d4a853, #f5e6c8)`,
+                                        border: '1px solid rgba(180, 130, 50, 0.6)',
+                                    }}
                                 />
                             ))}
                             {/* Central flash */}
                             <motion.div
-                                initial={{ opacity: 0.8, scale: 1 }}
-                                animate={{ opacity: 0, scale: 2.5 }}
-                                transition={{ duration: 0.4, ease: 'easeOut' }}
-                                className="absolute inset-0 bg-earth-base/20 rounded-lg blur-sm"
+                                initial={{ opacity: 1, scale: 0.8 }}
+                                animate={{ opacity: 0, scale: 3 }}
+                                transition={{ duration: 0.6, ease: 'easeOut' }}
+                                className="absolute inset-0 bg-amber-400/40 rounded-lg blur-md"
+                            />
+                            {/* Secondary glow ring */}
+                            <motion.div
+                                initial={{ opacity: 0.6, scale: 1 }}
+                                animate={{ opacity: 0, scale: 2 }}
+                                transition={{ duration: 0.8, ease: 'easeOut', delay: 0.1 }}
+                                className="absolute inset-0 ring-2 ring-amber-300/50 rounded-lg"
                             />
                         </div>
                     );
