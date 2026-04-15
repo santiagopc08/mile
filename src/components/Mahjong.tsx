@@ -965,7 +965,7 @@ export function Mahjong() {
                                         scale: [1.1, 0.8, 0.4],
                                         rotate: frag.rot,
                                     }}
-                                    transition={{ duration: 1, ease: 'easeOut' }}
+                                    transition={{ duration: 1.5, ease: 'easeOut' }}
                                     className="absolute inset-0 rounded-sm shadow-lg"
                                     style={{
                                         clipPath: frag.clipPath,
