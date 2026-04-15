@@ -278,12 +278,16 @@ function generateSolvableBoard(rawCoords: { x: number; y: number; z: number }[],
 export function Mahjong() {
     const { profile } = useProfile();
     const [tiles, setTiles] = useState<TileState[]>([]);
-    const [undoStack, setUndoStack] = useState<[string, string][]>([]);
     const [currentLayout, setCurrentLayout] = useState<LayoutType>('turtle');
     const [isLoaded, setIsLoaded] = useState(false);
     const [matchedCount, setMatchedCount] = useState(0);
     const [isMobile, setIsMobile] = useState(false);
     const [initialDeal, setInitialDeal] = useState<TileState[] | null>(null);
+
+    // Dock Mechanics State
+    const [dockIds, setDockIds] = useState<string[]>([]);
+    const [gameLost, setGameLost] = useState(false);
+    const [undoStack, setUndoStack] = useState<string[][]>([]);
 
     // Timer state
     const [time, setTime] = useState(0);
@@ -400,6 +404,8 @@ export function Mahjong() {
         setTiles(initialTiles);
         setMatchedCount(0);
         setUndoStack([]);
+        setDockIds([]);
+        setGameLost(false);
         setTime(0);
         setTimerActive(false);
         setScoreSaved(false);
@@ -417,12 +423,12 @@ export function Mahjong() {
 
     const isTileFree = (targetId: string, currentTiles: TileState[] = tiles) => {
         const T = currentTiles.find(t => t.id === targetId);
-        if (!T || T.isMatched) return false;
+        if (!T || T.isMatched || dockIds.includes(targetId)) return false;
 
-        const unmatchedTiles = currentTiles.filter(t => !t.isMatched && t.id !== targetId);
+        const activeTiles = currentTiles.filter(t => !t.isMatched && !dockIds.includes(t.id) && t.id !== targetId);
 
         // Top Check (Z-Axis)
-        const isTopCovered = unmatchedTiles.some(n =>
+        const isTopCovered = activeTiles.some(n =>
             n.z - T.z === 1 &&
             Math.abs(n.x - T.x) < 2 &&
             Math.abs(n.y - T.y) < 2
@@ -431,7 +437,7 @@ export function Mahjong() {
         if (isTopCovered) return false;
 
         // Lateral Check (X-Axis)
-        const sameLayerRows = unmatchedTiles.filter(n => n.z === T.z && Math.abs(n.y - T.y) < 2);
+        const sameLayerRows = activeTiles.filter(n => n.z === T.z && Math.abs(n.y - T.y) < 2);
         const hasLeft = sameLayerRows.some(n => T.x - 2 <= n.x && n.x < T.x);
         const hasRight = sameLayerRows.some(n => T.x < n.x && n.x <= T.x + 2);
 
@@ -458,45 +464,49 @@ export function Mahjong() {
     }, [shatteringTiles]);
 
     const handleTileClick = (id: string) => {
-        if (!isTileFree(id)) return;
+        if (gameLost || !isTileFree(id) || dockIds.includes(id) || tiles.find(t => t.id === id)?.isMatched) return;
 
         if (!timerActive && matchedCount < tiles.length) {
             setTimerActive(true);
         }
 
-        const clickedId = id;
-        const selectedTile = tiles.find(t => t.isSelected && !t.isMatched);
+        const clickedTile = tiles.find(t => t.id === id)!;
 
-        if (selectedTile && selectedTile.id === clickedId) {
-            setTiles(prev => prev.map(t => t.id === clickedId ? { ...t, isSelected: false } : t));
-            return;
-        }
+        // Check if there is a matching tile in the dock
+        const matchingDockId = dockIds.find(dId => {
+            const dockTile = tiles.find(t => t.id === dId);
+            return dockTile && dockTile.content.value === clickedTile.content.value;
+        });
 
-        if (selectedTile) {
-            const clickedTile = tiles.find(t => t.id === clickedId)!;
+        if (matchingDockId) {
+            const matchingDockTile = tiles.find(t => t.id === matchingDockId)!;
+            setUndoStack(us => [...us, [matchingDockTile.id, clickedTile.id]]);
+            setMatchedCount(mc => mc + 2);
 
-            if (selectedTile.content.value === clickedTile.content.value) {
-                setUndoStack(us => [...us, [selectedTile.id, clickedTile.id]]);
-                setMatchedCount(mc => mc + 2);
+            // Remove from dock
+            setDockIds(prev => prev.filter(did => did !== matchingDockId));
 
-                // Trigger the shatter animation
-                triggerShatter(selectedTile, clickedTile);
+            // Trigger shatter
+            triggerShatter(matchingDockTile, clickedTile);
 
-                setTiles(prev => prev.map(t => {
-                    if (t.id === selectedTile.id || t.id === clickedTile.id) {
-                        return { ...t, isMatched: true, isSelected: false };
-                    }
-                    return t;
-                }));
-            } else {
-                setTiles(prev => prev.map(t => {
-                    if (t.id === clickedId) return { ...t, isSelected: true };
-                    if (t.id === selectedTile.id) return { ...t, isSelected: false };
-                    return t;
-                }));
-            }
+            setTiles(prev => prev.map(t => {
+                if (t.id === matchingDockTile.id || t.id === clickedTile.id) {
+                    return { ...t, isMatched: true, isSelected: false };
+                }
+                return t;
+            }));
         } else {
-            setTiles(prev => prev.map(t => t.id === clickedId ? { ...t, isSelected: true } : t));
+            // No match found in the dock
+            if (dockIds.length >= 3) {
+                // Dock is full -> Loss
+                setGameLost(true);
+                setDockIds(prev => [...prev, id]);
+                setUndoStack(us => [...us, [id]]);
+                setTimerActive(false);
+            } else {
+                setDockIds(prev => [...prev, id]);
+                setUndoStack(us => [...us, [id]]);
+            }
         }
     };
 
@@ -505,6 +515,8 @@ export function Mahjong() {
             setTiles([...initialDeal]);
             setMatchedCount(0);
             setUndoStack([]);
+            setDockIds([]);
+            setGameLost(false);
             setTime(0);
             setTimerActive(false);
             setScoreSaved(false);
@@ -515,10 +527,12 @@ export function Mahjong() {
 
     const handleHint = () => {
         const unmatched = tiles.filter(t => !t.isMatched);
-        const freeUnmatched = unmatched.filter(t => isTileFree(t.id, tiles));
+        const freeOnBoard = unmatched.filter(t => !dockIds.includes(t.id) && isTileFree(t.id, tiles));
+        const dockTilesArr = dockIds.map(dId => tiles.find(t => t.id === dId)!);
+        const candidates = [...freeOnBoard, ...dockTilesArr];
 
         const groups = new Map<string, TileState[]>();
-        for (const t of freeUnmatched) {
+        for (const t of candidates) {
             const key = t.content.value;
             if (!groups.has(key)) groups.set(key, []);
             groups.get(key)!.push(t);
@@ -555,16 +569,26 @@ export function Mahjong() {
         if (undoStack.length === 0) return;
 
         const stackCopy = [...undoStack];
-        const [id1, id2] = stackCopy.pop()!;
+        const lastAction = stackCopy.pop()!;
         setUndoStack(stackCopy);
 
-        setTiles(prev => prev.map(t => {
-            if (t.id === id1 || t.id === id2) {
-                return { ...t, isMatched: false, isSelected: false };
-            }
-            return t;
-        }));
-        setMatchedCount(mc => mc - 2);
+        if (lastAction.length === 1) {
+            // Un-dock
+            const id = lastAction[0];
+            setDockIds(prev => prev.filter(did => did !== id));
+            setGameLost(false);
+        } else if (lastAction.length === 2) {
+            // Un-match
+            const [idDock, idBoard] = lastAction;
+            setDockIds(prev => [...prev, idDock]);
+            setTiles(prev => prev.map(t => {
+                if (t.id === idDock || t.id === idBoard) {
+                    return { ...t, isMatched: false, isSelected: false };
+                }
+                return t;
+            }));
+            setMatchedCount(mc => mc - 2);
+        }
     };
 
     // Helper to compute tile position
@@ -595,11 +619,22 @@ export function Mahjong() {
 
     const gameWon = matchedCount > 0 && matchedCount === tiles.length;
 
+    const TileVisual = ({ tile }: { tile: TileState }) => (
+        tile.content.type === 'custom' ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={tile.content.value} alt="Memory" className="w-full h-full object-cover p-0.5 rounded-md select-none pointer-events-none" />
+        ) : (
+            <div className={`w-full h-full flex items-center justify-center text-[clamp(2.5rem,10vmin,4.5rem)] leading-none select-none pointer-events-none ${tile.content.value === '🀄' || tile.content.value === '🀆' ? 'text-red-500' : 'text-stone-800 dark:text-stone-300'}`}>
+                {tile.content.value}
+            </div>
+        )
+    );
+
     return (
         <div className="w-full flex justify-center items-center flex-col py-8 md:py-12 relative overflow-hidden bg-stone-50 dark:bg-stone-950">
 
             {/* Header */}
-            <div className="w-full max-w-5xl px-6 md:px-6 flex flex-col md:flex-row justify-between items-center gap-4 mb-8 relative z-10">
+            <div className="w-full max-w-5xl px-6 md:px-6 flex flex-col md:flex-row justify-between items-center gap-4 mb-4 relative z-10">
                 <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6">
                     <div className="space-y-1 text-center md:text-left">
                         <h2 className="text-2xl md:text-3xl font-light text-stone-800 dark:text-stone-200">Mahjong<span className="text-earth-base italic font-medium">Vita</span></h2>
@@ -655,6 +690,64 @@ export function Mahjong() {
                     </button>
                 </div>
             </div>
+
+            {/* Dock Area */}
+            {tiles.length > 0 && (
+                <div className="w-full max-w-md mx-auto mb-8 px-4 z-20 relative flex justify-center">
+                    <div className="flex bg-stone-200/80 dark:bg-stone-800/80 backdrop-blur-md p-3 rounded-2xl gap-3 shadow-inner border border-stone-300 dark:border-stone-700 min-w-[280px] h-[5.5rem] items-center justify-center relative">
+                        {[0, 1, 2].map(index => {
+                            const tileId = dockIds[index];
+                            const dockTile = tileId ? tiles.find(t => t.id === tileId) : null;
+                            const isHinted = dockTile?.isHinted;
+
+                            return (
+                                <div key={`slot-${index}`} className="w-[3.5rem] h-[4.2rem] bg-stone-300/40 dark:bg-stone-900/40 rounded-lg flex items-center justify-center overflow-hidden border-2 border-dashed border-stone-400/30 dark:border-stone-600/30 relative shrink-0">
+                                    {dockTile && (
+                                        <motion.div
+                                            layoutId={dockTile.id}
+                                            initial={{ scale: 0.5, opacity: 0 }}
+                                            animate={{ scale: 1, opacity: 1 }}
+                                            className={`w-full h-full border  shadow-sm flex items-center justify-center rounded-lg absolute inset-0 transition-colors ${isHinted
+                                                    ? 'bg-amber-50 dark:bg-amber-900/60 ring-[4px] ring-amber-400 border-transparent z-50 animate-pulse'
+                                                    : 'bg-white dark:bg-stone-800 border-stone-200 dark:border-stone-700'
+                                                }`}
+                                        >
+                                            <TileVisual tile={dockTile} />
+                                        </motion.div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
+
+            {/* Game Over Overflow Overlay */}
+            {gameLost && (
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="absolute z-50 top-1/4 left-1/2 -translate-x-1/2 bg-white/95 dark:bg-stone-900/95 backdrop-blur-xl px-8 md:px-12 py-10 md:py-12 rounded-[2.5rem] border border-red-200 dark:border-red-900/50 shadow-2xl flex flex-col items-center max-w-md w-[90%]"
+                >
+                    <div className="w-16 h-16 bg-red-50 dark:bg-red-900/30 rounded-2xl flex items-center justify-center mb-6">
+                        <RotateCcw className="w-8 h-8 text-red-500" />
+                    </div>
+                    <h3 className="text-3xl md:text-4xl font-serif italic text-stone-800 dark:text-stone-100 mb-2">Sin Espacio</h3>
+                    <p className="text-stone-500 font-light mb-8 text-center text-sm">Tu bandeja se ha llenado con cartas sin emparejar. ¡Inténtalo de nuevo!</p>
+                    <button
+                        onClick={handleRestart}
+                        className="px-8 py-3 rounded-xl bg-earth-base text-white shadow-lg hover:scale-105 transition-transform active:scale-95 font-medium"
+                    >
+                        Reintentar
+                    </button>
+                    <button
+                        onClick={handleUndo}
+                        className="mt-4 px-6 py-2 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 font-medium hover:bg-stone-200 dark:hover:bg-stone-700 transition flex items-center gap-2"
+                    >
+                        <Undo2 className="w-4 h-4" /> Deshacer movimiento
+                    </button>
+                </motion.div>
+            )}
 
             {/* Victory Overlay */}
             {gameWon && (
@@ -747,7 +840,7 @@ export function Mahjong() {
                 {/* Main Tiles */}
                 <AnimatePresence>
                     {tiles.map(tile => {
-                        if (tile.isMatched) return null;
+                        if (tile.isMatched || dockIds.includes(tile.id)) return null;
 
                         const isFree = isTileFree(tile.id);
                         const pos = getTilePosition(tile);
@@ -788,14 +881,7 @@ export function Mahjong() {
                                     <div className="absolute inset-0 ring-3 ring-earth-base/40 rounded-lg animate-pulse pointer-events-none" />
                                 )}
 
-                                {tile.content.type === 'custom' ? (
-                                    // eslint-disable-next-line @next/next/no-img-element
-                                    <img src={tile.content.value} alt="Memory" className="w-full h-full object-cover p-0.5 rounded-md select-none pointer-events-none" />
-                                ) : (
-                                    <div className={`w-full h-full flex items-center justify-center text-[clamp(2.5rem,10vmin,4.5rem)] leading-none select-none pointer-events-none ${tile.content.value === '🀄' || tile.content.value === '🀆' ? 'text-red-500' : 'text-stone-800 dark:text-stone-300'}`}>
-                                        {tile.content.value}
-                                    </div>
-                                )}
+                                <TileVisual tile={tile} />
                             </motion.div>
                         );
                     })}
