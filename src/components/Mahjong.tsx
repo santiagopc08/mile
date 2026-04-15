@@ -719,9 +719,14 @@ export function Mahjong() {
                                     {dockTile && (
                                         <motion.div
                                             layoutId={dockTile.id}
-                                            initial={{ y: 120, scale: 0.6, opacity: 0 }}
+                                            initial={{ y: 200, scale: 0.8, opacity: 0 }}
                                             animate={{ y: 0, scale: 1, opacity: 1 }}
-                                            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                                            transition={{ 
+                                                type: 'spring', 
+                                                stiffness: 80, 
+                                                damping: 20,
+                                                mass: 1.2
+                                            }}
                                             className={`w-full h-full border shadow-sm flex items-center justify-center rounded-lg absolute inset-0 transition-colors ${isHinted
                                                     ? 'bg-amber-50 dark:bg-amber-900/60 ring-[4px] ring-amber-400 border-transparent z-50 animate-pulse'
                                                     : 'bg-white dark:bg-stone-800 border-stone-200 dark:border-stone-700'
@@ -774,7 +779,7 @@ export function Mahjong() {
                 <motion.div
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="absolute z-50 top-1/4 left-1/2 -translate-x-1/2 bg-white/95 dark:bg-stone-900/95 backdrop-blur-xl px-8 md:px-12 py-10 md:py-12 rounded-[2.5rem] border border-red-200 dark:border-red-900/50 shadow-2xl flex flex-col items-center max-w-md w-[90%]"
+                    className="absolute z-[1000] top-1/4 left-1/2 -translate-x-1/2 bg-white/95 dark:bg-stone-900/95 backdrop-blur-xl px-8 md:px-12 py-10 md:py-12 rounded-[2.5rem] border border-red-200 dark:border-red-900/50 shadow-2xl flex flex-col items-center max-w-md w-[90%]"
                 >
                     <div className="w-16 h-16 bg-red-50 dark:bg-red-900/30 rounded-2xl flex items-center justify-center mb-6">
                         <RotateCcw className="w-8 h-8 text-red-500" />
@@ -801,7 +806,7 @@ export function Mahjong() {
                 <motion.div
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="absolute z-50 top-1/4 left-1/2 -translate-x-1/2 bg-white/95 dark:bg-stone-900/95 backdrop-blur-xl px-8 md:px-12 py-10 md:py-12 rounded-[2.5rem] border border-stone-200 dark:border-stone-800 shadow-2xl flex flex-col items-center max-w-md w-[90%]"
+                    className="absolute z-[1000] top-1/4 left-1/2 -translate-x-1/2 bg-white/95 dark:bg-stone-900/95 backdrop-blur-xl px-8 md:px-12 py-10 md:py-12 rounded-[2.5rem] border border-stone-200 dark:border-stone-800 shadow-2xl flex flex-col items-center max-w-md w-[90%]"
                 >
                     <div className="w-16 h-16 rounded-full bg-earth-base/10 flex items-center justify-center mb-5">
                         <Trophy className="w-8 h-8 text-earth-base" />
@@ -867,7 +872,7 @@ export function Mahjong() {
             )}
 
             {/* Board Container */}
-            <div className="relative w-full max-w-[800px] h-[700px] md:h-[600px] flex justify-center">
+            <div className="relative w-full max-w-[800px] min-h-[600px] md:min-h-[700px] flex justify-center">
                 <style dangerouslySetInnerHTML={{
                     __html: `
                     @media (max-width: 768px) {
