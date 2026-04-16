@@ -4,6 +4,7 @@ import "./globals.css";
 import { StoreProvider } from "@/context/StoreContext";
 import { ProfileProvider } from "@/context/ProfileContext";
 import { NavBar } from "@/components/NavBar";
+import { IOSInstallPrompt } from "@/components/IOSInstallPrompt";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
@@ -14,7 +15,6 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: "A Safe Space",
   description: "A private journal and track record.",
-  manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -36,6 +36,7 @@ export default function RootLayout({
         <StoreProvider>
           <ProfileProvider>
             <NavBar />
+            <IOSInstallPrompt />
             {children}
           </ProfileProvider>
         </StoreProvider>

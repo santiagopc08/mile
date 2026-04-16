@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { StoreService } from '@/services/storeService';
 import { useProfile } from '@/context/ProfileContext';
@@ -273,6 +273,17 @@ function generateSolvableBoard(rawCoords: { x: number; y: number; z: number }[],
     }
     return null;
 }
+
+const TileVisual = memo(({ tile }: { tile: TileState }) => (
+    tile.content.type === 'custom' ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={tile.content.value} alt="Memory" className="w-full h-full object-cover p-0.5 rounded-md select-none pointer-events-none" />
+    ) : (
+        <div className={`w-full h-full flex items-center justify-center text-[2rem] md:text-[2.2rem] leading-none select-none pointer-events-none ${tile.content.value === '🀄' || tile.content.value === '🀆' ? 'text-red-500' : 'text-stone-800 dark:text-stone-300'}`}>
+            {tile.content.value}
+        </div>
+    )
+));
 
 export function Mahjong() {
     const { profile } = useProfile();
@@ -630,16 +641,6 @@ export function Mahjong() {
 
     const gameWon = matchedCount > 0 && matchedCount === tiles.length;
 
-    const TileVisual = ({ tile }: { tile: TileState }) => (
-        tile.content.type === 'custom' ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={tile.content.value} alt="Memory" className="w-full h-full object-cover p-0.5 rounded-md select-none pointer-events-none" />
-        ) : (
-            <div className={`w-full h-full flex items-center justify-center text-[2rem] md:text-[2.2rem] leading-none select-none pointer-events-none ${tile.content.value === '🀄' || tile.content.value === '🀆' ? 'text-red-500' : 'text-stone-800 dark:text-stone-300'}`}>
-                {tile.content.value}
-            </div>
-        )
-    );
 
     return (
         <div className="w-full flex justify-center items-center flex-col py-8 md:py-12 relative overflow-hidden bg-stone-50 dark:bg-stone-950">
