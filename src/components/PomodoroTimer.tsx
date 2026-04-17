@@ -41,57 +41,72 @@ export function PomodoroTimer() {
     };
 
     return (
-        <div className="glass-panel rounded-3xl p-6 relative overflow-hidden h-full flex flex-col justify-center">
-            {/* Glowing active state backdrop */}
-            <div className={`absolute inset-0 bg-gradient-to-br transition-opacity duration-1000 ${
-                isRunning && mode === 'work' ? 'from-brand-purple/20 to-brand-pink/20 opacity-100' :
-                isRunning && mode === 'break' ? 'from-brand-blue/20 to-brand-cyan/20 opacity-100' : 'opacity-0'
-            }`} />
+        <div className="w-full h-full flex flex-col justify-center relative overflow-hidden group">
+            <div className="flex items-center justify-between mb-8 px-2">
+                <div className="flex items-center gap-2">
+                    <Focus className={`w-4 h-4 ${mode === 'work' ? 'text-geometric-accent' : 'text-stone-600'}`} />
+                    <span className={`text-[10px] uppercase font-bold tracking-[0.2em] ${mode === 'work' ? 'text-white' : 'text-stone-600'}`}>Ciclo Enfoque</span>
+                </div>
+                <div className="flex items-center gap-2">
+                    <span className={`text-[10px] uppercase font-bold tracking-[0.2em] ${mode === 'break' ? 'text-white' : 'text-stone-600'}`}>Pausa Técnica</span>
+                    <Coffee className={`w-4 h-4 ${mode === 'break' ? 'text-geometric-accent' : 'text-stone-600'}`} />
+                </div>
+            </div>
 
-            <div className="relative z-10 flex flex-col items-center">
-                <div className="flex gap-2 p-1 bg-white/5 backdrop-blur-sm rounded-full mb-8 border border-white/10">
+            <div className="relative mb-10 flex flex-col items-center">
+                <div className="text-7xl font-light tracking-tighter text-white tabular-nums">
+                    {formatTime(timeLeft)}
+                </div>
+                
+                {/* Technical Progress Bar */}
+                <div className="w-full h-[1px] bg-stone-800 mt-6 relative">
+                    <motion.div 
+                        className="absolute top-0 left-0 h-full bg-geometric-accent"
+                        initial={{ width: '0%' }}
+                        animate={{ width: `${(timeLeft / (mode === 'work' ? 25 * 60 : 5 * 60)) * 100}%` }}
+                        transition={{ duration: 1, ease: "linear" }}
+                    />
+                </div>
+            </div>
+
+            <div className="flex items-center justify-between px-2">
+                <div className="flex gap-1">
                     <button 
                         onClick={() => toggleMode('work')}
-                        className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors flex items-center gap-2 ${
-                            mode === 'work' ? 'bg-white/20 text-white shadow-sm' : 'text-stone-400 hover:text-white hover:bg-white/5'
+                        className={`w-8 h-8 flex items-center justify-center border transition-all ${
+                            mode === 'work' ? 'border-geometric-accent bg-geometric-accent/10 text-white' : 'border-stone-800 text-stone-600 hover:border-stone-600'
                         }`}
+                        title="Work Mode"
                     >
-                        <Focus className="w-4 h-4" /> Enfoque
+                        <Focus className="w-3 h-3" />
                     </button>
                     <button 
                         onClick={() => toggleMode('break')}
-                        className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors flex items-center gap-2 ${
-                            mode === 'break' ? 'bg-white/20 text-white shadow-sm' : 'text-stone-400 hover:text-white hover:bg-white/5'
+                        className={`w-8 h-8 flex items-center justify-center border transition-all ${
+                            mode === 'break' ? 'border-geometric-accent bg-geometric-accent/10 text-white' : 'border-stone-800 text-stone-600 hover:border-stone-600'
                         }`}
+                        title="Break Mode"
                     >
-                        <Coffee className="w-4 h-4" /> Descanso
+                        <Coffee className="w-3 h-3" />
                     </button>
                 </div>
 
-                <motion.div 
-                    className="text-6xl md:text-7xl font-light tracking-tighter text-white mb-8 cursor-default"
-                    animate={{ scale: isRunning ? [1, 1.02, 1] : 1 }}
-                    transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-                >
-                    {formatTime(timeLeft)}
-                </motion.div>
-
-                <div className="flex items-center gap-4">
-                    <button 
-                        onClick={() => setIsRunning(!isRunning)}
-                        className={`w-14 h-14 rounded-full flex items-center justify-center transition-transform hover:scale-105 active:scale-95 shadow-lg ${
-                            isRunning ? 'bg-white/10 text-white border border-white/20' : 'bg-white text-stone-900'
-                        }`}
-                    >
-                        {isRunning ? <Pause className="w-6 h-6 fill-current" /> : <Play className="w-6 h-6 fill-current ml-1" />}
-                    </button>
-                    
+                <div className="flex gap-4 items-center">
                     <button 
                         onClick={() => { setIsRunning(false); setTimeLeft(mode === 'work' ? 25 * 60 : 5 * 60); }}
-                        className="w-10 h-10 rounded-full bg-white/5 text-stone-400 border border-white/10 flex items-center justify-center hover:bg-white/10 hover:text-white transition-colors"
-                        title="Reiniciar"
+                        className="text-stone-600 hover:text-white transition-colors"
                     >
                         <RotateCcw className="w-4 h-4" />
+                    </button>
+                    <button 
+                        onClick={() => setIsRunning(!isRunning)}
+                        className={`px-6 py-2 border text-[10px] font-bold uppercase tracking-[0.2em] transition-all ${
+                            isRunning 
+                                ? 'border-stone-700 text-stone-400 hover:text-white hover:border-white' 
+                                : 'border-geometric-accent bg-geometric-accent text-white hover:bg-transparent hover:text-geometric-accent'
+                        }`}
+                    >
+                        {isRunning ? 'Abortar' : 'Iniciar'}
                     </button>
                 </div>
             </div>

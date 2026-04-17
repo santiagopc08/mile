@@ -48,15 +48,19 @@ export function PendingTasks() {
     };
 
     return (
-        <div className="glass-panel rounded-3xl p-6 flex flex-col h-full max-h-[500px]">
-            <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-medium text-white flex items-center gap-2">
-                    <CheckCircle2 className="w-5 h-5 text-brand-cyan" />
-                    Tareas Pendientes
-                </h3>
+        <div className="w-full h-full flex flex-col">
+            <div className="flex items-center justify-between mb-8 px-2">
+                <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 bg-geometric-accent" />
+                    <h3 className="text-sm uppercase font-bold tracking-[0.3em] text-white">
+                        Log de Operaciones
+                    </h3>
+                </div>
                 <button 
                     onClick={() => setIsAdding(!isAdding)}
-                    className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-stone-300 transition-colors"
+                    className={`w-8 h-8 flex items-center justify-center border transition-all ${
+                        isAdding ? 'border-geometric-accent bg-geometric-accent/10 text-white' : 'border-stone-800 text-stone-600 hover:text-white hover:border-stone-600'
+                    }`}
                 >
                     <Plus className={`w-4 h-4 transition-transform ${isAdding ? 'rotate-45' : ''}`} />
                 </button>
@@ -65,81 +69,83 @@ export function PendingTasks() {
             <AnimatePresence>
                 {isAdding && (
                     <motion.form 
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
+                        initial={{ opacity: 0, scaleY: 0 }}
+                        animate={{ opacity: 1, scaleY: 1 }}
+                        exit={{ opacity: 0, scaleY: 0 }}
                         onSubmit={handleAddTask}
-                        className="mb-4 space-y-3 overflow-hidden"
+                        className="mb-8 p-6 border border-geometric-accent/30 bg-geometric-accent/5 origin-top"
                     >
                         <input 
                             autoFocus
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
-                            placeholder="¿Qué hay por hacer?"
-                            className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-stone-400 outline-none focus:border-brand-blue/50"
+                            placeholder="ESPECIFICAR NUEVA TAREA..."
+                            className="w-full bg-black/40 border border-stone-800 rounded-none px-4 py-3 text-xs uppercase tracking-widest text-white placeholder-stone-700 outline-none focus:border-geometric-accent"
                         />
-                        <div className="flex gap-2">
+                        <div className="flex gap-4 mt-4">
                             <select 
                                 value={priority}
                                 onChange={(e) => setPriority(e.target.value)}
-                                className="bg-black/20 text-stone-300 border border-white/10 rounded-lg px-3 py-2 text-xs outline-none"
+                                className="bg-black/40 text-[10px] uppercase font-bold tracking-widest text-stone-500 border border-stone-800 rounded-none px-4 py-2 outline-none appearance-none cursor-pointer hover:border-stone-600"
                             >
-                                <option value="low">Prioridad Baja</option>
-                                <option value="medium">Prioridad Media</option>
-                                <option value="high">Prioridad Alta</option>
+                                <option value="low">PRIORIDAD: BAJA</option>
+                                <option value="medium">PRIORIDAD: MEDIA</option>
+                                <option value="high">PRIORIDAD: ALTA</option>
                             </select>
                             <button 
                                 type="submit"
                                 disabled={!title.trim()}
-                                className="flex-1 bg-brand-blue hover:bg-blue-600 text-white rounded-lg text-xs font-medium transition-colors disabled:opacity-50"
+                                className="flex-1 bg-white text-black text-[10px] font-bold uppercase tracking-[0.2em] transition-all disabled:opacity-30 hover:bg-geometric-accent hover:text-white"
                             >
-                                Guardar Tarea
+                                INSERTAR TAREA
                             </button>
                         </div>
                     </motion.form>
                 )}
             </AnimatePresence>
 
-            <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-2">
+            <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-4">
                 {tasks.length === 0 ? (
-                    <div className="h-full flex flex-col items-center justify-center text-stone-500 italic text-sm">
-                        No hay tareas pendientes.
+                    <div className="py-20 flex flex-col items-center justify-center text-stone-700 uppercase font-bold text-[10px] tracking-[0.4em] border border-stone-800 border-dashed">
+                        SISTEMA SIN TAREAS
                     </div>
                 ) : (
-                    tasks.map((task) => (
+                    tasks.map((task: any) => (
                         <div 
                             key={task.id}
                             onClick={() => toggleTask(task)}
-                            className={`group flex items-start gap-3 p-3 rounded-xl border transition-all cursor-pointer ${
+                            className={`group grid grid-cols-[auto_1fr_auto] items-center gap-6 p-5 border transition-all cursor-pointer ${
                                 task.status === 'completed' 
-                                ? 'bg-white/5 border-white/5 opacity-50' 
-                                : 'bg-white/10 border-white/10 hover:bg-white/15 hover:border-white/20'
+                                ? 'bg-black/40 border-stone-900 opacity-30 shadow-none' 
+                                : 'bg-white/5 border-stone-800 hover:border-stone-600 hover:bg-white/10 shadow-sm'
                             }`}
                         >
-                            <div className="mt-0.5">
-                                {task.status === 'completed' ? (
-                                    <CheckCircle2 className="w-5 h-5 text-brand-cyan" />
-                                ) : (
-                                    <Circle className="w-5 h-5 text-stone-400" />
-                                )}
+                            <div className="flex items-center justify-center">
+                                <div className={`w-5 h-5 border flex items-center justify-center transition-all ${
+                                    task.status === 'completed' ? 'bg-geometric-accent border-geometric-accent' : 'border-stone-700'
+                                }`}>
+                                    {task.status === 'completed' && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
+                                </div>
                             </div>
-                            <div className="flex-1 min-w-0">
-                                <p className={`text-sm tracking-wide ${task.status === 'completed' ? 'text-stone-400 line-through' : 'text-stone-200'}`}>
+                            
+                            <div className="min-w-0">
+                                <p className={`text-sm tracking-wide font-medium ${task.status === 'completed' ? 'text-stone-600 line-through italic' : 'text-stone-100 uppercase'}`}>
                                     {task.title}
                                 </p>
-                                <div className="flex items-center gap-2 mt-1">
-                                    <span className={`text-[10px] uppercase font-semibold tracking-wider ${
-                                        task.priority === 'high' ? 'text-rose-400' :
-                                        task.priority === 'medium' ? 'text-amber-400' : 'text-stone-500'
-                                    }`}>
-                                        {task.priority === 'high' && <AlertCircle className="w-3 h-3 inline mr-1" />}
-                                        {task.priority}
+                                <div className="flex items-center gap-3 mt-2">
+                                    <div className={`w-1 h-3 ${
+                                        task.priority === 'high' ? 'bg-rose-500' :
+                                        task.priority === 'medium' ? 'bg-amber-500' : 'bg-stone-600'
+                                    }`} />
+                                    <span className="text-[9px] uppercase font-bold tracking-[0.2em] text-stone-500">
+                                        P{task.priority === 'high' ? '01' : task.priority === 'medium' ? '02' : '03'} // {task.priority}
                                     </span>
                                 </div>
                             </div>
+
                             <button 
                                 onClick={(e) => deleteTask(task.id, e)}
-                                className="opacity-0 group-hover:opacity-100 p-1.5 text-stone-500 hover:text-rose-400 hover:bg-rose-400/10 rounded-md transition-all"
+                                className="opacity-0 group-hover:opacity-100 p-2 text-stone-600 hover:text-white transition-all bg-white/5"
                             >
                                 <Trash2 className="w-4 h-4" />
                             </button>

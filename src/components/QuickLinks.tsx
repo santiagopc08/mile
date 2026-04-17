@@ -12,36 +12,41 @@ export function QuickLinks() {
     ];
 
     return (
-        <div className="glass-panel rounded-3xl p-6 h-full flex flex-col justify-between">
-            <div>
-                <h3 className="text-sm font-medium text-stone-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                    <Link2 className="w-4 h-4" /> Enlaces Rápidos
-                </h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {predefinedLinks.map((link) => {
-                        const Icon = link.icon;
-                        return (
-                            <a 
-                                key={link.name} 
-                                href={link.url} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className={`flex flex-col items-center justify-center p-4 rounded-2xl border border-white/5 bg-white/5 hover:bg-white/10 transition-all hover:scale-[1.02] active:scale-95 group`}
-                            >
-                                <div className={`p-2 rounded-xl ${link.bg} ${link.color} mb-2 group-hover:scale-110 transition-transform`}>
-                                    <Icon className="w-5 h-5" />
-                                </div>
-                                <span className="text-[10px] uppercase tracking-wider font-medium text-stone-400 group-hover:text-stone-200">
-                                    {link.name}
-                                </span>
-                            </a>
-                        );
-                    })}
-                </div>
+        <div className="w-full h-full flex flex-col justify-center">
+            <h3 className="text-[10px] uppercase font-bold tracking-[0.3em] text-stone-500 mb-6 flex items-center gap-2">
+                <Link2 className="w-3 h-3" /> Puntos de Acceso
+            </h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {predefinedLinks.map((link) => {
+                    const Icon = link.icon;
+                    return (
+                        <a 
+                            key={link.name} 
+                            href={link.url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="group flex flex-col items-center justify-center p-4 border border-stone-800 bg-white/5 hover:bg-white/10 hover:border-geometric-accent transition-all relative overflow-hidden"
+                        >
+                            <div className="absolute top-0 left-0 w-1 h-1 bg-stone-800" />
+                            <div className="absolute top-0 right-0 w-1 h-1 bg-stone-800" />
+                            <div className="absolute bottom-0 left-0 w-1 h-1 bg-stone-800" />
+                            <div className="absolute bottom-0 right-0 w-1 h-1 bg-stone-800" />
+                            
+                            <div className={`p-2 transition-all duration-300 ${link.color} opacity-60 group-hover:opacity-100 group-hover:scale-110`}>
+                                <Icon className="w-5 h-5 stroke-[1.5]" />
+                            </div>
+                            <span className="text-[9px] uppercase font-bold tracking-[0.2em] text-stone-500 group-hover:text-stone-200 mt-2">
+                                {link.name}
+                            </span>
+                        </a>
+                    );
+                })}
             </div>
-            <p className="text-xs text-stone-500 font-light text-center mt-4 opacity-50">
-                Puedes personalizar estos enlaces en el código.
-            </p>
+            <div className="mt-6 pt-6 border-t border-stone-800 border-dashed">
+                <p className="text-[8px] uppercase font-bold tracking-[0.1em] text-stone-600 text-center">
+                    Sincronización de Enlaces: Operativa
+                </p>
+            </div>
         </div>
     );
 }
