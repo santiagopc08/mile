@@ -5,6 +5,7 @@ import { StoreProvider } from "@/context/StoreContext";
 import { ProfileProvider } from "@/context/ProfileContext";
 import { NavBar } from "@/components/NavBar";
 import { IOSInstallPrompt } from "@/components/IOSInstallPrompt";
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
