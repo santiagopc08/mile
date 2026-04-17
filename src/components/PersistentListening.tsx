@@ -18,7 +18,13 @@ export function PersistentListening() {
     const handleAdd = async (e: React.FormEvent) => {
         e.preventDefault();
         if (topic && reflection && date) {
-            const newItem = { id: Date.now().toString(), topic, reflection, date };
+            const newItem = {
+                id: Date.now().toString(),
+                topic,
+                reflection,
+                date,
+                author: profile || 'el'
+            };
             await updateData({ persistentListening: [newItem, ...listeningNotes] });
             setIsAdding(false);
             setTopic('');
@@ -45,7 +51,7 @@ export function PersistentListening() {
             </div>
 
 
-            {profile && (
+            {profile === 'el' && (
                 <div className="flex justify-center mb-8">
                     {!isAdding ? (
                         <button onClick={() => setIsAdding(true)} className="flex items-center gap-2 bg-earth-base text-white px-6 py-3 rounded-full hover:bg-earth-dark transition-colors shadow-sm">

@@ -2,13 +2,31 @@ import { supabase as defaultSupabase } from '@/lib/supabase';
 import { SupabaseClient } from '@supabase/supabase-js';
 
 export interface AppData {
-    // ... same as before
-    events: any[];
-    notes: string[];
-    commitments: any[];
+    events: {
+        id: string;
+        title: string;
+        date: string;
+        description: string;
+        imageUrl?: string;
+        author?: string;
+    }[];
+    notes: {
+        id: string;
+        text: string;
+        author: string;
+    }[];
+    commitments: {
+        id: string;
+        text: string;
+        completed: boolean;
+        author: string;
+    }[];
     victoriesEl: any[];
     victoriesElla: any[];
-    audioStats: any;
+    audioStats: {
+        daysTracking: number;
+        lastUpdate: string;
+    };
     audioPlaylist: any[];
     dailyProgress?: {
         yesterdayTotal: number;
@@ -16,7 +34,13 @@ export interface AppData {
         todayTotal: number;
         todayCompleted: number;
     };
-    persistentListening: any[];
+    persistentListening: {
+        id: string;
+        topic: string;
+        reflection: string;
+        date: string;
+        author: string;
+    }[];
 }
 
 // Data Access Abstraction - Now using Supabase
@@ -25,7 +49,7 @@ export const StoreService = {
         try {
             const [eventsRes, notesRes, commitmentsRes, victoriesRes, settingsRes, playlistRes, commentsRes, listeningRes] = await Promise.all([
                 supabase.from('events').select('*').order('date', { ascending: false }),
-                supabase.from('notes').select('text').order('created_at', { ascending: false }),
+                supabase.from('notes').select('*').order('created_at', { ascending: false }),
                 supabase.from('commitments').select('*').order('created_at', { ascending: true }),
                 supabase.from('victories').select('*').order('created_at', { ascending: false }),
                 supabase.from('app_settings').select('*').eq('id', 1).single(),
@@ -85,7 +109,8 @@ export const StoreService = {
             const mappedCommitments = finalCommitments.map(c => ({
                 id: c.id,
                 text: c.text,
-                completed: c.is_active === false
+                completed: c.is_active === false,
+                author: c.author || 'el'
             }));
 
             const allVictories = victoriesRes.data || [];
@@ -96,9 +121,14 @@ export const StoreService = {
                     title: e.title,
                     date: e.date,
                     description: e.description,
-                    imageUrl: e.image_url
+                    imageUrl: e.image_url,
+                    author: e.author || 'el'
                 })),
-                notes: (notesRes.data || []).map((n: any) => n.text),
+                notes: (notesRes.data || []).map((n: any) => ({
+                    id: n.id,
+                    text: n.text,
+                    author: n.author || 'el'
+                })),
                 commitments: mappedCommitments,
                 victoriesEl: allVictories.filter((v: any) => v.author === 'el'),
                 victoriesElla: allVictories.filter((v: any) => v.author === 'ella'),
@@ -107,7 +137,13 @@ export const StoreService = {
                     lastUpdate: formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1)
                 },
                 audioPlaylist,
-                persistentListening: listeningRes.data || [],
+                persistentListening: (listeningRes.data || []).map((l: any) => ({
+                    id: l.id,
+                    topic: l.topic,
+                    reflection: l.reflection,
+                    date: l.date,
+                    author: l.author || 'el'
+                })),
                 dailyProgress: {
                     yesterdayTotal,
                     yesterdayCompleted,
@@ -123,64 +159,75 @@ export const StoreService = {
 
     async updateStore(newData: Partial<AppData>, supabase: SupabaseClient = defaultSupabase): Promise<void> {
         try {
+            // Helper for Upsert/Delete pattern
+            const syncTable = async (tableName: string, incomingItems: any[], filter: any = {}) => {
+                if (!incomingItems) return;
+
+                const { data: existing } = await supabase.from(tableName).select('id').match(filter);
+                const existingIds = new Set((existing || []).map((r: any) => r.id));
+
+                const toUpsert: any[] = [];
+                const toInsert: any[] = [];
+
+                for (const item of incomingItems) {
+                    if (item.id && existingIds.has(item.id)) {
+                        toUpsert.push(item);
+                    } else {
+                        const { id, ...rest } = item;
+                        toInsert.push(rest);
+                    }
+                }
+
+                const incomingIds = incomingItems.filter(i => i.id).map(i => i.id);
+                const toDelete = (existing || []).filter(r => !incomingIds.includes(r.id)).map(r => r.id);
+
+                if (toDelete.length > 0) await supabase.from(tableName).delete().in('id', toDelete);
+                if (toUpsert.length > 0) await supabase.from(tableName).upsert(toUpsert);
+                if (toInsert.length > 0) await supabase.from(tableName).insert(toInsert);
+            };
+
             // Events
             if (newData.events !== undefined) {
-                await supabase.from('events').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-                if (newData.events.length > 0) {
-                    await supabase.from('events').insert(newData.events.map(e => ({
-                        title: e.title,
-                        date: e.date,
-                        description: e.description,
-                        image_url: e.imageUrl
-                    })));
-                }
+                await syncTable('events', newData.events.map(e => ({
+                    id: e.id,
+                    title: e.title,
+                    date: e.date,
+                    description: e.description,
+                    image_url: e.imageUrl,
+                    author: e.author || 'el'
+                })));
             }
-            // ...
-            // (I will use multi_replace for accuracy, but for now just one)
 
             // Notes
             if (newData.notes !== undefined) {
                 const { data: existing } = await supabase.from('notes').select('text');
                 const existingTexts = new Set((existing || []).map((r: any) => r.text));
 
-                await supabase.from('notes').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-                if (newData.notes.length > 0) {
-                    await supabase.from('notes').insert(newData.notes.map(text => ({ text })));
+                await syncTable('notes', newData.notes.map(n => ({
+                    id: n.id,
+                    text: n.text,
+                    author: n.author || 'el'
+                })));
 
-                    // Check for new notes to notify Ella
-                    const newNotes = newData.notes.filter(t => !existingTexts.has(t));
-                    if (newNotes.length > 0) {
-                        await supabase.from('notifications').insert({
-                            target_profile: 'ella',
-                            type: 'new_note',
-                            message: `Él agregó ${newNotes.length} nueva(s) nota(s) al tarro.`
-                        });
-                    }
+                // Check for new notes to notify Ella
+                const newNotes = newData.notes.filter(n => !existingTexts.has(n.text));
+                if (newNotes.length > 0) {
+                    await supabase.from('notifications').insert({
+                        target_profile: 'ella',
+                        type: 'new_note',
+                        message: `Él agregó ${newNotes.length} nueva(s) nota(s) al tarro.`
+                    });
                 }
             }
 
             // Commitments
             if (newData.commitments !== undefined) {
-                const { data: existingRows } = await supabase.from('commitments').select('id');
-                const existingIds = new Set((existingRows || []).map((r: any) => r.id));
-
-                const toUpsert: any[] = [];
-                const toInsert: any[] = [];
-
-                for (const c of newData.commitments) {
-                    if (existingIds.has(c.id)) {
-                        toUpsert.push({ id: c.id, text: c.text, is_active: !c.completed });
-                    } else {
-                        toInsert.push({ text: c.text, is_active: true });
-                    }
-                }
-
-                const incomingIds = newData.commitments.map((c: any) => c.id);
-                const toDelete = (existingRows || []).filter((r: any) => !incomingIds.includes(r.id)).map((r: any) => r.id);
-
-                if (toDelete.length > 0) await supabase.from('commitments').delete().in('id', toDelete);
-                if (toUpsert.length > 0) await supabase.from('commitments').upsert(toUpsert);
-                if (toInsert.length > 0) await supabase.from('commitments').insert(toInsert);
+                await syncTable('commitments', newData.commitments.map(c => ({
+                    id: c.id,
+                    text: c.text,
+                    is_active: !c.completed,
+                    author: c.author || 'el'
+                })));
 
                 // Update Progress
                 const todayCompleted = newData.commitments.filter((c: any) => c.completed).length;
@@ -190,30 +237,11 @@ export const StoreService = {
 
             // Victories (Shared handling for El and Ella)
             const handleVictories = async (victories: any[], author: 'el' | 'ella') => {
-                const { data: existing } = await supabase.from('victories').select('id').eq('author', author);
-                const existingIds = new Set((existing || []).map((r: any) => r.id));
-
-                const toUpsert: any[] = [];
-                const toInsert: any[] = [];
-
-                for (const v of victories) {
-                    const isObj = typeof v === 'object' && v !== null;
-                    const id = isObj ? v.id : null;
-                    const text = isObj ? v.text : v;
-
-                    if (id && existingIds.has(id)) {
-                        toUpsert.push({ id, text, author });
-                    } else {
-                        toInsert.push({ text, author });
-                    }
-                }
-
-                const incomingIds = victories.map((v: any) => v.id);
-                const toDelete = (existing || []).filter((r: any) => !incomingIds.includes(r.id)).map((r: any) => r.id);
-
-                if (toDelete.length > 0) await supabase.from('victories').delete().in('id', toDelete);
-                if (toUpsert.length > 0) await supabase.from('victories').upsert(toUpsert);
-                if (toInsert.length > 0) await supabase.from('victories').insert(toInsert);
+                await syncTable('victories', victories.map(v => ({
+                    id: typeof v === 'object' ? v.id : undefined,
+                    text: typeof v === 'object' ? v.text : v,
+                    author
+                })), { author });
             };
 
             if (newData.victoriesEl !== undefined) await handleVictories(newData.victoriesEl, 'el');
@@ -275,33 +303,27 @@ export const StoreService = {
 
             // Persistent Listening
             if (newData.persistentListening !== undefined) {
-                const { data: existingRows } = await supabase.from('persistent_listening').select('id');
-                const existingIds = new Set((existingRows || []).map((r: any) => r.id));
+                const { data: existingRows } = await supabase.from('persistent_listening').select('id, topic');
+                const existingTopics = new Set((existingRows || []).map((r: any) => r.topic));
 
-                const toUpsert: any[] = [];
-                const toInsert: any[] = [];
+                await syncTable('persistent_listening', newData.persistentListening.map(l => ({
+                    id: l.id,
+                    topic: l.topic,
+                    reflection: l.reflection,
+                    date: l.date,
+                    author: l.author || 'el'
+                })));
 
+                // Notifications for new reflections
                 for (const item of newData.persistentListening) {
-                    if (existingIds.has(item.id)) {
-                        toUpsert.push({ id: item.id, topic: item.topic, reflection: item.reflection, date: item.date });
-                    } else {
-                        toInsert.push({ topic: item.topic, reflection: item.reflection, date: item.date });
-
-                        // Notify her about this new registered reflection
-                        await supabase.from('notifications').insert({
+                    if (!existingRows?.find(r => r.id === item.id) && !existingTopics.has(item.topic)) {
+                         await supabase.from('notifications').insert({
                             target_profile: 'ella',
                             type: 'escucha',
                             message: `Él agregó una nueva reflexión a la Escucha Persistente: "${item.topic}".`
                         });
                     }
                 }
-
-                const incomingIds = newData.persistentListening.map((item: any) => item.id);
-                const toDelete = (existingRows || []).filter((r: any) => !incomingIds.includes(r.id)).map((r: any) => r.id);
-
-                if (toDelete.length > 0) await supabase.from('persistent_listening').delete().in('id', toDelete);
-                if (toUpsert.length > 0) await supabase.from('persistent_listening').upsert(toUpsert);
-                if (toInsert.length > 0) await supabase.from('persistent_listening').insert(toInsert);
             }
 
             // Update App Settings
