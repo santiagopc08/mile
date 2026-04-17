@@ -7,10 +7,12 @@ import { useStore } from '@/context/StoreContext';
 import { GuardianCatSVG } from '@/components/ui/GuardianCatSVG';
 
 export function JarOfNotes() {
-    const { data } = useStore();
+    const { data, updateData } = useStore();
     const [isOpen, setIsOpen] = useState(false);
     const [currentNote, setCurrentNote] = useState('');
     const [isHovered, setIsHovered] = useState(false);
+    const [newNoteText, setNewNoteText] = useState('');
+    const [isAddingMode, setIsAddingMode] = useState(false);
 
     const notes = data?.notes || [];
 
@@ -21,6 +23,15 @@ export function JarOfNotes() {
             setIsOpen(true);
         } else {
             setIsOpen(false);
+        }
+    };
+
+    const handleAddNote = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (newNoteText.trim()) {
+            await updateData({ notes: [newNoteText.trim(), ...notes] });
+            setNewNoteText('');
+            setIsAddingMode(false);
         }
     };
 
@@ -82,6 +93,33 @@ export function JarOfNotes() {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            {/* Add Note Section */}
+            <div className="mt-16 w-full max-w-sm">
+                {!isAddingMode ? (
+                    <button 
+                        onClick={() => setIsAddingMode(true)}
+                        className="w-full py-4 rounded-xl border border-stone-200 dark:border-stone-800 text-stone-500 hover:text-earth-base hover:border-earth-base transition-colors flex items-center justify-center gap-2"
+                    >
+                        <MessageCircleHeart className="w-5 h-5" />
+                        <span>Añadir Nueva Nota</span>
+                    </button>
+                ) : (
+                    <form onSubmit={handleAddNote} className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 p-6 rounded-2xl shadow-sm animate-in fade-in slide-in-from-bottom-4">
+                        <textarea
+                            value={newNoteText}
+                            onChange={(e) => setNewNoteText(e.target.value)}
+                            placeholder="Escribe un pensamiento para el futuro..."
+                            className="w-full bg-stone-50 dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-xl p-4 min-h-[100px] outline-none focus:ring-1 focus:ring-earth-base mb-4"
+                            autoFocus
+                        />
+                        <div className="flex gap-3">
+                            <button type="button" onClick={() => setIsAddingMode(false)} className="flex-1 py-3 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 font-medium hover:opacity-80 transition-opacity">Cancelar</button>
+                            <button type="submit" disabled={!newNoteText.trim()} className="flex-1 py-3 rounded-xl bg-earth-base text-white font-medium disabled:opacity-50 hover:bg-earth-dark transition-colors">Guardar</button>
+                        </div>
+                    </form>
+                )}
+            </div>
         </div>
     );
 }

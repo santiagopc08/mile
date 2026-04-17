@@ -21,7 +21,7 @@ export function PrivateRoute({ children }: { children: React.ReactNode }) {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-stone-50 dark:bg-stone-950 flex items-center justify-center">
+            <div suppressHydrationWarning className="min-h-screen bg-stone-50 dark:bg-stone-950 flex items-center justify-center">
                 <div className="w-8 h-8 rounded-full border-4 border-earth-soft border-t-earth-dark animate-spin" />
             </div>
         );

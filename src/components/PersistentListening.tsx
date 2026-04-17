@@ -1,21 +1,31 @@
 'use client';
 
 import { useStore } from '@/context/StoreContext';
-import { Ear, Quote, Calendar } from 'lucide-react';
+import { useProfile } from '@/context/ProfileContext';
+import { Ear, Quote, Calendar, Plus } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useState } from 'react';
 
 export function PersistentListening() {
-    const { data } = useStore();
+    const { data, updateData } = useStore();
+    const { profile } = useProfile();
+    const [isAdding, setIsAdding] = useState(false);
+    const [topic, setTopic] = useState('');
+    const [reflection, setReflection] = useState('');
+    const [date, setDate] = useState('');
     const listeningNotes = data?.persistentListening || [];
 
-    if (listeningNotes.length === 0) {
-        return (
-            <div className="w-full flex flex-col items-center justify-center py-10 opacity-60">
-                <Ear className="w-8 h-8 text-stone-300 mb-2" />
-                <p className="text-stone-400 font-light italic">Aún no hay reflexiones guardadas.</p>
-            </div>
-        );
-    }
+    const handleAdd = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (topic && reflection && date) {
+            const newItem = { id: Date.now().toString(), topic, reflection, date };
+            await updateData({ persistentListening: [newItem, ...listeningNotes] });
+            setIsAdding(false);
+            setTopic('');
+            setReflection('');
+            setDate('');
+        }
+    };
 
     return (
         <div className="w-full max-w-4xl mx-auto space-y-8">
@@ -34,7 +44,37 @@ export function PersistentListening() {
                 </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            {profile && (
+                <div className="flex justify-center mb-8">
+                    {!isAdding ? (
+                        <button onClick={() => setIsAdding(true)} className="flex items-center gap-2 bg-earth-base text-white px-6 py-3 rounded-full hover:bg-earth-dark transition-colors shadow-sm">
+                            <Plus className="w-5 h-5" /> Añadir Reflexión
+                        </button>
+                    ) : (
+                        <form onSubmit={handleAdd} className="w-full max-w-2xl bg-white dark:bg-stone-900 border border-earth-200 dark:border-stone-800 p-6 rounded-2xl shadow-sm animate-in fade-in slide-in-from-top-4">
+                            <h3 className="text-lg font-medium text-stone-800 dark:text-stone-200 mb-4">Nueva Reflexión</h3>
+                            <div className="grid md:grid-cols-2 gap-4 mb-4">
+                                <input required value={topic} onChange={e => setTopic(e.target.value)} placeholder="Tema (Ej. Visita de amigas)" className="bg-stone-50 dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-xl px-4 py-3 outline-none focus:ring-1 focus:ring-earth-base" />
+                                <input required type="date" value={date} onChange={e => setDate(e.target.value)} className="bg-stone-50 dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-xl px-4 py-3 outline-none focus:ring-1 focus:ring-earth-base" />
+                            </div>
+                            <textarea required value={reflection} onChange={e => setReflection(e.target.value)} placeholder="Tu reflexión..." className="w-full bg-stone-50 dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-xl px-4 py-3 min-h-[100px] outline-none focus:ring-1 focus:ring-earth-base mb-4" />
+                            <div className="flex gap-3">
+                                <button type="button" onClick={() => setIsAdding(false)} className="flex-1 py-3 bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 rounded-xl">Cancelar</button>
+                                <button type="submit" disabled={!topic || !reflection || !date} className="flex-1 py-3 bg-earth-base text-white rounded-xl disabled:opacity-50">Guardar</button>
+                            </div>
+                        </form>
+                    )}
+                </div>
+            )}
+
+            {listeningNotes.length === 0 && !isAdding ? (
+                <div className="w-full flex flex-col items-center justify-center py-10 opacity-60">
+                    <Ear className="w-8 h-8 text-stone-300 mb-2" />
+                    <p className="text-stone-400 font-light italic">Aún no hay reflexiones guardadas.</p>
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {listeningNotes.map((note: any, idx: number) => (
                     <motion.div
                         key={note.id}
@@ -65,6 +105,7 @@ export function PersistentListening() {
                     </motion.div>
                 ))}
             </div>
+            )}
         </div>
     );
 }

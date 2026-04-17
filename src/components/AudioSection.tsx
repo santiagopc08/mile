@@ -10,6 +10,10 @@ export function AudioSection() {
     const { profile } = useProfile();
     const [newComment, setNewComment] = useState('');
     const [activeTrackId, setActiveTrackId] = useState<string | null>(null);
+    const [isAddingTrack, setIsAddingTrack] = useState(false);
+    const [newTitle, setNewTitle] = useState('');
+    const [newArtist, setNewArtist] = useState('');
+    const [newUrl, setNewUrl] = useState('');
 
     if (!data || !data.audioPlaylist) return null;
 
@@ -40,6 +44,26 @@ export function AudioSection() {
         }
     };
 
+    const handleAddTrack = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (newTitle && newUrl && profile) {
+            const newTrack = {
+                id: Date.now().toString(),
+                title: newTitle,
+                artist: newArtist,
+                spotifyUrl: newUrl,
+                display_order: playlist.length,
+                added_by: profile,
+                comments: []
+            };
+            await updateData({ audioPlaylist: [...playlist, newTrack] });
+            setIsAddingTrack(false);
+            setNewTitle('');
+            setNewArtist('');
+            setNewUrl('');
+        }
+    };
+
     return (
         <div id="audio" className="w-full max-w-5xl mx-auto space-y-12">
             <div className="text-center">
@@ -55,7 +79,24 @@ export function AudioSection() {
             <div className="grid lg:grid-cols-5 gap-8">
                 {/* Playlist Sidebar */}
                 <div className="lg:col-span-2 space-y-4">
-                    <h3 className="text-sm font-medium text-stone-400 uppercase tracking-widest mb-4 px-2">Playlist</h3>
+                    <div className="flex items-center justify-between px-2 mb-4">
+                        <h3 className="text-sm font-medium text-stone-400 uppercase tracking-widest">Playlist</h3>
+                        <button onClick={() => setIsAddingTrack(!isAddingTrack)} className="text-[10px] font-bold text-earth-base uppercase tracking-wider bg-earth-50 dark:bg-earth-900/20 px-3 py-1.5 rounded-full hover:bg-earth-100 transition-colors">
+                            + Añadir Canción
+                        </button>
+                    </div>
+
+                    {isAddingTrack && (
+                        <form onSubmit={handleAddTrack} className="bg-white dark:bg-stone-900 p-4 rounded-2xl border border-earth-200 dark:border-earth-800/30 mb-4 animate-in fade-in slide-in-from-top-2 shadow-sm space-y-3">
+                            <input value={newTitle} onChange={e => setNewTitle(e.target.value)} required placeholder="Título de la canción" className="w-full bg-stone-50 dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-xl px-3 py-2 text-sm outline-none focus:border-earth-base" />
+                            <input value={newArtist} onChange={e => setNewArtist(e.target.value)} placeholder="Artista (opcional)" className="w-full bg-stone-50 dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-xl px-3 py-2 text-sm outline-none focus:border-earth-base" />
+                            <input value={newUrl} onChange={e => setNewUrl(e.target.value)} required placeholder="URL de Spotify" className="w-full bg-stone-50 dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-xl px-3 py-2 text-sm outline-none focus:border-earth-base" />
+                            <div className="flex gap-2 mt-2">
+                                <button type="button" onClick={() => setIsAddingTrack(false)} className="flex-1 py-2 text-xs font-medium text-stone-500 bg-stone-100 dark:bg-stone-800 rounded-lg">Cancelar</button>
+                                <button type="submit" disabled={!newTitle || !newUrl} className="flex-1 py-2 text-xs font-medium text-white bg-earth-base disabled:opacity-50 rounded-lg shadow-sm">Guardar</button>
+                            </div>
+                        </form>
+                    )}
                     <div className="space-y-2 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
                         {playlist.map((track) => (
                             <button
