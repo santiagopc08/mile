@@ -405,7 +405,7 @@ export const StoreService = {
                 supabase.from('events').select('image_url').not('image_url', 'is', null),
                 fetch('/api/mahjong-images').then(r => r.json()).catch(() => [])
             ]);
-            
+
             const eventData = eventsRes.data || [];
             const eventImgs = eventData
                 .map(e => e.image_url)

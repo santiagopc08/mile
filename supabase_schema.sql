@@ -120,3 +120,18 @@ CREATE POLICY "Anon Full Access Settings" ON app_settings FOR ALL TO anon USING 
 CREATE POLICY "Anon Full Access Notifications" ON notifications FOR ALL TO anon USING (true) WITH CHECK (true);
 CREATE POLICY "Anon Full Access Persistent" ON persistent_listening FOR ALL TO anon USING (true) WITH CHECK (true);
 CREATE POLICY "Anon Full Access Mahjong" ON mahjong_scores FOR ALL TO anon USING (true) WITH CHECK (true);
+
+-- Productivity Dashboard Additions
+CREATE TABLE IF NOT EXISTS tasks (
+  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  title text NOT NULL,
+  description text,
+  status text NOT NULL DEFAULT 'pending',
+  priority text NOT NULL DEFAULT 'medium',
+  assignee text,
+  created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Anon Full Access Tasks" ON tasks FOR ALL TO anon USING (true) WITH CHECK (true);
+
