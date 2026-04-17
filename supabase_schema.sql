@@ -84,3 +84,8 @@ CREATE TABLE IF NOT EXISTS notifications (
     read BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- SECURITY: Enable RLS on app_settings
+ALTER TABLE public.app_settings ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow public read" ON public.app_settings FOR SELECT TO public USING (true);
+CREATE POLICY "Allow public update" ON public.app_settings FOR UPDATE TO public USING (true) WITH CHECK (true);
