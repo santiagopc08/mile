@@ -6,6 +6,8 @@ CREATE TABLE events (
     title TEXT NOT NULL,
     date TEXT NOT NULL,
     description TEXT,
+    image_url TEXT,
+    author TEXT DEFAULT 'el',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -13,6 +15,7 @@ CREATE TABLE events (
 CREATE TABLE notes (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     text TEXT NOT NULL,
+    author TEXT DEFAULT 'el',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -21,6 +24,7 @@ CREATE TABLE commitments (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     text TEXT NOT NULL,
     is_active BOOLEAN DEFAULT TRUE,
+    author TEXT DEFAULT 'el',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -34,6 +38,7 @@ CREATE TABLE daily_tracking (
 CREATE TABLE victories (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     text TEXT NOT NULL,
+    author TEXT DEFAULT 'el',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -43,6 +48,8 @@ CREATE TABLE audio_track (
     title TEXT,
     artist TEXT,
     spotify_url TEXT,
+    display_order INT DEFAULT 0,
+    added_by TEXT DEFAULT 'el',
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -62,20 +69,7 @@ CREATE TABLE app_settings (
     last_update TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Insert an initial row for app_settings
-INSERT INTO app_settings (id, connection_date, last_update) VALUES (1, NOW(), NOW());
--- Insert initial row for audio track
-INSERT INTO audio_track (title, artist, spotify_url) VALUES ('Fix You', 'Coldplay', 'https://open.spotify.com/track/47BBI51FKFwOMlCCXKXUU9');
-
--- MIGRATIONS PHASE 4
--- 1. Add author to victories
-ALTER TABLE victories ADD COLUMN IF NOT EXISTS author TEXT DEFAULT 'el';
-
--- 2. Add playlist columns to audio_track
-ALTER TABLE audio_track ADD COLUMN IF NOT EXISTS display_order INT DEFAULT 0;
-ALTER TABLE audio_track ADD COLUMN IF NOT EXISTS added_by TEXT DEFAULT 'el';
-
--- 3. Notifications table
+-- Table for Notifications
 CREATE TABLE IF NOT EXISTS notifications (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     target_profile TEXT NOT NULL,
@@ -85,15 +79,32 @@ CREATE TABLE IF NOT EXISTS notifications (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- SECURITY: Enable RLS on app_settings
-ALTER TABLE public.app_settings ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Allow public read" ON public.app_settings FOR SELECT TO public USING (true);
-CREATE POLICY "Allow public update" ON public.app_settings FOR UPDATE TO public USING (true) WITH CHECK (true);
+-- Table for Persistent Listening
+CREATE TABLE IF NOT EXISTS persistent_listening (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    topic TEXT NOT NULL,
+    reflection TEXT NOT NULL,
+    date DATE NOT NULL,
+    author TEXT DEFAULT 'el',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
 
--- MIGRATIONS PHASE 5: Enabling Row-Level Security (RLS)
--- To resolve "Publicly Accessible" warnings while maintaining application functionality.
+-- Table for Mahjong Scores
+CREATE TABLE IF NOT EXISTS mahjong_scores (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    profile TEXT CHECK (profile IN ('el', 'ella')),
+    time_seconds INTEGER NOT NULL,
+    layout TEXT NOT NULL,
+    tile_count INTEGER DEFAULT 144,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
 
--- Enable RLS on all tables
+-- Insert an initial row for app_settings
+INSERT INTO app_settings (id, connection_date, last_update) VALUES (1, NOW(), NOW()) ON CONFLICT DO NOTHING;
+-- Insert initial row for audio track
+INSERT INTO audio_track (title, artist, spotify_url) VALUES ('Fix You', 'Coldplay', 'https://open.spotify.com/track/47BBI51FKFwOMlCCXKXUU9') ON CONFLICT DO NOTHING;
+
+-- SECURITY: Enable RLS on all tables
 ALTER TABLE events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE commitments ENABLE ROW LEVEL SECURITY;
@@ -107,8 +118,6 @@ ALTER TABLE persistent_listening ENABLE ROW LEVEL SECURITY;
 ALTER TABLE mahjong_scores ENABLE ROW LEVEL SECURITY;
 
 -- Create permissive policies for the 'anon' role.
--- Since the application manages its own access via LoginOverlay (custom password),
--- we authorize the anon key to read and write, satisfying Supabase's mandatory RLS requirement.
 CREATE POLICY "Anon Full Access Events" ON events FOR ALL TO anon USING (true) WITH CHECK (true);
 CREATE POLICY "Anon Full Access Notes" ON notes FOR ALL TO anon USING (true) WITH CHECK (true);
 CREATE POLICY "Anon Full Access Commitments" ON commitments FOR ALL TO anon USING (true) WITH CHECK (true);
