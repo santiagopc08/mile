@@ -34,6 +34,14 @@ export interface AppData {
         todayTotal: number;
         todayCompleted: number;
     };
+    tasks: {
+        id: string;
+        title: string;
+        description: string;
+        status: string;
+        priority: string;
+        assignee: string;
+    }[];
     persistentListening: {
         id: string;
         topic: string;
@@ -47,7 +55,7 @@ export interface AppData {
 export const StoreService = {
     async getStore(supabase: SupabaseClient = defaultSupabase): Promise<AppData> {
         try {
-            const [eventsRes, notesRes, commitmentsRes, victoriesRes, settingsRes, playlistRes, commentsRes, listeningRes] = await Promise.all([
+            const [eventsRes, notesRes, commitmentsRes, victoriesRes, settingsRes, playlistRes, commentsRes, listeningRes, tasksRes] = await Promise.all([
                 supabase.from('events').select('*').order('date', { ascending: false }),
                 supabase.from('notes').select('*').order('created_at', { ascending: false }),
                 supabase.from('commitments').select('*').order('created_at', { ascending: true }),
@@ -55,7 +63,9 @@ export const StoreService = {
                 supabase.from('app_settings').select('*').eq('id', 1).single(),
                 supabase.from('audio_track').select('*').order('display_order', { ascending: true }),
                 supabase.from('audio_comments').select('*').order('created_at', { ascending: true }),
-                supabase.from('persistent_listening').select('*').order('date', { ascending: false })
+                supabase.from('persistent_listening').select('*').order('date', { ascending: false }),
+
+                supabase.from('tasks').select('*').order('created_at', { ascending: false })
             ]);
 
             const settings = settingsRes.data || { connection_date: new Date().toISOString(), last_update: new Date().toISOString() };
@@ -116,6 +126,14 @@ export const StoreService = {
             const allVictories = victoriesRes.data || [];
 
             return {
+                tasks: (tasksRes.data || []).map((t) => ({
+                    id: t.id,
+                    title: t.title,
+                    description: t.description,
+                    status: t.status,
+                    priority: t.priority,
+                    assignee: t.assignee
+                })),
                 events: (eventsRes.data || []).map((e: any) => ({
                     id: e.id,
                     title: e.title,
@@ -185,6 +203,18 @@ export const StoreService = {
                 if (toUpsert.length > 0) await supabase.from(tableName).upsert(toUpsert);
                 if (toInsert.length > 0) await supabase.from(tableName).insert(toInsert);
             };
+
+            // Tasks
+            if (newData.tasks !== undefined) {
+                await syncTable('tasks', newData.tasks.map((t) => ({
+                    id: t.id,
+                    title: t.title,
+                    description: t.description,
+                    status: t.status,
+                    priority: t.priority,
+                    assignee: t.assignee
+                })));
+            }
 
             // Events
             if (newData.events !== undefined) {

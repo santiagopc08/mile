@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import type { AppData } from '@/services/storeService';
 import { useStore } from '@/context/StoreContext';
 import { useProfile } from '@/context/ProfileContext';
 import { CheckCircle2, Circle, AlertCircle, Plus, Trash2 } from 'lucide-react';
@@ -34,15 +35,15 @@ export function PendingTasks() {
         setIsAdding(false);
     };
 
-    const toggleTask = async (task: any) => {
+    const toggleTask = async (task: AppData['tasks'][0]) => {
         const newStatus = task.status === 'completed' ? 'pending' : 'completed';
-        const updated = tasks.map((t: any) => t.id === task.id ? { ...t, status: newStatus } : t);
+        const updated = tasks.map((t) => t.id === task.id ? { ...t, status: newStatus } : t);
         await updateData({ tasks: updated });
     };
 
     const deleteTask = async (id: string, e: React.MouseEvent) => {
         e.stopPropagation();
-        const updated = tasks.filter((t: any) => t.id !== id);
+        const updated = tasks.filter((t) => t.id !== id);
         await updateData({ tasks: updated });
     };
 
@@ -105,7 +106,7 @@ export function PendingTasks() {
                         No hay tareas pendientes.
                     </div>
                 ) : (
-                    tasks.map((task: any) => (
+                    tasks.map((task) => (
                         <div 
                             key={task.id}
                             onClick={() => toggleTask(task)}
