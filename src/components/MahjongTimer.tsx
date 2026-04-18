@@ -32,14 +32,20 @@ const MahjongTimer = memo(forwardRef<MahjongTimerHandle, MahjongTimerProps>(({ i
     }));
 
     return (
-        <div className="flex flex-col items-center">
-            <span className="text-[9px] text-stone-400 uppercase tracking-widest font-bold">
-                <Clock className="w-3 h-3 inline mr-0.5 -mt-0.5" />
+        <div className="flex flex-col items-center border border-geometric-border px-6 py-2 bg-white dark:bg-stone-900 relative overflow-hidden">
+            {/* Geometric Accent Line */}
+            <div className="absolute top-0 left-0 w-full h-[2px] bg-geometric-accent opacity-30" />
+
+            <span className="text-[10px] text-stone-400 uppercase tracking-[0.2em] font-bold flex items-center gap-1">
+                <Clock className="w-3 h-3 text-geometric-accent" />
                 Tiempo
             </span>
-            <span className="text-xl font-mono text-earth-base tabular-nums">
+            <span className="text-2xl font-mono text-stone-800 dark:text-stone-100 tabular-nums font-bold">
                 {formatTime(time)}
             </span>
+
+            {/* Decorative corner mark */}
+            <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-geometric-accent/20" />
         </div>
     );
 }));

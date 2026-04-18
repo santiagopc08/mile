@@ -22,9 +22,9 @@ export interface TileState {
 export const TileVisual = memo(({ tile }: { tile: TileState }) => (
     tile.content.type === 'custom' ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={tile.content.value} alt="Memory" className="w-full h-full object-cover p-0.5 rounded-md select-none pointer-events-none" />
+        <img src={tile.content.value} alt="Memory" className="w-full h-full object-cover p-0.5 rounded-none select-none pointer-events-none" />
     ) : (
-        <div className={`w-full h-full flex items-center justify-center text-[2rem] md:text-[2.2rem] leading-none select-none pointer-events-none ${tile.content.value === '🀄' || tile.content.value === '🀆' ? 'text-red-500' : 'text-stone-800 dark:text-stone-300'}`}>
+        <div className={`w-full h-full flex items-center justify-center text-[2rem] md:text-[2.2rem] leading-none select-none pointer-events-none ${tile.content.value === '🀄' || tile.content.value === '🀆' ? 'text-rose-500' : 'text-stone-800 dark:text-stone-300'}`}>
             {tile.content.value}
         </div>
     )
@@ -61,23 +61,26 @@ const MahjongTile = memo(({ tile, isFree, onClick, getTilePosition }: MahjongTil
                 zIndex: pos.zIndex,
             }}
             className={`
-                tile-item rounded-lg flex items-center justify-center overflow-hidden
-                transition-all duration-300 shadow-md relative
+                tile-item rounded-none flex items-center justify-center overflow-hidden
+                transition-all duration-300 shadow-none relative
                 ${isFree
-                    ? 'cursor-pointer hover:brightness-110 active:scale-95 dark:border-stone-600'
-                    : 'brightness-50 dark:brightness-[0.35] grayscale-[0.8] cursor-not-allowed opacity-60 dark:opacity-40'}
+                    ? 'cursor-pointer hover:brightness-110 active:scale-95 border-geometric-border dark:border-stone-600'
+                    : 'brightness-50 dark:brightness-[0.35] grayscale-[0.8] cursor-not-allowed opacity-60 dark:opacity-40 border-stone-300 dark:border-stone-800'}
                 ${tile.isHinted
-                    ? 'bg-amber-50 dark:bg-amber-900/60 ring-[5px] ring-amber-400 dark:ring-amber-500 shadow-amber-400/50 shadow-2xl z-50 animate-pulse'
+                    ? 'bg-white dark:bg-stone-900 ring-4 ring-geometric-accent shadow-2xl z-50 animate-pulse'
                     : tile.isSelected
-                        ? 'bg-amber-100 dark:bg-amber-900/80 ring-2 ring-earth-base shadow-xl shadow-earth-base/20'
-                        : 'bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 border-r-[3px] border-b-[4px]'}
+                        ? 'bg-white dark:bg-stone-900 border-2 border-geometric-accent shadow-xl'
+                        : 'bg-white dark:bg-stone-800 border border-geometric-border border-r-[3px] border-b-[4px]'}
             `}
         >
             {tile.isSelected && (
-                <div className="absolute inset-0 ring-3 ring-earth-base/40 rounded-lg animate-pulse pointer-events-none" />
+                <div className="absolute inset-0 ring-1 ring-geometric-accent/40 rounded-none pointer-events-none" />
             )}
 
             <TileVisual tile={tile} />
+
+            {/* Geometric corner mark */}
+            <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-geometric-accent/30 pointer-events-none" />
         </motion.div>
     );
 });

@@ -597,13 +597,13 @@ export function Mahjong() {
     };
 
     if (!isLoaded) {
-        return <div className="min-h-screen flex items-center justify-center pt-20"><div className="animate-pulse flex flex-col items-center gap-4"><div className="w-12 h-12 rounded-full border-4 border-earth-base border-t-transparent animate-spin" /></div></div>;
+        return <div className="min-h-screen flex items-center justify-center pt-20"><div className="animate-pulse flex flex-col items-center gap-4"><div className="w-12 h-12 w-12 h-12 border-2 border-geometric-accent animate-spin" /></div></div>;
     }
 
     const gameWon = matchedCount > 0 && matchedCount === tiles.length;
 
     return (
-        <div className="w-full flex justify-center items-center flex-col py-8 md:py-12 relative overflow-hidden bg-stone-50 dark:bg-stone-950">
+        <div className="w-full flex justify-center items-center flex-col py-8 md:py-12 relative overflow-hidden bg-grid-mosaic">
             <style dangerouslySetInnerHTML={{
                 __html: `
                 @media (max-width: 768px) {
@@ -624,8 +624,8 @@ export function Mahjong() {
             <div className="w-full max-w-5xl px-6 md:px-6 flex flex-col md:flex-row justify-between items-center gap-4 mb-4 relative z-10">
                 <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6">
                     <div className="space-y-1 text-center md:text-left">
-                        <h2 className="text-2xl md:text-3xl font-light text-stone-800 dark:text-stone-200">Mahjong<span className="text-earth-base italic font-medium">Vita</span></h2>
-                        <span className="px-2 py-0.5 rounded-full bg-earth-base/10 text-earth-base text-[9px] md:text-[10px] font-bold uppercase tracking-wider">
+                        <h2 className="text-2xl md:text-3xl font-bold text-stone-800 dark:text-stone-200 uppercase tracking-tighter">Mahjong<span className="text-geometric-accent">Vita</span></h2>
+                        <span className="px-2 py-0.5 rounded-none border border-geometric-border bg-white dark:bg-stone-900 text-stone-500 text-[9px] md:text-[10px] font-bold uppercase tracking-widest">
                             {LAYOUT_INFO[currentLayout].name}
                         </span>
                     </div>
@@ -661,19 +661,19 @@ export function Mahjong() {
                     <button
                         onClick={handleUndo}
                         disabled={undoStack.length === 0}
-                        className="flex-1 md:flex-none px-3 md:px-4 py-2 rounded-xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-stone-600 dark:text-stone-300 shadow-sm disabled:opacity-40 hover:scale-105 transition-transform active:scale-95 flex items-center justify-center gap-2 text-xs md:text-sm"
+                        className="flex-1 md:flex-none px-3 md:px-4 py-2 rounded-none bg-white dark:bg-stone-900 border border-geometric-border text-stone-600 dark:text-stone-300 shadow-none disabled:opacity-40 hover:border-geometric-accent transition-colors active:scale-95 flex items-center justify-center gap-2 text-xs md:text-sm font-bold uppercase tracking-widest"
                     >
                         <Undo2 className="w-3 md:w-4 h-3 md:h-4" /> Deshacer
                     </button>
                     <button
                         onClick={handleHint}
-                        className="flex-1 md:flex-none px-3 md:px-4 py-2 rounded-xl bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 text-amber-600 dark:text-amber-400 shadow-sm hover:scale-105 transition-transform active:scale-95 flex items-center justify-center gap-2 text-xs md:text-sm"
+                        className="flex-1 md:flex-none px-3 md:px-4 py-2 rounded-none bg-stone-50 dark:bg-stone-900 border border-geometric-border text-geometric-accent shadow-none hover:border-geometric-accent transition-colors active:scale-95 flex items-center justify-center gap-2 text-xs md:text-sm font-bold uppercase tracking-widest"
                     >
                         <Lightbulb className="w-3 md:w-4 h-3 md:h-4" /> Pista
                     </button>
                     <button
                         onClick={handleRestart}
-                        className="flex-1 md:flex-none px-3 md:px-4 py-2 rounded-xl bg-earth-base text-white shadow-md shadow-earth-base/20 hover:scale-105 transition-transform active:scale-95 flex items-center justify-center gap-2 text-xs md:text-sm"
+                        className="flex-1 md:flex-none px-3 md:px-4 py-2 rounded-none bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 border border-stone-900 dark:border-stone-100 shadow-none hover:bg-geometric-accent hover:border-geometric-accent hover:text-white dark:hover:bg-geometric-accent dark:hover:text-white transition-all active:scale-95 flex items-center justify-center gap-2 text-xs md:text-sm font-bold uppercase tracking-widest"
                     >
                         <RotateCcw className="w-3 md:w-4 h-3 md:h-4" /> Reiniciar
                     </button>
@@ -683,18 +683,18 @@ export function Mahjong() {
             {/* Tray / Dock Area */}
             {isLoaded && (
                 <div className="w-full max-w-lg px-6 mb-8 relative z-20">
-                    <div className="bg-white/80 dark:bg-stone-900/80 backdrop-blur-md border border-stone-200 dark:border-stone-800 rounded-2xl p-3 shadow-xl flex justify-center gap-3 min-h-[5.5rem] items-center">
+                    <div className="geometric-card bg-white/80 dark:bg-stone-900/80 backdrop-blur-md p-3 shadow-none flex justify-center gap-3 min-h-[5.5rem] items-center relative">
                         {[0, 1, 2, 3].map((idx) => {
                             const dId = dockIds[idx];
                             const tile = dId ? tiles.find(t => t.id === dId) : null;
                             const isShattering = dId && shatteringTiles.has(dId) && shatteringTiles.get(dId)?.dockIndex !== undefined;
 
                             return (
-                                <div key={idx} className="w-14 h-18 md:w-16 md:h-20 bg-stone-50 dark:bg-stone-950 rounded-xl border-2 border-dashed border-stone-200 dark:border-stone-800 flex items-center justify-center relative">
+                                <div key={idx} className="w-14 h-18 md:w-16 md:h-20 bg-stone-50 dark:bg-stone-950 rounded-none border border-dashed border-geometric-border flex items-center justify-center relative">
                                     {tile && !isShattering && (
                                         <motion.div
                                             layoutId={tile.id}
-                                            className="w-full h-full bg-white dark:bg-stone-800 rounded-lg shadow-md border border-stone-200 dark:border-stone-700 border-r-[3px] border-b-[4px] flex items-center justify-center overflow-hidden"
+                                            className="w-full h-full bg-white dark:bg-stone-800 rounded-none shadow-none border border-geometric-border border-r-[3px] border-b-[4px] flex items-center justify-center overflow-hidden"
                                         >
                                             <TileVisual tile={tile} />
                                         </motion.div>
@@ -715,7 +715,7 @@ export function Mahjong() {
                                                         rotate: frag.rot
                                                     }}
                                                     transition={{ duration: 1, ease: 'easeOut' }}
-                                                    className="absolute inset-0 rounded-sm shadow-md"
+                                                    className="absolute inset-0 rounded-none shadow-none"
                                                     style={{
                                                         clipPath: frag.clipPath,
                                                         background: `linear-gradient(${frag.rot}deg, #b8860b, #daa520, #f8d48e)`,
@@ -727,7 +727,7 @@ export function Mahjong() {
                                                 initial={{ opacity: 1, scale: 0.8 }}
                                                 animate={{ opacity: 0, scale: 2 }}
                                                 transition={{ duration: 0.6 }}
-                                                className="absolute inset-0 bg-amber-400/30 blur-sm rounded-lg"
+                                                className="absolute inset-0 bg-amber-400/30 blur-sm rounded-none"
                                             />
                                         </div>
                                     )}
@@ -741,26 +741,26 @@ export function Mahjong() {
             {/* Game Over Overflow Overlay */}
             {gameLost && (
                 <motion.div
-                    initial={{ opacity: 0, scale: 0.6 }}
+                    initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="absolute z-[100099] top-1/4 left-1/2 -translate-x-1/2 bg-white/95 dark:bg-stone-900/95 backdrop-blur-xl px-8 md:px-12 py-10 md:py-12 rounded-[2.5rem] border border-red-200 dark:border-red-900/50 shadow-2xl flex flex-col items-center max-w-md w-[90%]"
+                    className="absolute z-[100099] top-1/4 left-1/2 -translate-x-1/2 geometric-card bg-white/95 dark:bg-stone-900/95 backdrop-blur-xl px-8 md:px-12 py-10 md:py-12 border-red-500 dark:border-red-500 shadow-2xl flex flex-col items-center max-w-md w-[90%]"
                 >
-                    <div className="w-16 h-16 bg-red-50 dark:bg-red-900/30 rounded-2xl flex items-center justify-center mb-6">
-                        <RotateCcw className="w-8 h-8 text-red-500" />
+                    <div className="w-16 h-16 bg-red-50 dark:bg-red-900/10 border border-red-500 rounded-none flex items-center justify-center mb-6 rotate-45">
+                        <RotateCcw className="w-8 h-8 text-red-500 -rotate-45" />
                     </div>
-                    <h3 className="text-3xl md:text-4xl font-serif italic text-stone-800 dark:text-stone-100 mb-2">Sin Espacio</h3>
-                    <p className="text-stone-500 font-light mb-8 text-center text-sm">Tu bandeja se ha llenado con cartas sin emparejar. ¡Inténtalo de nuevo!</p>
+                    <h3 className="text-3xl md:text-4xl font-bold text-stone-800 dark:text-stone-100 mb-2 uppercase tracking-tighter">Sin Espacio</h3>
+                    <p className="text-stone-500 font-light mb-8 text-center text-sm">Tu bandeja se ha llenado con cartas sin emparejar.</p>
                     <button
                         onClick={handleRestart}
-                        className="px-8 py-3 rounded-xl bg-earth-base text-white shadow-lg hover:scale-105 transition-transform active:scale-95 font-medium"
+                        className="w-full py-4 rounded-none bg-red-500 text-white font-bold uppercase tracking-widest text-xs hover:bg-red-600 transition-colors"
                     >
                         Reintentar
                     </button>
                     <button
                         onClick={handleUndo}
-                        className="mt-4 px-6 py-2 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 font-medium hover:bg-stone-200 dark:hover:bg-stone-700 transition flex items-center gap-2"
+                        className="mt-4 w-full py-3 rounded-none border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 font-bold text-xs uppercase tracking-widest hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors flex items-center justify-center gap-2"
                     >
-                        <Undo2 className="w-4 h-4" /> Deshacer movimiento
+                        <Undo2 className="w-4 h-4" /> Deshacer
                     </button>
                 </motion.div>
             )}
@@ -768,14 +768,14 @@ export function Mahjong() {
             {/* Victory Overlay */}
             {gameWon && (
                 <motion.div
-                    initial={{ opacity: 0, scale: 0.8 }}
+                    initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="absolute z-[1000] top-1/4 left-1/2 -translate-x-1/2 bg-white/95 dark:bg-stone-900/95 backdrop-blur-xl px-8 md:px-12 py-10 md:py-12 rounded-[2.5rem] border border-stone-200 dark:border-stone-800 shadow-2xl flex flex-col items-center max-w-md w-[90%]"
+                    className="absolute z-[1000] top-1/4 left-1/2 -translate-x-1/2 geometric-card bg-white/95 dark:bg-stone-900/95 backdrop-blur-xl px-8 md:px-12 py-10 md:py-12 border-geometric-accent shadow-2xl flex flex-col items-center max-w-md w-[90%]"
                 >
-                    <div className="w-16 h-16 rounded-full bg-earth-base/10 flex items-center justify-center mb-5">
-                        <Trophy className="w-8 h-8 text-earth-base" />
+                    <div className="w-16 h-16 border-2 border-geometric-accent flex items-center justify-center mb-5 rotate-45">
+                        <Trophy className="w-8 h-8 text-geometric-accent -rotate-45" />
                     </div>
-                    <h3 className="text-3xl md:text-4xl font-serif italic text-earth-base mb-2">¡Triunfo!</h3>
+                    <h3 className="text-3xl md:text-4xl font-bold text-geometric-accent mb-2 uppercase tracking-tighter">¡Triunfo!</h3>
                     <p className="text-stone-500 font-light mb-6 text-center text-sm">Has liberado todas nuestras memorias.</p>
 
                     {isNewRecord && (
@@ -783,14 +783,14 @@ export function Mahjong() {
                             initial={{ scale: 0.8, opacity: 0 }}
                             animate={{ scale: [1, 1.05, 1], opacity: 1 }}
                             transition={{ repeat: Infinity, duration: 1.5 }}
-                            className="bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-400 px-6 py-2 rounded-full font-bold text-sm mb-4 border border-amber-300 dark:border-amber-700 shadow-lg shadow-amber-300/20"
+                            className="bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-400 px-6 py-2 rounded-none font-bold text-xs uppercase tracking-[0.2em] mb-4 border border-geometric-accent bg-geometric-accent/10 shadow-none"
                         >
                             🎉 ¡NUEVO RÉCORD! 🎉
                         </motion.div>
                     )}
 
                     {/* Current game score */}
-                    <div className="bg-stone-50 dark:bg-stone-800 rounded-2xl p-4 w-full mb-6">
+                    <div className="bg-stone-50 dark:bg-stone-950 border border-geometric-border rounded-none p-4 w-full mb-6 relative">
                         <div className="text-center">
                             <span className="block text-[10px] text-stone-400 uppercase font-bold tracking-widest mb-1">Tu Tiempo</span>
                             <span className="text-3xl font-mono text-stone-800 dark:text-stone-100">{formatTime(timerRef.current?.getTime() || 0)}</span>
@@ -808,7 +808,7 @@ export function Mahjong() {
                                 <div className="space-y-1.5">
                                     <span className="text-[10px] text-amber-500 font-bold uppercase tracking-wider block text-center">Él</span>
                                     {leaderboard.el.length > 0 ? leaderboard.el.slice(0, 3).map((s, i) => (
-                                        <div key={i} className="flex items-center justify-between bg-white dark:bg-stone-900 rounded-lg px-3 py-1.5 text-xs border border-stone-100 dark:border-stone-700">
+                                        <div key={i} className="flex items-center justify-between bg-white dark:bg-stone-900 rounded-none px-3 py-1.5 text-xs border border-geometric-border">
                                             <span className="text-stone-400 font-mono">#{i + 1}</span>
                                             <span className="font-mono text-stone-700 dark:text-stone-300 tabular-nums">{formatTime(s.time_seconds)}</span>
                                         </div>
@@ -819,7 +819,7 @@ export function Mahjong() {
                                 <div className="space-y-1.5">
                                     <span className="text-[10px] text-rose-500 font-bold uppercase tracking-wider block text-center">Ella</span>
                                     {leaderboard.ella.length > 0 ? leaderboard.ella.slice(0, 3).map((s, i) => (
-                                        <div key={i} className="flex items-center justify-between bg-white dark:bg-stone-900 rounded-lg px-3 py-1.5 text-xs border border-stone-100 dark:border-stone-700">
+                                        <div key={i} className="flex items-center justify-between bg-white dark:bg-stone-900 rounded-none px-3 py-1.5 text-xs border border-geometric-border">
                                             <span className="text-stone-400 font-mono">#{i + 1}</span>
                                             <span className="font-mono text-stone-700 dark:text-stone-300 tabular-nums">{formatTime(s.time_seconds)}</span>
                                         </div>
@@ -831,7 +831,7 @@ export function Mahjong() {
                         </div>
                     )}
 
-                    <button onClick={() => { setIsLoaded(false); }} className="w-full bg-earth-base text-white py-3.5 rounded-2xl text-sm font-bold shadow-lg shadow-earth-base/30 hover:brightness-110 active:scale-95 transition-all">Jugar de nuevo</button>
+                    <button onClick={() => { setIsLoaded(false); }} className="w-full bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 py-3.5 rounded-none text-xs font-bold uppercase tracking-widest hover:bg-geometric-accent dark:hover:bg-geometric-accent dark:hover:text-white transition-all">Jugar de nuevo</button>
                 </motion.div>
             )}
 
@@ -894,14 +894,14 @@ export function Mahjong() {
                                 initial={{ opacity: 1, scale: 0.8 }}
                                 animate={{ opacity: 0, scale: 3 }}
                                 transition={{ duration: 0.6, ease: 'easeOut' }}
-                                className="absolute inset-0 bg-amber-400/40 rounded-lg blur-md"
+                                className="absolute inset-0 bg-amber-400/40 rounded-none blur-md"
                             />
                             {/* Secondary glow ring */}
                             <motion.div
                                 initial={{ opacity: 0.6, scale: 1 }}
                                 animate={{ opacity: 0, scale: 2 }}
                                 transition={{ duration: 0.8, ease: 'easeOut', delay: 0.1 }}
-                                className="absolute inset-0 ring-2 ring-amber-300/50 rounded-lg"
+                                className="absolute inset-0 ring-2 ring-amber-300/50 rounded-none"
                             />
                         </div>
                     );
