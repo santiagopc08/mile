@@ -62,7 +62,7 @@ body {
 }
 
 .bg-dot-matrix {
-  background-image: radial-gradient(rgba(120, 113, 108, 0.1) 1px, transparent 1px);
+  background-image: radial-gradient(rgba(120, 113, 108, 0.05) 1px, transparent 1px);
   background-size: 16px 16px;
 }
 

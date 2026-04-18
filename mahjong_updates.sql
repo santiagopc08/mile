@@ -1,0 +1,6 @@
+-- No SQL needed for this task, but I'll use this file to keep track of my thoughts.
+-- Need to update Mahjong.tsx for:
+-- 1. Game Over Overlay
+-- 2. Victory Overlay
+-- 3. Leaderboard items
+-- 4. Main buttons

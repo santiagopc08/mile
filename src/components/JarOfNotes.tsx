@@ -43,12 +43,13 @@ export function JarOfNotes() {
     };
 
     return (
-        <div className="flex flex-col items-center justify-center py-20 relative">
-            <div className="text-center mb-12">
-                <h2 className="text-3xl font-light text-earth-base dark:text-earth-soft mb-3">
+        <div className="flex flex-col items-center justify-center py-20 relative bg-dot-matrix">
+            <div className="text-center mb-12 z-10">
+                <h2 className="text-3xl font-bold text-stone-800 dark:text-stone-100 mb-3 uppercase tracking-tighter">
                     El Tarro de Notas
                 </h2>
-                <p className="text-stone-500 dark:text-stone-400 font-light">
+                <div className="h-1 w-20 bg-geometric-accent mx-auto mb-4" />
+                <p className="text-stone-500 dark:text-stone-400 font-light max-w-xs mx-auto">
                     Un guardián de pensamientos. Haz clic para leer la nota de hoy.
                 </p>
             </div>
@@ -64,12 +65,13 @@ export function JarOfNotes() {
                     aria-label="Abrir nota diaria"
                 >
                     <div className="relative w-64 h-64 flex items-center justify-center">
-                        {/* Interactive hint ring */}
+                        {/* Interactive hint ring - Geometric style */}
                         <motion.div
-                            className="absolute inset-0 rounded-full border-4 border-earth-base/0"
+                            className="absolute inset-0 border border-geometric-accent/0"
                             animate={{
-                                borderColor: isHovered ? "rgba(198, 178, 160, 0.3)" : "rgba(198, 178, 160, 0)",
-                                scale: isHovered ? 1.05 : 1
+                                borderColor: isHovered ? "rgba(59, 130, 246, 0.3)" : "rgba(59, 130, 246, 0)",
+                                rotate: isHovered ? 45 : 0,
+                                scale: isHovered ? 1.1 : 1
                             }}
                             transition={{ duration: 0.3 }}
                         />
@@ -86,16 +88,24 @@ export function JarOfNotes() {
                         initial={{ opacity: 0, scale: 0.8, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.8, y: 20 }}
-                        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-80 md:w-96 shadow-2xl"
+                        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-80 md:w-96"
                     >
-                        <div className="bg-amber-50 dark:bg-stone-800 p-8 md:p-10 rounded-2xl shadow-2xl rotate-1 border-2 border-amber-100 dark:border-stone-700">
-                            <div className="flex justify-between items-start mb-6">
-                                <span className="text-earth-base font-semibold text-sm tracking-widest uppercase">Nota Diaria</span>
-                                <button onClick={() => setIsOpen(false)} className="text-stone-400 hover:text-stone-800 dark:hover:text-stone-200 transition-colors p-2 -mr-2 -mt-2">&times;</button>
+                        <div className="geometric-card bg-white dark:bg-stone-900 p-8 md:p-10 shadow-2xl relative">
+                            {/* Geometric Pattern Background for Note */}
+                            <div className="absolute inset-0 bg-grid-mosaic opacity-[0.03] pointer-events-none" />
+
+                            <div className="flex justify-between items-start mb-6 relative z-10">
+                                <span className="text-geometric-accent font-bold text-xs tracking-[0.2em] uppercase">Nota Diaria</span>
+                                <button onClick={() => setIsOpen(false)} className="text-stone-400 hover:text-geometric-accent transition-colors p-2 -mr-2 -mt-2">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                                </button>
                             </div>
-                            <p className="text-stone-700 dark:text-stone-300 font-light text-xl md:text-2xl italic text-center leading-relaxed">
+                            <p className="text-stone-800 dark:text-stone-100 font-light text-xl md:text-2xl italic text-center leading-relaxed relative z-10">
                                 &quot;{currentNote}&quot;
                             </p>
+
+                            {/* Accent geometric mark */}
+                            <div className="absolute bottom-0 left-0 w-12 h-1 bg-geometric-accent" />
                         </div>
                     </motion.div>
                 )}
@@ -103,27 +113,27 @@ export function JarOfNotes() {
 
             {/* Add Note Section - Restricted to 'el' */}
             {profile === 'el' && (
-                <div className="mt-16 w-full max-w-sm">
+                <div className="mt-16 w-full max-w-sm z-10">
                     {!isAddingMode ? (
                         <button
                             onClick={() => setIsAddingMode(true)}
-                            className="w-full py-4 rounded-xl border border-stone-200 dark:border-stone-800 text-stone-500 hover:text-earth-base hover:border-earth-base transition-colors flex items-center justify-center gap-2"
+                            className="w-full py-4 border border-geometric-border bg-white dark:bg-stone-900 text-stone-500 hover:text-geometric-accent hover:border-geometric-accent transition-all flex items-center justify-center gap-2 rounded-none"
                         >
                             <MessageCircleHeart className="w-5 h-5" />
-                            <span>Añadir Nueva Nota</span>
+                            <span className="uppercase text-xs font-bold tracking-widest">Añadir Nueva Nota</span>
                         </button>
                     ) : (
-                        <form onSubmit={handleAddNote} className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 p-6 rounded-2xl shadow-sm animate-in fade-in slide-in-from-bottom-4">
+                        <form onSubmit={handleAddNote} className="geometric-card bg-white dark:bg-stone-900 p-6 animate-in fade-in slide-in-from-bottom-4">
                             <textarea
                                 value={newNoteText}
                                 onChange={(e) => setNewNoteText(e.target.value)}
                                 placeholder="Escribe un pensamiento para el futuro..."
-                                className="w-full bg-stone-50 dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-xl p-4 min-h-[100px] outline-none focus:ring-1 focus:ring-earth-base mb-4"
+                                className="w-full bg-stone-50 dark:bg-stone-950 border border-geometric-border rounded-none p-4 min-h-[100px] outline-none focus:border-geometric-accent transition-colors mb-4"
                                 autoFocus
                             />
                             <div className="flex gap-3">
-                                <button type="button" onClick={() => setIsAddingMode(false)} className="flex-1 py-3 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 font-medium hover:opacity-80 transition-opacity">Cancelar</button>
-                                <button type="submit" disabled={!newNoteText.trim()} className="flex-1 py-3 rounded-xl bg-earth-base text-white font-medium disabled:opacity-50 hover:bg-earth-dark transition-colors">Guardar</button>
+                                <button type="button" onClick={() => setIsAddingMode(false)} className="flex-1 py-3 border border-geometric-border text-stone-600 dark:text-stone-300 font-bold text-xs uppercase tracking-widest hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors rounded-none">Cancelar</button>
+                                <button type="submit" disabled={!newNoteText.trim()} className="flex-1 py-3 bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 font-bold text-xs uppercase tracking-widest disabled:opacity-50 hover:bg-geometric-accent dark:hover:bg-geometric-accent hover:text-white transition-colors rounded-none">Guardar</button>
                             </div>
                         </form>
                     )}
