@@ -64,7 +64,7 @@ export function IOSInstallPrompt() {
             Para instalar esta aplicación completa en tu dispositivo:
             <ol className="list-decimal pl-5 mt-2 space-y-2 font-medium bg-stone-50 dark:bg-stone-800/50 p-3 rounded-lg">
               <li className="flex items-center gap-2">
-                Presiona el icono de <SquareArrowUp className="w-5 h-5 text-blue-500 inline" /> Compartir en el menú
+                Presiona el icono de <SquareArrowUp className="w-5 h-5 text-geometric-accent inline" /> Compartir en el menú
               </li>
               <li>Selecciona <span className="text-stone-800 dark:text-stone-300 font-bold">"Agregar a inicio"</span></li>
             </ol>
