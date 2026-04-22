@@ -15,6 +15,10 @@
   --color-earth-soft: #D3C2B3;
   --color-earth-accent: #E8A87C;
 
+  /* User Accents */
+  --color-user-a: #F97316; /* Santiago - Vibrant Orange */
+  --color-user-b: #A855F7; /* Milena - Soft Lavender */
+
   --spacing: 0.25rem;
   --font-sans: var(--font-inter);
 
@@ -49,25 +53,30 @@ body {
 /* Geometric UI Signature Classes */
 .geometric-card {
   background: var(--background);
-  border: 1px solid rgba(120, 113, 108, 0.2);
+  border: 1px solid rgba(120, 113, 108, 0.15);
   border-radius: 0px; /* Minimalist Brutalism Signature */
   position: relative;
   overflow: hidden;
 }
 
-.bg-grid-mosaic {
+.bg-mosaic {
   background-size: 20px 20px;
-  background-image: linear-gradient(to right, rgba(120, 113, 108, 0.05) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(120, 113, 108, 0.05) 1px, transparent 1px);
+  background-image: linear-gradient(to right, rgba(120, 113, 108, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(120, 113, 108, 0.03) 1px, transparent 1px);
 }
 
 .bg-dot-matrix {
-  background-image: radial-gradient(rgba(120, 113, 108, 0.05) 1px, transparent 1px);
+  background-image: radial-gradient(rgba(120, 113, 108, 0.03) 1px, transparent 1px);
   background-size: 16px 16px;
 }
 
 .geometric-accent-border {
   border-bottom: 2px solid var(--color-geometric-accent);
+}
+
+/* Touch targets */
+button, input, select {
+  min-height: 44px;
 }
 
 /* Custom Scrollbar for inner components */

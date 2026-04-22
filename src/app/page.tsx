@@ -1,14 +1,14 @@
 'use client';
 
 import { PrivateRoute } from "@/components/PrivateRoute";
-import { TransparencyDashboard } from "@/components/TransparencyDashboard";
+import { SymmetryDashboard } from "@/components/symmetry/SymmetryDashboard";
 
 export default function Home() {
   return (
     <PrivateRoute>
       <div className="fixed inset-0 z-[-1] bg-stone-50 dark:bg-stone-950 overflow-hidden">
         {/* Subtle Geometric Background */}
-        <div className="absolute inset-0 bg-grid-mosaic opacity-60" />
+        <div className="absolute inset-0 bg-mosaic opacity-60" />
         <div className="absolute inset-0 bg-dot-matrix opacity-40" />
         
         {/* Structural Geometric Accents */}
@@ -19,7 +19,7 @@ export default function Home() {
 
       <main className="w-full flex flex-col items-center justify-start pt-12 px-6 md:px-16 pb-24 relative z-10">
         <section className="w-full">
-          <TransparencyDashboard />
+          <SymmetryDashboard />
         </section>
       </main>
     </PrivateRoute>
