@@ -1,0 +1,112 @@
+
+> mile@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.3 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.2:3000
+✓ Ready in 569ms
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+
+
+○ Compiling / ...
+ GET / 200 in 10.2s (next.js: 9.5s, application-code: 681ms)
+ GET / 200 in 137ms (next.js: 9ms, application-code: 127ms)
+⨯ Error: supabaseUrl is required.
+    at module evaluation (src/lib/supabase.ts:7:37)
+    at module evaluation (src/services/storeService.ts:1:1)
+    at module evaluation (src/app/api/store/route.ts:2:1)
+    at Object.<anonymous> (.next/dev/server/app/api/store/route.js:8:3)
+   5 |
+   6 | // Client for the browser (uses Anon Key)
+>  7 | export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+     |                                     ^
+   8 |
+   9 | // Helper for server-side (uses Service Role Key)
+  10 | export const createServerClient = () => { {
+  page: '/api/store'
+}
+[browser] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[browser] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[browser] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[browser] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+ GET /api/store 500 in 4.3s (next.js: 4.0s, application-code: 285ms)
+ GET /planes 200 in 1262ms (next.js: 1083ms, application-code: 179ms)
+⨯ Error: supabaseUrl is required.
+    at module evaluation (src/lib/supabase.ts:7:37)
+    at module evaluation (src/services/storeService.ts:1:1)
+    at module evaluation (src/app/api/store/route.ts:2:1)
+    at Object.<anonymous> (.next/dev/server/app/api/store/route.js:8:3)
+   5 |
+   6 | // Client for the browser (uses Anon Key)
+>  7 | export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+     |                                     ^
+   8 |
+   9 | // Helper for server-side (uses Service Role Key)
+  10 | export const createServerClient = () => { {
+  page: '/api/store'
+}
+ GET /api/store 500 in 139ms (next.js: 123ms, application-code: 15ms)
+ GET / 200 in 76ms (next.js: 5ms, application-code: 71ms)
+⨯ Error: supabaseUrl is required.
+    at module evaluation (src/lib/supabase.ts:7:37)
+    at module evaluation (src/services/storeService.ts:1:1)
+    at module evaluation (src/app/api/store/route.ts:2:1)
+    at Object.<anonymous> (.next/dev/server/app/api/store/route.js:8:3)
+   5 |
+   6 | // Client for the browser (uses Anon Key)
+>  7 | export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+     |                                     ^
+   8 |
+   9 | // Helper for server-side (uses Service Role Key)
+  10 | export const createServerClient = () => { {
+  page: '/api/store'
+}
+ GET /api/store 500 in 83ms (next.js: 64ms, application-code: 19ms)
+[browser] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[browser] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[browser] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[browser] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+ GET /planes 200 in 139ms (next.js: 8ms, application-code: 131ms)
+⨯ Error: supabaseUrl is required.
+    at module evaluation (src/lib/supabase.ts:7:37)
+    at module evaluation (src/services/storeService.ts:1:1)
+    at module evaluation (src/app/api/store/route.ts:2:1)
+    at Object.<anonymous> (.next/dev/server/app/api/store/route.js:8:3)
+   5 |
+   6 | // Client for the browser (uses Anon Key)
+>  7 | export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+     |                                     ^
+   8 |
+   9 | // Helper for server-side (uses Service Role Key)
+  10 | export const createServerClient = () => { {
+  page: '/api/store'
+}
+ GET /api/store 500 in 103ms (next.js: 84ms, application-code: 20ms)

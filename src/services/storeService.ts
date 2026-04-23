@@ -47,7 +47,8 @@ export interface AppData {
         category: 'plan' | 'antojo' | 'gusto';
         title: string;
         description: string;
-        status: string;
+        status: "to-visit" | "visited";
+        locationUrl?: string;
         author: string;
     }[];
     persistentListening: {
@@ -107,7 +108,7 @@ export const StoreService = {
             const allVictories = victoriesRes.data || [];
 
             return {
-                wishlist: wishlistRes.data || [],
+                wishlist: (wishlistRes.data || []).map(w => ({ id: w.id, category: w.category, title: w.title, description: w.description, status: w.status, author: w.author || "el", locationUrl: w.location_url })),
                 tasks: (tasksRes.data || []).map((t) => ({
                     id: t.id,
                     title: t.title,
@@ -199,7 +200,8 @@ export const StoreService = {
                     title: w.title,
                     description: w.description,
                     status: w.status,
-                    author: w.author
+                    location_url: w.locationUrl,
+                    author: w.author || "el"
                 })));
             }
 
