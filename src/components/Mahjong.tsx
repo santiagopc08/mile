@@ -335,7 +335,7 @@ export function Mahjong() {
 
     const initializeGame = async () => {
         const mobileState = window.innerWidth <= 768;
-        const imageUrls = await StoreService.getMahjongImages();
+        const imageUrls = shuffleArray(await StoreService.getMahjongImages());
 
         let selectedLayout: LayoutType;
         if (mobileState) {
