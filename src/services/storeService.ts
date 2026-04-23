@@ -42,6 +42,14 @@ export interface AppData {
         priority: string;
         assignee: string;
     }[];
+    wishlist: {
+        id: string;
+        category: 'plan' | 'antojo' | 'gusto';
+        title: string;
+        description: string;
+        status: string;
+        author: string;
+    }[];
     persistentListening: {
         id: string;
         topic: string;
@@ -55,7 +63,7 @@ export interface AppData {
 export const StoreService = {
     async getStore(supabase: SupabaseClient = defaultSupabase): Promise<AppData> {
         try {
-            const [eventsRes, notesRes, commitmentsRes, victoriesRes, settingsRes, playlistRes, commentsRes, listeningRes, tasksRes] = await Promise.all([
+            const [eventsRes, notesRes, commitmentsRes, victoriesRes, settingsRes, playlistRes, commentsRes, listeningRes, tasksRes, wishlistRes] = await Promise.all([
                 supabase.from('events').select('*').order('date', { ascending: false }),
                 supabase.from('notes').select('*').order('created_at', { ascending: false }),
                 supabase.from('commitments').select('*').order('created_at', { ascending: true }),
@@ -64,8 +72,8 @@ export const StoreService = {
                 supabase.from('audio_track').select('*').order('display_order', { ascending: true }),
                 supabase.from('audio_comments').select('*').order('created_at', { ascending: true }),
                 supabase.from('persistent_listening').select('*').order('date', { ascending: false }),
-
-                supabase.from('tasks').select('*').order('created_at', { ascending: false })
+                supabase.from('tasks').select('*').order('created_at', { ascending: false }),
+                supabase.from('wishlist').select('*').order('created_at', { ascending: false })
             ]);
 
             const settings = settingsRes.data || { connection_date: new Date().toISOString(), last_update: new Date().toISOString() };
@@ -96,36 +104,10 @@ export const StoreService = {
             let todayTracking = trackingData.find((t: any) => t.date === todayStr);
             const yesterdayTracking = trackingData.find((t: any) => t.date === yesterdayStr);
 
-            // If it's a new day, reset all commitments to uncompleted
-            if (!todayTracking) {
-                if (finalCommitments.length > 0) {
-                    await supabase
-                        .from('commitments')
-                        .update({ is_active: true })
-                        .in('id', finalCommitments.map((c: any) => c.id));
-                    finalCommitments = finalCommitments.map(c => ({ ...c, is_active: true }));
-                }
-
-                await supabase.from('daily_tracking').insert({ date: todayStr, completed_count: 0 });
-                todayTracking = { date: todayStr, completed_count: 0 };
-            }
-
-            const todayTotal = finalCommitments.length;
-            const todayCompleted = finalCommitments.filter((c: any) => c.is_active === false).length;
-
-            const yesterdayCompleted = yesterdayTracking ? yesterdayTracking.completed_count : 0;
-            const yesterdayTotal = Math.max(yesterdayCompleted, todayTotal);
-
-            const mappedCommitments = finalCommitments.map(c => ({
-                id: c.id,
-                text: c.text,
-                completed: c.is_active === false,
-                author: c.author || 'el'
-            }));
-
             const allVictories = victoriesRes.data || [];
 
             return {
+                wishlist: wishlistRes.data || [],
                 tasks: (tasksRes.data || []).map((t) => ({
                     id: t.id,
                     title: t.title,
@@ -147,31 +129,36 @@ export const StoreService = {
                     text: n.text,
                     author: n.author || 'el'
                 })),
-                commitments: mappedCommitments,
+                commitments: finalCommitments.map((c: any) => ({
+                    id: c.id,
+                    text: c.text,
+                    completed: !c.is_active,
+                    author: c.author || 'el'
+                })),
                 victoriesEl: allVictories.filter((v: any) => v.author === 'el'),
                 victoriesElla: allVictories.filter((v: any) => v.author === 'ella'),
                 audioStats: {
-                    daysTracking: trackingDays >= 0 ? trackingDays : 0,
-                    lastUpdate: formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1)
+                    daysTracking: trackingDays,
+                    lastUpdate: formattedDate
                 },
                 audioPlaylist,
+                dailyProgress: {
+                    yesterdayTotal: finalCommitments.length,
+                    yesterdayCompleted: yesterdayTracking ? yesterdayTracking.completed_count : 0,
+                    todayTotal: finalCommitments.length,
+                    todayCompleted: todayTracking ? todayTracking.completed_count : 0
+                },
                 persistentListening: (listeningRes.data || []).map((l: any) => ({
                     id: l.id,
                     topic: l.topic,
                     reflection: l.reflection,
                     date: l.date,
                     author: l.author || 'el'
-                })),
-                dailyProgress: {
-                    yesterdayTotal,
-                    yesterdayCompleted,
-                    todayTotal,
-                    todayCompleted
-                }
+                }))
             };
         } catch (error) {
-            console.error('Failed to read from Supabase', error);
-            throw new Error('Could not read data store.');
+            console.error('Failed to fetch from Supabase', error);
+            throw new Error('Could not read from data store.');
         }
     },
 
@@ -203,6 +190,18 @@ export const StoreService = {
                 if (toUpsert.length > 0) await supabase.from(tableName).upsert(toUpsert);
                 if (toInsert.length > 0) await supabase.from(tableName).insert(toInsert);
             };
+
+            // Wishlist
+            if (newData.wishlist !== undefined) {
+                await syncTable('wishlist', newData.wishlist.map(w => ({
+                    id: w.id,
+                    category: w.category,
+                    title: w.title,
+                    description: w.description,
+                    status: w.status,
+                    author: w.author
+                })));
+            }
 
             // Tasks
             if (newData.tasks !== undefined) {
