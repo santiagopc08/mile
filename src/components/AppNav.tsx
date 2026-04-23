@@ -2,18 +2,17 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, MessageCircleHeart, Gamepad2, Mic, Clock, Music } from 'lucide-react';
+import { LayoutDashboard, ShieldCheck, Gamepad2, MapPin, Clock } from 'lucide-react';
 
 export function AppNav() {
   const pathname = usePathname();
 
   const navItems = [
-    { name: 'Inicio', path: '/', icon: LayoutDashboard },
-    { name: 'Notas', path: '/tarro', icon: MessageCircleHeart },
-    { name: 'Escucha', path: '/escucha', icon: Mic },
+    { name: 'Productividad', path: '/', icon: LayoutDashboard },
+    { name: 'Refugio', path: '/refugio', icon: ShieldCheck },
+    { name: 'Planes', path: '/planes', icon: MapPin },
     { name: 'Mahjong', path: '/juego', icon: Gamepad2 },
     { name: 'Historia', path: '/historia', icon: Clock },
-    { name: 'Música', path: '/audio', icon: Music },
   ];
 
   return (
@@ -42,7 +41,7 @@ export function AppNav() {
                   }`}>
                     <Icon className="w-5 h-5 stroke-[1.5]" />
                   </div>
-                  <span className={`text-[9px] uppercase font-bold mt-2 tracking-[0.1em] transition-all ${
+                  <span className={`text-[7px] md:text-[9px] uppercase font-bold mt-2 tracking-[0.1em] transition-all text-center ${
                     isActive ? 'opacity-100' : 'opacity-40 group-hover:opacity-100 font-normal'
                   }`}>
                     {item.name}
