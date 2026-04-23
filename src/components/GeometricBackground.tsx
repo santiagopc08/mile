@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 
 export function GeometricBackground() {
   return (
-    <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden opacity-20">
+    <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden opacity-50">
       {/* Intertwined Triangles */}
       <motion.div
         className="absolute top-1/4 left-1/4"
@@ -56,7 +56,7 @@ export function GeometricBackground() {
           ease: "easeInOut"
         }}
       >
-        <div className="w-12 h-24 border border-stone-400 dark:border-stone-600 opacity-30" />
+        <div className="w-12 h-24 border border-stone-400 dark:border-stone-600 opacity-60" />
       </motion.div>
 
       <motion.div
@@ -71,7 +71,7 @@ export function GeometricBackground() {
           ease: "easeInOut"
         }}
       >
-        <div className="w-20 h-10 border border-geometric-accent opacity-20" />
+        <div className="w-20 h-10 border border-geometric-accent opacity-50" />
       </motion.div>
     </div>
   );

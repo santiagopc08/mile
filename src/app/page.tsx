@@ -8,8 +8,8 @@ export default function Home() {
     <PrivateRoute>
       <div className="fixed inset-0 z-[-1] bg-stone-50 dark:bg-stone-950 overflow-hidden">
         {/* Subtle Geometric Background */}
-        <div className="absolute inset-0 bg-mosaic opacity-60" />
-        <div className="absolute inset-0 bg-dot-matrix opacity-40" />
+        <div className="absolute inset-0 bg-mosaic opacity-85" />
+        <div className="absolute inset-0 bg-dot-matrix opacity-65" />
         
         {/* Structural Geometric Accents */}
         <div className="absolute top-0 left-1/4 w-[1px] h-full bg-stone-200/50 dark:bg-stone-800/30" />

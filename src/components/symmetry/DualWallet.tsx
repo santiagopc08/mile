@@ -5,55 +5,78 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Trash2, Wallet } from 'lucide-react';
 import { useProfile } from '@/context/ProfileContext';
 
-interface Expense {
+interface Allocation {
   id: string;
   amount: number;
   description: string;
-  category: 'Engineering/Study' | 'Pets' | 'Home' | 'Investments' | 'Misc';
+  category: '💻 Ingeniería/Estudio' | '🐶 Mascotas' | '🏡 Hogar' | '📈 Inversiones' | '🍔 Alimentación' | '🎲 Otros';
   date: string;
 }
 
+const CATEGORIES = [
+  '💻 Ingeniería/Estudio',
+  '🐶 Mascotas',
+  '🏡 Hogar',
+  '📈 Inversiones',
+  '🍔 Alimentación',
+  '🎲 Otros'
+] as const;
+
 export const DualWallet = ({ onExpensesUpdate }: { onExpensesUpdate: (miscPercentage: number) => void }) => {
   const { profile } = useProfile();
-  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [allocations, setAllocations] = useState<Allocation[]>([]);
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
-  const [category, setCategory] = useState<Expense['category']>('Misc');
+  const [category, setCategory] = useState<Allocation['category']>('🎲 Otros');
 
-  const storageKey = profile === 'el' ? 'symmetry_A_expenses' : 'symmetry_B_expenses';
-
-  useEffect(() => {
-    const saved = localStorage.getItem(storageKey);
-    if (saved) setExpenses(JSON.parse(saved));
-    else setExpenses([]);
-  }, [storageKey]);
+  const storageKey = profile === 'el' ? 'symmetry_A_allocations' : 'symmetry_B_allocations';
 
   useEffect(() => {
-    localStorage.setItem(storageKey, JSON.stringify(expenses));
+    // Migration from old expenses key if exists
+    const oldKey = profile === 'el' ? 'symmetry_A_expenses' : 'symmetry_B_expenses';
+    const saved = localStorage.getItem(storageKey) || localStorage.getItem(oldKey);
+    
+    if (saved) {
+      setAllocations(JSON.parse(saved).map((a: any) => ({
+        ...a,
+        // Map old categories if needed
+        category: CATEGORIES.includes(a.category) ? a.category : '🎲 Otros'
+      })));
+    } else {
+      setAllocations([]);
+    }
+  }, [storageKey, profile]);
 
-    const total = expenses.reduce((sum, e) => sum + e.amount, 0);
-    const miscTotal = expenses.filter(e => e.category === 'Misc').reduce((sum, e) => sum + e.amount, 0);
+  useEffect(() => {
+    localStorage.setItem(storageKey, JSON.stringify(allocations));
+
+    const total = allocations.reduce((sum, e) => sum + e.amount, 0);
+    const miscTotal = allocations.filter(e => e.category === '🎲 Otros').reduce((sum, e) => sum + e.amount, 0);
     const miscPercent = total > 0 ? (miscTotal / total) * 100 : 0;
 
     onExpensesUpdate(miscPercent);
-  }, [expenses, storageKey, onExpensesUpdate]);
+  }, [allocations, storageKey, onExpensesUpdate]);
 
-  const addExpense = () => {
+  const addAllocation = () => {
     if (!amount || !description) return;
-    const newExpense: Expense = {
+    const newAllocation: Allocation = {
       id: Date.now().toString(),
       amount: parseFloat(amount),
       description,
       category,
       date: new Date().toISOString(),
     };
-    setExpenses([newExpense, ...expenses]);
+    setAllocations([newAllocation, ...allocations]);
     setAmount('');
     setDescription('');
   };
 
-  const deleteExpense = (id: string) => {
-    setExpenses(expenses.filter(e => e.id !== id));
+  const deleteAllocation = (id: string) => {
+    setAllocations(allocations.filter(e => e.id !== id));
+  };
+
+  const formatCOP = (val: number) => {
+    return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(val);
   };
 
   return (
@@ -64,44 +87,42 @@ export const DualWallet = ({ onExpensesUpdate }: { onExpensesUpdate: (miscPercen
              type="number"
              value={amount}
              onChange={(e) => setAmount(e.target.value)}
-             placeholder="Amount"
+             placeholder="Monto (COP)"
              className="w-full bg-transparent border border-stone-200 dark:border-stone-800 px-3 py-2 text-xs uppercase tracking-widest outline-none focus:border-user-a transition-colors"
            />
            <input
              type="text"
              value={description}
              onChange={(e) => setDescription(e.target.value)}
-             placeholder="Description"
+             placeholder="Descripción"
              className="w-full bg-transparent border border-stone-200 dark:border-stone-800 px-3 py-2 text-xs uppercase tracking-widest outline-none focus:border-user-a transition-colors"
            />
         </div>
         <div className="space-y-2">
            <select
              value={category}
-             onChange={(e) => setCategory(e.target.value as Expense['category'])}
-             className="w-full bg-transparent border border-stone-200 dark:border-stone-800 px-3 py-2 text-xs uppercase tracking-widest outline-none focus:border-user-a transition-colors"
+             onChange={(e) => setCategory(e.target.value as Allocation['category'])}
+             className="w-full bg-transparent border border-stone-200 dark:border-stone-800 px-3 py-2 text-xs tracking-widest outline-none focus:border-user-a transition-colors"
            >
-             <option value="Engineering/Study">Engineering/Study</option>
-             <option value="Pets">Pets</option>
-             <option value="Home">Home</option>
-             <option value="Investments">Investments</option>
-             <option value="Misc">Misc</option>
+             {CATEGORIES.map(cat => (
+               <option key={cat} value={cat}>{cat}</option>
+             ))}
            </select>
            <motion.button
              whileTap={{ scale: 0.95 }}
-             onClick={addExpense}
+             onClick={addAllocation}
              className="w-full bg-stone-800 dark:bg-stone-200 text-white dark:text-black py-2 uppercase text-[10px] font-bold tracking-[0.2em] flex items-center justify-center gap-2"
            >
-             <Plus size={14} /> Commit Entry
+             <Plus size={14} /> Registrar Asignación
            </motion.button>
         </div>
       </div>
 
       <div className="space-y-2 max-h-60 overflow-y-auto custom-scrollbar pr-2">
         <AnimatePresence>
-          {expenses.map((exp) => (
+          {allocations.map((alloc) => (
             <motion.div
-              key={exp.id}
+              key={alloc.id}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -109,18 +130,18 @@ export const DualWallet = ({ onExpensesUpdate }: { onExpensesUpdate: (miscPercen
             >
               <div className="flex flex-col">
                 <span className="text-[10px] uppercase font-bold tracking-widest text-stone-800 dark:text-stone-200">
-                  {exp.description}
+                  {alloc.description}
                 </span>
                 <span className="text-[8px] uppercase tracking-widest text-stone-400">
-                  {exp.category} • {new Date(exp.date).toLocaleDateString()}
+                  {alloc.category} • {new Date(alloc.date).toLocaleDateString()}
                 </span>
               </div>
               <div className="flex items-center gap-4">
-                <span className="text-xs font-mono font-bold text-user-a">
-                  ${exp.amount.toFixed(2)}
+                <span className="text-[10px] font-mono font-bold text-user-a">
+                  {formatCOP(alloc.amount)}
                 </span>
                 <button
-                  onClick={() => deleteExpense(exp.id)}
+                  onClick={() => deleteAllocation(alloc.id)}
                   className="opacity-0 group-hover:opacity-100 text-stone-400 hover:text-red-500 transition-all"
                 >
                   <Trash2 size={14} />

@@ -13,12 +13,16 @@ import {
 import { useVisibility } from '@/context/VisibilityContext';
 import { useProfile } from '@/context/ProfileContext';
 
-export const FinanceChart = ({ expensesA, expensesB }: { expensesA: any[], expensesB: any[] }) => {
+const formatCOP = (val: number) => {
+  return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(val);
+};
+
+export const FinanceChart = ({ allocationsA, allocationsB }: { allocationsA: any[], allocationsB: any[] }) => {
   const { mode } = useVisibility();
   const { profile } = useProfile();
 
   const chartData = useMemo(() => {
-    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const days = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
     const today = new Date();
 
     return Array.from({ length: 7 }).map((_, i) => {
@@ -27,11 +31,11 @@ export const FinanceChart = ({ expensesA, expensesB }: { expensesA: any[], expen
       const dayLabel = days[d.getDay()];
       const dateStr = d.toLocaleDateString();
 
-      const sumA = expensesA
+      const sumA = allocationsA
         .filter(e => new Date(e.date).toLocaleDateString() === dateStr)
         .reduce((sum, e) => sum + e.amount, 0);
 
-      const sumB = expensesB
+      const sumB = allocationsB
         .filter(e => new Date(e.date).toLocaleDateString() === dateStr)
         .reduce((sum, e) => sum + e.amount, 0);
 
@@ -41,14 +45,14 @@ export const FinanceChart = ({ expensesA, expensesB }: { expensesA: any[], expen
         Milena: sumB,
       };
     });
-  }, [expensesA, expensesB]);
+  }, [allocationsA, allocationsB]);
 
   return (
     <div className="w-full h-full">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={chartData}
-          margin={{ top: 20, right: 0, left: -20, bottom: 0 }}
+          margin={{ top: 20, right: 0, left: -10, bottom: 0 }}
         >
           <XAxis
             dataKey="name"
@@ -59,9 +63,11 @@ export const FinanceChart = ({ expensesA, expensesB }: { expensesA: any[], expen
           <YAxis
             axisLine={false}
             tickLine={false}
+            tickFormatter={(val) => new Intl.NumberFormat('es-CO', { notation: "compact", compactDisplay: "short" }).format(val)}
             tick={{ fontSize: 9, fontWeight: 'bold', fill: 'currentColor', opacity: 0.5 }}
           />
           <Tooltip
+            formatter={(value: any) => [formatCOP(Number(value)), "Asignación"]}
             cursor={{ fill: 'rgba(120, 113, 108, 0.05)' }}
             contentStyle={{
               backgroundColor: 'var(--background)',

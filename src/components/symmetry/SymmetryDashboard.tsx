@@ -1,14 +1,14 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useVisibility } from '@/context/VisibilityContext';
 import { useProfile } from '@/context/ProfileContext';
-import { SymmetryChart } from './SymmetryChart';
 import { SymmetryShield } from './SymmetryShield';
 import { SaberPro } from './SaberPro';
 import { TaskModule } from './TaskModule';
 import { DualWallet } from './DualWallet';
 import { FinanceChart } from './FinanceChart';
+import { TaskStatsChart } from './TaskStatsChart';
 import { motion } from 'framer-motion';
 
 export const SymmetryDashboard = () => {
@@ -20,8 +20,8 @@ export const SymmetryDashboard = () => {
   const [focusScore, setFocusScore] = useState(0);
   const [isFragmented, setIsFragmented] = useState(false);
 
-  const [expensesA, setExpensesA] = useState<any[]>([]);
-  const [expensesB, setExpensesB] = useState<any[]>([]);
+  const [allocationsA, setAllocationsA] = useState<any[]>([]);
+  const [allocationsB, setAllocationsB] = useState<any[]>([]);
   const [tasks, setTasks] = useState<any[]>([]);
 
   useEffect(() => {
@@ -30,10 +30,11 @@ export const SymmetryDashboard = () => {
     if (savedA) setDataA(JSON.parse(savedA));
     if (savedB) setDataB(JSON.parse(savedB));
 
-    const expA = localStorage.getItem('symmetry_A_expenses');
-    const expB = localStorage.getItem('symmetry_B_expenses');
-    if (expA) setExpensesA(JSON.parse(expA));
-    if (expB) setExpensesB(JSON.parse(expB));
+    // Read allocations (with fallback to old expenses keys)
+    const allocA = localStorage.getItem('symmetry_A_allocations') || localStorage.getItem('symmetry_A_expenses');
+    const allocB = localStorage.getItem('symmetry_B_allocations') || localStorage.getItem('symmetry_B_expenses');
+    if (allocA) setAllocationsA(JSON.parse(allocA));
+    if (allocB) setAllocationsB(JSON.parse(allocB));
 
     const savedTasks = localStorage.getItem('symmetry_tasks');
     if (savedTasks) setTasks(JSON.parse(savedTasks));
@@ -44,7 +45,7 @@ export const SymmetryDashboard = () => {
     const calculateCategoryScore = (cat: string) => {
       const catTasks = tasks.filter(t => t.category === cat);
       if (catTasks.length === 0) return 50;
-      return (catTasks.filter(t => t.completed).length / catTasks.length) * 100;
+      return (catTasks.filter((t: any) => t.status === 'done').length / catTasks.length) * 100;
     };
 
     const updateScores = (prev: any) => ({
@@ -71,9 +72,9 @@ export const SymmetryDashboard = () => {
 
   const updateAcademic = useCallback(() => {
     const update = (prev: any) => {
-        const next = { ...prev, academic: Math.min(prev.academic + 5, 100) };
-        localStorage.setItem(profile === 'el' ? 'symmetry_A_data' : 'symmetry_B_data', JSON.stringify(next));
-        return next;
+      const next = { ...prev, academic: Math.min(prev.academic + 5, 100) };
+      localStorage.setItem(profile === 'el' ? 'symmetry_A_data' : 'symmetry_B_data', JSON.stringify(next));
+      return next;
     };
     if (profile === 'el') setDataA(update);
     else setDataB(update);
@@ -87,21 +88,22 @@ export const SymmetryDashboard = () => {
 
   const handleExpensesUpdate = useCallback((miscPercent: number) => {
     setIsFragmented(miscPercent > 20);
-    const expA = localStorage.getItem('symmetry_A_expenses');
-    const expB = localStorage.getItem('symmetry_B_expenses');
-    if (expA) setExpensesA(JSON.parse(expA));
-    if (expB) setExpensesB(JSON.parse(expB));
+    const allocA = localStorage.getItem('symmetry_A_allocations') || localStorage.getItem('symmetry_A_expenses');
+    const allocB = localStorage.getItem('symmetry_B_allocations') || localStorage.getItem('symmetry_B_expenses');
+    if (allocA) setAllocationsA(JSON.parse(allocA));
+    if (allocB) setAllocationsB(JSON.parse(allocB));
   }, []);
 
   return (
-    <div className="w-full max-w-6xl mx-auto space-y-6 pb-24 px-4 sm:px-6">
+    <div className="w-full max-w-7xl mx-auto space-y-8 pb-24 px-4 sm:px-6">
+      {/* Header */}
       <div className="flex flex-col items-center justify-between gap-6 md:flex-row border-b border-stone-200 dark:border-stone-800 pb-6">
         <div className="text-center md:text-left">
-          <h1 className="text-4xl sm:text-5xl font-black tracking-tighter uppercase italic leading-none">Symmetry</h1>
+          <h1 className="text-4xl sm:text-5xl font-black tracking-tighter uppercase italic leading-none">Productividad</h1>
           <div className="flex items-center justify-center md:justify-start gap-3 mt-3">
             <div className={`w-2 h-2 ${mode === 'me' ? 'bg-user-a' : 'bg-user-b'}`} />
             <p className="text-stone-500 text-[8px] sm:text-[10px] uppercase font-bold tracking-[0.4em]">
-              {mode === 'me' ? 'Structural Integrity' : 'Binary Equilibrium'}
+              {mode === 'me' ? 'Vista Personal' : 'Vista Compartida'}
             </p>
           </div>
         </div>
@@ -112,76 +114,82 @@ export const SymmetryDashboard = () => {
           className="geometric-card w-full md:w-auto px-8 py-4 uppercase text-[10px] font-bold tracking-[0.2em] border transition-colors bg-white dark:bg-black"
           style={{ borderColor: mode === 'us' ? 'var(--color-user-b)' : 'var(--color-user-a)' }}
         >
-          Perspective: {mode === 'me' ? 'Private' : 'Shared'}
+          Perspectiva: {mode === 'me' ? 'Privada' : 'Compartida'}
         </motion.button>
       </div>
 
+      {/* Row 1: Kanban Board (full width) */}
+      <div className="geometric-card p-6 sm:p-8 bg-mosaic border-stone-200 dark:border-stone-800">
+        <h2 className="text-[10px] uppercase font-bold tracking-[0.2em] mb-8 border-b border-stone-100 dark:border-stone-900 pb-3 text-user-b flex justify-between items-center">
+          <span>Tablero de Tareas</span>
+          <span className="text-[8px] font-mono opacity-50">Kanban v2.0</span>
+        </h2>
+        <TaskModule onTasksUpdate={handleTasksUpdate} />
+      </div>
+
+      {/* Row 2: Task Stats (7 days) + Shield */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className="lg:col-span-8 space-y-6">
-          <div className="geometric-card p-4 sm:p-8 min-h-[450px] flex flex-col items-center justify-center bg-mosaic border-stone-200 dark:border-stone-800">
-             <div className="relative w-full h-[320px] sm:h-[400px]">
-                <SymmetryChart dataA={dataA} dataB={dataB} />
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                   <SymmetryShield focusScore={focusScore} isFragmented={isFragmented} />
-                </div>
-             </div>
-
-             <div className="mt-8 grid grid-cols-4 gap-2 sm:gap-4 w-full border-t border-stone-100 dark:border-stone-900 pt-8">
-                {['Academic', 'Work', 'Home', 'Personal'].map((label, i) => {
-                  const val = mode === 'me'
-                    ? Math.round((profile === 'el' ? (dataA as any)[label.toLowerCase()] : (dataB as any)[label.toLowerCase()]))
-                    : Math.round(((dataA as any)[label.toLowerCase()] + (dataB as any)[label.toLowerCase()]) / 2);
-                  return (
-                    <div key={label} className="flex flex-col items-center">
-                       <span className="text-[7px] sm:text-[9px] uppercase font-bold tracking-[0.15em] text-stone-400 mb-1">{label}</span>
-                       <div className="flex items-baseline gap-0.5">
-                          <span className="text-lg sm:text-xl font-mono font-black tracking-tighter text-stone-800 dark:text-stone-200">{val}</span>
-                          <span className="text-[8px] font-bold text-stone-400">%</span>
-                       </div>
-                    </div>
-                  );
-                })}
-             </div>
-          </div>
-
-          <div className="geometric-card p-6 sm:p-8 bg-mosaic border-stone-200 dark:border-stone-800">
-             <h2 className="text-[10px] uppercase font-bold tracking-[0.2em] mb-8 border-b border-stone-100 dark:border-stone-900 pb-3 flex items-center gap-2">
-                <div className="w-1.5 h-1.5 bg-user-a" />
-                Capital Flow Matrix
-             </h2>
-             <div className="h-64">
-                <FinanceChart
-                  expensesA={mode === 'me' && profile === 'ella' ? [] : expensesA}
-                  expensesB={mode === 'me' && profile === 'el' ? [] : expensesB}
-                />
-             </div>
+        <div className="lg:col-span-8 geometric-card p-6 sm:p-8 bg-dot-matrix border-stone-200 dark:border-stone-800">
+          <h2 className="text-[10px] uppercase font-bold tracking-[0.2em] mb-8 border-b border-stone-100 dark:border-stone-900 pb-3 flex items-center gap-2">
+            <div className="w-1.5 h-1.5 bg-user-a" />
+            Rendimiento Semanal
+          </h2>
+          <div className="h-64">
+            <TaskStatsChart tasks={tasks} />
           </div>
         </div>
-
-        <div className="lg:col-span-4 space-y-6">
-          <div className="geometric-card p-6 bg-dot-matrix border-stone-200 dark:border-stone-800">
-             <h2 className="text-[9px] uppercase font-bold tracking-[0.2em] mb-6 border-b border-stone-100 dark:border-stone-900 pb-2 text-user-a flex justify-between items-center">
-                <span>Cognitive Engine</span>
-                <span className="text-[8px] font-mono opacity-50">Saber Pro v1.0</span>
-             </h2>
-             <SaberPro onCorrectAnswer={updateAcademic} />
+        <div className="lg:col-span-4 geometric-card p-6 sm:p-8 bg-mosaic border-stone-200 dark:border-stone-800 flex flex-col items-center justify-center">
+          <SymmetryShield focusScore={focusScore} isFragmented={isFragmented} />
+          <div className="mt-6 grid grid-cols-4 gap-2 w-full border-t border-stone-100 dark:border-stone-900 pt-6">
+            {['Académico', 'Trabajo', 'Hogar', 'Personal'].map((label, i) => {
+              const keys = ['academic', 'work', 'home', 'personal'];
+              const val = mode === 'me'
+                ? Math.round((profile === 'el' ? (dataA as any)[keys[i]] : (dataB as any)[keys[i]]))
+                : Math.round(((dataA as any)[keys[i]] + (dataB as any)[keys[i]]) / 2);
+              return (
+                <div key={label} className="flex flex-col items-center">
+                  <span className="text-[7px] sm:text-[8px] uppercase font-bold tracking-[0.1em] text-stone-400 mb-1">{label}</span>
+                  <div className="flex items-baseline gap-0.5">
+                    <span className="text-lg font-mono font-black tracking-tighter text-stone-800 dark:text-stone-200">{val}</span>
+                    <span className="text-[8px] font-bold text-stone-400">%</span>
+                  </div>
+                </div>
+              );
+            })}
           </div>
+        </div>
+      </div>
 
-          <div className="geometric-card p-6 bg-mosaic border-stone-200 dark:border-stone-800">
-             <h2 className="text-[9px] uppercase font-bold tracking-[0.2em] mb-6 border-b border-stone-100 dark:border-stone-900 pb-2 text-user-b flex justify-between items-center">
-                <span>Tactical Grid</span>
-                <span className="text-[8px] font-mono opacity-50">Active Discipline</span>
-             </h2>
-             <TaskModule onTasksUpdate={handleTasksUpdate} />
-          </div>
+      {/* Row 3: Saber Pro + Allocations side by side */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="lg:col-span-6 geometric-card p-6 bg-dot-matrix border-stone-200 dark:border-stone-800">
+          <h2 className="text-[9px] uppercase font-bold tracking-[0.2em] mb-6 border-b border-stone-100 dark:border-stone-900 pb-2 text-user-a flex justify-between items-center">
+            <span>Preparación Saber Pro</span>
+            <span className="text-[8px] font-mono opacity-50">Versión 2.0</span>
+          </h2>
+          <SaberPro onCorrectAnswer={updateAcademic} />
+        </div>
 
-          <div className="geometric-card p-6 bg-dot-matrix border-stone-200 dark:border-stone-800">
-             <h2 className="text-[9px] uppercase font-bold tracking-[0.2em] mb-6 border-b border-stone-100 dark:border-stone-900 pb-2 flex justify-between items-center">
-                <span>Allocations</span>
-                <span className="text-[8px] font-mono opacity-50">Ledger</span>
-             </h2>
-             <DualWallet onExpensesUpdate={handleExpensesUpdate} />
-          </div>
+        <div className="lg:col-span-6 geometric-card p-6 bg-dot-matrix border-stone-200 dark:border-stone-800">
+          <h2 className="text-[9px] uppercase font-bold tracking-[0.2em] mb-6 border-b border-stone-100 dark:border-stone-900 pb-2 flex justify-between items-center">
+            <span>Registro de Gastos</span>
+            <span className="text-[8px] font-mono opacity-50">Libro Mayor</span>
+          </h2>
+          <DualWallet onExpensesUpdate={handleExpensesUpdate} />
+        </div>
+      </div>
+
+      {/* Row 4: Finance Chart (Allocations over 7 days) */}
+      <div className="geometric-card p-6 sm:p-8 bg-mosaic border-stone-200 dark:border-stone-800">
+        <h2 className="text-[10px] uppercase font-bold tracking-[0.2em] mb-8 border-b border-stone-100 dark:border-stone-900 pb-3 flex items-center gap-2">
+          <div className="w-1.5 h-1.5 bg-user-a" />
+          Flujo de Gastos
+        </h2>
+        <div className="h-64">
+          <FinanceChart
+            allocationsA={mode === 'me' && profile === 'ella' ? [] : allocationsA}
+            allocationsB={mode === 'me' && profile === 'el' ? [] : allocationsB}
+          />
         </div>
       </div>
     </div>
