@@ -3,13 +3,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useVisibility } from '@/context/VisibilityContext';
 import { useProfile } from '@/context/ProfileContext';
-import { SymmetryShield } from './SymmetryShield';
 import { SaberPro } from './SaberPro';
 import { TaskModule } from './TaskModule';
 import { DualWallet } from './DualWallet';
 import { FinanceChart } from './FinanceChart';
 import { TaskStatsChart } from './TaskStatsChart';
 import { motion } from 'framer-motion';
+import { PomodoroTimer } from './PomodoroTimer';
 
 export const SymmetryDashboard = () => {
   const { mode, toggleMode } = useVisibility();
@@ -118,6 +118,15 @@ export const SymmetryDashboard = () => {
         </motion.button>
       </div>
 
+      {/* Row 0: Pomodoro */}
+      <div className="geometric-card p-6 sm:p-8 bg-mosaic border-stone-200 dark:border-stone-800">
+        <h2 className="text-[10px] uppercase font-bold tracking-[0.2em] mb-8 border-b border-stone-100 dark:border-stone-900 pb-3 text-user-b flex justify-between items-center">
+          <span>Pomodoro</span>
+          <span className="text-[8px] font-mono opacity-50">Pomodoro v2.0</span>
+        </h2>
+        <PomodoroTimer />
+      </div>
+
       {/* Row 1: Kanban Board (full width) */}
       <div className="geometric-card p-6 sm:p-8 bg-mosaic border-stone-200 dark:border-stone-800">
         <h2 className="text-[10px] uppercase font-bold tracking-[0.2em] mb-8 border-b border-stone-100 dark:border-stone-900 pb-3 text-user-b flex justify-between items-center">
@@ -138,38 +147,10 @@ export const SymmetryDashboard = () => {
             <TaskStatsChart tasks={tasks} />
           </div>
         </div>
-        <div className="lg:col-span-4 geometric-card p-6 sm:p-8 bg-mosaic border-stone-200 dark:border-stone-800 flex flex-col items-center justify-center">
-          <SymmetryShield focusScore={focusScore} isFragmented={isFragmented} />
-          <div className="mt-6 grid grid-cols-4 gap-2 w-full border-t border-stone-100 dark:border-stone-900 pt-6">
-            {['Académico', 'Trabajo', 'Hogar', 'Personal'].map((label, i) => {
-              const keys = ['academic', 'work', 'home', 'personal'];
-              const val = mode === 'me'
-                ? Math.round((profile === 'el' ? (dataA as any)[keys[i]] : (dataB as any)[keys[i]]))
-                : Math.round(((dataA as any)[keys[i]] + (dataB as any)[keys[i]]) / 2);
-              return (
-                <div key={label} className="flex flex-col items-center">
-                  <span className="text-[7px] sm:text-[8px] uppercase font-bold tracking-[0.1em] text-stone-400 mb-1">{label}</span>
-                  <div className="flex items-baseline gap-0.5">
-                    <span className="text-lg font-mono font-black tracking-tighter text-stone-800 dark:text-stone-200">{val}</span>
-                    <span className="text-[8px] font-bold text-stone-400">%</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
       </div>
 
-      {/* Row 3: Saber Pro + Allocations side by side */}
+      {/* Row 3: Allocations side by side */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className="lg:col-span-6 geometric-card p-6 bg-dot-matrix border-stone-200 dark:border-stone-800">
-          <h2 className="text-[9px] uppercase font-bold tracking-[0.2em] mb-6 border-b border-stone-100 dark:border-stone-900 pb-2 text-user-a flex justify-between items-center">
-            <span>Preparación Saber Pro</span>
-            <span className="text-[8px] font-mono opacity-50">Versión 2.0</span>
-          </h2>
-          <SaberPro onCorrectAnswer={updateAcademic} />
-        </div>
-
         <div className="lg:col-span-6 geometric-card p-6 bg-dot-matrix border-stone-200 dark:border-stone-800">
           <h2 className="text-[9px] uppercase font-bold tracking-[0.2em] mb-6 border-b border-stone-100 dark:border-stone-900 pb-2 flex justify-between items-center">
             <span>Registro de Gastos</span>
@@ -190,6 +171,17 @@ export const SymmetryDashboard = () => {
             allocationsA={mode === 'me' && profile === 'ella' ? [] : allocationsA}
             allocationsB={mode === 'me' && profile === 'el' ? [] : allocationsB}
           />
+        </div>
+      </div>
+
+      {/* Row 5: Saber Pro */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="lg:col-span-6 geometric-card p-6 bg-dot-matrix border-stone-200 dark:border-stone-800">
+          <h2 className="text-[9px] uppercase font-bold tracking-[0.2em] mb-6 border-b border-stone-100 dark:border-stone-900 pb-2 text-user-a flex justify-between items-center">
+            <span>Preparación Saber Pro</span>
+            <span className="text-[8px] font-mono opacity-50">Versión 2.0</span>
+          </h2>
+          <SaberPro onCorrectAnswer={updateAcademic} />
         </div>
       </div>
     </div>

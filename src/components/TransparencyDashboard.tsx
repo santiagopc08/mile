@@ -5,7 +5,7 @@ import { useStore } from '@/context/StoreContext';
 import { useProfile } from '@/context/ProfileContext';
 import { motion } from 'framer-motion';
 import { CalendarDays, Clock, Check, Heart, Trophy, Zap } from 'lucide-react';
-import { PomodoroTimer } from './PomodoroTimer';
+import { PomodoroTimer } from './symmetry/PomodoroTimer';
 import { PendingTasks } from './PendingTasks';
 import { QuickLinks } from './QuickLinks';
 
@@ -56,9 +56,8 @@ export function TransparencyDashboard() {
                 animate={{ opacity: 1, y: 0 }}
                 className="geometric-card min-h-[140px] flex flex-col p-4 group"
             >
-                <div className={`absolute top-0 right-0 w-8 h-8 border-b border-l ${
-                    type === 'el' ? 'border-amber-400/20 bg-amber-400/5' : 'border-rose-400/20 bg-rose-400/5'
-                }`} />
+                <div className={`absolute top-0 right-0 w-8 h-8 border-b border-l ${type === 'el' ? 'border-amber-400/20 bg-amber-400/5' : 'border-rose-400/20 bg-rose-400/5'
+                    }`} />
                 <div className="flex-1 flex items-center justify-center py-4">
                     <p className="text-xl font-medium text-white text-center leading-tight tracking-tight">
                         {victory.text}
@@ -139,15 +138,13 @@ export function TransparencyDashboard() {
                                 <li
                                     key={commitment.id}
                                     onClick={() => toggleCommitment(commitment.id)}
-                                    className={`group flex items-start gap-3 p-4 border transition-all cursor-pointer ${
-                                        commitment.completed
+                                    className={`group flex items-start gap-3 p-4 border transition-all cursor-pointer ${commitment.completed
                                             ? 'bg-black/40 border-stone-800 opacity-40'
                                             : 'bg-white/5 border-stone-700 hover:border-geometric-accent hover:bg-white/10'
-                                    }`}
+                                        }`}
                                 >
-                                    <div className={`mt-0.5 w-4 h-4 border flex items-center justify-center transition-colors ${
-                                        commitment.completed ? 'bg-geometric-accent border-geometric-accent' : 'border-stone-500'
-                                    }`}>
+                                    <div className={`mt-0.5 w-4 h-4 border flex items-center justify-center transition-colors ${commitment.completed ? 'bg-geometric-accent border-geometric-accent' : 'border-stone-500'
+                                        }`}>
                                         {commitment.completed && <Check className="w-3 h-3 text-white" />}
                                     </div>
                                     <span className="text-sm tracking-wide text-stone-200">
