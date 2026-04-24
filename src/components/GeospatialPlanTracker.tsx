@@ -4,15 +4,14 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   APIProvider,
   Map,
-  AdvancedMarker,
-  Pin,
+  Marker,
   InfoWindow,
   useMap
 } from '@vis.gl/react-google-maps';
 import { supabase } from '@/lib/supabase';
 import { useProfile } from '@/context/ProfileContext';
 import { useVisibility } from '@/context/VisibilityContext';
-import { Navigation, Trash2, Plus, CheckCircle, Circle } from 'lucide-react';
+import { Navigation, Trash2, CheckCircle, Circle, AlertTriangle } from 'lucide-react';
 
 interface Ubicacion {
   id: string;
@@ -42,9 +41,6 @@ export function GeospatialPlanTracker() {
   const { mode } = useVisibility();
   const [locations, setLocations] = useState<Ubicacion[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [isAdding, setIsAdding] = useState(false);
-  const [newName, setNewName] = useState('');
-  const [newCoords, setNewCoords] = useState<{ lat: number, lng: number } | null>(null);
 
   const fetchLocations = useCallback(async () => {
     let query = supabase.from('ubicaciones').select('*');
@@ -74,31 +70,6 @@ export function GeospatialPlanTracker() {
     return () => window.removeEventListener('custom:map-refresh', handleRefresh);
   }, [fetchLocations]);
 
-  const handleMapClick = (e: any) => {
-    if (isAdding) {
-      setNewCoords({ lat: e.detail.latLng.lat, lng: e.detail.latLng.lng });
-    }
-  };
-
-  const handleSaveLocation = async () => {
-    if (!newName || !newCoords || !profile) return;
-
-    const { error } = await supabase.from('ubicaciones').insert({
-      nombre: newName,
-      latitud: newCoords.lat,
-      longitud: newCoords.lng,
-      created_by: profile,
-      status: 'to-visit'
-    });
-
-    if (!error) {
-      setNewName('');
-      setNewCoords(null);
-      setIsAdding(false);
-      fetchLocations();
-    }
-  };
-
   const toggleStatus = async (id: string, currentStatus: string) => {
     const newStatus = currentStatus === 'to-visit' ? 'visited' : 'to-visit';
     const { error } = await supabase
@@ -122,78 +93,68 @@ export function GeospatialPlanTracker() {
     [locations, selectedId]
   );
 
-  return (
-    <div className="w-full space-y-6">
-      <div className="flex items-center justify-between">
-        <h3 className="text-xl font-black uppercase tracking-tighter italic text-geometric-accent">Mapa de Planes</h3>
-        <button
-          onClick={() => {
-            setIsAdding(!isAdding);
-            setNewCoords(null);
-          }}
-          className={`flex items-center gap-2 px-4 py-2 border text-[10px] uppercase font-bold tracking-widest transition-all ${
-            isAdding ? 'bg-red-500 text-white border-red-500' : 'bg-white dark:bg-black border-stone-200 dark:border-stone-800'
-          }`}
-        >
-          {isAdding ? 'Cancelar' : <><Plus className="w-3 h-3" /> Agregar Punto</>}
-        </button>
-      </div>
+  // Calculate map center from locations or default to Bogotá
+  const mapCenter = useMemo(() => {
+    if (locations.length === 0) return { lat: 6.2442, lng: -75.5812 };
+    const avgLat = locations.reduce((sum, l) => sum + l.latitud, 0) / locations.length;
+    const avgLng = locations.reduce((sum, l) => sum + l.longitud, 0) / locations.length;
+    return { lat: avgLat, lng: avgLng };
+  }, [locations]);
 
-      {isAdding && !newCoords && (
-        <div className="p-4 border border-dashed border-geometric-accent bg-rose-50/30 dark:bg-rose-950/10 text-center">
-          <p className="text-[10px] uppercase font-black tracking-widest text-geometric-accent">
-            Toca el mapa para marcar la ubicación
+  if (!GOOGLE_MAPS_API_KEY) {
+    return (
+      <div className="w-full space-y-6">
+        <div className="p-8 border border-dashed border-stone-300 dark:border-stone-700 flex flex-col items-center justify-center gap-4 bg-stone-50 dark:bg-stone-950 min-h-[300px]">
+          <AlertTriangle className="w-8 h-8 text-stone-400" />
+          <p className="text-[10px] uppercase font-black tracking-widest text-stone-400 text-center">
+            API Key de Google Maps no configurada
+          </p>
+          <p className="text-[8px] uppercase tracking-widest text-stone-400 text-center max-w-xs">
+            Agrega NEXT_PUBLIC_GOOGLE_MAPS_API_KEY a tu archivo .env.local para habilitar el mapa
           </p>
         </div>
-      )}
+        <LocationLists
+          locations={locations}
+          onSelect={setSelectedId}
+          onDelete={deleteLocation}
+          onToggle={toggleStatus}
+        />
+      </div>
+    );
+  }
 
-      {newCoords && (
-        <div className="p-4 border border-geometric-accent bg-white dark:bg-black space-y-4">
-          <input
-            type="text"
-            placeholder="NOMBRE DEL LUGAR"
-            value={newName}
-            onChange={(e) => setNewName(e.target.value)}
-            className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 p-3 text-[10px] uppercase font-bold tracking-widest focus:outline-none focus:border-geometric-accent h-11"
-          />
-          <div className="flex gap-2">
-            <button
-              onClick={handleSaveLocation}
-              disabled={!newName.trim()}
-              className="flex-1 bg-geometric-accent text-white p-3 text-[10px] uppercase font-black tracking-widest disabled:opacity-50"
-            >
-              Guardar Destino
-            </button>
-            <button
-              onClick={() => setNewCoords(null)}
-              className="px-6 border border-stone-200 dark:border-stone-800 text-[10px] uppercase font-bold tracking-widest h-11"
-            >
-              Reintentar
-            </button>
-          </div>
-        </div>
-      )}
-
+  return (
+    <div className="w-full space-y-6">
       <div className="relative p-2 border border-stone-200 dark:border-stone-800 bg-mosaic shadow-sm">
         <div className="h-[400px] md:h-[500px] w-full border border-stone-200 dark:border-stone-800 overflow-hidden bg-stone-100 dark:bg-stone-900">
           <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
             <Map
-              defaultCenter={{ lat: 4.6097, lng: -74.0817 }}
+              defaultCenter={mapCenter}
               defaultZoom={12}
-              mapId="PLANES_MAP_ID"
-              onClick={handleMapClick}
               gestureHandling={'cooperative'}
               disableDefaultUI={true}
+              styles={[
+                { elementType: 'geometry', stylers: [{ color: '#f5f5f4' }] },
+                { elementType: 'labels.text.fill', stylers: [{ color: '#78716c' }] },
+                { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#e7e5e4' }] },
+                { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#d6d3d1' }] },
+                { featureType: 'poi', elementType: 'labels', stylers: [{ visibility: 'off' }] },
+              ]}
             >
               <MapController selectedLocation={selectedLocation} />
 
-              {locations.map((loc) => (
-                <MarkerWithInfo
-                  key={loc.id}
-                  loc={loc}
-                  onClick={() => setSelectedId(loc.id)}
-                />
-              ))}
+              {locations.map((loc) => {
+                const isVisited = loc.status === 'visited';
+                return (
+                  <Marker
+                    key={loc.id}
+                    position={{ lat: loc.latitud, lng: loc.longitud }}
+                    onClick={() => setSelectedId(loc.id)}
+                    opacity={isVisited ? 0.4 : 1}
+                    title={loc.nombre}
+                  />
+                );
+              })}
 
               {selectedId && selectedLocation && (
                 <InfoWindow
@@ -234,69 +195,64 @@ export function GeospatialPlanTracker() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="space-y-4">
-          <h4 className="text-[10px] uppercase font-black tracking-[0.3em] text-stone-400 mb-2 flex items-center gap-2">
-            <Circle className="w-3 h-3 text-geometric-accent" /> Próximos Destinos
-          </h4>
-          <div className="space-y-2 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
-            {locations.filter(l => l.status === 'to-visit').map(loc => (
-              <LocationListItem
-                key={loc.id}
-                loc={loc}
-                onSelect={() => setSelectedId(loc.id)}
-                onDelete={() => deleteLocation(loc.id)}
-                onToggle={() => toggleStatus(loc.id, loc.status)}
-              />
-            ))}
-            {locations.filter(l => l.status === 'to-visit').length === 0 && (
-              <p className="text-[8px] uppercase opacity-30 italic p-4 border border-dashed border-stone-200 text-center">No hay planes pendientes</p>
-            )}
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          <h4 className="text-[10px] uppercase font-black tracking-[0.3em] text-stone-400 mb-2 flex items-center gap-2">
-            <CheckCircle className="w-3 h-3 text-stone-300" /> Memorias Visitadas
-          </h4>
-          <div className="space-y-2 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
-            {locations.filter(l => l.status === 'visited').map(loc => (
-              <LocationListItem
-                key={loc.id}
-                loc={loc}
-                onSelect={() => setSelectedId(loc.id)}
-                onDelete={() => deleteLocation(loc.id)}
-                onToggle={() => toggleStatus(loc.id, loc.status)}
-              />
-            ))}
-            {locations.filter(l => l.status === 'visited').length === 0 && (
-              <p className="text-[8px] uppercase opacity-30 italic p-4 border border-dashed border-stone-200 text-center">Aún no hay memorias</p>
-            )}
-          </div>
-        </div>
-      </div>
+      <LocationLists
+        locations={locations}
+        onSelect={setSelectedId}
+        onDelete={deleteLocation}
+        onToggle={toggleStatus}
+      />
     </div>
   );
 }
 
-function MarkerWithInfo({ loc, onClick }: { loc: Ubicacion, onClick: () => void }) {
-  const isVisited = loc.status === 'visited';
-  const userColor = loc.created_by === 'ella' ? '#A855F7' : '#F97316';
-
+function LocationLists({ locations, onSelect, onDelete, onToggle }: {
+  locations: Ubicacion[],
+  onSelect: (id: string) => void,
+  onDelete: (id: string) => void,
+  onToggle: (id: string, status: string) => void
+}) {
   return (
-    <AdvancedMarker
-      position={{ lat: loc.latitud, lng: loc.longitud }}
-      onClick={onClick}
-    >
-      <div style={{ opacity: isVisited ? 0.4 : 1 }} className="transition-opacity duration-300">
-        <Pin
-          background={isVisited ? '#D6D3D1' : userColor}
-          borderColor={isVisited ? '#A8A29E' : 'white'}
-          glyphColor={isVisited ? '#78716C' : 'white'}
-          scale={isVisited ? 0.8 : 1.1}
-        />
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="space-y-4">
+        <h4 className="text-[10px] uppercase font-black tracking-[0.3em] text-stone-400 mb-2 flex items-center gap-2">
+          <Circle className="w-3 h-3 text-geometric-accent" /> Próximos Destinos
+        </h4>
+        <div className="space-y-2 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
+          {locations.filter(l => l.status === 'to-visit').map(loc => (
+            <LocationListItem
+              key={loc.id}
+              loc={loc}
+              onSelect={() => onSelect(loc.id)}
+              onDelete={() => onDelete(loc.id)}
+              onToggle={() => onToggle(loc.id, loc.status)}
+            />
+          ))}
+          {locations.filter(l => l.status === 'to-visit').length === 0 && (
+            <p className="text-[8px] uppercase opacity-30 italic p-4 border border-dashed border-stone-200 text-center">No hay planes pendientes</p>
+          )}
+        </div>
       </div>
-    </AdvancedMarker>
+
+      <div className="space-y-4">
+        <h4 className="text-[10px] uppercase font-black tracking-[0.3em] text-stone-400 mb-2 flex items-center gap-2">
+          <CheckCircle className="w-3 h-3 text-stone-300" /> Memorias Visitadas
+        </h4>
+        <div className="space-y-2 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
+          {locations.filter(l => l.status === 'visited').map(loc => (
+            <LocationListItem
+              key={loc.id}
+              loc={loc}
+              onSelect={() => onSelect(loc.id)}
+              onDelete={() => onDelete(loc.id)}
+              onToggle={() => onToggle(loc.id, loc.status)}
+            />
+          ))}
+          {locations.filter(l => l.status === 'visited').length === 0 && (
+            <p className="text-[8px] uppercase opacity-30 italic p-4 border border-dashed border-stone-200 text-center">Aún no hay memorias</p>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
 

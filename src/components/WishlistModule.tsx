@@ -6,6 +6,7 @@ import { useProfile } from '@/context/ProfileContext';
 import { Plus, Trash2, MapPin, Utensils, Heart, Check, Diamond, ExternalLink } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LinkPreview } from './LinkPreview';
+import { GeospatialPlanTracker } from './GeospatialPlanTracker';
 import { supabase } from '@/lib/supabase';
 
 type Category = 'plan' | 'antojo' | 'gusto';
@@ -200,6 +201,12 @@ export function WishlistModule() {
                     <div className="mb-8 p-4 border border-geometric-accent bg-geometric-accent/5 flex items-center justify-between">
                          <span className="text-[10px] uppercase font-black tracking-widest text-stone-600 dark:text-stone-400">Dinero guardado para Antojos:</span>
                          <span className="text-sm font-mono font-bold text-geometric-accent">{formatCOP(totalSavings)}</span>
+                    </div>
+                )}
+
+                {activeCategory === 'plan' && (
+                    <div className="mb-8">
+                        <GeospatialPlanTracker />
                     </div>
                 )}
 

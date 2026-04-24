@@ -14,6 +14,7 @@ import { FiscalAuditor } from './FiscalAuditor';
 
 import { motion } from 'framer-motion';
 import { PomodoroTimer } from './PomodoroTimer';
+const vids = [{ name: 'finanzas', src: '/vid/financesCat.mp4' }, { name: 'plan', src: '/vid/planningCat.mp4' }];
 
 export const SymmetryDashboard = () => {
   const { mode, toggleMode } = useVisibility();
@@ -154,6 +155,9 @@ export const SymmetryDashboard = () => {
       <div className="geometric-card p-6 sm:p-8 bg-mosaic border-stone-200 dark:border-stone-800">
         <h2 className="text-[10px] uppercase font-bold tracking-[0.2em] mb-8 border-b border-stone-100 dark:border-stone-900 pb-3 text-user-b flex justify-between items-center">
           <span>Tablero de Tareas</span>
+          <div className="flex items-center justify-center">
+            <video className='w-20 h-20 object-cover rounded-xl border border-stone-200 dark:border-stone-800 shadow-2xl' src="vid/planningCat.mp4" autoPlay loop muted />
+          </div>
           <span className="text-[8px] font-mono opacity-50">Kanban v2.0</span>
         </h2>
         <TaskModule onTasksUpdate={handleTasksUpdate} />
@@ -176,7 +180,7 @@ export const SymmetryDashboard = () => {
             Symmetry Shield
           </h2>
           <div className="h-64 flex items-center justify-center relative">
-             <SymmetryChart dataA={dataA} dataB={dataB} lastPulseAt={data?.lastPulseAt} />
+            <SymmetryChart dataA={dataA} dataB={dataB} lastPulseAt={data?.lastPulseAt} />
           </div>
         </div>
       </div>
@@ -194,6 +198,9 @@ export const SymmetryDashboard = () => {
         <div className="lg:col-span-6 geometric-card p-6 bg-dot-matrix border-stone-200 dark:border-stone-800">
           <h2 className="text-[9px] uppercase font-bold tracking-[0.2em] mb-6 border-b border-stone-100 dark:border-stone-900 pb-2 flex justify-between items-center">
             <span>Registro de Gastos</span>
+            <div className="flex items-center justify-center">
+              <video className='w-20 h-20 object-cover rounded-xl border border-stone-200 dark:border-stone-800 shadow-2xl' src="vid/financesCat.mp4" autoPlay loop muted />
+            </div>
             <span className="text-[8px] font-mono opacity-50">Libro Mayor</span>
           </h2>
           <DualWallet

@@ -2,7 +2,6 @@
 
 import { PrivateRoute } from "@/components/PrivateRoute";
 import { WishlistModule } from "@/components/WishlistModule";
-import { GeospatialPlanTracker } from "@/components/GeospatialPlanTracker";
 
 export default function PlanesPage() {
   return (
@@ -17,16 +16,7 @@ export default function PlanesPage() {
             </p>
           </div>
 
-          <section className="space-y-6">
-            <GeospatialPlanTracker />
-          </section>
-
-          <section className="pt-8 border-t border-stone-100 dark:border-stone-900">
-             <div className="flex items-center gap-4 mb-8">
-                <div className="h-[1px] flex-1 bg-stone-100 dark:bg-stone-900" />
-                <h2 className="text-[10px] uppercase font-black tracking-[0.5em] text-stone-300">Listado Detallado</h2>
-                <div className="h-[1px] flex-1 bg-stone-100 dark:bg-stone-900" />
-             </div>
+          <section>
              <WishlistModule />
           </section>
         </div>
@@ -34,3 +24,4 @@ export default function PlanesPage() {
     </PrivateRoute>
   );
 }
+
