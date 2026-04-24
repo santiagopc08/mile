@@ -4,35 +4,30 @@ const { chromium } = require('playwright');
   const browser = await chromium.launch();
   const page = await browser.newPage();
 
-  // Login first
-  await page.goto('http://localhost:3000');
-  await page.waitForTimeout(5000);
+  try {
+    await page.goto('http://localhost:3000');
+    // Login if necessary
+    const isLogin = await page.isVisible('input[type="password"]');
+    if (isLogin) {
+      await page.fill('input[type="password"]', 'refugio');
+      await page.click('button[type="submit"]');
+      await page.waitForTimeout(2000);
+    }
 
-  const passwordInput = await page.$('input[type="password"]');
-  if (passwordInput) {
-    console.log('Login found, logging in...');
-    await passwordInput.fill('refugio');
-    await page.keyboard.press('Enter');
-    await page.waitForTimeout(3000);
+    await page.screenshot({ path: 'initial_load.png' });
+    console.log('Initial load screenshot taken.');
+
+    // Check if Fiscal Health Guardian is present
+    const auditorText = await page.textContent('body');
+    if (auditorText.includes('Fiscal Health Guardian')) {
+      console.log('Fiscal Health Guardian component found.');
+    } else {
+      console.log('Fiscal Health Guardian component NOT found.');
+    }
+
+  } catch (e) {
+    console.error('Verification failed:', e);
+  } finally {
+    await browser.close();
   }
-
-  // Check navigation
-  console.log('Checking navigation items...');
-  const navText = await page.innerText('nav');
-  console.log('Nav content:', navText);
-
-  // Take screenshots
-  await page.screenshot({ path: 'screenshot_home.png' });
-
-  console.log('Visiting /refugio...');
-  await page.goto('http://localhost:3000/refugio');
-  await page.waitForTimeout(3000);
-  await page.screenshot({ path: 'screenshot_refugio.png' });
-
-  console.log('Visiting /planes...');
-  await page.goto('http://localhost:3000/planes');
-  await page.waitForTimeout(3000);
-  await page.screenshot({ path: 'screenshot_planes.png' });
-
-  await browser.close();
 })();

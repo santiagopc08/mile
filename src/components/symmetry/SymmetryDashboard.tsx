@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useStore } from "@/context/StoreContext";
 import { useVisibility } from '@/context/VisibilityContext';
 import { useProfile } from '@/context/ProfileContext';
@@ -10,6 +10,7 @@ import { DualWallet } from './DualWallet';
 import { FinanceChart } from './FinanceChart';
 import { TaskStatsChart } from './TaskStatsChart';
 import { SymmetryChart } from "./SymmetryChart";
+import { FiscalAuditor } from './FiscalAuditor';
 
 import { motion } from 'framer-motion';
 import { PomodoroTimer } from './PomodoroTimer';
@@ -34,7 +35,6 @@ export const SymmetryDashboard = () => {
     if (savedA) setDataA(JSON.parse(savedA));
     if (savedB) setDataB(JSON.parse(savedB));
 
-    // Read allocations (with fallback to old expenses keys)
     const allocA = localStorage.getItem('symmetry_A_allocations') || localStorage.getItem('symmetry_A_expenses');
     const allocB = localStorage.getItem('symmetry_B_allocations') || localStorage.getItem('symmetry_B_expenses');
     if (allocA) setAllocationsA(JSON.parse(allocA));
@@ -43,6 +43,23 @@ export const SymmetryDashboard = () => {
     const savedTasks = localStorage.getItem('symmetry_tasks');
     if (savedTasks) setTasks(JSON.parse(savedTasks));
   }, []);
+
+  // Sync allocations to localStorage
+  useEffect(() => {
+    localStorage.setItem('symmetry_A_allocations', JSON.stringify(allocationsA));
+    const total = allocationsA.reduce((sum, e) => sum + e.amount, 0);
+    const miscTotal = allocationsA.filter(e => e.category === '🎲 Otros').reduce((sum, e) => sum + e.amount, 0);
+    const miscPercent = total > 0 ? (miscTotal / total) * 100 : 0;
+    if (profile === 'el') setIsFragmented(miscPercent > 20);
+  }, [allocationsA, profile]);
+
+  useEffect(() => {
+    localStorage.setItem('symmetry_B_allocations', JSON.stringify(allocationsB));
+    const total = allocationsB.reduce((sum, e) => sum + e.amount, 0);
+    const miscTotal = allocationsB.filter(e => e.category === '🎲 Otros').reduce((sum, e) => sum + e.amount, 0);
+    const miscPercent = total > 0 ? (miscTotal / total) * 100 : 0;
+    if (profile === 'ella') setIsFragmented(miscPercent > 20);
+  }, [allocationsB, profile]);
 
   // Update categories based on tasks
   useEffect(() => {
@@ -90,13 +107,15 @@ export const SymmetryDashboard = () => {
     if (savedTasks) setTasks(JSON.parse(savedTasks));
   }, []);
 
-  const handleExpensesUpdate = useCallback((miscPercent: number) => {
-    setIsFragmented(miscPercent > 20);
-    const allocA = localStorage.getItem('symmetry_A_allocations') || localStorage.getItem('symmetry_A_expenses');
-    const allocB = localStorage.getItem('symmetry_B_allocations') || localStorage.getItem('symmetry_B_expenses');
-    if (allocA) setAllocationsA(JSON.parse(allocA));
-    if (allocB) setAllocationsB(JSON.parse(allocB));
-  }, []);
+  const handleAddAllocation = (newAlloc: any) => {
+    if (profile === 'el') setAllocationsA([newAlloc, ...allocationsA]);
+    else setAllocationsB([newAlloc, ...allocationsB]);
+  };
+
+  const handleRemoveAllocation = (id: string) => {
+    if (profile === 'el') setAllocationsA(allocationsA.filter(a => a.id !== id));
+    else setAllocationsB(allocationsB.filter(a => a.id !== id));
+  };
 
   return (
     <div className="w-full max-w-7xl mx-auto space-y-8 pb-24 px-4 sm:px-6">
@@ -162,14 +181,25 @@ export const SymmetryDashboard = () => {
         </div>
       </div>
 
-      {/* Row 3: Allocations side by side */}
+      {/* Row 3: Fiscal Auditor & Allocations */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="lg:col-span-6">
+          <FiscalAuditor
+            allocations={profile === 'el' ? allocationsA : allocationsB}
+            onAddAllocation={handleAddAllocation}
+            onRemoveAllocation={handleRemoveAllocation}
+            profile={profile || 'el'}
+          />
+        </div>
         <div className="lg:col-span-6 geometric-card p-6 bg-dot-matrix border-stone-200 dark:border-stone-800">
           <h2 className="text-[9px] uppercase font-bold tracking-[0.2em] mb-6 border-b border-stone-100 dark:border-stone-900 pb-2 flex justify-between items-center">
             <span>Registro de Gastos</span>
             <span className="text-[8px] font-mono opacity-50">Libro Mayor</span>
           </h2>
-          <DualWallet onExpensesUpdate={handleExpensesUpdate} />
+          <DualWallet
+            allocations={profile === 'el' ? allocationsA : allocationsB}
+            onAllocationsChange={profile === 'el' ? setAllocationsA : setAllocationsB}
+          />
         </div>
       </div>
 
