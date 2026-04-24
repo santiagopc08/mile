@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useStore } from '@/context/StoreContext';
 import { useProfile } from '@/context/ProfileContext';
-import { Plus, Trash2, MapPin, Utensils, Heart, CheckCircle2, Circle } from 'lucide-react';
+import { Plus, Trash2, MapPin, Utensils, Heart, CheckCircle2, Circle, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 type Category = 'plan' | 'antojo' | 'gusto';
@@ -15,6 +15,7 @@ export function WishlistModule() {
     const [isAdding, setIsAdding] = useState(false);
     const [newTitle, setNewTitle] = useState('');
     const [newDesc, setNewDesc] = useState('');
+    const [newLocationUrl, setNewLocationUrl] = useState('');
 
     const items = data?.wishlist || [];
     const filteredItems = items.filter(item => item.category === activeCategory);
@@ -36,12 +37,14 @@ export function WishlistModule() {
                 category: activeCategory,
                 title: newTitle.trim(),
                 description: newDesc.trim(),
-                status: 'pending',
+                locationUrl: newLocationUrl.trim(),
+                status: 'to-visit',
                 author: profile || 'el'
             };
             await updateData({ wishlist: [newItem, ...items] });
             setNewTitle('');
             setNewDesc('');
+            setNewLocationUrl('');
             setIsAdding(false);
         }
     };
@@ -52,7 +55,7 @@ export function WishlistModule() {
 
     const toggleStatus = async (id: string) => {
         const updated = items.map(i =>
-            i.id === id ? { ...i, status: i.status === 'done' ? 'pending' : 'done' } : i
+            i.id === id ? { ...i, status: i.status === 'visited' ? 'to-visit' : 'visited' } : i
         );
         await updateData({ wishlist: updated });
     };
@@ -128,6 +131,15 @@ export function WishlistModule() {
                                     className="w-full bg-white dark:bg-black border border-stone-200 dark:border-stone-800 px-4 py-3 text-xs uppercase tracking-widest outline-none focus:border-geometric-accent resize-none h-24"
                                 />
                             </div>
+                            <div className="space-y-2">
+                                <label className="text-[9px] uppercase font-bold tracking-widest text-stone-500 ml-1">Link de Ubicación (Google Maps)</label>
+                                <input
+                                    value={newLocationUrl}
+                                    onChange={e => setNewLocationUrl(e.target.value)}
+                                    placeholder="https://maps.app.goo.gl/..."
+                                    className="w-full bg-white dark:bg-black border border-stone-200 dark:border-stone-800 px-4 py-3 text-xs uppercase tracking-widest outline-none focus:border-geometric-accent"
+                                />
+                            </div>
                             <div className="flex gap-4 pt-2">
                                 <button type="button" onClick={() => setIsAdding(false)} className="flex-1 py-3 border border-stone-200 dark:border-stone-800 text-stone-500 uppercase text-[9px] font-bold tracking-widest hover:border-stone-400 transition-all">Cancelar</button>
                                 <button type="submit" className="flex-1 py-3 bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 uppercase text-[9px] font-bold tracking-widest hover:bg-geometric-accent hover:text-white transition-all">Guardar Item</button>
@@ -146,46 +158,76 @@ export function WishlistModule() {
                                     <p className="text-[10px] uppercase font-black tracking-[0.4em]">Lista Vacía</p>
                                 </div>
                             ) : (
-                                filteredItems.map((item) => (
-                                    <div
-                                        key={item.id}
-                                        className={`group flex items-center gap-4 p-4 border ${
-                                            item.status === 'done'
-                                                ? 'border-stone-100 dark:border-stone-900 bg-stone-50/30 dark:bg-stone-950/30 opacity-60'
-                                                : 'border-stone-200 dark:border-stone-800 bg-white dark:bg-black'
-                                        }`}
-                                    >
-                                        <button
-                                            onClick={() => toggleStatus(item.id)}
-                                            className={`transition-colors ${item.status === 'done' ? 'text-geometric-accent' : 'text-stone-300 hover:text-stone-400'}`}
+                                filteredItems.map((item) => {
+                                    const isVisited = item.status === 'visited';
+                                    const accentColor = item.author === 'ella' ? 'var(--color-user-b)' : 'var(--color-user-a)';
+
+                                    return (
+                                        <div
+                                            key={item.id}
+                                            className={`relative group flex items-center gap-4 p-5 bg-mosaic transition-all ${
+                                                isVisited
+                                                    ? 'border-solid border-stone-200 dark:border-stone-800 bg-stone-50/30 dark:bg-stone-950/30 opacity-80'
+                                                    : 'border-dashed border-[1px] bg-white dark:bg-black'
+                                            }`}
+                                            style={!isVisited ? { borderColor: accentColor } : {}}
                                         >
-                                            {item.status === 'done' ? <CheckCircle2 className="w-5 h-5" /> : <Circle className="w-5 h-5" />}
-                                        </button>
-
-                                        <div className="flex-1 min-w-0">
-                                            <h4 className={`text-xs font-black uppercase tracking-widest ${item.status === 'done' ? 'line-through text-stone-400' : 'text-stone-800 dark:text-stone-100'}`}>
-                                                {item.title}
-                                            </h4>
-                                            {item.description && (
-                                                <p className="text-[10px] text-stone-500 mt-1 line-clamp-1 italic uppercase tracking-tighter">
-                                                    {item.description}
-                                                </p>
+                                            {/* Watermark for Visited items */}
+                                            {isVisited && (
+                                                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none opacity-[0.05]">
+                                                    <Check className="w-24 h-24 stroke-[4]" />
+                                                </div>
                                             )}
-                                        </div>
 
-                                        <div className="flex items-center gap-3">
-                                            <span className="text-[8px] font-mono opacity-20 group-hover:opacity-100 transition-opacity uppercase tracking-tighter">
-                                                By {item.author}
-                                            </span>
+                                            {/* Status Toggle Switch */}
                                             <button
-                                                onClick={() => handleDelete(item.id)}
-                                                className="p-2 text-stone-300 hover:text-red-500 transition-colors"
+                                                onClick={() => toggleStatus(item.id)}
+                                                className="relative w-12 h-6 bg-stone-100 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 flex items-center px-1"
                                             >
-                                                <Trash2 className="w-4 h-4" />
+                                                <motion.div
+                                                    animate={{ x: isVisited ? 24 : 0 }}
+                                                    className={`w-4 h-4 ${isVisited ? 'bg-geometric-accent' : 'bg-stone-400'}`}
+                                                />
                                             </button>
+
+                                            <div className="flex-1 min-w-0">
+                                                <h4 className={`text-xs font-black uppercase tracking-widest ${isVisited ? 'line-through text-stone-400' : 'text-stone-800 dark:text-stone-100'}`}>
+                                                    {item.title}
+                                                </h4>
+                                                {item.description && (
+                                                    <p className="text-[10px] text-stone-500 mt-1 line-clamp-1 italic uppercase tracking-tighter">
+                                                        {item.description}
+                                                    </p>
+                                                )}
+                                            </div>
+
+                                            <div className="flex items-center gap-4">
+                                                {item.locationUrl && (
+                                                    <a
+                                                        href={item.locationUrl}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="w-11 h-11 flex items-center justify-center bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 rounded-none transition-transform active:scale-95"
+                                                    >
+                                                        <MapPin className="w-5 h-5" />
+                                                    </a>
+                                                )}
+
+                                                <div className="flex flex-col items-end gap-1">
+                                                    <span className="text-[8px] font-mono opacity-40 uppercase tracking-tighter">
+                                                        {item.author}
+                                                    </span>
+                                                    <button
+                                                        onClick={() => handleDelete(item.id)}
+                                                        className="text-stone-300 hover:text-red-500 transition-colors"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                ))
+                                    );
+                                })
                             )}
                         </motion.div>
                     )}
