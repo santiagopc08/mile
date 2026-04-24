@@ -46,6 +46,8 @@ export interface AppData {
         id: string;
         category: 'plan' | 'antojo' | 'gusto';
         title: string;
+        price: number;
+        isPriority: boolean;
         description: string;
         status: "to-visit" | "visited";
         locationUrl?: string;
@@ -108,7 +110,7 @@ export const StoreService = {
             const allVictories = victoriesRes.data || [];
 
             return {
-                wishlist: (wishlistRes.data || []).map(w => ({ id: w.id, category: w.category, title: w.title, description: w.description, status: w.status, author: w.author || "el", locationUrl: w.location_url })),
+                wishlist: (wishlistRes.data || []).map(w => ({ id: w.id, category: w.category, title: w.title, description: w.description, status: w.status, author: w.author || "el", locationUrl: w.location_url, price: w.price || 0, isPriority: w.is_priority || false })),
                 tasks: (tasksRes.data || []).map((t) => ({
                     id: t.id,
                     title: t.title,
@@ -200,7 +202,7 @@ export const StoreService = {
                     title: w.title,
                     description: w.description,
                     status: w.status,
-                    location_url: w.locationUrl,
+                    location_url: w.locationUrl, price: w.price, is_priority: w.isPriority,
                     author: w.author || "el"
                 })));
             }

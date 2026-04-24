@@ -9,7 +9,7 @@ interface Allocation {
   id: string;
   amount: number;
   description: string;
-  category: '💻 Ingeniería/Estudio' | '🐶 Mascotas' | '🏡 Hogar' | '📈 Inversiones' | '🍔 Alimentación' | '🎲 Otros';
+  category: '💻 Ingeniería/Estudio' | '🐶 Mascotas' | '🏡 Hogar' | '📈 Inversiones/Ahorro' | '🍔 Alimentación' | '🎲 Otros';
   date: string;
 }
 
@@ -17,7 +17,7 @@ const CATEGORIES = [
   '💻 Ingeniería/Estudio',
   '🐶 Mascotas',
   '🏡 Hogar',
-  '📈 Inversiones',
+  '📈 Inversiones/Ahorro',
   '🍔 Alimentación',
   '🎲 Otros'
 ] as const;
