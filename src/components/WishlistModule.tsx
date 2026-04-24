@@ -5,12 +5,13 @@ import { useStore } from '@/context/StoreContext';
 import { useProfile } from '@/context/ProfileContext';
 import { Plus, Trash2, MapPin, Utensils, Heart, Check, Diamond, ExternalLink } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { LinkPreview } from './LinkPreview';
+import { supabase } from '@/lib/supabase';
 
 type Category = 'plan' | 'antojo' | 'gusto';
 
 function GustoItem({ item }: { item: any }) {
     const isSantiago = item.owner === "el" || (!item.owner && item.author === "el");
-    const colorClass = isSantiago ? "text-user-a" : "text-user-b";
     const borderColorClass = isSantiago ? "border-user-a/30" : "border-user-b/30";
     const Bullet = isSantiago ? () => <div className="w-1.5 h-1.5 bg-user-a shrink-0 mt-1" /> : () => <Diamond className="w-2 h-2 text-user-b fill-user-b shrink-0 mt-1" />;
     const initials = item.author === "el" ? "S" : "M";
@@ -94,12 +95,39 @@ export function WishlistModule() {
                 price: parseFloat(newPrice) || 0,
                 isPriority: newIsPriority,
                 status: 'to-visit' as const,
-                author: profile || "el", owner: activeCategory === "gusto" ? newOwner : undefined
+                author: profile || "el",
+                owner: activeCategory === "gusto" ? newOwner : undefined
             };
+
             await updateData({ wishlist: [newItem, ...items] });
+
+            // Auto-update map if it's a plan with a link
+            if (activeCategory === 'plan' && newLocationUrl.trim()) {
+                try {
+                    const res = await fetch(`/api/link-preview?url=${encodeURIComponent(newLocationUrl.trim())}`);
+                    if (res.ok) {
+                        const previewData = await res.json();
+                        if (previewData.coords) {
+                            await supabase.from('ubicaciones').insert({
+                                nombre: newTitle.trim(),
+                                latitud: previewData.coords.lat,
+                                longitud: previewData.coords.lng,
+                                created_by: profile || 'el',
+                                status: 'to-visit'
+                            });
+                            // Notify map to refresh
+                            window.dispatchEvent(new CustomEvent('custom:map-refresh'));
+                        }
+                    }
+                } catch (err) {
+                    console.error('Failed to auto-add location to map:', err);
+                }
+            }
+
             if (activeCategory === "gusto" && newOwner !== profile) {
                 await updateData({ lastPulseAt: new Date().toISOString() });
             }
+
             setNewTitle('');
             setNewDesc('');
             setNewLocationUrl('');
@@ -144,7 +172,6 @@ export function WishlistModule() {
 
     return (
         <div className="w-full max-w-5xl mx-auto space-y-8">
-            {/* Category Selector */}
             <div className="grid grid-cols-3 gap-4">
                 {categories.map((cat) => {
                     const Icon = cat.icon;
@@ -168,7 +195,6 @@ export function WishlistModule() {
                 })}
             </div>
 
-            {/* Content Area */}
             <div className="geometric-card p-8 border-stone-200 dark:border-stone-800 bg-dot-matrix min-h-[400px]">
                 {activeCategory === 'antojo' && (
                     <div className="mb-8 p-4 border border-geometric-accent bg-geometric-accent/5 flex items-center justify-between">
@@ -221,15 +247,15 @@ export function WishlistModule() {
                                         className="w-full bg-white dark:bg-black border border-stone-200 dark:border-stone-800 px-4 py-3 text-xs uppercase tracking-widest outline-none focus:border-geometric-accent"
                                     />
                                 </div>
-                            {activeCategory === "gusto" && (
-                                <div className="space-y-2">
-                                    <label className="text-[9px] uppercase font-bold tracking-widest text-stone-500 ml-1">Para quién es?</label>
-                                    <div className="flex gap-2">
-                                        <button type="button" onClick={() => setNewOwner("el")} className={`flex-1 py-2 text-[9px] font-bold border ${newOwner === "el" ? "border-user-a bg-user-a/10 text-user-a" : "border-stone-200 text-stone-400"}`}>SANTIAGO</button>
-                                        <button type="button" onClick={() => setNewOwner("ella")} className={`flex-1 py-2 text-[9px] font-bold border ${newOwner === "ella" ? "border-user-b bg-user-b/10 text-user-b" : "border-stone-200 text-stone-400"}`}>MILENA</button>
+                                {activeCategory === "gusto" && (
+                                    <div className="space-y-2">
+                                        <label className="text-[9px] uppercase font-bold tracking-widest text-stone-500 ml-1">Para quién es?</label>
+                                        <div className="flex gap-2">
+                                            <button type="button" onClick={() => setNewOwner("el")} className={`flex-1 py-2 text-[9px] font-bold border ${newOwner === "el" ? "border-user-a bg-user-a/10 text-user-a" : "border-stone-200 text-stone-400"}`}>SANTIAGO</button>
+                                            <button type="button" onClick={() => setNewOwner("ella")} className={`flex-1 py-2 text-[9px] font-bold border ${newOwner === "ella" ? "border-user-b bg-user-b/10 text-user-b" : "border-stone-200 text-stone-400"}`}>MILENA</button>
+                                        </div>
                                     </div>
-                                </div>
-                            )}
+                                )}
                             </div>
 
                             <div className="space-y-2">
@@ -244,7 +270,7 @@ export function WishlistModule() {
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <label className="text-[9px] uppercase font-bold tracking-widest text-stone-500 ml-1">URL (Link de Compra / Ubicación)</label>
+                                    <label className="text-[9px] uppercase font-bold tracking-widest text-stone-500 ml-1">URL ({activeCategory === 'plan' ? 'Link de Google Maps' : 'Link de Compra'})</label>
                                     <input
                                         value={newLocationUrl}
                                         onChange={e => setNewLocationUrl(e.target.value)}
@@ -278,7 +304,6 @@ export function WishlistModule() {
                         >
                             {activeCategory === 'gusto' ? (
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                    {/* User A Column */}
                                     <div className="space-y-4">
                                         <h4 className="text-[10px] uppercase font-black tracking-[0.2em] text-user-a border-b border-user-a/20 pb-2 mb-4 flex items-center gap-2">
                                             <div className="w-1.5 h-1.5 bg-user-a" />
@@ -294,7 +319,6 @@ export function WishlistModule() {
                                         </div>
                                     </div>
 
-                                    {/* User B Column */}
                                     <div className="space-y-4">
                                         <h4 className="text-[10px] uppercase font-black tracking-[0.2em] text-user-b border-b border-user-b/20 pb-2 mb-4 flex items-center gap-2">
                                             <div className="w-1.5 h-1.5 bg-user-b rounded-full" />
@@ -333,7 +357,6 @@ export function WishlistModule() {
                                                     } ${canAfford ? 'animate-pulse-green border-solid' : ''}`}
                                                     style={!isVisited && !canAfford ? { borderColor: accentColor } : (canAfford ? { borderColor: '#22C55E' } : {})}
                                                 >
-                                                    {/* Watermark for Visited items */}
                                                     {isVisited && (
                                                         <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none opacity-[0.05]">
                                                             <Check className="w-24 h-24 stroke-[4]" />
@@ -341,7 +364,6 @@ export function WishlistModule() {
                                                     )}
 
                                                     <div className="flex items-center gap-4 flex-1">
-                                                        {/* Status Toggle Switch */}
                                                         <button
                                                             onClick={() => toggleStatus(item.id)}
                                                             className="relative w-12 h-6 bg-stone-100 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 flex items-center px-1 shrink-0"
@@ -375,19 +397,19 @@ export function WishlistModule() {
                                                     <div className="flex items-center justify-between md:justify-end gap-6 pt-4 md:pt-0 border-t md:border-t-0 border-stone-100 dark:border-stone-900">
                                                         {item.locationUrl && (
                                                             <div className="flex flex-col gap-2">
-                                                                <a
-                                                                    href={item.locationUrl}
-                                                                    target="_blank"
-                                                                    rel="noopener noreferrer"
-                                                                    className="flex items-center gap-2 text-[9px] uppercase font-bold tracking-widest text-geometric-accent hover:underline"
-                                                                >
-                                                                    <ExternalLink className="w-3 h-3" />
-                                                                    Link Preview
-                                                                </a>
-                                                                {/* Mock Preview Box */}
-                                                                <div className="hidden md:block w-32 h-16 border border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-950 overflow-hidden">
-                                                                    <div className="w-full h-full opacity-20 bg-grid-mosaic" />
-                                                                </div>
+                                                                {activeCategory === 'antojo' ? (
+                                                                    <LinkPreview url={item.locationUrl} category={activeCategory} />
+                                                                ) : (
+                                                                    <a
+                                                                        href={item.locationUrl}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        className="flex items-center gap-2 text-[9px] uppercase font-bold tracking-widest text-geometric-accent hover:underline"
+                                                                    >
+                                                                        <ExternalLink className="w-3 h-3" />
+                                                                        {activeCategory === 'plan' ? 'Ver Ubicación' : 'Link Preview'}
+                                                                    </a>
+                                                                )}
                                                             </div>
                                                         )}
 
