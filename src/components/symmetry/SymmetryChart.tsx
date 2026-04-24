@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   RadialBarChart,
   RadialBar,
@@ -9,15 +9,30 @@ import {
 } from 'recharts';
 import { useVisibility } from '@/context/VisibilityContext';
 import { useProfile } from '@/context/ProfileContext';
+import { motion, useAnimation } from 'framer-motion';
 
 interface SymmetryChartProps {
   dataA: any;
   dataB: any;
+  lastPulseAt?: string;
 }
 
-export const SymmetryChart = ({ dataA, dataB }: SymmetryChartProps) => {
+export const SymmetryChart = ({ dataA, dataB, lastPulseAt }: SymmetryChartProps) => {
   const { mode } = useVisibility();
   const { profile } = useProfile();
+  const controls = useAnimation();
+  const [prevPulse, setPrevPulse] = useState(lastPulseAt);
+
+  useEffect(() => {
+    if (lastPulseAt && lastPulseAt !== prevPulse) {
+      setPrevPulse(lastPulseAt);
+      controls.start({
+        scale: [1, 1.1, 1],
+        opacity: [1, 0.8, 1],
+        transition: { duration: 0.8, times: [0, 0.5, 1], ease: "easeInOut" }
+      });
+    }
+  }, [lastPulseAt, prevPulse, controls]);
 
   const categories = [
     { name: 'Academic', key: 'academic' },
@@ -48,7 +63,10 @@ export const SymmetryChart = ({ dataA, dataB }: SymmetryChartProps) => {
       ];
 
   return (
-    <div className="w-full h-full flex items-center justify-center relative">
+    <motion.div
+      animate={controls}
+      className="w-full h-full flex items-center justify-center relative"
+    >
       <ResponsiveContainer width="100%" height="100%">
         <RadialBarChart
           cx="50%"
@@ -74,6 +92,19 @@ export const SymmetryChart = ({ dataA, dataB }: SymmetryChartProps) => {
           />
         </RadialBarChart>
       </ResponsiveContainer>
-    </div>
+
+      {/* Decorative pulse rings when active */}
+      {lastPulseAt === prevPulse && lastPulseAt && (
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{
+                scale: [0.8, 1.5],
+                opacity: [0.5, 0]
+            }}
+            transition={{ duration: 1, ease: "easeOut" }}
+            className="absolute inset-0 border-2 border-geometric-accent rounded-full pointer-events-none"
+          />
+      )}
+    </motion.div>
   );
 };

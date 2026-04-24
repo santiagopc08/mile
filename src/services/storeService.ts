@@ -23,6 +23,7 @@ export interface AppData {
     }[];
     victoriesEl: any[];
     victoriesElla: any[];
+    lastPulseAt?: string;
     audioStats: {
         daysTracking: number;
         lastUpdate: string;
@@ -51,6 +52,7 @@ export interface AppData {
         description: string;
         status: "to-visit" | "visited";
         locationUrl?: string;
+        owner?: string;
         author: string;
     }[];
     persistentListening: {
@@ -110,7 +112,7 @@ export const StoreService = {
             const allVictories = victoriesRes.data || [];
 
             return {
-                wishlist: (wishlistRes.data || []).map(w => ({ id: w.id, category: w.category, title: w.title, description: w.description, status: w.status, author: w.author || "el", locationUrl: w.location_url, price: w.price || 0, isPriority: w.is_priority || false })),
+                wishlist: (wishlistRes.data || []).map(w => ({ id: w.id, category: w.category, title: w.title, description: w.description, status: w.status, author: w.author || "el", owner: w.owner || undefined, locationUrl: w.location_url, price: w.price || 0, isPriority: w.is_priority || false })),
                 tasks: (tasksRes.data || []).map((t) => ({
                     id: t.id,
                     title: t.title,
@@ -144,7 +146,7 @@ export const StoreService = {
                     daysTracking: trackingDays,
                     lastUpdate: formattedDate
                 },
-                audioPlaylist,
+                audioPlaylist, lastPulseAt: settings.last_pulse_at,
                 dailyProgress: {
                     yesterdayTotal: finalCommitments.length,
                     yesterdayCompleted: yesterdayTracking ? yesterdayTracking.completed_count : 0,
@@ -203,7 +205,7 @@ export const StoreService = {
                     description: w.description,
                     status: w.status,
                     location_url: w.locationUrl, price: w.price, is_priority: w.isPriority,
-                    author: w.author || "el"
+                    author: w.author || "el", owner: w.owner || undefined
                 })));
             }
 
@@ -360,6 +362,10 @@ export const StoreService = {
             }
 
             // Update App Settings
+            if (newData.lastPulseAt !== undefined) {
+                await supabase.from("app_settings").update({ last_pulse_at: newData.lastPulseAt }).eq("id", 1);
+            }
+
             await supabase.from('app_settings').update({ last_update: new Date().toISOString() }).eq('id', 1);
 
         } catch (error) {

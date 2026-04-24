@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { useStore } from "@/context/StoreContext";
 import { useVisibility } from '@/context/VisibilityContext';
 import { useProfile } from '@/context/ProfileContext';
 import { SaberPro } from './SaberPro';
@@ -8,12 +9,15 @@ import { TaskModule } from './TaskModule';
 import { DualWallet } from './DualWallet';
 import { FinanceChart } from './FinanceChart';
 import { TaskStatsChart } from './TaskStatsChart';
+import { SymmetryChart } from "./SymmetryChart";
+
 import { motion } from 'framer-motion';
 import { PomodoroTimer } from './PomodoroTimer';
 
 export const SymmetryDashboard = () => {
   const { mode, toggleMode } = useVisibility();
   const { profile } = useProfile();
+  const { data } = useStore();
 
   const [dataA, setDataA] = useState({ academic: 50, work: 50, home: 50, personal: 50 });
   const [dataB, setDataB] = useState({ academic: 50, work: 50, home: 50, personal: 50 });
@@ -138,13 +142,22 @@ export const SymmetryDashboard = () => {
 
       {/* Row 2: Task Stats (7 days) + Shield */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className="lg:col-span-8 geometric-card p-6 sm:p-8 bg-dot-matrix border-stone-200 dark:border-stone-800">
+        <div className="lg:col-span-7 geometric-card p-6 sm:p-8 bg-dot-matrix border-stone-200 dark:border-stone-800">
           <h2 className="text-[10px] uppercase font-bold tracking-[0.2em] mb-8 border-b border-stone-100 dark:border-stone-900 pb-3 flex items-center gap-2">
             <div className="w-1.5 h-1.5 bg-user-a" />
             Rendimiento Semanal
           </h2>
           <div className="h-64">
             <TaskStatsChart tasks={tasks} />
+          </div>
+        </div>
+        <div className="lg:col-span-5 geometric-card p-6 sm:p-8 bg-mosaic border-stone-200 dark:border-stone-800 flex flex-col justify-center">
+          <h2 className="text-[10px] uppercase font-bold tracking-[0.2em] mb-8 border-b border-stone-100 dark:border-stone-900 pb-3 flex items-center gap-2">
+            <div className="w-1.5 h-1.5 bg-user-b rounded-full" />
+            Symmetry Shield
+          </h2>
+          <div className="h-64 flex items-center justify-center relative">
+             <SymmetryChart dataA={dataA} dataB={dataB} lastPulseAt={data?.lastPulseAt} />
           </div>
         </div>
       </div>
