@@ -1,9 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, Wallet } from 'lucide-react';
-import { useProfile } from '@/context/ProfileContext';
+import { Plus, Trash2 } from 'lucide-react';
 
 interface Allocation {
   id: string;
@@ -22,40 +21,10 @@ const CATEGORIES = [
   '🎲 Otros'
 ] as const;
 
-export const DualWallet = ({ onExpensesUpdate }: { onExpensesUpdate: (miscPercentage: number) => void }) => {
-  const { profile } = useProfile();
-  const [allocations, setAllocations] = useState<Allocation[]>([]);
+export const DualWallet = ({ allocations, onAllocationsChange }: { allocations: Allocation[], onAllocationsChange: (newAllocations: Allocation[]) => void }) => {
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState<Allocation['category']>('🎲 Otros');
-
-  const storageKey = profile === 'el' ? 'symmetry_A_allocations' : 'symmetry_B_allocations';
-
-  useEffect(() => {
-    // Migration from old expenses key if exists
-    const oldKey = profile === 'el' ? 'symmetry_A_expenses' : 'symmetry_B_expenses';
-    const saved = localStorage.getItem(storageKey) || localStorage.getItem(oldKey);
-    
-    if (saved) {
-      setAllocations(JSON.parse(saved).map((a: any) => ({
-        ...a,
-        // Map old categories if needed
-        category: CATEGORIES.includes(a.category) ? a.category : '🎲 Otros'
-      })));
-    } else {
-      setAllocations([]);
-    }
-  }, [storageKey, profile]);
-
-  useEffect(() => {
-    localStorage.setItem(storageKey, JSON.stringify(allocations));
-
-    const total = allocations.reduce((sum, e) => sum + e.amount, 0);
-    const miscTotal = allocations.filter(e => e.category === '🎲 Otros').reduce((sum, e) => sum + e.amount, 0);
-    const miscPercent = total > 0 ? (miscTotal / total) * 100 : 0;
-
-    onExpensesUpdate(miscPercent);
-  }, [allocations, storageKey, onExpensesUpdate]);
 
   const addAllocation = () => {
     if (!amount || !description) return;
@@ -66,13 +35,13 @@ export const DualWallet = ({ onExpensesUpdate }: { onExpensesUpdate: (miscPercen
       category,
       date: new Date().toISOString(),
     };
-    setAllocations([newAllocation, ...allocations]);
+    onAllocationsChange([newAllocation, ...allocations]);
     setAmount('');
     setDescription('');
   };
 
   const deleteAllocation = (id: string) => {
-    setAllocations(allocations.filter(e => e.id !== id));
+    onAllocationsChange(allocations.filter(e => e.id !== id));
   };
 
   const formatCOP = (val: number) => {

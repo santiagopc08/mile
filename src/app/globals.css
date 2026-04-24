@@ -25,6 +25,7 @@
   /* Geometric Accent */
   --color-geometric-accent: #f43f5e;
   --color-geometric-border: #292524;
+  --color-system-alert: #EF4444;
 }
 
 :root {
@@ -105,4 +106,30 @@ button, input, select {
 
 .animate-pulse-green {
   animation: pulse-green 2s infinite;
+}
+
+.bg-fractured-mosaic {
+  background-size: 15px 15px;
+  background-image:
+    linear-gradient(45deg, rgba(239, 68, 68, 0.1) 25%, transparent 25%),
+    linear-gradient(-45deg, rgba(239, 68, 68, 0.1) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, rgba(239, 68, 68, 0.1) 75%),
+    linear-gradient(-45deg, transparent 75%, rgba(239, 68, 68, 0.1) 75%);
+  background-image:
+    linear-gradient(to right, rgba(239, 68, 68, 0.1) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(239, 68, 68, 0.1) 1px, transparent 1px);
+  background-size: 10px 10px;
+}
+
+.system-alert-red {
+  border-color: var(--color-system-alert) !important;
+  color: var(--color-system-alert) !important;
+}
+
+.text-system-alert {
+  color: var(--color-system-alert);
+}
+
+.bg-system-alert-soft {
+  background-color: rgba(239, 68, 68, 0.05);
 }
