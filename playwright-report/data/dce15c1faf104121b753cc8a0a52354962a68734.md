@@ -6,8 +6,8 @@
 
 # Test info
 
-- Name: frontend.spec.ts >> verify geospatial tracker on /planes
-- Location: tests/frontend.spec.ts:3:5
+- Name: wishlist-link-preview.spec.ts >> verify wishlist link preview and map integration
+- Location: tests/wishlist-link-preview.spec.ts:3:5
 
 # Error details
 

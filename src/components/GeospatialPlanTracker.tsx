@@ -12,7 +12,7 @@ import {
 import { supabase } from '@/lib/supabase';
 import { useProfile } from '@/context/ProfileContext';
 import { useVisibility } from '@/context/VisibilityContext';
-import { Navigation, Trash2, Plus, CheckCircle, Circle, MapPin } from 'lucide-react';
+import { Navigation, Trash2, Plus, CheckCircle, Circle } from 'lucide-react';
 
 interface Ubicacion {
   id: string;
@@ -65,6 +65,13 @@ export function GeospatialPlanTracker() {
 
   useEffect(() => {
     fetchLocations();
+  }, [fetchLocations]);
+
+  // Handle external refresh events (e.g., from WishlistModule)
+  useEffect(() => {
+    const handleRefresh = () => fetchLocations();
+    window.addEventListener('custom:map-refresh', handleRefresh);
+    return () => window.removeEventListener('custom:map-refresh', handleRefresh);
   }, [fetchLocations]);
 
   const handleMapClick = (e: any) => {
@@ -167,7 +174,6 @@ export function GeospatialPlanTracker() {
         </div>
       )}
 
-      {/* The Geometric Frame */}
       <div className="relative p-2 border border-stone-200 dark:border-stone-800 bg-mosaic shadow-sm">
         <div className="h-[400px] md:h-[500px] w-full border border-stone-200 dark:border-stone-800 overflow-hidden bg-stone-100 dark:bg-stone-900">
           <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
@@ -228,7 +234,6 @@ export function GeospatialPlanTracker() {
         </div>
       </div>
 
-      {/* Quick List */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="space-y-4">
           <h4 className="text-[10px] uppercase font-black tracking-[0.3em] text-stone-400 mb-2 flex items-center gap-2">
