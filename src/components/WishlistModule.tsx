@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useStore } from '@/context/StoreContext';
 import { useProfile } from '@/context/ProfileContext';
-import { Plus, Trash2, MapPin, Utensils, Heart, CheckCircle2, Circle, Check } from 'lucide-react';
+import { Plus, Trash2, MapPin, Utensils, Heart, Check, Diamond, ExternalLink } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 type Category = 'plan' | 'antojo' | 'gusto';
@@ -16,9 +16,32 @@ export function WishlistModule() {
     const [newTitle, setNewTitle] = useState('');
     const [newDesc, setNewDesc] = useState('');
     const [newLocationUrl, setNewLocationUrl] = useState('');
+    const [newPrice, setNewPrice] = useState<string>('0');
+    const [newIsPriority, setNewIsPriority] = useState(false);
 
     const items = data?.wishlist || [];
-    const filteredItems = items.filter(item => item.category === activeCategory);
+
+    const totalSavings = useMemo(() => {
+        const allocA = JSON.parse(localStorage.getItem('symmetry_A_allocations') || '[]');
+        const allocB = JSON.parse(localStorage.getItem('symmetry_B_allocations') || '[]');
+        const savingsA = allocA
+            .filter((a: any) => a.category === '📈 Inversiones/Ahorro')
+            .reduce((sum: number, a: any) => sum + a.amount, 0);
+        const savingsB = allocB
+            .filter((a: any) => a.category === '📈 Inversiones/Ahorro')
+            .reduce((sum: number, a: any) => sum + a.amount, 0);
+        return savingsA + savingsB;
+    }, [data]);
+
+    const filteredItems = useMemo(() => {
+        return items
+            .filter(item => item.category === activeCategory)
+            .sort((a, b) => {
+                if (a.isPriority && !b.isPriority) return -1;
+                if (!a.isPriority && b.isPriority) return 1;
+                return 0;
+            });
+    }, [items, activeCategory]);
 
     const categories = [
         { id: 'plan', label: 'Planes', icon: MapPin, color: 'text-blue-500' },
@@ -38,13 +61,17 @@ export function WishlistModule() {
                 title: newTitle.trim(),
                 description: newDesc.trim(),
                 locationUrl: newLocationUrl.trim(),
-                status: 'to-visit',
+                price: parseFloat(newPrice) || 0,
+                isPriority: newIsPriority,
+                status: 'to-visit' as const,
                 author: profile || 'el'
             };
             await updateData({ wishlist: [newItem, ...items] });
             setNewTitle('');
             setNewDesc('');
             setNewLocationUrl('');
+            setNewPrice('0');
+            setNewIsPriority(false);
             setIsAdding(false);
         }
     };
@@ -54,10 +81,32 @@ export function WishlistModule() {
     };
 
     const toggleStatus = async (id: string) => {
+        const item = items.find(i => i.id === id);
+        if (!item) return;
+
+        const isMarkingBought = item.status === 'to-visit';
         const updated = items.map(i =>
-            i.id === id ? { ...i, status: i.status === 'visited' ? 'to-visit' : 'visited' } : i
+            i.id === id ? { ...i, status: (i.status === 'visited' ? 'to-visit' : 'visited') as 'to-visit' | 'visited' } : i
         );
+
+        if (isMarkingBought && item.category === 'antojo') {
+            const storageKey = profile === 'el' ? 'symmetry_A_allocations' : 'symmetry_B_allocations';
+            const currentAllocations = JSON.parse(localStorage.getItem(storageKey) || '[]');
+            const newAllocation = {
+                id: Date.now().toString(),
+                amount: -(item.price || 0),
+                description: `COMPRA: ${item.title}`,
+                category: '📈 Inversiones/Ahorro',
+                date: new Date().toISOString(),
+            };
+            localStorage.setItem(storageKey, JSON.stringify([newAllocation, ...currentAllocations]));
+        }
+
         await updateData({ wishlist: updated });
+    };
+
+    const formatCOP = (val: number) => {
+        return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(val);
     };
 
     return (
@@ -88,6 +137,13 @@ export function WishlistModule() {
 
             {/* Content Area */}
             <div className="geometric-card p-8 border-stone-200 dark:border-stone-800 bg-dot-matrix min-h-[400px]">
+                {activeCategory === 'antojo' && (
+                    <div className="mb-8 p-4 border border-geometric-accent bg-geometric-accent/5 flex items-center justify-between">
+                         <span className="text-[10px] uppercase font-black tracking-widest text-stone-600 dark:text-stone-400">Dinero guardado para Antojos:</span>
+                         <span className="text-sm font-mono font-bold text-geometric-accent">{formatCOP(totalSavings)}</span>
+                    </div>
+                )}
+
                 <div className="flex justify-between items-center mb-10 border-b border-stone-100 dark:border-stone-900 pb-4">
                     <h3 className="text-xs uppercase font-black tracking-[0.3em] text-stone-400 flex items-center gap-3">
                         <div className="w-2 h-2 bg-geometric-accent" />
@@ -111,17 +167,29 @@ export function WishlistModule() {
                             onSubmit={handleAdd}
                             className="space-y-4 mb-8 p-6 border border-stone-100 dark:border-stone-900 bg-stone-50/50 dark:bg-stone-950/50"
                         >
-                            <div className="space-y-2">
-                                <label className="text-[9px] uppercase font-bold tracking-widest text-stone-500 ml-1">Título del {activeCategory}</label>
-                                <input
-                                    required
-                                    autoFocus
-                                    value={newTitle}
-                                    onChange={e => setNewTitle(e.target.value)}
-                                    placeholder="¿QUÉ TENEMOS EN MENTE?..."
-                                    className="w-full bg-white dark:bg-black border border-stone-200 dark:border-stone-800 px-4 py-3 text-xs uppercase tracking-widest outline-none focus:border-geometric-accent"
-                                />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <label className="text-[9px] uppercase font-bold tracking-widest text-stone-500 ml-1">Título del {activeCategory}</label>
+                                    <input
+                                        required
+                                        autoFocus
+                                        value={newTitle}
+                                        onChange={e => setNewTitle(e.target.value)}
+                                        placeholder="¿QUÉ TENEMOS EN MENTE?..."
+                                        className="w-full bg-white dark:bg-black border border-stone-200 dark:border-stone-800 px-4 py-3 text-xs uppercase tracking-widest outline-none focus:border-geometric-accent"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[9px] uppercase font-bold tracking-widest text-stone-500 ml-1">Precio Estimado (COP)</label>
+                                    <input
+                                        type="number"
+                                        value={newPrice}
+                                        onChange={e => setNewPrice(e.target.value)}
+                                        className="w-full bg-white dark:bg-black border border-stone-200 dark:border-stone-800 px-4 py-3 text-xs uppercase tracking-widest outline-none focus:border-geometric-accent"
+                                    />
+                                </div>
                             </div>
+
                             <div className="space-y-2">
                                 <label className="text-[9px] uppercase font-bold tracking-widest text-stone-500 ml-1">Detalles / Notas</label>
                                 <textarea
@@ -131,15 +199,29 @@ export function WishlistModule() {
                                     className="w-full bg-white dark:bg-black border border-stone-200 dark:border-stone-800 px-4 py-3 text-xs uppercase tracking-widest outline-none focus:border-geometric-accent resize-none h-24"
                                 />
                             </div>
-                            <div className="space-y-2">
-                                <label className="text-[9px] uppercase font-bold tracking-widest text-stone-500 ml-1">Link de Ubicación (Google Maps)</label>
-                                <input
-                                    value={newLocationUrl}
-                                    onChange={e => setNewLocationUrl(e.target.value)}
-                                    placeholder="https://maps.app.goo.gl/..."
-                                    className="w-full bg-white dark:bg-black border border-stone-200 dark:border-stone-800 px-4 py-3 text-xs uppercase tracking-widest outline-none focus:border-geometric-accent"
-                                />
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <label className="text-[9px] uppercase font-bold tracking-widest text-stone-500 ml-1">URL (Link de Compra / Ubicación)</label>
+                                    <input
+                                        value={newLocationUrl}
+                                        onChange={e => setNewLocationUrl(e.target.value)}
+                                        placeholder="https://..."
+                                        className="w-full bg-white dark:bg-black border border-stone-200 dark:border-stone-800 px-4 py-3 text-xs uppercase tracking-widest outline-none focus:border-geometric-accent"
+                                    />
+                                </div>
+                                <div className="flex items-end pb-1">
+                                    <button
+                                        type="button"
+                                        onClick={() => setNewIsPriority(!newIsPriority)}
+                                        className={`flex items-center gap-3 px-4 py-3 border transition-all w-full ${newIsPriority ? 'border-geometric-accent bg-geometric-accent/10 text-geometric-accent' : 'border-stone-200 dark:border-stone-800 text-stone-400'}`}
+                                    >
+                                        <Diamond className={`w-4 h-4 ${newIsPriority ? 'fill-geometric-accent' : ''}`} />
+                                        <span className="text-[9px] uppercase font-bold tracking-widest">Prioridad (Diamante)</span>
+                                    </button>
+                                </div>
                             </div>
+
                             <div className="flex gap-4 pt-2">
                                 <button type="button" onClick={() => setIsAdding(false)} className="flex-1 py-3 border border-stone-200 dark:border-stone-800 text-stone-500 uppercase text-[9px] font-bold tracking-widest hover:border-stone-400 transition-all">Cancelar</button>
                                 <button type="submit" className="flex-1 py-3 bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 uppercase text-[9px] font-bold tracking-widest hover:bg-geometric-accent hover:text-white transition-all">Guardar Item</button>
@@ -150,7 +232,7 @@ export function WishlistModule() {
                             key="list"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
-                            className="space-y-3"
+                            className="space-y-4"
                         >
                             {filteredItems.length === 0 ? (
                                 <div className="py-20 flex flex-col items-center justify-center opacity-20">
@@ -160,17 +242,18 @@ export function WishlistModule() {
                             ) : (
                                 filteredItems.map((item) => {
                                     const isVisited = item.status === 'visited';
+                                    const canAfford = activeCategory === 'antojo' && !isVisited && (item.price || 0) <= totalSavings;
                                     const accentColor = item.author === 'ella' ? 'var(--color-user-b)' : 'var(--color-user-a)';
 
                                     return (
                                         <div
                                             key={item.id}
-                                            className={`relative group flex items-center gap-4 p-5 bg-mosaic transition-all ${
+                                            className={`relative group flex flex-col md:flex-row md:items-center gap-4 p-5 bg-mosaic transition-all ${
                                                 isVisited
                                                     ? 'border-solid border-stone-200 dark:border-stone-800 bg-stone-50/30 dark:bg-stone-950/30 opacity-80'
                                                     : 'border-dashed border-[1px] bg-white dark:bg-black'
-                                            }`}
-                                            style={!isVisited ? { borderColor: accentColor } : {}}
+                                            } ${canAfford ? 'animate-pulse-green border-solid' : ''}`}
+                                            style={!isVisited && !canAfford ? { borderColor: accentColor } : (canAfford ? { borderColor: '#22C55E' } : {})}
                                         >
                                             {/* Watermark for Visited items */}
                                             {isVisited && (
@@ -179,38 +262,55 @@ export function WishlistModule() {
                                                 </div>
                                             )}
 
-                                            {/* Status Toggle Switch */}
-                                            <button
-                                                onClick={() => toggleStatus(item.id)}
-                                                className="relative w-12 h-6 bg-stone-100 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 flex items-center px-1"
-                                            >
-                                                <motion.div
-                                                    animate={{ x: isVisited ? 24 : 0 }}
-                                                    className={`w-4 h-4 ${isVisited ? 'bg-geometric-accent' : 'bg-stone-400'}`}
-                                                />
-                                            </button>
+                                            <div className="flex items-center gap-4 flex-1">
+                                                {/* Status Toggle Switch */}
+                                                <button
+                                                    onClick={() => toggleStatus(item.id)}
+                                                    className="relative w-12 h-6 bg-stone-100 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 flex items-center px-1 shrink-0"
+                                                >
+                                                    <motion.div
+                                                        animate={{ x: isVisited ? 24 : 0 }}
+                                                        className={`w-4 h-4 ${isVisited ? 'bg-geometric-accent' : 'bg-stone-400'}`}
+                                                    />
+                                                </button>
 
-                                            <div className="flex-1 min-w-0">
-                                                <h4 className={`text-xs font-black uppercase tracking-widest ${isVisited ? 'line-through text-stone-400' : 'text-stone-800 dark:text-stone-100'}`}>
-                                                    {item.title}
-                                                </h4>
-                                                {item.description && (
-                                                    <p className="text-[10px] text-stone-500 mt-1 line-clamp-1 italic uppercase tracking-tighter">
-                                                        {item.description}
-                                                    </p>
-                                                )}
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center gap-2">
+                                                        <h4 className={`text-xs font-black uppercase tracking-widest ${isVisited ? 'line-through text-stone-400' : 'text-stone-800 dark:text-stone-100'}`}>
+                                                            {item.title}
+                                                        </h4>
+                                                        {item.isPriority && <Diamond className="w-3 h-3 text-geometric-accent fill-geometric-accent" />}
+                                                    </div>
+                                                    {item.description && (
+                                                        <p className="text-[10px] text-stone-500 mt-1 line-clamp-1 italic uppercase tracking-tighter">
+                                                            {item.description}
+                                                        </p>
+                                                    )}
+                                                    {activeCategory === 'antojo' && (
+                                                        <span className="text-[9px] font-mono font-bold text-stone-400 mt-1 block">
+                                                            COSTO: {formatCOP(item.price || 0)}
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </div>
 
-                                            <div className="flex items-center gap-4">
+                                            <div className="flex items-center justify-between md:justify-end gap-6 pt-4 md:pt-0 border-t md:border-t-0 border-stone-100 dark:border-stone-900">
                                                 {item.locationUrl && (
-                                                    <a
-                                                        href={item.locationUrl}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="w-11 h-11 flex items-center justify-center bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 rounded-none transition-transform active:scale-95"
-                                                    >
-                                                        <MapPin className="w-5 h-5" />
-                                                    </a>
+                                                    <div className="flex flex-col gap-2">
+                                                        <a
+                                                            href={item.locationUrl}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="flex items-center gap-2 text-[9px] uppercase font-bold tracking-widest text-geometric-accent hover:underline"
+                                                        >
+                                                            <ExternalLink className="w-3 h-3" />
+                                                            Link Preview
+                                                        </a>
+                                                        {/* Mock Preview Box */}
+                                                        <div className="hidden md:block w-32 h-16 border border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-950 overflow-hidden">
+                                                            <div className="w-full h-full opacity-20 bg-grid-mosaic" />
+                                                        </div>
+                                                    </div>
                                                 )}
 
                                                 <div className="flex flex-col items-end gap-1">
