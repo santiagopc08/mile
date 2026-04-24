@@ -5,16 +5,18 @@ import { PrivateRoute } from "@/components/PrivateRoute";
 import { JarOfNotes } from "@/components/JarOfNotes";
 import { PersistentListening } from "@/components/PersistentListening";
 import { AudioSection } from "@/components/AudioSection";
-import { MessageCircleHeart, Mic, Music } from 'lucide-react';
+import { PetsGallery } from "@/components/PetsGallery";
+import { MessageCircleHeart, Mic, Music, PawPrint } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function RefugioPage() {
-  const [activeTab, setActiveTab] = useState<'notas' | 'escucha' | 'musica'>('notas');
+  const [activeTab, setActiveTab] = useState<'notas' | 'escucha' | 'musica' | 'bebes'>('notas');
 
   const tabs = [
     { id: 'notas', label: 'Notas', icon: MessageCircleHeart },
     { id: 'escucha', label: 'Escucha', icon: Mic },
     { id: 'musica', label: 'Música', icon: Music },
+    { id: 'bebes', label: 'Bebés', icon: PawPrint },
   ];
 
   return (
@@ -30,12 +32,12 @@ export default function RefugioPage() {
           </div>
 
           {/* Tab Navigation */}
-          <div className="flex justify-center gap-2 md:gap-4 border-b border-stone-100 dark:border-stone-900 pb-4">
+          <div className="flex justify-center gap-2 md:gap-4 border-b border-stone-100 dark:border-stone-900 pb-4 flex-wrap">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`relative px-6 py-3 flex items-center gap-2 transition-all ${
+                className={`relative px-4 sm:px-6 py-3 flex items-center gap-2 transition-all ${
                   activeTab === tab.id
                     ? 'text-geometric-accent'
                     : 'text-stone-400 hover:text-stone-600 dark:hover:text-stone-200'
@@ -66,6 +68,7 @@ export default function RefugioPage() {
                 {activeTab === 'notas' && <JarOfNotes />}
                 {activeTab === 'escucha' && <PersistentListening />}
                 {activeTab === 'musica' && <AudioSection />}
+                {activeTab === 'bebes' && <PetsGallery />}
               </motion.div>
             </AnimatePresence>
           </div>
