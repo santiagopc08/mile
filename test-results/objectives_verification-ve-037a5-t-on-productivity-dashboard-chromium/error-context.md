@@ -6,8 +6,8 @@
 
 # Test info
 
-- Name: wishlist-link-preview.spec.ts >> verify wishlist link preview and map integration
-- Location: tests/wishlist-link-preview.spec.ts:3:5
+- Name: objectives_verification.spec.ts >> verify objectives management on productivity dashboard
+- Location: tests/objectives_verification.spec.ts:3:5
 
 # Error details
 
