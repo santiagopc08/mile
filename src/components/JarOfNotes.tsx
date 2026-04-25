@@ -11,7 +11,7 @@ type AnimState = 'idle' | 'img1' | 'img2' | 'video' | 'popup' | 'reverse-video' 
 export function JarOfNotes() {
     const { data, updateData } = useStore();
     const { profile } = useProfile();
-    
+
     const [animState, setAnimState] = useState<AnimState>('idle');
     const [currentNote, setCurrentNote] = useState('');
     const [newNoteText, setNewNoteText] = useState('');
@@ -26,12 +26,12 @@ export function JarOfNotes() {
     const startSequence = () => {
         if (animState !== 'idle') return;
         if (notes.length === 0) return;
-        
+
         const randomNote = notes[Math.floor(Math.random() * notes.length)];
         setCurrentNote(randomNote.text);
-        
+
         setAnimState('img1');
-        
+
         setTimeout(() => {
             setAnimState('img2');
             setTimeout(() => {
@@ -61,15 +61,15 @@ export function JarOfNotes() {
         if (animState === 'reverse-video' && videoRef.current) {
             videoRef.current.pause();
             lastTimeRef.current = performance.now();
-            
+
             const rewind = (time: number) => {
                 if (!videoRef.current || !lastTimeRef.current) return;
                 const delta = (time - lastTimeRef.current) / 1000;
                 lastTimeRef.current = time;
-                
+
                 // Rewind at 2x speed
                 videoRef.current.currentTime -= delta * 2.0;
-                
+
                 if (videoRef.current.currentTime <= 0) {
                     videoRef.current.currentTime = 0;
                     setAnimState('reverse-img2');
@@ -78,7 +78,7 @@ export function JarOfNotes() {
                 }
             };
             reverseAnimRef.current = requestAnimationFrame(rewind);
-            
+
             return () => {
                 if (reverseAnimRef.current) cancelAnimationFrame(reverseAnimRef.current);
             };
@@ -119,7 +119,7 @@ export function JarOfNotes() {
             {/* Header info - fades out when animation starts */}
             <AnimatePresence>
                 {animState === 'idle' && (
-                    <motion.div 
+                    <motion.div
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -20 }}
@@ -130,24 +130,24 @@ export function JarOfNotes() {
                         </h2>
                         <div className="h-1 w-20 bg-geometric-accent mx-auto mb-4" />
                         <p className="text-stone-500 dark:text-stone-400 font-light max-w-xs mx-auto">
-                            Un guardián de pensamientos. Haz clic en el tarro para leer la nota de hoy.
+                            La nave de Kiaro, llena de pensamientos y amor.
                         </p>
                     </motion.div>
                 )}
             </AnimatePresence>
 
             {/* Animation Container */}
-            <div 
+            <div
                 className="relative w-full max-w-3xl aspect-[4/3] flex items-center justify-center cursor-pointer overflow-hidden z-10"
                 onClick={startSequence}
             >
                 {/* IMG 1 */}
                 <AnimatePresence>
                     {showImg1 && (
-                        <motion.img 
-                            src="/jar/jar1.png" 
+                        <motion.img
+                            src="/jar/jar1.png"
                             alt="Jar 1"
-                            className="absolute w-80 h-80 md:w-96 md:h-96 object-contain z-10"
+                            className="absolute w-full h-full md:w-full md:h-full object-contain z-10"
                             initial={{ scale: animState === 'reverse-img1' ? 1.5 : 1, opacity: 1 }}
                             animate={{ scale: animState === 'img1' ? 1.5 : 1 }}
                             exit={{ opacity: 0 }}
@@ -159,10 +159,10 @@ export function JarOfNotes() {
                 {/* IMG 2 */}
                 <AnimatePresence>
                     {showImg2 && (
-                        <motion.img 
-                            src="/jar/jar2.png" 
+                        <motion.img
+                            src="/jar/jar2.png"
                             alt="Jar 2"
-                            className="absolute w-80 h-80 md:w-96 md:h-96 object-contain z-20"
+                            className="absolute w-full h-full md:w-full md:h-full object-contain z-20"
                             initial={{ scale: animState === 'img2' ? 1.5 : 2, opacity: 0 }}
                             animate={{ scale: animState === 'img2' ? 2 : 1.5, opacity: 1 }}
                             exit={{ opacity: 0 }}
@@ -172,7 +172,7 @@ export function JarOfNotes() {
                 </AnimatePresence>
 
                 {/* VIDEO */}
-                <video 
+                <video
                     ref={videoRef}
                     src="/jar/jarVid.mp4"
                     className={`absolute inset-0 w-full h-full object-cover z-30 transition-opacity duration-300 ${isVideoVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
@@ -194,21 +194,21 @@ export function JarOfNotes() {
                             onClick={(e) => e.stopPropagation()} // prevent clicking through
                         >
                             {/* Decorative Shapes */}
-                            <motion.div 
+                            <motion.div
                                 className="absolute top-1/4 left-1/4 text-geometric-accent opacity-50"
                                 animate={{ rotate: 360, y: [0, -20, 0] }}
                                 transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
                             >
                                 <Circle className="w-16 h-16" strokeWidth={1} />
                             </motion.div>
-                            <motion.div 
+                            <motion.div
                                 className="absolute bottom-1/4 right-1/4 text-user-a opacity-50"
                                 animate={{ rotate: -360, x: [0, 20, 0] }}
                                 transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
                             >
                                 <Triangle className="w-20 h-20" strokeWidth={1} />
                             </motion.div>
-                            <motion.div 
+                            <motion.div
                                 className="absolute top-1/3 right-1/3 text-user-b opacity-50"
                                 animate={{ rotate: 180, scale: [1, 1.2, 1] }}
                                 transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
@@ -224,8 +224,8 @@ export function JarOfNotes() {
                                         <div className="w-2 h-2 bg-geometric-accent" />
                                         Nota Diaria
                                     </span>
-                                    <button 
-                                        onClick={closeSequence} 
+                                    <button
+                                        onClick={closeSequence}
                                         className="text-stone-400 hover:text-geometric-accent transition-colors p-2 -mr-4 -mt-4"
                                     >
                                         <X className="w-6 h-6" />
@@ -244,9 +244,9 @@ export function JarOfNotes() {
 
             {/* Add Note Section - Restricted to 'el' */}
             {profile === 'el' && animState === 'idle' && (
-                <motion.div 
-                    initial={{ opacity: 0 }} 
-                    animate={{ opacity: 1 }} 
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
                     className="absolute bottom-8 w-full max-w-sm z-20 px-4"
                 >
                     {!isAddingMode ? (
