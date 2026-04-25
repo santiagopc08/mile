@@ -147,7 +147,7 @@ export function JarOfNotes() {
                         <motion.img 
                             src="/jar/jar1.png" 
                             alt="Jar 1"
-                            className="absolute w-64 h-64 md:w-96 md:h-96 object-contain z-10"
+                            className="absolute w-80 h-80 md:w-96 md:h-96 object-contain z-10"
                             initial={{ scale: animState === 'reverse-img1' ? 1.5 : 1, opacity: 1 }}
                             animate={{ scale: animState === 'img1' ? 1.5 : 1 }}
                             exit={{ opacity: 0 }}
@@ -162,7 +162,7 @@ export function JarOfNotes() {
                         <motion.img 
                             src="/jar/jar2.png" 
                             alt="Jar 2"
-                            className="absolute w-64 h-64 md:w-96 md:h-96 object-contain z-20"
+                            className="absolute w-80 h-80 md:w-96 md:h-96 object-contain z-20"
                             initial={{ scale: animState === 'img2' ? 1.5 : 2, opacity: 0 }}
                             animate={{ scale: animState === 'img2' ? 2 : 1.5, opacity: 1 }}
                             exit={{ opacity: 0 }}
@@ -177,6 +177,7 @@ export function JarOfNotes() {
                     src="/jar/jarVid.mp4"
                     className={`absolute inset-0 w-full h-full object-cover z-30 transition-opacity duration-300 ${isVideoVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
                     playsInline
+                    webkit-playsinline="true"
                     muted
                     onEnded={handleVideoEnded}
                 />

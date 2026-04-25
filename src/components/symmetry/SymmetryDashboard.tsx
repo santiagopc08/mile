@@ -119,7 +119,7 @@ export const SymmetryDashboard = () => {
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto space-y-8 pb-24 px-4 sm:px-6">
+    <div className="w-full max-w-7xl mx-auto space-y-12 pb-24 px-4 sm:px-6">
       {/* Header */}
       <div className="flex flex-col items-center justify-between gap-6 md:flex-row border-b border-stone-200 dark:border-stone-800 pb-6">
         <div className="text-center md:text-left">
@@ -156,7 +156,15 @@ export const SymmetryDashboard = () => {
         <h2 className="text-[10px] uppercase font-bold tracking-[0.2em] mb-8 border-b border-stone-100 dark:border-stone-900 pb-3 text-user-b flex justify-between items-center">
           <span>Tablero de Tareas</span>
           <div className="flex items-center justify-center">
-            <video className='w-20 h-20 object-cover rounded-xl border border-stone-200 dark:border-stone-800 shadow-2xl' src="vid/planningCat.mp4" autoPlay loop muted />
+            <video 
+              className='w-20 h-20 object-cover rounded-xl border border-stone-200 dark:border-stone-800 shadow-2xl' 
+              src="vid/planningCat.mp4" 
+              autoPlay 
+              loop 
+              muted 
+              playsInline
+              webkit-playsinline="true"
+            />
           </div>
           <span className="text-[8px] font-mono opacity-50">Kanban v2.0</span>
         </h2>
@@ -164,7 +172,7 @@ export const SymmetryDashboard = () => {
       </div>
 
       {/* Row 2: Task Stats (7 days) + Shield */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12">
         <div className="lg:col-span-7 geometric-card p-6 sm:p-8 bg-dot-matrix border-stone-200 dark:border-stone-800">
           <h2 className="text-[10px] uppercase font-bold tracking-[0.2em] mb-8 border-b border-stone-100 dark:border-stone-900 pb-3 flex items-center gap-2">
             <div className="w-1.5 h-1.5 bg-user-a" />
@@ -186,7 +194,7 @@ export const SymmetryDashboard = () => {
       </div>
 
       {/* Row 3: Fiscal Auditor & Allocations */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12">
         <div className="lg:col-span-6">
           <FiscalAuditor
             allocations={profile === 'el' ? allocationsA : allocationsB}
@@ -199,7 +207,15 @@ export const SymmetryDashboard = () => {
           <h2 className="text-[9px] uppercase font-bold tracking-[0.2em] mb-6 border-b border-stone-100 dark:border-stone-900 pb-2 flex justify-between items-center">
             <span>Registro de Gastos</span>
             <div className="flex items-center justify-center">
-              <video className='w-20 h-20 object-cover rounded-xl border border-stone-200 dark:border-stone-800 shadow-2xl' src="vid/financesCat.mp4" autoPlay loop muted />
+              <video 
+                className='w-20 h-20 object-cover rounded-xl border border-stone-200 dark:border-stone-800 shadow-2xl' 
+                src="vid/financesCat.mp4" 
+                autoPlay 
+                loop 
+                muted 
+                playsInline
+                webkit-playsinline="true"
+              />
             </div>
             <span className="text-[8px] font-mono opacity-50">Libro Mayor</span>
           </h2>
@@ -225,7 +241,7 @@ export const SymmetryDashboard = () => {
       </div>
 
       {/* Row 5: Saber Pro */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12">
         <div className="lg:col-span-6 geometric-card p-6 bg-dot-matrix border-stone-200 dark:border-stone-800">
           <h2 className="text-[9px] uppercase font-bold tracking-[0.2em] mb-6 border-b border-stone-100 dark:border-stone-900 pb-2 text-user-a flex justify-between items-center">
             <span>Preparación Saber Pro</span>
