@@ -743,7 +743,7 @@ export function Mahjong() {
                 <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="absolute z-[100099] top-1/4 left-1/2 -translate-x-1/2 geometric-card bg-white/95 dark:bg-stone-900/95 backdrop-blur-xl px-8 md:px-12 py-10 md:py-12 border-red-500 dark:border-red-500 shadow-2xl flex flex-col items-center max-w-md w-[90%]"
+                    className="z-[100099] top-1/4 geometric-card bg-white/95 dark:bg-stone-900/95 backdrop-blur-xl px-8 md:px-12 py-10 md:py-12 border-red-500 dark:border-red-500 shadow-2xl flex flex-col items-center max-w-md w-[90%]"
                 >
                     <div className="w-16 h-16 bg-red-50 dark:bg-red-900/10 border border-red-500 rounded-none flex items-center justify-center mb-6 rotate-45">
                         <RotateCcw className="w-8 h-8 text-red-500 -rotate-45" />
@@ -770,7 +770,7 @@ export function Mahjong() {
                 <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="absolute z-[1000] top-1/4 left-1/2 -translate-x-1/2 geometric-card bg-white/95 dark:bg-stone-900/95 backdrop-blur-xl px-8 md:px-12 py-10 md:py-12 border-geometric-accent shadow-2xl flex flex-col items-center max-w-md w-[90%]"
+                    className=" z-[1000] top-1/4 geometric-card bg-white/95 dark:bg-stone-900/95 backdrop-blur-xl px-8 md:px-12 py-10 md:py-12 border-geometric-accent shadow-2xl flex flex-col items-center max-w-md w-[90%]"
                 >
                     <div className="w-16 h-16 border-2 border-geometric-accent flex items-center justify-center mb-5 rotate-45">
                         <Trophy className="w-8 h-8 text-geometric-accent -rotate-45" />

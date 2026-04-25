@@ -102,8 +102,19 @@ export const FiscalAuditor: React.FC<FiscalAuditorProps> = ({ allocations, onAdd
     return (
         <div className={`geometric-card p-6 transition-all duration-500 ${thresholdsExceeded ? 'bg-fractured-mosaic border-system-alert bg-system-alert-soft' : 'bg-dot-matrix'}`}>
             <h2 className={`text-[10px] uppercase font-bold tracking-[0.2em] mb-6 border-b pb-3 flex justify-between items-center ${thresholdsExceeded ? 'text-system-alert border-system-alert/20' : 'text-stone-500 border-stone-100 dark:border-stone-900'}`}>
-                <span>Fiscal Health Guardian</span>
-                <span className="text-[8px] font-mono opacity-50">Auditor v1.0</span>
+                <span className="pr-2">Fiscal Health Guardian</span>
+                <div className="flex items-center justify-center px-2">
+                    <video
+                        className='w-20 h-20 object-cover rounded-xl border border-stone-200 dark:border-stone-800 shadow-2xl'
+                        src="vid/fatfit.mp4"
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        webkit-playsinline="true"
+                    />
+                </div>
+                <span className="text-[8px] font-mono opacity-50 pl-2">Auditor v1.0</span>
             </h2>
 
             {thresholdsExceeded && (
@@ -177,12 +188,12 @@ export const FiscalAuditor: React.FC<FiscalAuditorProps> = ({ allocations, onAdd
             </div>
 
             <div className="mt-8 border-t border-stone-100 dark:border-stone-900 pt-6">
-                 <div className="flex justify-between items-center mb-4">
+                <div className="flex justify-between items-center mb-4">
                     <span className="text-[9px] uppercase font-black tracking-[0.3em] text-stone-400">% of Betrayal</span>
                     <span className={`text-xl font-light tracking-tighter ${thresholdsExceeded ? 'text-system-alert' : 'text-stone-600'}`}>{betrayalPercentage.toFixed(1)}%</span>
-                 </div>
+                </div>
 
-                 <div className="space-y-2 max-h-40 overflow-y-auto custom-scrollbar pr-2">
+                <div className="space-y-2 max-h-40 overflow-y-auto custom-scrollbar pr-2">
                     <AnimatePresence>
                         {rollingVices.map((vice) => (
                             <motion.div
@@ -214,7 +225,7 @@ export const FiscalAuditor: React.FC<FiscalAuditorProps> = ({ allocations, onAdd
                             </motion.div>
                         ))}
                     </AnimatePresence>
-                 </div>
+                </div>
             </div>
         </div>
     );

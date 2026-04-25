@@ -171,25 +171,14 @@ export const SymmetryDashboard = () => {
         <TaskModule onTasksUpdate={handleTasksUpdate} />
       </div>
 
-      {/* Row 2: Task Stats (7 days) + Shield */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12">
-        <div className="lg:col-span-7 geometric-card p-6 sm:p-8 bg-dot-matrix border-stone-200 dark:border-stone-800">
-          <h2 className="text-[10px] uppercase font-bold tracking-[0.2em] mb-8 border-b border-stone-100 dark:border-stone-900 pb-3 flex items-center gap-2">
-            <div className="w-1.5 h-1.5 bg-user-a" />
-            Rendimiento Semanal
-          </h2>
-          <div className="h-64">
-            <TaskStatsChart tasks={tasks} />
-          </div>
-        </div>
-        <div className="lg:col-span-5 geometric-card p-6 sm:p-8 bg-mosaic border-stone-200 dark:border-stone-800 flex flex-col justify-center">
-          <h2 className="text-[10px] uppercase font-bold tracking-[0.2em] mb-8 border-b border-stone-100 dark:border-stone-900 pb-3 flex items-center gap-2">
-            <div className="w-1.5 h-1.5 bg-user-b rounded-full" />
-            Symmetry Shield
-          </h2>
-          <div className="h-64 flex items-center justify-center relative">
-            <SymmetryChart dataA={dataA} dataB={dataB} lastPulseAt={data?.lastPulseAt} />
-          </div>
+      {/* Row 2: Task Stats (7 days) */}
+      <div className="lg:col-span-7 geometric-card p-6 sm:p-8 bg-dot-matrix border-stone-200 dark:border-stone-800">
+        <h2 className="text-[10px] uppercase font-bold tracking-[0.2em] mb-8 border-b border-stone-100 dark:border-stone-900 pb-3 flex items-center gap-2">
+          <div className="w-1.5 h-1.5 bg-user-a" />
+          Rendimiento Semanal
+        </h2>
+        <div className="h-64">
+          <TaskStatsChart tasks={tasks} />
         </div>
       </div>
 
