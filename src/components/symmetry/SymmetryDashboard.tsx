@@ -153,15 +153,15 @@ export const SymmetryDashboard = () => {
 
       {/* Row 1: Kanban Board (full width) */}
       <div className="geometric-card p-6 sm:p-8 bg-mosaic border-stone-200 dark:border-stone-800">
-        <h2 className="text-[10px] uppercase font-bold tracking-[0.2em] mb-8 border-b border-stone-100 dark:border-stone-900 pb-3 text-user-b flex justify-between items-center">
+        <h2 className="text-[10px] uppercase font-bold tracking-[0.2em] mb-8 border-b border-stone-100 dark:border-stone-900 pb-3 text-user-b flex flex-wrap justify-between items-center">
           <span>Tablero de Tareas</span>
           <div className="flex items-center justify-center">
-            <video 
-              className='w-20 h-20 object-cover rounded-xl border border-stone-200 dark:border-stone-800 shadow-2xl' 
-              src="vid/planningCat.mp4" 
-              autoPlay 
-              loop 
-              muted 
+            <video
+              className='w-20 h-20 object-cover rounded-xl border border-stone-200 dark:border-stone-800 shadow-2xl'
+              src="vid/planningCat.mp4"
+              autoPlay
+              loop
+              muted
               playsInline
               webkit-playsinline="true"
             />
@@ -204,15 +204,15 @@ export const SymmetryDashboard = () => {
           />
         </div>
         <div className="lg:col-span-6 geometric-card p-6 bg-dot-matrix border-stone-200 dark:border-stone-800">
-          <h2 className="text-[9px] uppercase font-bold tracking-[0.2em] mb-6 border-b border-stone-100 dark:border-stone-900 pb-2 flex justify-between items-center">
+          <h2 className="text-[9px] uppercase font-bold tracking-[0.2em] mb-6 border-b border-stone-100 dark:border-stone-900 pb-2 flex flex-wrap justify-between items-center">
             <span>Registro de Gastos</span>
             <div className="flex items-center justify-center">
-              <video 
-                className='w-20 h-20 object-cover rounded-xl border border-stone-200 dark:border-stone-800 shadow-2xl' 
-                src="vid/financesCat.mp4" 
-                autoPlay 
-                loop 
-                muted 
+              <video
+                className='w-20 h-20 object-cover rounded-xl border border-stone-200 dark:border-stone-800 shadow-2xl'
+                src="vid/financesCat.mp4"
+                autoPlay
+                loop
+                muted
                 playsInline
                 webkit-playsinline="true"
               />
