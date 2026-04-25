@@ -154,8 +154,8 @@ export const SymmetryDashboard = () => {
       {/* Row 1: Kanban Board (full width) */}
       <div className="geometric-card p-6 sm:p-8 bg-mosaic border-stone-200 dark:border-stone-800">
         <h2 className="text-[10px] uppercase font-bold tracking-[0.2em] mb-8 border-b border-stone-100 dark:border-stone-900 pb-3 text-user-b flex flex-wrap justify-between items-center">
-          <span>Tablero de Tareas</span>
-          <div className="flex items-center justify-center">
+          <span className="pr-2">Tablero de Tareas</span>
+          <div className="flex items-center justify-center px-2">
             <video
               className='w-20 h-20 object-cover rounded-xl border border-stone-200 dark:border-stone-800 shadow-2xl'
               src="vid/planningCat.mp4"
@@ -166,7 +166,7 @@ export const SymmetryDashboard = () => {
               webkit-playsinline="true"
             />
           </div>
-          <span className="text-[8px] font-mono opacity-50">Kanban v2.0</span>
+          <span className="text-[8px] font-mono opacity-50 pl-2">Kanban v2.0</span>
         </h2>
         <TaskModule onTasksUpdate={handleTasksUpdate} />
       </div>
@@ -205,7 +205,7 @@ export const SymmetryDashboard = () => {
         </div>
         <div className="lg:col-span-6 geometric-card p-6 bg-dot-matrix border-stone-200 dark:border-stone-800">
           <h2 className="text-[9px] uppercase font-bold tracking-[0.2em] mb-6 border-b border-stone-100 dark:border-stone-900 pb-2 flex flex-wrap justify-between items-center">
-            <span>Registro de Gastos</span>
+            <span className="pr-2">Registro de Gastos</span>
             <div className="flex items-center justify-center px-2">
               <video
                 className='w-20 h-20 object-cover rounded-xl border border-stone-200 dark:border-stone-800 shadow-2xl'
@@ -217,7 +217,7 @@ export const SymmetryDashboard = () => {
                 webkit-playsinline="true"
               />
             </div>
-            <span className="text-[8px] font-mono opacity-50">Libro Mayor</span>
+            <span className="text-[8px] font-mono opacity-50 pl-2">Libro Mayor</span>
           </h2>
           <DualWallet
             allocations={profile === 'el' ? allocationsA : allocationsB}
