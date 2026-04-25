@@ -206,7 +206,7 @@ export const SymmetryDashboard = () => {
         <div className="lg:col-span-6 geometric-card p-6 bg-dot-matrix border-stone-200 dark:border-stone-800">
           <h2 className="text-[9px] uppercase font-bold tracking-[0.2em] mb-6 border-b border-stone-100 dark:border-stone-900 pb-2 flex flex-wrap justify-between items-center">
             <span>Registro de Gastos</span>
-            <div className="flex items-center justify-center">
+            <div className="flex items-center justify-center px-2">
               <video
                 className='w-20 h-20 object-cover rounded-xl border border-stone-200 dark:border-stone-800 shadow-2xl'
                 src="vid/financesCat.mp4"
