@@ -1,0 +1,116 @@
+
+> mile@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.4 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.2:3000
+✓ Ready in 549ms
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+
+
+○ Compiling / ...
+ GET / 200 in 9.4s (next.js: 8.6s, application-code: 853ms)
+ GET / 200 in 561ms (next.js: 346ms, application-code: 215ms)
+⨯ Error: supabaseUrl is required.
+    at module evaluation (src/lib/supabase.ts:7:37)
+    at module evaluation (src/services/storeService.ts:1:1)
+    at module evaluation (src/app/api/store/route.ts:2:1)
+    at Object.<anonymous> (.next/dev/server/app/api/store/route.js:8:3)
+   5 |
+   6 | // Client for the browser (uses Anon Key)
+>  7 | export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+     |                                     ^
+   8 |
+   9 | // Helper for server-side (uses Service Role Key)
+  10 | export const createServerClient = () => { {
+  page: '/api/store'
+}
+⨯ Error: supabaseUrl is required.
+    at module evaluation (src/lib/supabase.ts:7:37)
+    at module evaluation (src/services/storeService.ts:1:1)
+    at module evaluation (src/app/api/store/route.ts:2:1)
+    at Object.<anonymous> (.next/dev/server/app/api/store/route.js:8:3)
+   5 |
+   6 | // Client for the browser (uses Anon Key)
+>  7 | export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+     |                                     ^
+   8 |
+   9 | // Helper for server-side (uses Service Role Key)
+  10 | export const createServerClient = () => { {
+  page: '/api/store'
+}
+⨯ Error: supabaseUrl is required.
+    at module evaluation (src/lib/supabase.ts:7:37)
+    at module evaluation (src/services/storeService.ts:1:1)
+    at module evaluation (src/components/Timeline.tsx:8:1)
+    at module evaluation (src/app/historia/page.tsx:4:1)
+   5 |
+   6 | // Client for the browser (uses Anon Key)
+>  7 | export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+     |                                     ^
+   8 |
+   9 | // Helper for server-side (uses Service Role Key)
+  10 | export const createServerClient = () => { {
+  digest: '812566248'
+}
+ GET /api/store 500 in 4.7s (next.js: 3.4s, application-code: 1252ms)
+ GET /historia 500 in 2.8s (next.js: 1780ms, application-code: 985ms)
+[browser] Uncaught Error: supabaseUrl is required.
+    at module evaluation (src/lib/supabase.ts:7:37)
+    at module evaluation (src/services/storeService.ts:1:1)
+    at module evaluation (src/components/Timeline.tsx:8:1)
+    at module evaluation (src/app/historia/page.tsx:4:1)
+   5 |
+   6 | // Client for the browser (uses Anon Key)
+>  7 | export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+     |                                     ^
+   8 |
+   9 | // Helper for server-side (uses Service Role Key)
+  10 | export const createServerClient = () => {
+⨯ Error: supabaseUrl is required.
+    at module evaluation (src/lib/supabase.ts:7:37)
+    at module evaluation (src/services/storeService.ts:1:1)
+    at module evaluation (src/components/Timeline.tsx:8:1)
+    at module evaluation (src/app/historia/page.tsx:4:1)
+   5 |
+   6 | // Client for the browser (uses Anon Key)
+>  7 | export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+     |                                     ^
+   8 |
+   9 | // Helper for server-side (uses Service Role Key)
+  10 | export const createServerClient = () => { {
+  digest: '812566248'
+}
+ GET /planes 500 in 1553ms (next.js: 917ms, application-code: 636ms)
+[browser] Uncaught Error: supabaseUrl is required.
+    at module evaluation (src/lib/supabase.ts:7:37)
+    at module evaluation (src/components/GeospatialPlanTracker.tsx:11:1)
+    at module evaluation (src/components/WishlistModule.tsx:9:1)
+    at module evaluation (src/app/planes/page.tsx:4:1)
+   5 |
+   6 | // Client for the browser (uses Anon Key)
+>  7 | export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+     |                                     ^
+   8 |
+   9 | // Helper for server-side (uses Service Role Key)
+  10 | export const createServerClient = () => {
+ GET / 200 in 99ms (next.js: 4ms, application-code: 96ms)
+⨯ Error: supabaseUrl is required.
+    at module evaluation (src/lib/supabase.ts:7:37)
+    at module evaluation (src/services/storeService.ts:1:1)
+    at module evaluation (src/app/api/store/route.ts:2:1)
+    at Object.<anonymous> (.next/dev/server/app/api/store/route.js:8:3)
+   5 |
+   6 | // Client for the browser (uses Anon Key)
+>  7 | export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+     |                                     ^
+   8 |
+   9 | // Helper for server-side (uses Service Role Key)
+  10 | export const createServerClient = () => { {
+  page: '/api/store'
+}
+ GET /api/store 500 in 66ms (next.js: 53ms, application-code: 13ms)
