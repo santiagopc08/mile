@@ -1,0 +1,18 @@
+I have implemented the Phase 8 Time-Accounting schema in the TaskModule component.
+
+Key changes:
+1. Updated `Task` and `Objective` interfaces to include `estimated_time`, `actual_time`, `due_date`, and `last_active`.
+2. Enhanced `TaskModule` logic:
+   - State for new inputs (time, date).
+   - `addTask` saves estimated time and due date.
+   - `handleEditSave` and `updateTaskStatus` update the associated objective's `last_active` timestamp.
+   - Edit form includes time and date inputs.
+3. UI updates:
+   - Added "Ratio Badge" to tasks (e.g., 75/60m) with color logic: User accent if <= 100%, Warning Red (#EF4444) if > 100%.
+   - Added sharp progress bars to objectives.
+   - Objectives show aggregate time (total actual / total estimated).
+   - Objectives apply `.bg-diagonal-stripes` when efficiency ratio > 100%.
+4. CSS:
+   - Added `.bg-diagonal-stripes` to `globals.css`.
+
+Please review the data flow and UI implementation.

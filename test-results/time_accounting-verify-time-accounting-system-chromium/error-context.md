@@ -6,8 +6,8 @@
 
 # Test info
 
-- Name: objectives_verification.spec.ts >> verify objectives management on productivity dashboard
-- Location: tests/objectives_verification.spec.ts:3:5
+- Name: time_accounting.spec.ts >> verify time accounting system
+- Location: tests/time_accounting.spec.ts:3:5
 
 # Error details
 
