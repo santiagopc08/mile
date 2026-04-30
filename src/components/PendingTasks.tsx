@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import type { AppData } from '@/services/storeService';
+import { AppData, Task, TaskStatus } from '@/services/storeService';
 import { useStore } from '@/context/StoreContext';
 import { useProfile } from '@/context/ProfileContext';
 import { CheckCircle2, Circle, AlertCircle, Plus, Trash2, Pencil, X, Check } from 'lucide-react';
@@ -25,13 +25,14 @@ export function PendingTasks() {
         e.preventDefault();
         if (!title.trim() || !profile) return;
         
-        const newTask = {
+        const newTask: Task = {
             id: Date.now().toString(),
-            title: title.trim(),
-            description: '',
-            status: 'pending',
-            priority,
-            assignee: 'Ambos'
+            text: title.trim(),
+            status: 'todo',
+            category: 'work',
+            estimated_time: 0,
+            actual_time: 0,
+            updated_at: new Date().toISOString()
         };
 
         await updateData({ tasks: [newTask, ...tasks] });
@@ -40,11 +41,11 @@ export function PendingTasks() {
         setIsAdding(false);
     };
 
-    const handleEditStart = (task: any, e: React.MouseEvent) => {
+    const handleEditStart = (task: Task, e: React.MouseEvent) => {
         e.stopPropagation();
         setEditingId(task.id);
-        setEditTitle(task.title);
-        setEditPriority(task.priority);
+        setEditTitle(task.text);
+        setEditPriority(task.priority || 'medium');
     };
 
     const handleEditSave = async (e: React.FormEvent) => {
@@ -53,7 +54,7 @@ export function PendingTasks() {
 
         const updated = tasks.map(t => t.id === editingId ? {
             ...t,
-            title: editTitle.trim(),
+            text: editTitle.trim(),
             priority: editPriority
         } : t);
 
@@ -61,9 +62,9 @@ export function PendingTasks() {
         setEditingId(null);
     };
 
-    const toggleTask = async (task: AppData['tasks'][0]) => {
+    const toggleTask = async (task: Task) => {
         if (editingId === task.id) return;
-        const newStatus = task.status === 'completed' ? 'pending' : 'completed';
+        const newStatus: TaskStatus = task.status === 'done' ? 'todo' : 'done';
         const updated = tasks.map((t) => t.id === task.id ? { ...t, status: newStatus } : t);
         await updateData({ tasks: updated });
     };
@@ -134,24 +135,24 @@ export function PendingTasks() {
             <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-4">
                 {tasks.length === 0 ? (
                     <div className="py-20 flex flex-col items-center justify-center text-stone-700 uppercase font-bold text-[10px] tracking-[0.4em] border border-stone-800 border-dashed">
-                        SISTEMA SIN TAREAS
+                        SISTEMA SIN TAREAS (LOG)
                     </div>
                 ) : (
-                    tasks.map((task: any) => (
+                    tasks.map((task: Task) => (
                         <div 
                             key={task.id}
                             onClick={() => toggleTask(task)}
                             className={`group grid grid-cols-[auto_1fr_auto] items-center gap-6 p-5 border transition-all cursor-pointer ${
-                                task.status === 'completed' 
+                                task.status === 'done'
                                 ? 'bg-black/40 border-stone-900 opacity-30 shadow-none' 
                                 : 'bg-white/5 border-stone-800 hover:border-stone-600 hover:bg-white/10 shadow-sm'
                             } ${editingId === task.id ? 'border-geometric-accent ring-1 ring-geometric-accent/30' : ''}`}
                         >
                             <div className="flex items-center justify-center">
                                 <div className={`w-5 h-5 border flex items-center justify-center transition-all ${
-                                    task.status === 'completed' ? 'bg-geometric-accent border-geometric-accent' : 'border-stone-700'
+                                    task.status === 'done' ? 'bg-geometric-accent border-geometric-accent' : 'border-stone-700'
                                 }`}>
-                                    {task.status === 'completed' && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
+                                    {task.status === 'done' && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
                                 </div>
                             </div>
                             
@@ -184,8 +185,8 @@ export function PendingTasks() {
                                     </form>
                                 ) : (
                                     <>
-                                        <p className={`text-sm tracking-wide font-medium ${task.status === 'completed' ? 'text-stone-600 line-through italic' : 'text-stone-100 uppercase'}`}>
-                                            {task.title}
+                                        <p className={`text-sm tracking-wide font-medium ${task.status === 'done' ? 'text-stone-600 line-through italic' : 'text-stone-100 uppercase'}`}>
+                                            {task.text}
                                         </p>
                                         <div className="flex items-center gap-3 mt-2">
                                             <div className={`w-1 h-3 ${

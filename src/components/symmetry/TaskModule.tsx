@@ -1,4 +1,7 @@
 'use client';
+import { StoreService } from '@/services/storeService';
+
+
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -43,12 +46,23 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (focusScore: numb
   const [editDueDate, setEditDueDate] = useState('');
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const savedTasks = localStorage.getItem('symmetry_tasks');
-      if (savedTasks) setTasks(JSON.parse(savedTasks));
-      const savedObjectives = localStorage.getItem('symmetry_objectives');
-      if (savedObjectives) setObjectives(JSON.parse(savedObjectives));
-    }
+    const fetchData = async () => {
+      try {
+        const store = await StoreService.getStore();
+        setTasks(store.tasks as any);
+        // Objectives still from localStorage for now as per previous implementation logic
+        const savedObjectives = localStorage.getItem('symmetry_objectives');
+        if (savedObjectives) setObjectives(JSON.parse(savedObjectives));
+      } catch (e) {
+        console.error("Failed to fetch tasks", e);
+      }
+    };
+    fetchData();
+
+    // Listen for custom refresh events (e.g. from Pomodoro)
+    const handleRefresh = () => fetchData();
+    window.addEventListener('tasks-refresh', handleRefresh);
+    return () => window.removeEventListener('tasks-refresh', handleRefresh);
   }, []);
 
   useEffect(() => {
@@ -58,6 +72,17 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (focusScore: numb
       const completedCount = tasks.filter(t => t.status === 'done').length;
       const focusScore = tasks.length > 0 ? (completedCount / tasks.length) * 100 : 0;
       onTasksUpdate(focusScore);
+
+      // Attempt to sync tasks to Supabase in background
+      const syncTasks = async () => {
+        try {
+          await StoreService.updateStore({ tasks: tasks as any });
+        } catch (e) {
+          console.error("Background sync failed", e);
+        }
+      };
+      // Only sync if there are changes (crude check)
+      syncTasks();
     }
   }, [tasks, objectives, onTasksUpdate]);
 
@@ -81,12 +106,17 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (focusScore: numb
     setNewDueDate('');
   };
 
-  const updateTaskStatus = (id: string, status: Task['status']) => {
-    const now = new Date().toISOString();
-    const task = tasks.find(t => t.id === id);
-    setTasks(tasks.map(t => t.id === id ? { ...t, status, updatedAt: now } : t));
-    if (task?.objectiveId) {
-      setObjectives(objectives.map(o => o.id === task.objectiveId ? { ...o, last_active: now } : o));
+  const updateTaskStatus = async (id: string, status: Task['status']) => {
+    try {
+      await StoreService.updateTaskStatus(id, status);
+      const now = new Date().toISOString();
+      const task = tasks.find(t => t.id === id);
+      setTasks(tasks.map(t => t.id === id ? { ...t, status, updatedAt: now } : t));
+      if (task?.objectiveId) {
+        setObjectives(objectives.map(o => o.id === task.objectiveId ? { ...o, last_active: now } : o));
+      }
+    } catch (e) {
+      console.error("Failed to update task status", e);
     }
   };
 
