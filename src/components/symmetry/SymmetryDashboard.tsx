@@ -9,8 +9,8 @@ import { TaskModule } from './TaskModule';
 import { DualWallet } from './DualWallet';
 import { FinanceChart } from './FinanceChart';
 import { TaskStatsChart } from './TaskStatsChart';
-import { SymmetryChart } from "./SymmetryChart";
 import { FiscalAuditor } from './FiscalAuditor';
+import { BiometricVault } from './BiometricVault';
 
 import { motion } from 'framer-motion';
 import { PomodoroTimer } from './PomodoroTimer';
@@ -150,6 +150,9 @@ export const SymmetryDashboard = () => {
         </h2>
         <PomodoroTimer />
       </div>
+
+      {/* Row 0.5: Biometric Vault */}
+      <BiometricVault />
 
       {/* Row 1: Kanban Board (full width) */}
       <div className="geometric-card p-6 sm:p-8 bg-mosaic border-stone-200 dark:border-stone-800">
