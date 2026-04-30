@@ -3,15 +3,14 @@
 import React, { useState, useMemo } from 'react';
 import { useStore } from '@/context/StoreContext';
 import { useProfile } from '@/context/ProfileContext';
-import { Plus, Trash2, MapPin, Utensils, Heart, Check, Diamond, ExternalLink } from 'lucide-react';
+import { Plus, Trash2, MapPin, Utensils, Heart, Check, Diamond, ExternalLink, Pencil, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LinkPreview } from './LinkPreview';
 import { GeospatialPlanTracker } from './GeospatialPlanTracker';
-import { supabase } from '@/lib/supabase';
 
 type Category = 'plan' | 'antojo' | 'gusto';
 
-function GustoItem({ item }: { item: any }) {
+function GustoItem({ item, onEdit }: { item: any, onEdit?: () => void }) {
     const isSantiago = item.owner === "el" || (!item.owner && item.author === "el");
     const borderColorClass = isSantiago ? "border-user-a/30" : "border-user-b/30";
     const Bullet = isSantiago ? () => <div className="w-1.5 h-1.5 bg-user-a shrink-0 mt-1" /> : () => <Diamond className="w-2 h-2 text-user-b fill-user-b shrink-0 mt-1" />;
@@ -20,15 +19,22 @@ function GustoItem({ item }: { item: any }) {
     const initialsText = item.author === "el" ? "text-user-a" : "text-user-b";
 
     return (
-        <div className={`flex items-start gap-3 p-3 border ${borderColorClass} bg-white/50 dark:bg-black/50 group transition-all`}>
+        <div className={`flex items-start gap-3 p-3 border ${borderColorClass} bg-white/50 dark:bg-black/50 group transition-all relative`}>
             <Bullet />
             <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2">
                     <p className={`text-[11px] font-bold uppercase tracking-wide truncate ${item.status === "visited" ? "line-through opacity-40" : "text-stone-800 dark:text-stone-200"}`}>
                         {item.title}
                     </p>
-                    <div className={`px-1.5 py-0.5 border ${initialsBorder} ${initialsText} text-[7px] font-black tracking-tighter shrink-0`}>
-                        {initials}
+                    <div className="flex items-center gap-1">
+                        {onEdit && item.status !== 'visited' && (
+                            <button onClick={onEdit} className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-stone-400 hover:text-geometric-accent">
+                                <Pencil className="w-3 h-3" />
+                            </button>
+                        )}
+                        <div className={`px-1.5 py-0.5 border ${initialsBorder} ${initialsText} text-[7px] font-black tracking-tighter shrink-0`}>
+                            {initials}
+                        </div>
                     </div>
                 </div>
                 {item.description && (
@@ -51,9 +57,19 @@ export function WishlistModule() {
     const [newIsPriority, setNewIsPriority] = useState(false);
     const [newOwner, setNewOwner] = useState<"el" | "ella">("el");
 
+    // Edit State
+    const [editingId, setEditingId] = useState<string | null>(null);
+    const [editTitle, setEditTitle] = useState('');
+    const [editDesc, setEditDesc] = useState('');
+    const [editLocationUrl, setEditLocationUrl] = useState('');
+    const [editPrice, setEditPrice] = useState('0');
+    const [editIsPriority, setEditIsPriority] = useState(false);
+    const [editOwner, setEditOwner] = useState<"el" | "ella">("el");
+
     const items = data?.wishlist || [];
 
     const totalSavings = useMemo(() => {
+        if (typeof window === 'undefined') return 0;
         const allocA = JSON.parse(localStorage.getItem('symmetry_A_allocations') || '[]');
         const allocB = JSON.parse(localStorage.getItem('symmetry_B_allocations') || '[]');
         const savingsA = allocA
@@ -99,36 +115,7 @@ export function WishlistModule() {
                 author: profile || "el",
                 owner: activeCategory === "gusto" ? newOwner : undefined
             };
-
             await updateData({ wishlist: [newItem, ...items] });
-
-            // Auto-update map if it's a plan with a link
-            if (activeCategory === 'plan' && newLocationUrl.trim()) {
-                try {
-                    const res = await fetch(`/api/link-preview?url=${encodeURIComponent(newLocationUrl.trim())}`);
-                    if (res.ok) {
-                        const previewData = await res.json();
-                        if (previewData.coords) {
-                            await supabase.from('ubicaciones').insert({
-                                nombre: newTitle.trim(),
-                                latitud: previewData.coords.lat,
-                                longitud: previewData.coords.lng,
-                                created_by: profile || 'el',
-                                status: 'to-visit'
-                            });
-                            // Notify map to refresh
-                            window.dispatchEvent(new CustomEvent('custom:map-refresh'));
-                        }
-                    }
-                } catch (err) {
-                    console.error('Failed to auto-add location to map:', err);
-                }
-            }
-
-            if (activeCategory === "gusto" && newOwner !== profile) {
-                await updateData({ lastPulseAt: new Date().toISOString() });
-            }
-
             setNewTitle('');
             setNewDesc('');
             setNewLocationUrl('');
@@ -138,168 +125,220 @@ export function WishlistModule() {
         }
     };
 
+    const handleEditStart = (item: any) => {
+        setEditingId(item.id);
+        setEditTitle(item.title);
+        setEditDesc(item.description || '');
+        setEditLocationUrl(item.locationUrl || '');
+        setEditPrice(String(item.price || 0));
+        setEditIsPriority(item.isPriority || false);
+        setEditOwner(item.owner || (item.author === 'ella' ? 'ella' : 'el'));
+    };
+
+    const handleEditSave = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingId) return;
+
+        const updated = items.map(item =>
+            item.id === editingId ? {
+                ...item,
+                title: editTitle.trim(),
+                description: editDesc.trim(),
+                locationUrl: editLocationUrl.trim(),
+                price: parseFloat(editPrice) || 0,
+                isPriority: editIsPriority,
+                owner: item.category === "gusto" ? editOwner : item.owner
+            } : item
+        );
+
+        await updateData({ wishlist: updated });
+        setEditingId(null);
+    };
+
     const handleDelete = async (id: string) => {
-        await updateData({ wishlist: items.filter(i => i.id !== id) });
+        if (confirm('¿Eliminar este item?')) {
+            await updateData({ wishlist: items.filter(i => i.id !== id) });
+        }
     };
 
     const toggleStatus = async (id: string) => {
-        const item = items.find(i => i.id === id);
-        if (!item) return;
-
-        const isMarkingBought = item.status === 'to-visit';
-        const updated = items.map(i =>
-            i.id === id ? { ...i, status: (i.status === 'visited' ? 'to-visit' : 'visited') as 'to-visit' | 'visited' } : i
-        );
-
-        if (isMarkingBought && item.category === 'antojo') {
-            const storageKey = profile === 'el' ? 'symmetry_A_allocations' : 'symmetry_B_allocations';
-            const currentAllocations = JSON.parse(localStorage.getItem(storageKey) || '[]');
-            const newAllocation = {
-                id: Date.now().toString(),
-                amount: -(item.price || 0),
-                description: `COMPRA: ${item.title}`,
-                category: '📈 Inversiones/Ahorro',
-                date: new Date().toISOString(),
-            };
-            localStorage.setItem(storageKey, JSON.stringify([newAllocation, ...currentAllocations]));
-        }
-
+        const updated = items.map(i => i.id === id ? { ...i, status: (i.status === 'visited' ? 'to-visit' : 'visited') as 'to-visit' | 'visited' } : i);
         await updateData({ wishlist: updated });
     };
 
-    const formatCOP = (val: number) => {
-        return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(val);
-    };
+    const formatCOP = (val: number) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(val);
+
+    const renderEditForm = (item: any) => (
+        <motion.form
+            key={`edit-${item.id}`}
+            layout
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            onSubmit={handleEditSave}
+            className="p-5 border border-geometric-accent bg-white dark:bg-black space-y-3"
+        >
+            <div className="flex gap-2">
+                <input
+                    value={editTitle}
+                    onChange={e => setEditTitle(e.target.value)}
+                    required
+                    placeholder="Título"
+                    className="flex-1 bg-transparent border border-stone-200 dark:border-stone-800 px-3 py-2 text-xs uppercase tracking-widest outline-none focus:border-geometric-accent"
+                />
+                <button type="button" onClick={() => setEditingId(null)} className="p-2 border border-stone-200 dark:border-stone-800 text-stone-400">
+                    <X className="w-4 h-4" />
+                </button>
+            </div>
+            <textarea
+                value={editDesc}
+                onChange={e => setEditDesc(e.target.value)}
+                placeholder="Descripción"
+                className="w-full bg-transparent border border-stone-200 dark:border-stone-800 px-3 py-2 text-xs uppercase tracking-widest outline-none focus:border-geometric-accent min-h-[60px]"
+            />
+            <div className="grid grid-cols-2 gap-2">
+                <input
+                    value={editLocationUrl}
+                    onChange={e => setEditLocationUrl(e.target.value)}
+                    placeholder="Ubicación/Link"
+                    className="bg-transparent border border-stone-200 dark:border-stone-800 px-3 py-2 text-[10px] uppercase tracking-widest outline-none focus:border-geometric-accent"
+                />
+                {item.category === 'antojo' && (
+                    <input
+                        type="number"
+                        value={editPrice}
+                        onChange={e => setEditPrice(e.target.value)}
+                        className="bg-transparent border border-stone-200 dark:border-stone-800 px-3 py-2 text-[10px] uppercase tracking-widest outline-none focus:border-geometric-accent"
+                    />
+                )}
+                {item.category === 'gusto' && (
+                    <select
+                        value={editOwner}
+                        onChange={(e) => setEditOwner(e.target.value as any)}
+                        className="bg-transparent border border-stone-200 dark:border-stone-800 px-3 py-2 text-[10px] uppercase tracking-widest outline-none focus:border-geometric-accent"
+                    >
+                        <option value="el">Santiago</option>
+                        <option value="ella">Milena</option>
+                    </select>
+                )}
+            </div>
+            <div className="flex items-center justify-between">
+                <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" checked={editIsPriority} onChange={e => setEditIsPriority(e.target.checked)} className="hidden" />
+                    <div className={`w-3.5 h-3.5 border flex items-center justify-center ${editIsPriority ? 'bg-geometric-accent border-geometric-accent' : 'border-stone-300'}`}>
+                        {editIsPriority && <Check className="w-2.5 h-2.5 text-white" />}
+                    </div>
+                    <span className="text-[9px] uppercase font-bold text-stone-500">Prioridad</span>
+                </label>
+                <button type="submit" className="bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 px-6 py-2 text-[9px] font-black uppercase tracking-widest">
+                    Guardar
+                </button>
+            </div>
+        </motion.form>
+    );
 
     return (
-        <div className="w-full max-w-5xl mx-auto space-y-8">
-            <div className="grid grid-cols-3 gap-4">
+        <div className="space-y-8">
+            <div className="grid grid-cols-3 gap-2">
                 {categories.map((cat) => {
                     const Icon = cat.icon;
                     const isActive = activeCategory === cat.id;
                     return (
                         <button
                             key={cat.id}
-                            onClick={() => { setActiveCategory(cat.id as Category); setIsAdding(false); }}
-                            className={`geometric-card p-6 flex flex-col items-center gap-3 transition-all ${
-                                isActive
-                                    ? 'border-geometric-accent bg-geometric-accent/5'
-                                    : 'border-stone-200 dark:border-stone-800 opacity-60 hover:opacity-100'
-                            }`}
+                            onClick={() => { setActiveCategory(cat.id as Category); setIsAdding(false); setEditingId(null); }}
+                            className={`flex flex-col items-center gap-3 p-6 border transition-all ${isActive ? 'bg-stone-900 border-stone-900 dark:bg-stone-100 dark:border-stone-100' : 'border-stone-200 dark:border-stone-800 hover:border-stone-400'}`}
                         >
-                            <Icon className={`w-6 h-6 ${isActive ? 'text-geometric-accent' : 'text-stone-400'}`} />
-                            <span className={`text-[10px] uppercase font-black tracking-widest ${isActive ? 'text-stone-900 dark:text-white' : 'text-stone-500'}`}>
-                                {cat.label}
-                            </span>
+                            <Icon className={`w-5 h-5 ${isActive ? 'text-white dark:text-stone-900' : 'text-stone-400'}`} />
+                            <span className={`text-[10px] uppercase font-black tracking-[0.2em] ${isActive ? 'text-white dark:text-stone-900' : 'text-stone-400'}`}>{cat.label}</span>
                         </button>
                     );
                 })}
             </div>
 
-            <div className="geometric-card p-8 border-stone-200 dark:border-stone-800 bg-dot-matrix min-h-[400px]">
-                {activeCategory === 'antojo' && (
-                    <div className="mb-8 p-4 border border-geometric-accent bg-geometric-accent/5 flex items-center justify-between">
-                         <span className="text-[10px] uppercase font-black tracking-widest text-stone-600 dark:text-stone-400">Dinero guardado para Antojos:</span>
-                         <span className="text-sm font-mono font-bold text-geometric-accent">{formatCOP(totalSavings)}</span>
+            <div className="space-y-4">
+                <div className="flex items-center justify-between border-b border-stone-100 dark:border-stone-900 pb-4">
+                    <div className="flex items-center gap-3">
+                        <div className="w-1.5 h-1.5 bg-geometric-accent" />
+                        <h3 className="text-xs uppercase font-black tracking-[0.3em]">{currentCategory.label}</h3>
                     </div>
-                )}
-
-                {activeCategory === 'plan' && (
-                    <div className="mb-8">
-                        <GeospatialPlanTracker />
-                    </div>
-                )}
-
-                <div className="flex justify-between items-center mb-10 border-b border-stone-100 dark:border-stone-900 pb-4">
-                    <h3 className="text-xs uppercase font-black tracking-[0.3em] text-stone-400 flex items-center gap-3">
-                        <div className="w-2 h-2 bg-geometric-accent" />
-                        Lista de {currentCategory.label}
-                    </h3>
-                    <button
-                        onClick={() => setIsAdding(!isAdding)}
-                        className="w-8 h-8 flex items-center justify-center border border-geometric-accent text-geometric-accent hover:bg-geometric-accent hover:text-white transition-all"
-                    >
-                        <Plus className={`w-4 h-4 transition-transform ${isAdding ? 'rotate-45' : ''}`} />
-                    </button>
+                    {profile && (
+                        <button
+                            onClick={() => setIsAdding(!isAdding)}
+                            className={`p-2 border transition-all ${isAdding ? 'bg-geometric-accent border-geometric-accent text-white' : 'border-stone-200 dark:border-stone-800 text-stone-400 hover:border-stone-400'}`}
+                        >
+                            <Plus className={`w-4 h-4 transition-transform ${isAdding ? 'rotate-45' : ''}`} />
+                        </button>
+                    )}
                 </div>
 
                 <AnimatePresence mode="wait">
                     {isAdding ? (
                         <motion.form
-                            key="form"
                             initial={{ opacity: 0, y: -10 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -10 }}
                             onSubmit={handleAdd}
-                            className="space-y-4 mb-8 p-6 border border-stone-100 dark:border-stone-900 bg-stone-50/50 dark:bg-stone-950/50"
+                            className="p-6 border border-geometric-accent/20 bg-stone-50 dark:bg-stone-950 space-y-4"
                         >
+                            <input
+                                autoFocus
+                                value={newTitle}
+                                onChange={(e) => setNewTitle(e.target.value)}
+                                placeholder="¿Qué tenemos en mente?"
+                                className="w-full bg-white dark:bg-black border border-stone-200 dark:border-stone-800 px-4 py-3 text-xs uppercase tracking-widest outline-none focus:border-geometric-accent"
+                            />
+                            <textarea
+                                value={newDesc}
+                                onChange={(e) => setNewDesc(e.target.value)}
+                                placeholder="Más detalles..."
+                                className="w-full bg-white dark:bg-black border border-stone-200 dark:border-stone-800 px-4 py-3 text-xs uppercase tracking-widest outline-none focus:border-geometric-accent min-h-[80px]"
+                            />
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <label className="text-[9px] uppercase font-bold tracking-widest text-stone-500 ml-1">Título del {activeCategory}</label>
-                                    <input
-                                        required
-                                        autoFocus
-                                        value={newTitle}
-                                        onChange={e => setNewTitle(e.target.value)}
-                                        placeholder="¿QUÉ TENEMOS EN MENTE?..."
-                                        className="w-full bg-white dark:bg-black border border-stone-200 dark:border-stone-800 px-4 py-3 text-xs uppercase tracking-widest outline-none focus:border-geometric-accent"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-[9px] uppercase font-bold tracking-widest text-stone-500 ml-1">Precio Estimado (COP)</label>
+                                <input
+                                    value={newLocationUrl}
+                                    onChange={(e) => setNewLocationUrl(e.target.value)}
+                                    placeholder="Link / Ubicación"
+                                    className="w-full bg-white dark:bg-black border border-stone-200 dark:border-stone-800 px-4 py-3 text-xs uppercase tracking-widest outline-none focus:border-geometric-accent"
+                                />
+                                {activeCategory === 'antojo' && (
                                     <input
                                         type="number"
                                         value={newPrice}
-                                        onChange={e => setNewPrice(e.target.value)}
+                                        onChange={(e) => setNewPrice(e.target.value)}
+                                        placeholder="Precio aprox."
                                         className="w-full bg-white dark:bg-black border border-stone-200 dark:border-stone-800 px-4 py-3 text-xs uppercase tracking-widest outline-none focus:border-geometric-accent"
                                     />
-                                </div>
-                                {activeCategory === "gusto" && (
-                                    <div className="space-y-2">
-                                        <label className="text-[9px] uppercase font-bold tracking-widest text-stone-500 ml-1">Para quién es?</label>
-                                        <div className="flex gap-2">
-                                            <button type="button" onClick={() => setNewOwner("el")} className={`flex-1 py-2 text-[9px] font-bold border ${newOwner === "el" ? "border-user-a bg-user-a/10 text-user-a" : "border-stone-200 text-stone-400"}`}>SANTIAGO</button>
-                                            <button type="button" onClick={() => setNewOwner("ella")} className={`flex-1 py-2 text-[9px] font-bold border ${newOwner === "ella" ? "border-user-b bg-user-b/10 text-user-b" : "border-stone-200 text-stone-400"}`}>MILENA</button>
-                                        </div>
-                                    </div>
+                                )}
+                                {activeCategory === 'gusto' && (
+                                    <select
+                                        value={newOwner}
+                                        onChange={(e) => setNewOwner(e.target.value as any)}
+                                        className="w-full bg-white dark:bg-black border border-stone-200 dark:border-stone-800 px-4 py-3 text-xs uppercase tracking-widest outline-none focus:border-geometric-accent appearance-none"
+                                    >
+                                        <option value="el">Para Santiago</option>
+                                        <option value="ella">Para Milena</option>
+                                    </select>
                                 )}
                             </div>
-
-                            <div className="space-y-2">
-                                <label className="text-[9px] uppercase font-bold tracking-widest text-stone-500 ml-1">Detalles / Notas</label>
-                                <textarea
-                                    value={newDesc}
-                                    onChange={e => setNewDesc(e.target.value)}
-                                    placeholder="MÁS INFORMACIÓN..."
-                                    className="w-full bg-white dark:bg-black border border-stone-200 dark:border-stone-800 px-4 py-3 text-xs uppercase tracking-widest outline-none focus:border-geometric-accent resize-none h-24"
-                                />
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <label className="text-[9px] uppercase font-bold tracking-widest text-stone-500 ml-1">URL ({activeCategory === 'plan' ? 'Link de Google Maps' : 'Link de Compra'})</label>
+                            <div className="flex items-center gap-6">
+                                <label className="flex items-center gap-2 cursor-pointer group">
                                     <input
-                                        value={newLocationUrl}
-                                        onChange={e => setNewLocationUrl(e.target.value)}
-                                        placeholder="https://..."
-                                        className="w-full bg-white dark:bg-black border border-stone-200 dark:border-stone-800 px-4 py-3 text-xs uppercase tracking-widest outline-none focus:border-geometric-accent"
+                                        type="checkbox"
+                                        checked={newIsPriority}
+                                        onChange={(e) => setNewIsPriority(e.target.checked)}
+                                        className="hidden"
                                     />
-                                </div>
-                                <div className="flex items-end pb-1">
-                                    <button
-                                        type="button"
-                                        onClick={() => setNewIsPriority(!newIsPriority)}
-                                        className={`flex items-center gap-3 px-4 py-3 border transition-all w-full ${newIsPriority ? 'border-geometric-accent bg-geometric-accent/10 text-geometric-accent' : 'border-stone-200 dark:border-stone-800 text-stone-400'}`}
-                                    >
-                                        <Diamond className={`w-4 h-4 ${newIsPriority ? 'fill-geometric-accent' : ''}`} />
-                                        <span className="text-[9px] uppercase font-bold tracking-widest">Prioridad (Diamante)</span>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div className="flex gap-4 pt-2">
-                                <button type="button" onClick={() => setIsAdding(false)} className="flex-1 py-3 border border-stone-200 dark:border-stone-800 text-stone-500 uppercase text-[9px] font-bold tracking-widest hover:border-stone-400 transition-all">Cancelar</button>
-                                <button type="submit" className="flex-1 py-3 bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 uppercase text-[9px] font-bold tracking-widest hover:bg-geometric-accent hover:text-white transition-all">Guardar Item</button>
+                                    <div className={`w-4 h-4 border flex items-center justify-center transition-all ${newIsPriority ? 'bg-geometric-accent border-geometric-accent' : 'border-stone-300 dark:border-stone-700'}`}>
+                                        {newIsPriority && <Check className="w-3 h-3 text-white" />}
+                                    </div>
+                                    <span className="text-[10px] uppercase font-bold tracking-widest text-stone-500 group-hover:text-stone-800 dark:group-hover:text-stone-200 transition-colors">Es Prioridad</span>
+                                </label>
+                                <button
+                                    type="submit"
+                                    className="flex-1 bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 py-3 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-geometric-accent dark:hover:bg-geometric-accent hover:text-white transition-all"
+                                >
+                                    Añadir a la lista
+                                </button>
                             </div>
                         </motion.form>
                     ) : (
@@ -309,16 +348,18 @@ export function WishlistModule() {
                             animate={{ opacity: 1 }}
                             className="space-y-4"
                         >
+                            {activeCategory === 'plan' && <GeospatialPlanTracker />}
+
                             {activeCategory === 'gusto' ? (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div className="grid md:grid-cols-2 gap-8 pt-4">
                                     <div className="space-y-4">
                                         <h4 className="text-[10px] uppercase font-black tracking-[0.2em] text-user-a border-b border-user-a/20 pb-2 mb-4 flex items-center gap-2">
-                                            <div className="w-1.5 h-1.5 bg-user-a" />
+                                            <div className="w-1.5 h-1.5 bg-user-a rounded-full" />
                                             Gustos de Santiago
                                         </h4>
                                         <div className="space-y-2 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
                                             {filteredItems.filter(i => i.owner === 'el' || (!i.owner && i.author === 'el')).map(item => (
-                                                <GustoItem key={item.id} item={item} />
+                                                editingId === item.id ? renderEditForm(item) : <GustoItem key={item.id} item={item} onEdit={() => handleEditStart(item)} />
                                             ))}
                                             {filteredItems.filter(i => i.owner === 'el' || (!i.owner && i.author === 'el')).length === 0 && (
                                                 <p className="text-[8px] uppercase opacity-30 italic">No hay gustos registrados</p>
@@ -333,7 +374,7 @@ export function WishlistModule() {
                                         </h4>
                                         <div className="space-y-2 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
                                             {filteredItems.filter(i => i.owner === 'ella' || (!i.owner && i.author === 'ella')).map(item => (
-                                                <GustoItem key={item.id} item={item} />
+                                                editingId === item.id ? renderEditForm(item) : <GustoItem key={item.id} item={item} onEdit={() => handleEditStart(item)} />
                                             ))}
                                             {filteredItems.filter(i => i.owner === 'ella' || (!i.owner && i.author === 'ella')).length === 0 && (
                                                 <p className="text-[8px] uppercase opacity-30 italic">No hay gustos registrados</p>
@@ -351,8 +392,13 @@ export function WishlistModule() {
                                     ) : (
                                         filteredItems.map((item) => {
                                             const isVisited = item.status === 'visited';
+                                            const isEditing = editingId === item.id;
                                             const canAfford = activeCategory === 'antojo' && !isVisited && (item.price || 0) <= totalSavings;
                                             const accentColor = item.author === 'ella' ? 'var(--color-user-b)' : 'var(--color-user-a)';
+
+                                            if (isEditing) {
+                                                return renderEditForm(item);
+                                            }
 
                                             return (
                                                 <div
@@ -420,16 +466,26 @@ export function WishlistModule() {
                                                             </div>
                                                         )}
 
-                                                        <div className="flex flex-col items-end gap-1">
-                                                            <span className="text-[8px] font-mono opacity-40 uppercase tracking-tighter">
-                                                                {item.author}
-                                                            </span>
-                                                            <button
-                                                                onClick={() => handleDelete(item.id)}
-                                                                className="text-stone-300 hover:text-red-500 transition-colors"
-                                                            >
-                                                                <Trash2 className="w-4 h-4" />
-                                                            </button>
+                                                        <div className="flex items-center gap-3">
+                                                            {!isVisited && (
+                                                                <button
+                                                                    onClick={() => handleEditStart(item)}
+                                                                    className="text-stone-300 hover:text-geometric-accent transition-colors"
+                                                                >
+                                                                    <Pencil className="w-4 h-4" />
+                                                                </button>
+                                                            )}
+                                                            <div className="flex flex-col items-end gap-1">
+                                                                <span className="text-[8px] font-mono opacity-40 uppercase tracking-tighter">
+                                                                    {item.author}
+                                                                </span>
+                                                                <button
+                                                                    onClick={() => handleDelete(item.id)}
+                                                                    className="text-stone-300 hover:text-red-500 transition-colors"
+                                                                >
+                                                                    <Trash2 className="w-4 h-4" />
+                                                                </button>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>

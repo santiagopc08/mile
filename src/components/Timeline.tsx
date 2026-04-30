@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Calendar, Plus, Image as ImageIcon } from 'lucide-react';
+import { Calendar, Plus, Image as ImageIcon, Pencil, X } from 'lucide-react';
 import { useState } from 'react';
 import { useStore } from '@/context/StoreContext';
 import { useProfile } from '@/context/ProfileContext';
@@ -25,6 +25,8 @@ export function Timeline({ events }: TimelineProps) {
     const { profile } = useProfile();
     const [isAdding, setIsAdding] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
+    const [editingId, setEditingId] = useState<string | null>(null);
+    const [editForm, setEditForm] = useState<Partial<TimelineEvent>>({});
 
     const handleAddEvent = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -60,6 +62,42 @@ export function Timeline({ events }: TimelineProps) {
             setIsUploading(false);
             setIsAdding(false);
         }
+    };
+
+    const handleEditStart = (event: TimelineEvent) => {
+        setEditingId(event.id);
+        setEditForm(event);
+    };
+
+    const handleEditSave = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingId) return;
+
+        setIsUploading(true);
+        const form = e.currentTarget as HTMLFormElement;
+        const imageInput = form.elements.namedItem('image') as HTMLInputElement;
+        const file = imageInput?.files?.[0];
+
+        let imageUrl = editForm.imageUrl;
+        if (file) {
+            try {
+                imageUrl = await StoreService.uploadTimelineImage(file);
+            } catch (err) {
+                console.error("Upload failed", err);
+                alert("Error al subir la imagen.");
+                setIsUploading(false);
+                return;
+            }
+        }
+
+        const updatedEvents = events.map(ev =>
+            ev.id === editingId ? { ...ev, ...editForm, imageUrl } : ev
+        );
+
+        await updateData({ events: updatedEvents });
+        setEditingId(null);
+        setEditForm({});
+        setIsUploading(false);
     };
 
     return (
@@ -109,6 +147,7 @@ export function Timeline({ events }: TimelineProps) {
                 <div className="space-y-16 md:space-y-24">
                     {events.map((event, index) => {
                     const isLeft = index % 2 === 0;
+                    const isEditing = editingId === event.id;
 
                     return (
                         <motion.div
@@ -127,27 +166,78 @@ export function Timeline({ events }: TimelineProps) {
 
                                 {/* Content Card */}
                                 <div className={`w-full pl-8 md:pl-0 md:w-5/12 ${isLeft ? 'md:text-right text-left' : 'text-left'}`}>
-                                    <div className="geometric-card p-5 md:p-6 bg-white dark:bg-stone-900 transition-all hover:border-geometric-accent group">
-                                    <div className={`flex items-center gap-2 text-sm text-stone-500 dark:text-stone-400 mb-3 ${isLeft ? 'md:justify-end justify-start' : 'justify-start'}`}>
-                                        <Calendar className="w-4 h-4 text-geometric-accent" />
-                                        <time className="font-mono tracking-tighter">{event.date}</time>
-                                    </div>
-                                    <h3 className="text-xl font-bold text-stone-800 dark:text-stone-200 mb-2 uppercase tracking-tight group-hover:text-geometric-accent transition-colors">
-                                        {event.title}
-                                    </h3>
-                                    <p className="text-stone-600 dark:text-stone-400 font-light leading-relaxed">
-                                        {event.description}
-                                    </p>
+                                    <div className="geometric-card p-5 md:p-6 bg-white dark:bg-stone-900 transition-all hover:border-geometric-accent group relative">
 
-                                    {event.imageUrl && (
-                                        <div className="mt-4 border border-geometric-border overflow-hidden min-h-32 bg-stone-100 dark:bg-stone-800">
-                                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                                            <img
-                                                src={event.imageUrl}
-                                                alt={event.title}
-                                                className="w-full h-auto object-cover grayscale hover:grayscale-0 transition-all duration-500"
+                                    {profile && !isEditing && (
+                                        <button
+                                            onClick={() => handleEditStart(event)}
+                                            className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity p-2 text-stone-400 hover:text-geometric-accent"
+                                        >
+                                            <Pencil className="w-4 h-4" />
+                                        </button>
+                                    )}
+
+                                    {isEditing ? (
+                                        <form onSubmit={handleEditSave} className="space-y-4">
+                                            <input
+                                                value={editForm.title || ''}
+                                                onChange={e => setEditForm({...editForm, title: e.target.value})}
+                                                required
+                                                placeholder="Título"
+                                                className="w-full bg-stone-50 dark:bg-stone-950 border border-geometric-border rounded-none px-4 py-2 outline-none focus:border-geometric-accent text-sm"
                                             />
-                                        </div>
+                                            <input
+                                                type="date"
+                                                value={editForm.date || ''}
+                                                onChange={e => setEditForm({...editForm, date: e.target.value})}
+                                                required
+                                                className="w-full bg-stone-50 dark:bg-stone-950 border border-geometric-border rounded-none px-4 py-2 outline-none focus:border-geometric-accent text-sm"
+                                            />
+                                            <textarea
+                                                value={editForm.description || ''}
+                                                onChange={e => setEditForm({...editForm, description: e.target.value})}
+                                                required
+                                                placeholder="Descripción"
+                                                className="w-full bg-stone-50 dark:bg-stone-950 border border-geometric-border rounded-none px-4 py-2 min-h-[80px] outline-none focus:border-geometric-accent text-sm"
+                                            />
+                                            <div className="relative">
+                                                <input name="image" type="file" accept="image/*" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                                                <div className="w-full px-4 py-2 border border-dashed border-geometric-border bg-stone-50 dark:bg-stone-950 flex items-center justify-center gap-2 text-stone-500 text-xs">
+                                                    <ImageIcon className="w-4 h-4" />
+                                                    <span>Cambiar Foto (Opcional)</span>
+                                                </div>
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <button type="button" onClick={() => setEditingId(null)} className="flex-1 py-2 border border-geometric-border text-xs">Cancelar</button>
+                                                <button type="submit" disabled={isUploading} className="flex-1 py-2 bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 text-xs font-bold uppercase">
+                                                    {isUploading ? 'Guardando...' : 'Guardar'}
+                                                </button>
+                                            </div>
+                                        </form>
+                                    ) : (
+                                        <>
+                                            <div className={`flex items-center gap-2 text-sm text-stone-500 dark:text-stone-400 mb-3 ${isLeft ? 'md:justify-end justify-start' : 'justify-start'}`}>
+                                                <Calendar className="w-4 h-4 text-geometric-accent" />
+                                                <time className="font-mono tracking-tighter">{event.date}</time>
+                                            </div>
+                                            <h3 className="text-xl font-bold text-stone-800 dark:text-stone-200 mb-2 uppercase tracking-tight group-hover:text-geometric-accent transition-colors">
+                                                {event.title}
+                                            </h3>
+                                            <p className="text-stone-600 dark:text-stone-400 font-light leading-relaxed">
+                                                {event.description}
+                                            </p>
+
+                                            {event.imageUrl && (
+                                                <div className="mt-4 border border-geometric-border overflow-hidden min-h-32 bg-stone-100 dark:bg-stone-800">
+                                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                    <img
+                                                        src={event.imageUrl}
+                                                        alt={event.title}
+                                                        className="w-full h-auto object-cover grayscale hover:grayscale-0 transition-all duration-500"
+                                                    />
+                                                </div>
+                                            )}
+                                        </>
                                     )}
 
                                     {/* Geometric accent corner */}
