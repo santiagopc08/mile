@@ -1,6 +1,22 @@
 import { supabase as defaultSupabase } from '@/lib/supabase';
 import { SupabaseClient } from '@supabase/supabase-js';
 
+export type TaskStatus = 'todo' | 'in_progress' | 'done';
+export type TaskCategory = 'work' | 'home' | 'personal';
+
+export interface Task {
+    id: string;
+    text: string;
+    status: TaskStatus;
+    category: TaskCategory;
+    priority?: 'low' | 'medium' | 'high';
+    estimated_time: number;
+    actual_time: number;
+    objective_id?: string;
+    due_date?: string;
+    updated_at?: string;
+}
+
 export interface AppData {
     events: {
         id: string;
@@ -35,14 +51,7 @@ export interface AppData {
         todayTotal: number;
         todayCompleted: number;
     };
-    tasks: {
-        id: string;
-        title: string;
-        description: string;
-        status: string;
-        priority: string;
-        assignee: string;
-    }[];
+    tasks: Task[];
     wishlist: {
         id: string;
         category: 'plan' | 'antojo' | 'gusto';
@@ -115,11 +124,14 @@ export const StoreService = {
                 wishlist: (wishlistRes.data || []).map(w => ({ id: w.id, category: w.category, title: w.title, description: w.description, status: w.status, author: w.author || "el", owner: w.owner || undefined, locationUrl: w.location_url, price: w.price || 0, isPriority: w.is_priority || false })),
                 tasks: (tasksRes.data || []).map((t) => ({
                     id: t.id,
-                    title: t.title,
-                    description: t.description,
-                    status: t.status,
-                    priority: t.priority,
-                    assignee: t.assignee
+                    text: t.text || t.title,
+                    status: t.status === 'pending' ? 'todo' : (t.status === 'done' ? 'done' : 'in_progress'),
+                    category: t.category || 'work',
+                    estimated_time: t.estimated_time || 0,
+                    actual_time: t.actual_time || 0,
+                    objective_id: t.objective_id,
+                    due_date: t.due_date,
+                    updated_at: t.updated_at
                 })),
                 events: (eventsRes.data || []).map((e: any) => ({
                     id: e.id,
@@ -212,12 +224,15 @@ export const StoreService = {
             // Tasks
             if (newData.tasks !== undefined) {
                 await syncTable('tasks', newData.tasks.map((t) => ({
-                    id: t.id,
-                    title: t.title,
-                    description: t.description,
-                    status: t.status,
-                    priority: t.priority,
-                    assignee: t.assignee
+                    id: isNaN(Number(t.id)) ? t.id : undefined,
+                    text: t.text,
+                    status: t.status === 'todo' ? 'pending' : t.status,
+                    category: t.category,
+                    estimated_time: t.estimated_time,
+                    actual_time: t.actual_time,
+                    objective_id: t.objective_id,
+                    due_date: t.due_date,
+                    updated_at: new Date().toISOString()
                 })));
             }
 
@@ -296,14 +311,14 @@ export const StoreService = {
                         await supabase.from('audio_track').update({
                             title: track.title,
                             artist: track.artist,
-                            spotify_url: track.spotifyUrl,
+                            spotify_url: track.spotify_url || null,
                             display_order: track.display_order || 0
                         }).eq('id', trackId);
                     } else {
                         const res = await supabase.from('audio_track').insert({
                             title: track.title,
                             artist: track.artist,
-                            spotify_url: track.spotifyUrl,
+                            spotify_url: track.spotify_url || null,
                             display_order: track.display_order || 0
                         }).select('id').single();
                         trackId = res.data?.id;
@@ -372,6 +387,24 @@ export const StoreService = {
             console.error('Failed to update Supabase', error);
             throw new Error('Could not write to data store.');
         }
+    },
+
+    async updateTaskActualTime(taskId: string, additionalMinutes: number, supabase: SupabaseClient = defaultSupabase): Promise<void> {
+        const { data: task } = await supabase.from('tasks').select('actual_time').eq('id', taskId).single();
+        if (task) {
+            await supabase.from('tasks').update({
+                actual_time: (task.actual_time || 0) + additionalMinutes,
+                updated_at: new Date().toISOString()
+            }).eq('id', taskId);
+        }
+    },
+
+    async updateTaskStatus(taskId: string, status: 'todo' | 'in_progress' | 'done', supabase: SupabaseClient = defaultSupabase): Promise<void> {
+        const dbStatus = status === 'todo' ? 'pending' : status;
+        await supabase.from('tasks').update({
+            status: dbStatus,
+            updated_at: new Date().toISOString()
+        }).eq('id', taskId);
     },
 
     async uploadTimelineImage(file: File, supabase: SupabaseClient = defaultSupabase): Promise<string> {
@@ -460,7 +493,6 @@ export const StoreService = {
     },
 
     async getMahjongImages(supabase: SupabaseClient = defaultSupabase): Promise<string[]> {
-        // Pulls both from the existing 'events' table and the new local /img folders via API
         try {
             const [eventsRes, localRes] = await Promise.all([
                 supabase.from('events').select('image_url').not('image_url', 'is', null),
