@@ -17,7 +17,7 @@ export function PendingTasks() {
     // Edit state
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editTitle, setEditTitle] = useState('');
-    const [editPriority, setEditPriority] = useState('medium');
+    const [editPriority, setEditPriority] = useState<'low' | 'medium' | 'high'>('medium');
 
     const tasks = data?.tasks || [];
 
@@ -168,7 +168,7 @@ export function PendingTasks() {
                                         <div className="flex gap-2">
                                             <select
                                                 value={editPriority}
-                                                onChange={e => setEditPriority(e.target.value)}
+                                                onChange={e => setEditPriority(e.target.value as 'low' | 'medium' | 'high')}
                                                 className="bg-black/60 border border-stone-700 px-2 py-1 text-[8px] uppercase font-bold text-stone-400 outline-none"
                                             >
                                                 <option value="low">BAJA</option>
@@ -202,17 +202,17 @@ export function PendingTasks() {
                             </div>
 
                             <div className="flex flex-col gap-2">
-                                {!editingId && task.status !== 'completed' && (
+                                {!editingId && task.status !== 'done' && (
                                     <button
                                         onClick={(e) => handleEditStart(task, e)}
-                                        className="opacity-0 group-hover:opacity-100 p-2 text-stone-600 hover:text-geometric-accent transition-all bg-white/5"
+                                        className="p-2 text-stone-600 hover:text-geometric-accent transition-all bg-white/5"
                                     >
                                         <Pencil className="w-4 h-4" />
                                     </button>
                                 )}
                                 <button
                                     onClick={(e) => deleteTask(task.id, e)}
-                                    className="opacity-0 group-hover:opacity-100 p-2 text-stone-600 hover:text-red-500 transition-all bg-white/5"
+                                    className="p-2 text-stone-600 hover:text-red-500 transition-all bg-white/5"
                                 >
                                     <Trash2 className="w-4 h-4" />
                                 </button>

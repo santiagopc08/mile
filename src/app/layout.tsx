@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { StoreProvider } from "@/context/StoreContext";
 import { ProfileProvider } from "@/context/ProfileContext";
@@ -9,6 +9,7 @@ import { IOSInstallPrompt } from "@/components/IOSInstallPrompt";
 import { SpeedInsights } from "@vercel/speed-insights/next"
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono" });
 
 export const viewport: Viewport = {
   themeColor: "#f5f5f4", // matches stone-50 background
@@ -34,7 +35,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" suppressHydrationWarning>
-      <body suppressHydrationWarning className={`${inter.variable} font-sans antialiased text-stone-800 bg-stone-50 dark:text-stone-200 dark:bg-stone-950 min-h-screen selection:bg-earth-soft selection:text-earth-dark lg:pl-20 pb-safe`}>
+      <body suppressHydrationWarning className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased text-stone-800 bg-stone-50 dark:text-stone-200 dark:bg-stone-950 min-h-screen selection:bg-earth-soft selection:text-earth-dark lg:pl-20 pb-safe`}>
         <StoreProvider>
           <ProfileProvider>
             <VisibilityProvider>

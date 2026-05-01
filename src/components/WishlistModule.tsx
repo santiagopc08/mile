@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import { useStore } from '@/context/StoreContext';
 import { useProfile } from '@/context/ProfileContext';
-import { Plus, Trash2, MapPin, Utensils, Heart, Check, Diamond, ExternalLink } from 'lucide-react';
+import { Plus, Trash2, MapPin, Utensils, Heart, Check, Diamond, ExternalLink, Pencil, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LinkPreview } from './LinkPreview';
 import { GeospatialPlanTracker } from './GeospatialPlanTracker';
@@ -50,6 +50,15 @@ export function WishlistModule() {
     const [newPrice, setNewPrice] = useState<string>('0');
     const [newIsPriority, setNewIsPriority] = useState(false);
     const [newOwner, setNewOwner] = useState<"el" | "ella">("el");
+
+    // Edit state
+    const [editingId, setEditingId] = useState<string | null>(null);
+    const [editTitle, setEditTitle] = useState('');
+    const [editDesc, setEditDesc] = useState('');
+    const [editPrice, setEditPrice] = useState('0');
+    const [editLocationUrl, setEditLocationUrl] = useState('');
+    const [editIsPriority, setEditIsPriority] = useState(false);
+    const [editOwner, setEditOwner] = useState<"el" | "ella">("el");
 
     const items = data?.wishlist || [];
 
@@ -140,6 +149,35 @@ export function WishlistModule() {
 
     const handleDelete = async (id: string) => {
         await updateData({ wishlist: items.filter(i => i.id !== id) });
+    };
+
+    const handleEditStart = (item: any) => {
+        setEditingId(item.id);
+        setEditTitle(item.title);
+        setEditDesc(item.description || '');
+        setEditPrice(String(item.price || 0));
+        setEditLocationUrl(item.locationUrl || '');
+        setEditIsPriority(item.isPriority || false);
+        setEditOwner(item.owner || 'el');
+        setIsAdding(false);
+    };
+
+    const handleEditSave = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingId || !editTitle.trim()) return;
+
+        const updated = items.map(i => i.id === editingId ? {
+            ...i,
+            title: editTitle.trim(),
+            description: editDesc.trim(),
+            price: parseFloat(editPrice) || 0,
+            locationUrl: editLocationUrl.trim(),
+            isPriority: editIsPriority,
+            owner: i.category === 'gusto' ? editOwner : i.owner
+        } : i);
+
+        await updateData({ wishlist: updated });
+        setEditingId(null);
     };
 
     const toggleStatus = async (id: string) => {
@@ -361,8 +399,8 @@ export function WishlistModule() {
                                                         isVisited
                                                             ? 'border-solid border-stone-200 dark:border-stone-800 bg-stone-50/30 dark:bg-stone-950/30 opacity-80'
                                                             : 'border-dashed border-[1px] bg-white dark:bg-black'
-                                                    } ${canAfford ? 'animate-pulse-green border-solid' : ''}`}
-                                                    style={!isVisited && !canAfford ? { borderColor: accentColor } : (canAfford ? { borderColor: '#22C55E' } : {})}
+                                                    } ${canAfford ? 'animate-pulse-green border-solid' : ''} ${editingId === item.id ? 'border-geometric-accent ring-1 ring-geometric-accent/30 !border-solid' : ''}`}
+                                                    style={!isVisited && !canAfford && editingId !== item.id ? { borderColor: accentColor } : (canAfford ? { borderColor: '#22C55E' } : {})}
                                                 >
                                                     {isVisited && (
                                                         <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none opacity-[0.05]">
@@ -370,6 +408,61 @@ export function WishlistModule() {
                                                         </div>
                                                     )}
 
+                                                    {editingId === item.id ? (
+                                                        <form onSubmit={handleEditSave} className="w-full space-y-3">
+                                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                                <input
+                                                                    autoFocus
+                                                                    value={editTitle}
+                                                                    onChange={e => setEditTitle(e.target.value)}
+                                                                    placeholder="Título"
+                                                                    className="w-full bg-white dark:bg-black border border-stone-200 dark:border-stone-800 px-3 py-2 text-xs uppercase tracking-widest outline-none focus:border-geometric-accent"
+                                                                />
+                                                                <input
+                                                                    type="number"
+                                                                    value={editPrice}
+                                                                    onChange={e => setEditPrice(e.target.value)}
+                                                                    placeholder="Precio"
+                                                                    className="w-full bg-white dark:bg-black border border-stone-200 dark:border-stone-800 px-3 py-2 text-xs uppercase tracking-widest outline-none focus:border-geometric-accent"
+                                                                />
+                                                            </div>
+                                                            <textarea
+                                                                value={editDesc}
+                                                                onChange={e => setEditDesc(e.target.value)}
+                                                                placeholder="Descripción"
+                                                                className="w-full bg-white dark:bg-black border border-stone-200 dark:border-stone-800 px-3 py-2 text-xs uppercase tracking-widest outline-none focus:border-geometric-accent resize-none h-16"
+                                                            />
+                                                            <input
+                                                                value={editLocationUrl}
+                                                                onChange={e => setEditLocationUrl(e.target.value)}
+                                                                placeholder="URL"
+                                                                className="w-full bg-white dark:bg-black border border-stone-200 dark:border-stone-800 px-3 py-2 text-xs tracking-widest outline-none focus:border-geometric-accent"
+                                                            />
+                                                            <div className="flex items-center gap-3">
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => setEditIsPriority(!editIsPriority)}
+                                                                    className={`flex items-center gap-2 px-3 py-2 border transition-all text-[9px] uppercase font-bold ${editIsPriority ? 'border-geometric-accent bg-geometric-accent/10 text-geometric-accent' : 'border-stone-200 dark:border-stone-800 text-stone-400'}`}
+                                                                >
+                                                                    <Diamond className={`w-3 h-3 ${editIsPriority ? 'fill-geometric-accent' : ''}`} /> Prioridad
+                                                                </button>
+                                                                {item.category === 'gusto' && (
+                                                                    <div className="flex gap-1">
+                                                                        <button type="button" onClick={() => setEditOwner('el')} className={`px-2 py-1 text-[8px] font-bold border ${editOwner === 'el' ? 'border-user-a bg-user-a/10 text-user-a' : 'border-stone-200 text-stone-400'}`}>S</button>
+                                                                        <button type="button" onClick={() => setEditOwner('ella')} className={`px-2 py-1 text-[8px] font-bold border ${editOwner === 'ella' ? 'border-user-b bg-user-b/10 text-user-b' : 'border-stone-200 text-stone-400'}`}>M</button>
+                                                                    </div>
+                                                                )}
+                                                                <div className="flex-1" />
+                                                                <button type="button" onClick={() => setEditingId(null)} className="p-2 text-stone-500 hover:text-white transition-colors">
+                                                                    <X size={14} />
+                                                                </button>
+                                                                <button type="submit" className="p-2 text-geometric-accent hover:text-white transition-colors">
+                                                                    <Check size={14} />
+                                                                </button>
+                                                            </div>
+                                                        </form>
+                                                    ) : (
+                                                    <>
                                                     <div className="flex items-center gap-4 flex-1">
                                                         <button
                                                             onClick={() => toggleStatus(item.id)}
@@ -424,14 +517,26 @@ export function WishlistModule() {
                                                             <span className="text-[8px] font-mono opacity-40 uppercase tracking-tighter">
                                                                 {item.author}
                                                             </span>
-                                                            <button
-                                                                onClick={() => handleDelete(item.id)}
-                                                                className="text-stone-300 hover:text-red-500 transition-colors"
-                                                            >
-                                                                <Trash2 className="w-4 h-4" />
-                                                            </button>
+                                                            <div className="flex gap-1">
+                                                                {!isVisited && (
+                                                                    <button
+                                                                        onClick={() => handleEditStart(item)}
+                                                                        className="text-stone-300 hover:text-geometric-accent transition-all"
+                                                                    >
+                                                                        <Pencil className="w-4 h-4" />
+                                                                    </button>
+                                                                )}
+                                                                <button
+                                                                    onClick={() => handleDelete(item.id)}
+                                                                    className="text-stone-300 hover:text-red-500 transition-colors"
+                                                                >
+                                                                    <Trash2 className="w-4 h-4" />
+                                                                </button>
+                                                            </div>
                                                         </div>
                                                     </div>
+                                                    </>
+                                                    )}
                                                 </div>
                                             );
                                         })

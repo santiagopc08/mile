@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Play, Pause, RotateCcw, Coffee, Focus, Target, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { StoreService, Task } from '@/services/storeService';
+import { StoreService } from '@/services/storeService';
+import { useStore } from '@/context/StoreContext';
 
 interface Task {
     id: string;
@@ -11,33 +12,50 @@ interface Task {
     status: string;
 }
 
+const FOCUS_DURATION = 25; // minutes
+const BREAK_DURATION = 5;  // minutes
+
 export function PomodoroTimer() {
+    const [totalBudget, setTotalBudget] = useState(25);
+    const [currentSession, setCurrentSession] = useState(1);
     const [mode, setMode] = useState<'work' | 'break'>('work');
-    const [durationMinutes, setDurationMinutes] = useState(25);
-    const [timeLeft, setTimeLeft] = useState(25 * 60);
+    const [timeLeft, setTimeLeft] = useState(FOCUS_DURATION * 60);
     const [isRunning, setIsRunning] = useState(false);
     const [elapsedSeconds, setElapsedSeconds] = useState(0);
 
-    const [tasks, setTasks] = useState<Task[]>([]);
+    const { data } = useStore();
+    const tasks = useMemo(() => {
+        return (data?.tasks || []).filter((t: Task) => t.status !== 'done');
+    }, [data?.tasks]);
+
     const [selectedTaskId, setSelectedTaskId] = useState<string>('');
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
     const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-    const fetchTasks = useCallback(async () => {
-        try {
-            const store = await StoreService.getStore();
-            setTasks(store.tasks.filter(t => t.status !== 'done'));
-        } catch (e) {
-            console.error("Failed to fetch tasks", e);
-        }
-    }, []);
+    // Compute sessions from total budget
+    const sessionPlan = useMemo(() => {
+        const fullSessions = Math.floor(totalBudget / FOCUS_DURATION);
+        const remainder = totalBudget % FOCUS_DURATION;
+        const sessions: number[] = [];
 
-    useEffect(() => {
-        fetchTasks();
-        window.addEventListener('tasks-refresh', fetchTasks);
-        return () => window.removeEventListener('tasks-refresh', fetchTasks);
-    }, [fetchTasks]);
+        for (let i = 0; i < fullSessions; i++) {
+            sessions.push(FOCUS_DURATION);
+        }
+        if (remainder > 0) {
+            sessions.push(remainder);
+        }
+        if (sessions.length === 0) {
+            sessions.push(totalBudget || 1);
+        }
+
+        return sessions;
+    }, [totalBudget]);
+
+    const totalSessions = sessionPlan.length;
+    const currentSessionDuration = sessionPlan[Math.min(currentSession - 1, sessionPlan.length - 1)];
+
+    // Removed fetchTasks effect as we now use global store data
 
     useEffect(() => {
         if (isRunning && timeLeft > 0) {
@@ -55,14 +73,19 @@ export function PomodoroTimer() {
         };
     }, [isRunning, timeLeft]);
 
+    // Reset timer when budget or session changes (only when not running)
+    useEffect(() => {
+        if (!isRunning) {
+            setTimeLeft(currentSessionDuration * 60);
+        }
+    }, [currentSessionDuration, isRunning]);
+
     const handleStart = async () => {
         if (!isRunning) {
-            // Haptic Feedback
             if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
                 navigator.vibrate(50);
             }
 
-            // Auto-shift status if pending
             if (selectedTaskId) {
                 const task = tasks.find(t => t.id === selectedTaskId);
                 if (task && task.status === 'todo') {
@@ -94,7 +117,7 @@ export function PomodoroTimer() {
         if (minutesToDeposit > 0 && selectedTaskId) {
             try {
                 await StoreService.updateTaskActualTime(selectedTaskId, minutesToDeposit);
-                setElapsedSeconds(s => s % 60); // Keep remaining seconds
+                setElapsedSeconds(s => s % 60);
                 window.dispatchEvent(new CustomEvent('tasks-refresh'));
             } catch (e) {
                 console.error("Failed to deposit time", e);
@@ -109,25 +132,45 @@ export function PomodoroTimer() {
         }
         await depositTime();
 
-        const nextMode = mode === 'work' ? 'break' : 'work';
-        const nextDuration = nextMode === 'work' ? 25 : 5;
-
-        setMode(nextMode);
-        setDurationMinutes(nextDuration);
-        setTimeLeft(nextDuration * 60);
-        setElapsedSeconds(0);
+        if (mode === 'work') {
+            // Check if there are more sessions
+            if (currentSession < totalSessions) {
+                // Go to break
+                setMode('break');
+                setTimeLeft(BREAK_DURATION * 60);
+                setElapsedSeconds(0);
+            } else {
+                // All sessions done — reset fully
+                setMode('work');
+                setCurrentSession(1);
+                setTimeLeft(sessionPlan[0] * 60);
+                setElapsedSeconds(0);
+            }
+        } else {
+            // Break finished → advance to next focus session
+            const nextSession = currentSession + 1;
+            setCurrentSession(nextSession);
+            setMode('work');
+            setTimeLeft(sessionPlan[Math.min(nextSession - 1, sessionPlan.length - 1)] * 60);
+            setElapsedSeconds(0);
+        }
     };
 
     const handleReset = () => {
         setIsRunning(false);
-        setTimeLeft(durationMinutes * 60);
+        setMode('work');
+        setCurrentSession(1);
+        setTimeLeft(sessionPlan[0] * 60);
         setElapsedSeconds(0);
     };
 
-    const updateDuration = (mins: number) => {
-        const val = Math.max(1, Math.min(120, mins));
-        setDurationMinutes(val);
-        if (!isRunning) setTimeLeft(val * 60);
+    const updateBudget = (mins: number) => {
+        const val = Math.max(1, Math.min(180, mins));
+        setTotalBudget(val);
+        if (!isRunning) {
+            setCurrentSession(1);
+            setMode('work');
+        }
     };
 
     const formatTime = (seconds: number) => {
@@ -136,7 +179,8 @@ export function PomodoroTimer() {
         return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
     };
 
-    const progress = 1 - (timeLeft / (durationMinutes * 60));
+    const activeDuration = mode === 'work' ? currentSessionDuration : BREAK_DURATION;
+    const progress = 1 - (timeLeft / (activeDuration * 60));
 
     return (
         <div className="w-full h-full flex flex-col items-center justify-center relative p-4 bg-mosaic bg-opacity-[0.03] sm:p-6">
@@ -171,39 +215,62 @@ export function PomodoroTimer() {
 
             <div className="w-full max-w-sm flex flex-col items-center space-y-6 sm:space-y-8">
                 
-                {/* Mode Selector */}
+                {/* Mode Indicator */}
                 <div className="flex border border-stone-200 dark:border-stone-800 p-1 bg-white/5">
-                    <button 
-                        onClick={() => { setMode('work'); updateDuration(25); }}
-                        className={`flex items-center gap-2 px-3 py-1.5 sm:px-4 text-[9px] sm:text-[10px] uppercase font-bold tracking-widest transition-all ${mode === 'work' ? 'bg-user-a text-white' : 'text-stone-500 hover:text-stone-800 dark:hover:text-stone-200'}`}
-                    >
+                    <div className={`flex items-center gap-2 px-3 py-1.5 sm:px-4 text-[9px] sm:text-[10px] uppercase font-bold tracking-widest transition-all ${mode === 'work' ? 'bg-user-a text-white' : 'text-stone-500'}`}>
                         <Focus size={14} /> Focus
-                    </button>
-                    <button 
-                        onClick={() => { setMode('break'); updateDuration(5); }}
-                        className={`flex items-center gap-2 px-3 py-1.5 sm:px-4 text-[9px] sm:text-[10px] uppercase font-bold tracking-widest transition-all ${mode === 'break' ? 'bg-user-a text-white' : 'text-stone-500 hover:text-stone-800 dark:hover:text-stone-200'}`}
-                    >
+                    </div>
+                    <div className={`flex items-center gap-2 px-3 py-1.5 sm:px-4 text-[9px] sm:text-[10px] uppercase font-bold tracking-widest transition-all ${mode === 'break' ? 'bg-user-a text-white' : 'text-stone-500'}`}>
                         <Coffee size={14} /> Break
-                    </button>
-                </div>
-
-                {/* Main Countdown */}
-                <div className="relative">
-                    <div className="text-[80px] sm:text-[120px] leading-none font-black tracking-tighter text-stone-900 dark:text-white tabular-nums">
-                        {formatTime(timeLeft)}
                     </div>
                 </div>
 
-                {/* Duration Control */}
+                {/* Session Progress */}
+                {totalSessions > 1 && (
+                    <div className="w-full flex items-center justify-center gap-2">
+                        {sessionPlan.map((dur, i) => (
+                            <div key={i} className="flex items-center gap-2">
+                                <div className={`flex flex-col items-center`}>
+                                    <div className={`w-6 h-6 flex items-center justify-center text-[9px] font-mono font-bold border transition-all ${
+                                        i + 1 < currentSession
+                                            ? 'bg-user-a border-user-a text-white'
+                                            : i + 1 === currentSession
+                                                ? 'border-user-a text-user-a'
+                                                : 'border-stone-300 dark:border-stone-700 text-stone-400'
+                                    }`}>
+                                        {i + 1}
+                                    </div>
+                                    <span className="text-[7px] font-mono text-stone-400 mt-1">{dur}m</span>
+                                </div>
+                                {i < sessionPlan.length - 1 && (
+                                    <div className={`w-4 h-px mt-[-8px] ${i + 1 < currentSession ? 'bg-user-a' : 'bg-stone-300 dark:bg-stone-700'}`} />
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                {/* Main Countdown */}
+                <div className="relative">
+                    <div className="text-[80px] sm:text-[120px] leading-none font-bold tracking-tighter text-stone-900 dark:text-white tabular-nums font-mono">
+                        {formatTime(timeLeft)}
+                    </div>
+                    <div className="text-center text-[9px] uppercase font-bold tracking-[0.3em] text-stone-400 mt-2">
+                        Sesión {currentSession}/{totalSessions} · {currentSessionDuration}min {mode === 'break' ? '(Descanso)' : ''}
+                    </div>
+                </div>
+
+                {/* Budget Control */}
                 <div className="w-full space-y-4">
                     <div className="flex items-center justify-between text-[10px] uppercase font-bold tracking-widest text-stone-400">
-                        <span>Duración Manual</span>
+                        <span>Tiempo Total</span>
                         <div className="flex items-center gap-2">
                             <input
                                 type="number"
-                                value={durationMinutes}
-                                onChange={(e) => updateDuration(parseInt(e.target.value) || 1)}
-                                className="w-12 bg-transparent border-b border-stone-200 dark:border-stone-800 text-center text-stone-900 dark:text-white focus:border-user-a outline-none py-1"
+                                value={totalBudget}
+                                onChange={(e) => updateBudget(parseInt(e.target.value) || 1)}
+                                disabled={isRunning}
+                                className="w-14 bg-transparent border-b border-stone-200 dark:border-stone-800 text-center text-stone-900 dark:text-white focus:border-user-a outline-none py-1 font-mono disabled:opacity-50"
                             />
                             <span>Min</span>
                         </div>
@@ -212,11 +279,15 @@ export function PomodoroTimer() {
                         <input
                             type="range"
                             min="1"
-                            max="120"
-                            value={durationMinutes}
-                            onChange={(e) => updateDuration(parseInt(e.target.value))}
-                            className="w-full h-1.5 bg-stone-200 dark:bg-stone-800 appearance-none cursor-pointer accent-user-a rounded-none"
+                            max="180"
+                            value={totalBudget}
+                            onChange={(e) => updateBudget(parseInt(e.target.value))}
+                            disabled={isRunning}
+                            className="w-full h-1.5 bg-stone-200 dark:bg-stone-800 appearance-none cursor-pointer accent-user-a rounded-none disabled:opacity-50"
                         />
+                    </div>
+                    <div className="text-[8px] text-center font-mono text-stone-500">
+                        {sessionPlan.map((d, i) => `${d}m`).join(' + ')} = {totalBudget}min de foco
                     </div>
                 </div>
 

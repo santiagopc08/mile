@@ -21,6 +21,7 @@
 
   --spacing: 0.25rem;
   --font-sans: var(--font-inter);
+  --font-mono: var(--font-mono);
 
   /* Geometric Accent */
   --color-geometric-accent: #f43f5e;

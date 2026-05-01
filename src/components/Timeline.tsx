@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Calendar, Plus, Image as ImageIcon } from 'lucide-react';
+import { Calendar, Plus, Image as ImageIcon, Pencil, X, Check } from 'lucide-react';
 import { useState } from 'react';
 import { useStore } from '@/context/StoreContext';
 import { useProfile } from '@/context/ProfileContext';
@@ -25,6 +25,14 @@ export function Timeline({ events }: TimelineProps) {
     const { profile } = useProfile();
     const [isAdding, setIsAdding] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
+
+    // Edit state
+    const [editingId, setEditingId] = useState<string | null>(null);
+    const [editTitle, setEditTitle] = useState('');
+    const [editDate, setEditDate] = useState('');
+    const [editDesc, setEditDesc] = useState('');
+    const [editImageUrl, setEditImageUrl] = useState<string | undefined>(undefined);
+    const [isEditUploading, setIsEditUploading] = useState(false);
 
     const handleAddEvent = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -60,6 +68,49 @@ export function Timeline({ events }: TimelineProps) {
             setIsUploading(false);
             setIsAdding(false);
         }
+    };
+
+    const handleEditStart = (event: TimelineEvent) => {
+        setEditingId(event.id);
+        setEditTitle(event.title);
+        setEditDate(event.date);
+        setEditDesc(event.description);
+        setEditImageUrl(event.imageUrl);
+        setIsAdding(false);
+    };
+
+    const handleEditSave = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingId || !editTitle.trim() || !editDate || !editDesc.trim()) return;
+
+        const form = e.currentTarget as HTMLFormElement;
+        const imageInput = form.elements.namedItem('editImage') as HTMLInputElement;
+        const file = imageInput?.files?.[0];
+
+        let finalImageUrl = editImageUrl;
+        if (file) {
+            setIsEditUploading(true);
+            try {
+                finalImageUrl = await StoreService.uploadTimelineImage(file);
+            } catch (err) {
+                console.error("Upload failed", err);
+                alert("Error al subir la imagen.");
+                setIsEditUploading(false);
+                return;
+            }
+            setIsEditUploading(false);
+        }
+
+        const updated = events.map(ev => ev.id === editingId ? {
+            ...ev,
+            title: editTitle.trim(),
+            date: editDate,
+            description: editDesc.trim(),
+            imageUrl: finalImageUrl
+        } : ev);
+
+        await updateData({ events: updated });
+        setEditingId(null);
     };
 
     return (
@@ -127,10 +178,66 @@ export function Timeline({ events }: TimelineProps) {
 
                                 {/* Content Card */}
                                 <div className={`w-full pl-8 md:pl-0 md:w-5/12 ${isLeft ? 'md:text-right text-left' : 'text-left'}`}>
-                                    <div className="geometric-card p-5 md:p-6 bg-white dark:bg-stone-900 transition-all hover:border-geometric-accent group">
+                                    <div className={`geometric-card p-5 md:p-6 bg-white dark:bg-stone-900 transition-all hover:border-geometric-accent group ${editingId === event.id ? 'border-geometric-accent ring-1 ring-geometric-accent/30' : ''}`}>
+
+                                    {editingId === event.id ? (
+                                        <form onSubmit={handleEditSave} className="space-y-3 text-left">
+                                            <div className="grid md:grid-cols-2 gap-3">
+                                                <input
+                                                    autoFocus
+                                                    value={editTitle}
+                                                    onChange={e => setEditTitle(e.target.value)}
+                                                    placeholder="Título"
+                                                    className="bg-stone-50 dark:bg-stone-950 border border-geometric-border rounded-none px-3 py-2 text-sm outline-none focus:border-geometric-accent"
+                                                />
+                                                <input
+                                                    type="date"
+                                                    value={editDate}
+                                                    onChange={e => setEditDate(e.target.value)}
+                                                    className="bg-stone-50 dark:bg-stone-950 border border-geometric-border rounded-none px-3 py-2 text-sm outline-none focus:border-geometric-accent text-stone-500"
+                                                />
+                                            </div>
+                                            <textarea
+                                                value={editDesc}
+                                                onChange={e => setEditDesc(e.target.value)}
+                                                placeholder="Descripción"
+                                                className="w-full bg-stone-50 dark:bg-stone-950 border border-geometric-border rounded-none px-3 py-2 min-h-[80px] text-sm outline-none focus:border-geometric-accent"
+                                            />
+
+                                            {editImageUrl && (
+                                                <div className="border border-geometric-border overflow-hidden">
+                                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                    <img src={editImageUrl} alt="Current" className="w-full h-auto max-h-32 object-cover opacity-60" />
+                                                </div>
+                                            )}
+
+                                            <div className="relative">
+                                                <input name="editImage" type="file" accept="image/*" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                                                <div className="w-full px-3 py-2 border border-dashed border-geometric-border bg-stone-50 dark:bg-stone-950 flex items-center justify-center gap-2 text-stone-500 hover:border-geometric-accent transition-colors text-xs">
+                                                    <ImageIcon className="w-4 h-4" />
+                                                    <span>{editImageUrl ? 'Reemplazar Foto' : 'Subir Foto'}</span>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex gap-2 pt-1">
+                                                <button type="button" onClick={() => setEditingId(null)} className="flex-1 py-2 border border-geometric-border text-stone-500 text-xs uppercase font-bold tracking-widest hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors">
+                                                    Cancelar
+                                                </button>
+                                                <button type="submit" disabled={isEditUploading} className="flex-1 py-2 bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 text-xs uppercase font-bold tracking-widest hover:bg-geometric-accent hover:text-white transition-colors disabled:opacity-50">
+                                                    {isEditUploading ? 'Subiendo...' : 'Guardar'}
+                                                </button>
+                                            </div>
+                                        </form>
+                                    ) : (
+                                    <>
                                     <div className={`flex items-center gap-2 text-sm text-stone-500 dark:text-stone-400 mb-3 ${isLeft ? 'md:justify-end justify-start' : 'justify-start'}`}>
                                         <Calendar className="w-4 h-4 text-geometric-accent" />
                                         <time className="font-mono tracking-tighter">{event.date}</time>
+                                        {profile && (
+                                            <button onClick={() => handleEditStart(event)} className="ml-auto text-stone-400 hover:text-geometric-accent transition-all">
+                                                <Pencil className="w-3.5 h-3.5" />
+                                            </button>
+                                        )}
                                     </div>
                                     <h3 className="text-xl font-bold text-stone-800 dark:text-stone-200 mb-2 uppercase tracking-tight group-hover:text-geometric-accent transition-colors">
                                         {event.title}
@@ -149,6 +256,7 @@ export function Timeline({ events }: TimelineProps) {
                                             />
                                         </div>
                                     )}
+                                    </>)}
 
                                     {/* Geometric accent corner */}
                                     <div className="absolute top-0 right-0 w-8 h-8 pointer-events-none overflow-hidden">
