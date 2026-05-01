@@ -205,14 +205,14 @@ export function PendingTasks() {
                                 {!editingId && task.status !== 'done' && (
                                     <button
                                         onClick={(e) => handleEditStart(task, e)}
-                                        className="p-2 text-stone-600 hover:text-geometric-accent transition-all bg-white/5"
+                                        className="p-2 text-stone-400 hover:text-geometric-accent transition-all bg-white/5"
                                     >
                                         <Pencil className="w-4 h-4" />
                                     </button>
                                 )}
                                 <button
                                     onClick={(e) => deleteTask(task.id, e)}
-                                    className="p-2 text-stone-600 hover:text-red-500 transition-all bg-white/5"
+                                    className="p-2 text-stone-400 hover:text-red-500 transition-all bg-white/5"
                                 >
                                     <Trash2 className="w-4 h-4" />
                                 </button>

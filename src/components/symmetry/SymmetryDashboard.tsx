@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useStore } from "@/context/StoreContext";
 import { useVisibility } from '@/context/VisibilityContext';
 import { useProfile } from '@/context/ProfileContext';
-import { SaberPro } from './SaberPro';
+//import { SaberPro } from './SaberPro';
 import { TaskModule } from './TaskModule';
 import { DualWallet } from './DualWallet';
 import { FinanceChart } from './FinanceChart';
@@ -233,7 +233,8 @@ export const SymmetryDashboard = () => {
       </div>
 
       {/* Row 5: Saber Pro */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12">
+
+      {/*<div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12">
         <div className="lg:col-span-6 geometric-card p-6 bg-dot-matrix border-stone-200 dark:border-stone-800">
           <h2 className="text-[9px] uppercase font-bold tracking-[0.2em] mb-6 border-b border-stone-100 dark:border-stone-900 pb-2 text-user-a flex justify-between items-center">
             <span>Preparación Saber Pro</span>
@@ -241,7 +242,7 @@ export const SymmetryDashboard = () => {
           </h2>
           <SaberPro onCorrectAnswer={updateAcademic} />
         </div>
-      </div>
+      */}
     </div>
   );
 };
