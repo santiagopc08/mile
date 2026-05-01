@@ -6,17 +6,22 @@ import { JarOfNotes } from "@/components/JarOfNotes";
 import { PersistentListening } from "@/components/PersistentListening";
 import { AudioSection } from "@/components/AudioSection";
 import { PetsGallery } from "@/components/PetsGallery";
-import { MessageCircleHeart, Mic, Music, PawPrint } from 'lucide-react';
+import { Timeline } from "@/components/Timeline";
+import { useStore } from "@/context/StoreContext";
+import { MessageCircleHeart, Mic, Music, PawPrint, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function RefugioPage() {
-  const [activeTab, setActiveTab] = useState<'notas' | 'escucha' | 'musica' | 'bebes'>('notas');
+  const [activeTab, setActiveTab] = useState<'notas' | 'escucha' | 'musica' | 'bebes' | 'historia'>('notas');
+  const { data } = useStore();
+  const events = data?.events || [];
 
   const tabs = [
     { id: 'notas', label: 'Notas', icon: MessageCircleHeart },
     { id: 'escucha', label: 'Escucha', icon: Mic },
     { id: 'musica', label: 'Música', icon: Music },
     { id: 'bebes', label: 'Bebés', icon: PawPrint },
+    { id: 'historia', label: 'Historia', icon: Clock },
   ];
 
   return (
@@ -69,6 +74,7 @@ export default function RefugioPage() {
                 {activeTab === 'escucha' && <PersistentListening />}
                 {activeTab === 'musica' && <AudioSection />}
                 {activeTab === 'bebes' && <PetsGallery />}
+                {activeTab === 'historia' && <Timeline events={events} />}
               </motion.div>
             </AnimatePresence>
           </div>
