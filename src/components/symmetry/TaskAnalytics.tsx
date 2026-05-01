@@ -1,0 +1,148 @@
+'use client';
+
+import React, { useMemo } from 'react';
+import { motion } from 'framer-motion';
+import { useProfile } from '@/context/ProfileContext';
+import { Clock, TrendingUp, Zap, Target } from 'lucide-react';
+
+interface Task {
+  id: string;
+  text: string;
+  category: string;
+  actual_time: number;
+  estimated_time: number;
+  status: string;
+}
+
+export const TaskAnalytics = ({ tasks }: { tasks: Task[] }) => {
+  const { profile } = useProfile();
+  const accentColor = profile === 'ella' ? 'var(--color-user-b)' : 'var(--color-user-a)';
+
+  const stats = useMemo(() => {
+    if (!tasks || tasks.length === 0) return null;
+
+    const totalActual = tasks.reduce((sum, t) => sum + (t.actual_time || 0), 0);
+    const totalEstimated = tasks.reduce((sum, t) => sum + (t.estimated_time || 0), 0);
+
+    const tasksWithTime = tasks.filter(t => (t.actual_time || 0) > 0);
+
+    const mostWorked = tasksWithTime.length > 0
+      ? [...tasksWithTime].sort((a, b) => b.actual_time - a.actual_time)[0]
+      : null;
+
+    const leastWorked = tasksWithTime.length > 0
+      ? [...tasksWithTime].sort((a, b) => a.actual_time - b.actual_time)[0]
+      : null;
+
+    const efficiency = totalEstimated > 0 ? (totalActual / totalEstimated) : 0;
+
+    const categories = ['work', 'home', 'personal'];
+    const catStats = categories.map(cat => {
+      const catTasks = tasks.filter(t => t.category === cat);
+      const catTime = catTasks.reduce((sum, t) => sum + (t.actual_time || 0), 0);
+      return { name: cat, time: catTime };
+    });
+
+    return {
+      totalActual,
+      efficiency,
+      mostWorked,
+      leastWorked,
+      catStats
+    };
+  }, [tasks]);
+
+  if (!stats) return null;
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Total Time */}
+      <div className="p-4 border border-stone-200 dark:border-stone-800 bg-white/5 flex flex-col justify-between min-h-[100px]">
+        <div className="flex justify-between items-start">
+          <span className="text-[8px] uppercase font-bold tracking-[0.2em] text-stone-500">Inversión Total</span>
+          <Clock size={12} className="text-stone-400" />
+        </div>
+        <div className="mt-2">
+          <span className="text-2xl font-black tabular-nums">{stats.totalActual}</span>
+          <span className="text-[10px] uppercase font-bold ml-1 opacity-50">min</span>
+        </div>
+      </div>
+
+      {/* Efficiency */}
+      <div className="p-4 border border-stone-200 dark:border-stone-800 bg-white/5 flex flex-col justify-between min-h-[100px]">
+        <div className="flex justify-between items-start">
+          <span className="text-[8px] uppercase font-bold tracking-[0.2em] text-stone-500">Eficiencia Promedio</span>
+          <TrendingUp size={12} className="text-stone-400" />
+        </div>
+        <div className="mt-2 flex items-end gap-2">
+          <span className={`text-2xl font-black tabular-nums ${stats.efficiency > 1 ? 'text-red-500' : ''}`}>
+            {(stats.efficiency * 100).toFixed(0)}%
+          </span>
+          <div className="mb-1 h-1 w-12 bg-stone-100 dark:bg-stone-800">
+             <div
+               className="h-full transition-all"
+               style={{
+                 width: `${Math.min(100, stats.efficiency * 100)}%`,
+                 backgroundColor: stats.efficiency > 1 ? '#ef4444' : accentColor
+               }}
+             />
+          </div>
+        </div>
+      </div>
+
+      {/* Most Worked */}
+      <div className="p-4 border border-stone-200 dark:border-stone-800 bg-white/5 flex flex-col justify-between min-h-[100px]">
+        <div className="flex justify-between items-start">
+          <span className="text-[8px] uppercase font-bold tracking-[0.2em] text-stone-500">Operación Mayor</span>
+          <Zap size={12} className="text-stone-400" />
+        </div>
+        <div className="mt-2 overflow-hidden">
+          <p className="text-[10px] uppercase font-bold truncate" title={stats.mostWorked?.text}>
+            {stats.mostWorked?.text || '---'}
+          </p>
+          <p className="text-[8px] font-mono opacity-50 mt-1">{stats.mostWorked?.actual_time || 0}m registrados</p>
+        </div>
+      </div>
+
+      {/* Least Worked */}
+      <div className="p-4 border border-stone-200 dark:border-stone-800 bg-white/5 flex flex-col justify-between min-h-[100px]">
+        <div className="flex justify-between items-start">
+          <span className="text-[8px] uppercase font-bold tracking-[0.2em] text-stone-500">Operación Menor</span>
+          <Target size={12} className="text-stone-400" />
+        </div>
+        <div className="mt-2 overflow-hidden">
+          <p className="text-[10px] uppercase font-bold truncate" title={stats.leastWorked?.text}>
+            {stats.leastWorked?.text || '---'}
+          </p>
+          <p className="text-[8px] font-mono opacity-50 mt-1">{stats.leastWorked?.actual_time || 0}m registrados</p>
+        </div>
+      </div>
+
+      {/* Category Distribution */}
+      <div className="md:col-span-2 lg:col-span-4 p-4 border border-stone-200 dark:border-stone-800 bg-white/5">
+        <span className="text-[8px] uppercase font-bold tracking-[0.2em] text-stone-500 block mb-4">Distribución por Categoría</span>
+        <div className="flex flex-col gap-3">
+          {stats.catStats.map(cat => {
+             const percent = stats.totalActual > 0 ? (cat.time / stats.totalActual) * 100 : 0;
+             return (
+               <div key={cat.name} className="space-y-1">
+                 <div className="flex justify-between text-[8px] uppercase font-black">
+                   <span>{cat.name}</span>
+                   <span>{cat.time}m ({percent.toFixed(1)}%)</span>
+                 </div>
+                 <div className="h-1 w-full bg-stone-100 dark:bg-stone-800">
+                   <motion.div
+                     initial={{ width: 0 }}
+                     animate={{ width: `${percent}%` }}
+                     className="h-full"
+                     style={{ backgroundColor: accentColor }}
+                   />
+                 </div>
+               </div>
+             )
+          })}
+        </div>
+      </div>
+    </div>
+  );
+};

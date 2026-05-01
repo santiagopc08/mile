@@ -9,6 +9,7 @@ import { TaskModule } from './TaskModule';
 import { DualWallet } from './DualWallet';
 import { FinanceChart } from './FinanceChart';
 import { TaskStatsChart } from './TaskStatsChart';
+import { TaskAnalytics } from './TaskAnalytics';
 import { FiscalAuditor } from './FiscalAuditor';
 import { BiometricVault } from './BiometricVault';
 
@@ -183,6 +184,15 @@ export const SymmetryDashboard = () => {
         <div className="h-64">
           <TaskStatsChart tasks={tasks} />
         </div>
+      </div>
+
+      {/* Row 2.5: Task Deep Analytics */}
+      <div className="geometric-card p-6 sm:p-8 bg-mosaic border-stone-200 dark:border-stone-800">
+        <h2 className="text-[10px] uppercase font-bold tracking-[0.2em] mb-8 border-b border-stone-100 dark:border-stone-900 pb-3 flex items-center gap-2">
+          <div className="w-1.5 h-1.5 bg-user-b" />
+          Analítica de Operaciones
+        </h2>
+        <TaskAnalytics tasks={tasks} />
       </div>
 
       {/* Row 3: Fiscal Auditor & Allocations */}
