@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, Check, Pencil, X } from 'lucide-react';
+import { Plus, Trash2, Check, Pencil, X, Calendar } from 'lucide-react';
 import { useStore } from '@/context/StoreContext';
 import { useProfile } from '@/context/ProfileContext';
 import { StoreService } from '@/services/storeService';
@@ -157,43 +157,8 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
   return (
     <div className="space-y-6">
       {/* Creation UI */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-4">
-          <div className="flex gap-2">
-            <input
-              value={newTask}
-              onChange={e => setNewTask(e.target.value)}
-              placeholder="NUEVA TAREA"
-              className="flex-1 bg-transparent border border-stone-200 dark:border-stone-800 px-4 py-2 text-[10px] uppercase outline-none focus:border-user-a"
-            />
-            <button onClick={addTask} className="px-4 py-2 bg-user-a text-white">
-              <Plus size={16} />
-            </button>
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-             <div className="flex flex-col gap-1">
-                <label className="text-[7px] uppercase font-bold text-stone-400">Objetivo</label>
-                <select
-                  value={selectedObjectiveId}
-                  onChange={e => setSelectedObjectiveId(e.target.value)}
-                  className="bg-transparent border border-stone-200 dark:border-stone-800 px-2 py-1 text-[8px] uppercase outline-none"
-                >
-                  <option value="">Sin Objetivo</option>
-                  {objectives.map(o => <option key={o.id} value={o.id}>{o.title}</option>)}
-                </select>
-             </div>
-             <div className="flex flex-col gap-1">
-                <label className="text-[7px] uppercase font-bold text-stone-400">Est. (m)</label>
-                <input
-                  type="number"
-                  value={newEstimatedTime}
-                  onChange={e => setNewEstimatedTime(Number(e.target.value))}
-                  className="bg-transparent border border-stone-200 dark:border-stone-800 px-2 py-1 text-[8px] outline-none"
-                />
-             </div>
-          </div>
-        </div>
-
+      <div className="flex flex-col gap-6">
+        {/* Objectives First */}
         <div className="space-y-4">
           <div className="flex gap-2">
             <input
@@ -217,6 +182,52 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
             ))}
           </div>
         </div>
+
+        {/* Tasks Second */}
+        <div className="space-y-4 pt-4 border-t border-stone-100 dark:border-stone-900">
+          <div className="flex gap-2">
+            <input
+              value={newTask}
+              onChange={e => setNewTask(e.target.value)}
+              placeholder="NUEVA TAREA"
+              className="flex-1 bg-transparent border border-stone-200 dark:border-stone-800 px-4 py-2 text-[10px] uppercase outline-none focus:border-user-a"
+            />
+            <button onClick={addTask} className="px-4 py-2 bg-user-a text-white">
+              <Plus size={16} />
+            </button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+             <div className="flex flex-col gap-1">
+                <label className="text-[7px] uppercase font-bold text-stone-400">Objetivo</label>
+                <select
+                  value={selectedObjectiveId}
+                  onChange={e => setSelectedObjectiveId(e.target.value)}
+                  className="bg-transparent border border-stone-200 dark:border-stone-800 px-2 h-[32px] text-[8px] uppercase outline-none"
+                >
+                  <option value="">Sin Objetivo</option>
+                  {objectives.map(o => <option key={o.id} value={o.id}>{o.title}</option>)}
+                </select>
+             </div>
+             <div className="flex flex-col gap-1">
+                <label className="text-[7px] uppercase font-bold text-stone-400">Est. (m)</label>
+                <input
+                  type="number"
+                  value={newEstimatedTime}
+                  onChange={e => setNewEstimatedTime(Number(e.target.value))}
+                  className="bg-transparent border border-stone-200 dark:border-stone-800 px-2 h-[32px] text-[8px] outline-none"
+                />
+             </div>
+             <div className="flex flex-col gap-1">
+                <label className="text-[7px] uppercase font-bold text-stone-400">Fecha Límite (Opcional)</label>
+                <input
+                  type="datetime-local"
+                  value={newDueDate}
+                  onChange={e => setNewDueDate(e.target.value)}
+                  className="bg-transparent border border-stone-200 dark:border-stone-800 px-2 h-[32px] text-[8px] outline-none"
+                />
+             </div>
+          </div>
+        </div>
       </div>
 
       {/* Category Filter */}
@@ -226,7 +237,7 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
             <button
               key={cat}
               onClick={() => setCategory(cat)}
-              className={`text-[10px] uppercase font-bold tracking-widest py-1 border transition-colors ${
+              className={`text-[10px] uppercase font-bold tracking-widest px-4 py-1 border transition-colors ${
                 category === cat ? 'border-user-a text-user-a' : 'border-transparent text-stone-500 hover:border-stone-200 dark:hover:border-stone-800'
               }`}
             >
