@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, ShieldCheck, Gamepad2, MapPin, Clock } from 'lucide-react';
+import { LayoutDashboard, ShieldCheck, Gamepad2, MapPin, Heart } from 'lucide-react';
 
 export function AppNav() {
   const pathname = usePathname();
@@ -11,8 +11,8 @@ export function AppNav() {
     { name: 'Productividad', path: '/', icon: LayoutDashboard },
     { name: 'Refugio', path: '/refugio', icon: ShieldCheck },
     { name: 'Planes', path: '/planes', icon: MapPin },
+    { name: 'Salud', path: '/salud', icon: Heart },
     { name: 'Mahjong', path: '/juego', icon: Gamepad2 },
-    { name: 'Historia', path: '/historia', icon: Clock },
   ];
 
   return (

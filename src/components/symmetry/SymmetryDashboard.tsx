@@ -1,35 +1,38 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { useStore } from "@/context/StoreContext";
+import { useState, useEffect, useCallback } from 'react';
+import { motion } from 'framer-motion';
+import { TaskModule } from './TaskModule';
+import { TaskStatsChart } from './TaskStatsChart';
+import { useStore } from '@/context/StoreContext';
 import { useVisibility } from '@/context/VisibilityContext';
 import { useProfile } from '@/context/ProfileContext';
-//import { SaberPro } from './SaberPro';
-import { TaskModule } from './TaskModule';
+import { TaskAnalytics } from './TaskAnalytics';
+import { PomodoroTimer } from './PomodoroTimer';
 import { DualWallet } from './DualWallet';
 import { FinanceChart } from './FinanceChart';
-import { TaskStatsChart } from './TaskStatsChart';
-import { TaskAnalytics } from './TaskAnalytics';
-import { FiscalAuditor } from './FiscalAuditor';
-import { BiometricVault } from './BiometricVault';
+import { StoreService } from '@/services/storeService';
 
-import { motion } from 'framer-motion';
-import { PomodoroTimer } from './PomodoroTimer';
-const vids = [{ name: 'finanzas', src: '/vid/financesCat.mp4' }, { name: 'plan', src: '/vid/planningCat.mp4' }];
+interface Task {
+  id: string;
+  text: string;
+  status: 'todo' | 'in_progress' | 'done';
+  category: string;
+  actual_time: number;
+  estimated_time: number;
+}
 
 export const SymmetryDashboard = () => {
   const { mode, toggleMode } = useVisibility();
   const { profile } = useProfile();
   const { data } = useStore();
-
-  const [dataA, setDataA] = useState({ academic: 50, work: 50, home: 50, personal: 50 });
-  const [dataB, setDataB] = useState({ academic: 50, work: 50, home: 50, personal: 50 });
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [focusScore, setFocusScore] = useState(0);
   const [isFragmented, setIsFragmented] = useState(false);
-
+  const [dataA, setDataA] = useState({ academic: 45, fitness: 65, work: 80, home: 70, personal: 60 });
+  const [dataB, setDataB] = useState({ academic: 75, fitness: 40, work: 90, home: 65, personal: 85 });
   const [allocationsA, setAllocationsA] = useState<any[]>([]);
   const [allocationsB, setAllocationsB] = useState<any[]>([]);
-  const [tasks, setTasks] = useState<any[]>([]);
 
   useEffect(() => {
     const savedA = localStorage.getItem('symmetry_A_data');
@@ -42,8 +45,15 @@ export const SymmetryDashboard = () => {
     if (allocA) setAllocationsA(JSON.parse(allocA));
     if (allocB) setAllocationsB(JSON.parse(allocB));
 
-    const savedTasks = localStorage.getItem('symmetry_tasks');
-    if (savedTasks) setTasks(JSON.parse(savedTasks));
+    const fetchData = async () => {
+      try {
+        const store = await StoreService.getStore();
+        setTasks(store.tasks as any);
+      } catch (e) {
+        console.error("Failed to fetch tasks", e);
+      }
+    };
+    fetchData();
   }, []);
 
   // Sync allocations to localStorage
@@ -93,31 +103,11 @@ export const SymmetryDashboard = () => {
     }
   }, [tasks, profile]);
 
-  const updateAcademic = useCallback(() => {
-    const update = (prev: any) => {
-      const next = { ...prev, academic: Math.min(prev.academic + 5, 100) };
-      localStorage.setItem(profile === 'el' ? 'symmetry_A_data' : 'symmetry_B_data', JSON.stringify(next));
-      return next;
-    };
-    if (profile === 'el') setDataA(update);
-    else setDataB(update);
-  }, [profile]);
-
   const handleTasksUpdate = useCallback((score: number) => {
     setFocusScore(score);
     const savedTasks = localStorage.getItem('symmetry_tasks');
     if (savedTasks) setTasks(JSON.parse(savedTasks));
   }, []);
-
-  const handleAddAllocation = (newAlloc: any) => {
-    if (profile === 'el') setAllocationsA([newAlloc, ...allocationsA]);
-    else setAllocationsB([newAlloc, ...allocationsB]);
-  };
-
-  const handleRemoveAllocation = (id: string) => {
-    if (profile === 'el') setAllocationsA(allocationsA.filter(a => a.id !== id));
-    else setAllocationsB(allocationsB.filter(a => a.id !== id));
-  };
 
   return (
     <div className="w-full max-w-7xl mx-auto space-y-12 pb-24 px-4 sm:px-6">
@@ -151,9 +141,6 @@ export const SymmetryDashboard = () => {
         </h2>
         <PomodoroTimer />
       </div>
-
-      {/* Row 0.5: Biometric Vault */}
-      <BiometricVault />
 
       {/* Row 1: Kanban Board (full width) */}
       <div className="geometric-card p-6 sm:p-8 bg-mosaic border-stone-200 dark:border-stone-800">
@@ -197,14 +184,6 @@ export const SymmetryDashboard = () => {
 
       {/* Row 3: Fiscal Auditor & Allocations */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12">
-        <div className="lg:col-span-6">
-          <FiscalAuditor
-            allocations={profile === 'el' ? allocationsA : allocationsB}
-            onAddAllocation={handleAddAllocation}
-            onRemoveAllocation={handleRemoveAllocation}
-            profile={profile || 'el'}
-          />
-        </div>
         <div className="lg:col-span-6 geometric-card p-6 bg-dot-matrix border-stone-200 dark:border-stone-800">
           <h2 className="text-[9px] uppercase font-bold tracking-[0.2em] mb-6 border-b border-stone-100 dark:border-stone-900 pb-2 flex flex-wrap justify-between items-center">
             <span className="pr-2">Registro de Gastos</span>
@@ -241,18 +220,6 @@ export const SymmetryDashboard = () => {
           />
         </div>
       </div>
-
-      {/* Row 5: Saber Pro */}
-
-      {/*<div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12">
-        <div className="lg:col-span-6 geometric-card p-6 bg-dot-matrix border-stone-200 dark:border-stone-800">
-          <h2 className="text-[9px] uppercase font-bold tracking-[0.2em] mb-6 border-b border-stone-100 dark:border-stone-900 pb-2 text-user-a flex justify-between items-center">
-            <span>Preparación Saber Pro</span>
-            <span className="text-[8px] font-mono opacity-50">Versión 2.0</span>
-          </h2>
-          <SaberPro onCorrectAnswer={updateAcademic} />
-        </div>
-      */}
     </div>
   );
 };

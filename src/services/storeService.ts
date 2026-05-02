@@ -17,6 +17,22 @@ export interface Task {
     updated_at?: string;
 }
 
+export interface Objective {
+    id: string;
+    title: string;
+    author: string;
+    last_active: string;
+    created_at: string;
+}
+
+export interface Allocation {
+    id: string;
+    amount: number;
+    description: string;
+    category: string;
+    date: string;
+}
+
 export interface AppData {
     events: {
         id: string;
@@ -52,6 +68,7 @@ export interface AppData {
         todayCompleted: number;
     };
     tasks: Task[];
+    objectives: Objective[];
     wishlist: {
         id: string;
         category: 'plan' | 'antojo' | 'gusto';
@@ -77,7 +94,7 @@ export interface AppData {
 export const StoreService = {
     async getStore(supabase: SupabaseClient = defaultSupabase): Promise<AppData> {
         try {
-            const [eventsRes, notesRes, commitmentsRes, victoriesRes, settingsRes, playlistRes, commentsRes, listeningRes, tasksRes, wishlistRes] = await Promise.all([
+            const [eventsRes, notesRes, commitmentsRes, victoriesRes, settingsRes, playlistRes, commentsRes, listeningRes, tasksRes, wishlistRes, objectivesRes] = await Promise.all([
                 supabase.from('events').select('*').order('date', { ascending: false }),
                 supabase.from('notes').select('*').order('created_at', { ascending: false }),
                 supabase.from('commitments').select('*').order('created_at', { ascending: true }),
@@ -87,7 +104,8 @@ export const StoreService = {
                 supabase.from('audio_comments').select('*').order('created_at', { ascending: true }),
                 supabase.from('persistent_listening').select('*').order('date', { ascending: false }),
                 supabase.from('tasks').select('*').order('created_at', { ascending: false }),
-                supabase.from('wishlist').select('*').order('created_at', { ascending: false })
+                supabase.from('wishlist').select('*').order('created_at', { ascending: false }),
+                supabase.from('objectives').select('*').order('created_at', { ascending: true })
             ]);
 
             const settings = settingsRes.data || { connection_date: new Date().toISOString(), last_update: new Date().toISOString() };
@@ -132,6 +150,13 @@ export const StoreService = {
                     objective_id: t.objective_id,
                     due_date: t.due_date,
                     updated_at: t.updated_at
+                })),
+                objectives: (objectivesRes.data || []).map(o => ({
+                    id: o.id,
+                    title: o.title,
+                    author: o.author,
+                    last_active: o.last_active,
+                    created_at: o.created_at
                 })),
                 events: (eventsRes.data || []).map((e: any) => ({
                     id: e.id,
@@ -192,10 +217,14 @@ export const StoreService = {
                 const toInsert: any[] = [];
 
                 for (const item of incomingItems) {
-                    if (item.id && existingIds.has(item.id)) {
+                    // Check if item.id is a UUID (Supabase generated) or a temporary numeric ID (Date.now())
+                    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(item.id);
+
+                    if (item.id && isUuid && existingIds.has(item.id)) {
                         toUpsert.push(item);
                     } else {
                         const { id, ...rest } = item;
+                        // If it's a temp ID, we don't send it to Supabase so it generates a new UUID
                         toInsert.push(rest);
                     }
                 }
@@ -224,7 +253,7 @@ export const StoreService = {
             // Tasks
             if (newData.tasks !== undefined) {
                 await syncTable('tasks', newData.tasks.map((t) => ({
-                    id: isNaN(Number(t.id)) ? t.id : undefined,
+                    id: t.id,
                     text: t.text,
                     status: t.status === 'todo' ? 'pending' : t.status,
                     category: t.category,
@@ -233,6 +262,17 @@ export const StoreService = {
                     objective_id: t.objective_id,
                     due_date: t.due_date,
                     updated_at: new Date().toISOString()
+                })));
+            }
+
+            // Objectives
+            if (newData.objectives !== undefined) {
+                await syncTable('objectives', newData.objectives.map(o => ({
+                    id: o.id,
+                    title: o.title,
+                    author: o.author || 'el',
+                    last_active: o.last_active || new Date().toISOString(),
+                    created_at: o.created_at || new Date().toISOString()
                 })));
             }
 
@@ -250,24 +290,11 @@ export const StoreService = {
 
             // Notes
             if (newData.notes !== undefined) {
-                const { data: existing } = await supabase.from('notes').select('text');
-                const existingTexts = new Set((existing || []).map((r: any) => r.text));
-
                 await syncTable('notes', newData.notes.map(n => ({
                     id: n.id,
                     text: n.text,
                     author: n.author || 'el'
                 })));
-
-                // Check for new notes to notify Ella
-                const newNotes = newData.notes.filter(n => !existingTexts.has(n.text));
-                if (newNotes.length > 0) {
-                    await supabase.from('notifications').insert({
-                        target_profile: 'ella',
-                        type: 'new_note',
-                        message: `Él agregó ${newNotes.length} nueva(s) nota(s) al tarro.`
-                    });
-                }
             }
 
             // Commitments
@@ -279,9 +306,10 @@ export const StoreService = {
                     author: c.author || 'el'
                 })));
 
-                // Update Progress
-                const todayCompleted = newData.commitments.filter((c: any) => c.completed).length;
-                const todayStr = new Date(Date.now() - (new Date()).getTimezoneOffset() * 60000).toISOString().split('T')[0];
+                // Update tracking
+                const todayCompleted = newData.commitments.filter(c => c.completed).length;
+                const timeZoneOffset = (new Date()).getTimezoneOffset() * 60000;
+                const todayStr = new Date(Date.now() - timeZoneOffset).toISOString().split('T')[0];
                 await supabase.from('daily_tracking').upsert({ date: todayStr, completed_count: todayCompleted });
             }
 
