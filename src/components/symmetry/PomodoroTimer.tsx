@@ -10,6 +10,8 @@ interface Task {
     id: string;
     text: string;
     status: string;
+    actions?: {id: string, text: string, checked: boolean}[];
+    validations?: {id: string, text: string, checked: boolean}[];
 }
 
 const FOCUS_DURATION = 25; // minutes
@@ -179,6 +181,23 @@ export function PomodoroTimer() {
         return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
     };
 
+    const toggleTaskChecklist = async (taskId: string, listType: 'actions' | 'validations', itemId: string) => {
+        const task = tasks.find(t => t.id === taskId);
+        if (!task) return;
+        const list = task[listType] || [];
+        const newList = list.map(i => i.id === itemId ? { ...i, checked: !i.checked } : i);
+        
+        // Update via store service (partial update)
+        try {
+            await StoreService.updateStore({
+                tasks: [{ ...task, [listType]: newList }] as any
+            });
+            window.dispatchEvent(new CustomEvent('tasks-refresh'));
+        } catch (e) {
+            console.error("Failed to update checklist", e);
+        }
+    };
+
     const activeDuration = mode === 'work' ? currentSessionDuration : BREAK_DURATION;
     const progress = 1 - (timeLeft / (activeDuration * 60));
 
@@ -260,42 +279,45 @@ export function PomodoroTimer() {
                     </div>
                 </div>
 
-                {/* Budget Control */}
-                <div className="w-full space-y-4">
-                    <div className="flex items-center justify-between text-[10px] uppercase font-bold tracking-widest text-stone-400">
-                        <span>Tiempo Total</span>
-                        <div className="flex items-center gap-2">
+                {/* Budget Control - Hide when running */}
+                {!isRunning && (
+                    <div className="w-full space-y-4">
+                        <div className="flex items-center justify-between text-[10px] uppercase font-bold tracking-widest text-stone-400">
+                            <span>Tiempo Total</span>
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="number"
+                                    value={totalBudget}
+                                    onChange={(e) => updateBudget(parseInt(e.target.value) || 1)}
+                                    disabled={isRunning}
+                                    className="w-14 bg-transparent border-b border-stone-200 dark:border-stone-800 text-center text-stone-900 dark:text-white focus:border-user-a outline-none py-1 font-mono disabled:opacity-50"
+                                />
+                                <span>Min</span>
+                            </div>
+                        </div>
+                        <div className="py-2">
                             <input
-                                type="number"
+                                type="range"
+                                min="1"
+                                max="180"
                                 value={totalBudget}
-                                onChange={(e) => updateBudget(parseInt(e.target.value) || 1)}
+                                onChange={(e) => updateBudget(parseInt(e.target.value))}
                                 disabled={isRunning}
-                                className="w-14 bg-transparent border-b border-stone-200 dark:border-stone-800 text-center text-stone-900 dark:text-white focus:border-user-a outline-none py-1 font-mono disabled:opacity-50"
+                                className="w-full h-1.5 bg-stone-200 dark:bg-stone-800 appearance-none cursor-pointer accent-user-a rounded-none disabled:opacity-50"
                             />
-                            <span>Min</span>
+                        </div>
+                        <div className="text-[8px] text-center font-mono text-stone-500">
+                            {sessionPlan.map((d, i) => `${d}m`).join(' + ')} = {totalBudget}min de foco
                         </div>
                     </div>
-                    <div className="py-2">
-                        <input
-                            type="range"
-                            min="1"
-                            max="180"
-                            value={totalBudget}
-                            onChange={(e) => updateBudget(parseInt(e.target.value))}
-                            disabled={isRunning}
-                            className="w-full h-1.5 bg-stone-200 dark:bg-stone-800 appearance-none cursor-pointer accent-user-a rounded-none disabled:opacity-50"
-                        />
-                    </div>
-                    <div className="text-[8px] text-center font-mono text-stone-500">
-                        {sessionPlan.map((d, i) => `${d}m`).join(' + ')} = {totalBudget}min de foco
-                    </div>
-                </div>
+                )}
 
                 {/* Task Anchoring */}
                 <div className="w-full relative">
                     <button
-                        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                        className="w-full flex items-center justify-between p-3 min-h-[48px] border border-stone-200 dark:border-stone-800 bg-white/5 hover:border-user-a transition-all"
+                        onClick={() => !isRunning && setIsDropdownOpen(!isDropdownOpen)}
+                        disabled={isRunning}
+                        className="w-full flex items-center justify-between p-3 min-h-[48px] border border-stone-200 dark:border-stone-800 bg-white/5 hover:border-user-a transition-all disabled:opacity-80 disabled:hover:border-stone-200 dark:disabled:hover:border-stone-800"
                     >
                         <div className="flex items-center gap-3 overflow-hidden">
                             <Target size={16} className={selectedTaskId ? 'text-user-a' : 'text-stone-400'} />
@@ -303,11 +325,11 @@ export function PomodoroTimer() {
                                 {selectedTaskId ? tasks.find(t => t.id === selectedTaskId)?.text : 'Anclar a una operación'}
                             </span>
                         </div>
-                        <ChevronDown size={14} className={`transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                        {!isRunning && <ChevronDown size={14} className={`transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />}
                     </button>
 
                     <AnimatePresence>
-                        {isDropdownOpen && (
+                        {isDropdownOpen && !isRunning && (
                             <motion.div
                                 initial={{ opacity: 0, y: -10 }}
                                 animate={{ opacity: 1, y: 0 }}
@@ -334,6 +356,53 @@ export function PomodoroTimer() {
                         )}
                     </AnimatePresence>
                 </div>
+
+                {/* Execution Mode Checklists (Visible only when running and anchored) */}
+                {isRunning && selectedTaskId && mode === 'work' && (
+                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="w-full space-y-4">
+                        {(() => {
+                            const activeTask = tasks.find(t => t.id === selectedTaskId);
+                            if (!activeTask) return null;
+                            const hasActions = activeTask.actions && activeTask.actions.length > 0;
+                            const hasValidations = activeTask.validations && activeTask.validations.length > 0;
+                            if (!hasActions && !hasValidations) return null;
+
+                            return (
+                                <div className="space-y-4 border-t border-stone-100 dark:border-stone-800 pt-4">
+                                    <div className="text-[8px] uppercase font-bold tracking-widest text-stone-400 text-center mb-2">Modo Ejecución</div>
+                                    
+                                    {hasActions && (
+                                        <div className="space-y-2">
+                                            <div className="text-[7px] uppercase font-bold text-user-b">Acciones</div>
+                                            {activeTask.actions!.map(act => (
+                                                <button key={act.id} onClick={() => toggleTaskChecklist(activeTask.id, 'actions', act.id)} className={`w-full flex items-center gap-2 p-2 text-left text-[9px] border transition-colors ${act.checked ? 'border-user-b/50 bg-user-b/10 opacity-50' : 'border-stone-200 dark:border-stone-800 hover:border-user-b'}`}>
+                                                    <div className={`w-3 h-3 flex items-center justify-center border ${act.checked ? 'border-user-b bg-user-b text-white' : 'border-stone-400'}`}>
+                                                        {act.checked && <Check size={8} />}
+                                                    </div>
+                                                    <span className={act.checked ? 'line-through' : ''}>{act.text}</span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {hasValidations && (
+                                        <div className="space-y-2">
+                                            <div className="text-[7px] uppercase font-bold text-emerald-500">Validaciones</div>
+                                            {activeTask.validations!.map(val => (
+                                                <button key={val.id} onClick={() => toggleTaskChecklist(activeTask.id, 'validations', val.id)} className={`w-full flex items-center gap-2 p-2 text-left text-[9px] border transition-colors ${val.checked ? 'border-emerald-500/50 bg-emerald-500/10 opacity-50' : 'border-stone-200 dark:border-stone-800 hover:border-emerald-500'}`}>
+                                                    <div className={`w-3 h-3 flex items-center justify-center border ${val.checked ? 'border-emerald-500 bg-emerald-500 text-white' : 'border-stone-400'}`}>
+                                                        {val.checked && <Check size={8} />}
+                                                    </div>
+                                                    <span className={val.checked ? 'line-through' : ''}>{val.text}</span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })()}
+                    </motion.div>
+                )}
 
                 {/* Controls */}
                 <div className="flex items-center gap-3 sm:gap-4 w-full">

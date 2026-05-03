@@ -1,8 +1,14 @@
 import { supabase as defaultSupabase } from '@/lib/supabase';
 import { SupabaseClient } from '@supabase/supabase-js';
 
-export type TaskStatus = 'todo' | 'in_progress' | 'done';
+export type TaskStatus = 'todo' | 'in_progress' | 'done' | 'skipped';
 export type TaskCategory = 'work' | 'home' | 'personal';
+
+export interface ChecklistItem {
+    id: string;
+    text: string;
+    checked: boolean;
+}
 
 export interface Task {
     id: string;
@@ -15,6 +21,9 @@ export interface Task {
     objective_id?: string;
     due_date?: string;
     updated_at?: string;
+    actions?: ChecklistItem[];
+    validations?: ChecklistItem[];
+    detail?: string;
 }
 
 export interface Objective {
@@ -23,6 +32,7 @@ export interface Objective {
     author: string;
     last_active: string;
     created_at: string;
+    is_complete?: boolean;
 }
 
 export interface Allocation {
@@ -143,20 +153,25 @@ export const StoreService = {
                 tasks: (tasksRes.data || []).map((t) => ({
                     id: t.id,
                     text: t.text || t.title,
-                    status: t.status === 'pending' ? 'todo' : (t.status === 'done' ? 'done' : 'in_progress'),
+                    status: t.status === 'pending' ? 'todo' : (t.status === 'skipped' ? 'skipped' : (t.status === 'done' ? 'done' : (t.status === 'in_progress' ? 'in_progress' : 'todo'))),
                     category: t.category || 'work',
+                    priority: t.priority || undefined,
                     estimated_time: t.estimated_time || 0,
                     actual_time: t.actual_time || 0,
                     objective_id: t.objective_id,
                     due_date: t.due_date,
-                    updated_at: t.updated_at
+                    updated_at: t.updated_at,
+                    actions: t.actions || [],
+                    validations: t.validations || [],
+                    detail: t.detail || undefined,
                 })),
                 objectives: (objectivesRes.data || []).map(o => ({
                     id: o.id,
                     title: o.title,
                     author: o.author,
                     last_active: o.last_active,
-                    created_at: o.created_at
+                    created_at: o.created_at,
+                    is_complete: o.is_complete || false,
                 })),
                 events: (eventsRes.data || []).map((e: any) => ({
                     id: e.id,
@@ -257,10 +272,14 @@ export const StoreService = {
                     text: t.text,
                     status: t.status === 'todo' ? 'pending' : t.status,
                     category: t.category,
+                    priority: t.priority || null,
                     estimated_time: t.estimated_time,
                     actual_time: t.actual_time,
                     objective_id: t.objective_id,
                     due_date: t.due_date,
+                    actions: t.actions || [],
+                    validations: t.validations || [],
+                    detail: t.detail || null,
                     updated_at: new Date().toISOString()
                 })));
             }
@@ -271,6 +290,7 @@ export const StoreService = {
                     id: o.id,
                     title: o.title,
                     author: o.author || 'el',
+                    is_complete: o.is_complete || false,
                     last_active: o.last_active || new Date().toISOString(),
                     created_at: o.created_at || new Date().toISOString()
                 })));
