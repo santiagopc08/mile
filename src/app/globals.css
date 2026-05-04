@@ -16,8 +16,14 @@
   --color-earth-accent: #E8A87C;
 
   /* User Accents */
-  --color-user-a: #F97316; /* Santiago - Vibrant Orange */
-  --color-user-b: #A855F7; /* Milena - Soft Lavender */
+  --color-user-a: #ff7020; /* Primary Accent (Vibrant Orange) */
+  --color-user-b: #a100f0; /* Secondary Accent (Neon Purple) */
+  --color-user-c: #00dbe9; /* Tertiary Accent (Teal) */
+
+  --color-surface: #131313;
+  --color-surface-dim: #0a0a0a;
+  --color-surface-dark: #000000;
+  --color-border-subtle: rgba(255, 255, 255, 0.1);
 
   --spacing: 0.25rem;
   --font-sans: var(--font-inter);
@@ -30,15 +36,15 @@
 }
 
 :root {
-  --background: #fafaf9;
-  --foreground: #1c1917;
-  --tracking-tight: -0.05em;
+  --background: #000000;
+  --foreground: #e5e2e1;
+  --tracking-tight: 0.05em;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0c0a09;
-    --foreground: #fafaf9;
+    --background: #000000;
+    --foreground: #e5e2e1;
   }
 }
 
@@ -54,22 +60,22 @@ body {
 
 /* Geometric UI Signature Classes */
 .geometric-card {
-  background: var(--background);
-  border: 1px solid rgba(120, 113, 108, 0.15);
+  background: var(--color-surface-dim);
+  border: 1px solid var(--color-border-subtle);
   border-radius: 0px; /* Minimalist Brutalism Signature */
   position: relative;
   overflow: hidden;
 }
 
 .bg-mosaic {
-  background-size: 20px 20px;
-  background-image: linear-gradient(to right, rgba(120, 113, 108, 0.03) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(120, 113, 108, 0.03) 1px, transparent 1px);
+  background-size: 32px 32px;
+  background-image: linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
 }
 
 .bg-dot-matrix {
-  background-image: radial-gradient(rgba(120, 113, 108, 0.03) 1px, transparent 1px);
-  background-size: 16px 16px;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 32px 32px;
 }
 
 .geometric-accent-border {

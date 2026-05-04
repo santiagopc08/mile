@@ -6,7 +6,7 @@ export async function POST(req: Request) {
     
     // Test tasks
     const { error: tasksError } = await supabase.from('tasks').upsert([{
-        id: "test-db-1",
+        id: crypto.randomUUID(),
         text: "Test Task",
         status: "pending",
         category: "work",
@@ -21,7 +21,7 @@ export async function POST(req: Request) {
 
     // Test objectives
     const { error: objError } = await supabase.from('objectives').upsert([{
-        id: "test-db-2",
+        id: crypto.randomUUID(),
         title: "Test Obj",
         author: "el",
         is_complete: false,

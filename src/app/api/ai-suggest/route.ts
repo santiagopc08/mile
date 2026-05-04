@@ -9,54 +9,52 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Falta texto de tarea' }, { status: 400 });
     }
 
-    // Mock AI Suggestions base
+    const lowerText = taskText.toLowerCase();
     let suggestions: string[] = [];
 
     if (field === 'actions') {
-        if (category === 'work') {
+        if (lowerText.includes('comprar') || lowerText.includes('buy') || lowerText.includes('pagar')) {
             suggestions = [
-                'Revisar requerimientos iniciales',
-                'Crear rama de desarrollo',
-                'Escribir pruebas unitarias',
-                'Implementar lógica principal',
-                'Solicitar code review'
+                'Verificar presupuesto o fondos disponibles',
+                'Comparar opciones o proveedores',
+                `Realizar transacción para: ${taskText}`,
+                'Guardar recibo o comprobante'
             ];
-        } else if (category === 'personal') {
+        } else if (lowerText.includes('leer') || lowerText.includes('estudiar') || lowerText.includes('aprender')) {
             suggestions = [
-                'Investigar opciones disponibles',
-                'Definir presupuesto',
-                'Comparar alternativas',
-                'Tomar decisión final'
+                'Reunir material de estudio',
+                'Configurar ambiente sin distracciones',
+                `Completar lectura/estudio de: ${taskText}`,
+                'Tomar notas o resumir puntos clave'
+            ];
+        } else if (lowerText.includes('código') || lowerText.includes('bug') || lowerText.includes('fix') || lowerText.includes('dev')) {
+            suggestions = [
+                'Reproducir el problema o analizar requerimientos',
+                'Escribir pruebas unitarias iniciales',
+                `Implementar solución para: ${taskText}`,
+                'Solicitar Code Review'
+            ];
+        } else if (lowerText.includes('correo') || lowerText.includes('email') || lowerText.includes('llamar') || lowerText.includes('contactar')) {
+            suggestions = [
+                'Definir objetivo de la comunicación',
+                `Redactar borrador de: ${taskText}`,
+                'Revisar tono y ortografía',
+                'Enviar y programar recordatorio de seguimiento'
             ];
         } else {
             suggestions = [
-                'Preparar materiales necesarios',
-                'Limpiar área de trabajo',
-                'Ejecutar tarea principal',
-                'Verificar resultado'
+                `Analizar el alcance de: ${taskText}`,
+                'Dividir en subtareas más pequeñas',
+                `Ejecutar la fase principal de: ${taskText}`,
+                'Validar calidad del resultado final'
             ];
         }
     } else if (field === 'validations') {
-        if (category === 'work') {
-            suggestions = [
-                'Código compila sin errores',
-                'Tests pasan al 100%',
-                'Diseño cumple con figma',
-                'Desplegado en staging'
-            ];
-        } else if (category === 'personal') {
-            suggestions = [
-                'Decisión comunicada',
-                'Registro actualizado',
-                'Confirmación recibida'
-            ];
-        } else {
-            suggestions = [
-                'Todo en su lugar',
-                'Sin daños o defectos',
-                'Funciona como esperado'
-            ];
-        }
+        suggestions = [
+            `El objetivo principal de "${taskText}" se cumplió al 100%`,
+            `No hay errores ni dependencias bloqueadas tras terminar "${taskText}"`,
+            `Se documentó o reportó el avance de "${taskText}"`
+        ];
     }
 
     // Optional delay to simulate network/AI processing time

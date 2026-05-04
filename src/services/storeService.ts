@@ -269,13 +269,14 @@ export const StoreService = {
             if (newData.tasks !== undefined) {
                 await syncTable('tasks', newData.tasks.map((t) => ({
                     id: t.id,
+                    title: t.text,
                     text: t.text,
                     status: t.status === 'todo' ? 'pending' : t.status,
                     category: t.category,
                     priority: t.priority || null,
                     estimated_time: t.estimated_time,
                     actual_time: t.actual_time,
-                    objective_id: t.objective_id,
+                    objective_id: (t as any).objectiveId || (t as any).objective_id || null,
                     due_date: t.due_date,
                     actions: t.actions || [],
                     validations: t.validations || [],

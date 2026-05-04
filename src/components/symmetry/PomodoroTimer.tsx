@@ -10,8 +10,8 @@ interface Task {
     id: string;
     text: string;
     status: string;
-    actions?: {id: string, text: string, checked: boolean}[];
-    validations?: {id: string, text: string, checked: boolean}[];
+    actions?: { id: string, text: string, checked: boolean }[];
+    validations?: { id: string, text: string, checked: boolean }[];
 }
 
 const FOCUS_DURATION = 25; // minutes
@@ -27,7 +27,7 @@ export function PomodoroTimer() {
 
     const { data, updateData } = useStore();
     const tasks = useMemo(() => {
-        return (data?.tasks || []).filter((t: Task) => t.status !== 'done');
+        return (data?.tasks || []).filter((t: Task) => t.status !== 'done' && t.status !== 'skipped');
     }, [data?.tasks]);
 
     const [selectedTaskId, setSelectedTaskId] = useState<string>('');
@@ -76,9 +76,11 @@ export function PomodoroTimer() {
     }, [isRunning, timeLeft]);
 
     // Reset timer when budget or session changes (only when not running)
+    const prevDurationRef = useRef(currentSessionDuration);
     useEffect(() => {
-        if (!isRunning) {
+        if (!isRunning && prevDurationRef.current !== currentSessionDuration) {
             setTimeLeft(currentSessionDuration * 60);
+            prevDurationRef.current = currentSessionDuration;
         }
     }, [currentSessionDuration, isRunning]);
 
@@ -92,8 +94,10 @@ export function PomodoroTimer() {
                 const task = tasks.find(t => t.id === selectedTaskId);
                 if (task && task.status === 'todo') {
                     try {
-                        await StoreService.updateTaskStatus(selectedTaskId, 'in_progress');
-                        window.dispatchEvent(new CustomEvent('tasks-refresh'));
+                        const updatedTasks = (data?.tasks || []).map((t: any) =>
+                            t.id === selectedTaskId ? { ...t, status: 'in_progress', updated_at: new Date().toISOString() } : t
+                        );
+                        await updateData({ tasks: updatedTasks as any });
                     } catch (e) {
                         console.error("Failed to update status", e);
                     }
@@ -118,9 +122,14 @@ export function PomodoroTimer() {
         const minutesToDeposit = Math.floor(elapsedSeconds / 60);
         if (minutesToDeposit > 0 && selectedTaskId) {
             try {
-                await StoreService.updateTaskActualTime(selectedTaskId, minutesToDeposit);
+                const updatedTasks = (data?.tasks || []).map((t: any) => {
+                    if (t.id === selectedTaskId) {
+                        return { ...t, actual_time: (t.actual_time || 0) + minutesToDeposit, updated_at: new Date().toISOString() };
+                    }
+                    return t;
+                });
+                await updateData({ tasks: updatedTasks as any });
                 setElapsedSeconds(s => s % 60);
-                window.dispatchEvent(new CustomEvent('tasks-refresh'));
             } catch (e) {
                 console.error("Failed to deposit time", e);
             }
@@ -183,7 +192,7 @@ export function PomodoroTimer() {
 
     const toggleTaskChecklist = async (taskId: string, listType: 'actions' | 'validations', itemId: string) => {
         if (!data?.tasks) return;
-        
+
         const updatedTasks = data.tasks.map(t => {
             if (t.id === taskId) {
                 const list = (t[listType] || []) as any[];
@@ -204,81 +213,48 @@ export function PomodoroTimer() {
     const progress = 1 - (timeLeft / (activeDuration * 60));
 
     return (
-        <div className="w-full h-full flex flex-col items-center justify-center relative p-4 bg-mosaic bg-opacity-[0.03] sm:p-6">
+        <div className="w-full flex flex-col items-center justify-center p-4 sm:p-6 font-mono text-stone-200">
 
-            {/* Linear Mosaic Border Progress */}
-            <div className="fixed inset-0 pointer-events-none z-50">
-                {/* Top */}
-                <motion.div
-                    className="absolute top-0 left-0 h-1 bg-user-a"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${Math.min(1, progress * 4) * 100}%` }}
-                />
-                {/* Right */}
-                <motion.div
-                    className="absolute top-0 right-0 w-1 bg-user-a"
-                    initial={{ height: 0 }}
-                    animate={{ height: `${Math.max(0, Math.min(1, (progress - 0.25) * 4)) * 100}%` }}
-                />
-                {/* Bottom */}
-                <motion.div
-                    className="absolute bottom-0 right-0 h-1 bg-user-a"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${Math.max(0, Math.min(1, (progress - 0.5) * 4)) * 100}%` }}
-                />
-                {/* Left */}
-                <motion.div
-                    className="absolute bottom-0 left-0 w-1 bg-user-a"
-                    initial={{ height: 0 }}
-                    animate={{ height: `${Math.max(0, Math.min(1, (progress - 0.75) * 4)) * 100}%` }}
-                />
-            </div>
 
-            <div className="w-full max-w-sm flex flex-col items-center space-y-6 sm:space-y-8">
-                
-                {/* Mode Indicator */}
-                <div className="flex border border-stone-200 dark:border-stone-800 p-1 bg-white/5">
-                    <div className={`flex items-center gap-2 px-3 py-1.5 sm:px-4 text-[9px] sm:text-[10px] uppercase font-bold tracking-widest transition-all ${mode === 'work' ? 'bg-user-a text-white' : 'text-stone-500'}`}>
-                        <Focus size={14} /> Focus
-                    </div>
-                    <div className={`flex items-center gap-2 px-3 py-1.5 sm:px-4 text-[9px] sm:text-[10px] uppercase font-bold tracking-widest transition-all ${mode === 'break' ? 'bg-user-a text-white' : 'text-stone-500'}`}>
-                        <Coffee size={14} /> Break
-                    </div>
-                </div>
+            <div className="w-full flex flex-col items-center">
 
-                {/* Session Progress */}
-                {totalSessions > 1 && (
-                    <div className="w-full flex items-center justify-center gap-2">
-                        {sessionPlan.map((dur, i) => (
-                            <div key={i} className="flex items-center gap-2">
-                                <div className={`flex flex-col items-center`}>
-                                    <div className={`w-6 h-6 flex items-center justify-center text-[9px] font-mono font-bold border transition-all ${
-                                        i + 1 < currentSession
-                                            ? 'bg-user-a border-user-a text-white'
-                                            : i + 1 === currentSession
-                                                ? 'border-user-a text-user-a'
-                                                : 'border-stone-300 dark:border-stone-700 text-stone-400'
-                                    }`}>
-                                        {i + 1}
-                                    </div>
-                                    <span className="text-[7px] font-mono text-stone-400 mt-1">{dur}m</span>
-                                </div>
-                                {i < sessionPlan.length - 1 && (
-                                    <div className={`w-4 h-px mt-[-8px] ${i + 1 < currentSession ? 'bg-user-a' : 'bg-stone-300 dark:bg-stone-700'}`} />
-                                )}
-                            </div>
-                        ))}
+                {isRunning && (
+                    <div className="w-full flex justify-between items-end mb-4 border-b border-user-a/30 pb-2">
+                        <div className="text-[10px] text-user-a font-bold tracking-[0.2em]">[ :: ACTIVE_SESSION ]<br /><span className="text-stone-400">SYS_SESSION_{currentSession.toString().padStart(2, '0')}</span></div>
+                        <div className="text-[8px] text-stone-500 tracking-[0.2em] text-right">UPLINK: SECURE<br />LATENCY: 14MS</div>
                     </div>
                 )}
 
                 {/* Main Countdown */}
-                <div className="relative">
-                    <div className="text-[80px] sm:text-[120px] leading-none font-bold tracking-tighter text-stone-900 dark:text-white tabular-nums font-mono">
+                <div className="w-full text-center my-6 relative">
+                    <div className="text-[8px] uppercase tracking-[0.3em] text-stone-500 mb-2">
+                        [ REMAINING_BLOCK_TIME ]
+                    </div>
+                    <div className="text-[100px] sm:text-[140px] leading-[0.85] font-bold tracking-tighter tabular-nums font-sans"
+                        style={{
+                            color: isRunning ? 'var(--color-user-a)' : '#e5e2e1',
+                            textShadow: isRunning ? '0 0 40px rgba(255, 112, 32, 0.4)' : 'none'
+                        }}>
                         {formatTime(timeLeft)}
                     </div>
-                    <div className="text-center text-[9px] uppercase font-bold tracking-[0.3em] text-stone-400 mt-2">
-                        Sesión {currentSession}/{totalSessions} · {currentSessionDuration}min {mode === 'break' ? '(Descanso)' : ''}
-                    </div>
+
+                    {isRunning && (
+                        <div className="w-full mt-6">
+                            <div className="flex justify-between text-[8px] tracking-[0.2em] text-stone-500 mb-1">
+                                <span>ELAPSED: {formatTime(elapsedSeconds)}</span>
+                                <span>TARGET: {currentSessionDuration}:00</span>
+                            </div>
+                            <div className="w-full h-2 bg-stone-900 border border-stone-800">
+                                <motion.div
+                                    className="h-full"
+                                    style={{
+                                        width: `${(elapsedSeconds / (currentSessionDuration * 60)) * 100}%`,
+                                        background: 'repeating-linear-gradient(to right, var(--color-user-a), var(--color-user-a) 3px, transparent 3px, transparent 5px)'
+                                    }}
+                                />
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Budget Control - Hide when running */}
@@ -315,43 +291,45 @@ export function PomodoroTimer() {
                 )}
 
                 {/* Task Anchoring */}
-                <div className="w-full relative">
+                <div className="w-full relative mt-6 mb-2">
+                    <div className="text-[8px] uppercase tracking-[0.2em] text-stone-500 mb-2">
+                        {'>'} OPERATION_TARGET
+                    </div>
                     <button
                         onClick={() => !isRunning && setIsDropdownOpen(!isDropdownOpen)}
                         disabled={isRunning}
-                        className="w-full flex items-center justify-between p-3 min-h-[48px] border border-stone-200 dark:border-stone-800 bg-white/5 hover:border-user-a transition-all disabled:opacity-80 disabled:hover:border-stone-200 dark:disabled:hover:border-stone-800"
+                        className="w-full flex items-center justify-between p-4 min-h-[50px] border border-white/10 bg-black hover:border-white/30 transition-all disabled:opacity-50"
                     >
                         <div className="flex items-center gap-3 overflow-hidden">
-                            <Target size={16} className={selectedTaskId ? 'text-user-a' : 'text-stone-400'} />
-                            <span className="text-[10px] uppercase font-bold tracking-widest truncate">
-                                {selectedTaskId ? tasks.find(t => t.id === selectedTaskId)?.text : 'Anclar a una operación'}
+                            <span className={`text-[12px] uppercase font-bold tracking-widest truncate ${selectedTaskId ? 'text-white' : 'text-stone-500'}`}>
+                                {selectedTaskId ? tasks.find(t => t.id === selectedTaskId)?.text : 'SELECT TASK...'}
                             </span>
                         </div>
-                        {!isRunning && <ChevronDown size={14} className={`transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />}
+                        {!isRunning && <ChevronDown size={14} className="text-stone-500" />}
                     </button>
 
                     <AnimatePresence>
                         {isDropdownOpen && !isRunning && (
                             <motion.div
-                                initial={{ opacity: 0, y: -10 }}
+                                initial={{ opacity: 0, y: -5 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -10 }}
-                                className="absolute bottom-full mb-1 left-0 right-0 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 z-[60] max-h-48 overflow-y-auto custom-scrollbar shadow-xl"
+                                exit={{ opacity: 0, y: -5 }}
+                                className="absolute top-full mt-1 left-0 right-0 bg-[#0a0a0a] border border-white/10 z-[60] max-h-48 overflow-y-auto custom-scrollbar shadow-2xl"
                             >
                                 <button
                                     onClick={() => { setSelectedTaskId(''); setIsDropdownOpen(false); }}
-                                    className="w-full text-left p-3 text-[10px] uppercase hover:bg-stone-50 dark:hover:bg-stone-800/50 border-b border-stone-100 dark:border-stone-800/50 min-h-[44px]"
+                                    className="w-full text-left p-3 text-[10px] uppercase hover:bg-white/5 border-b border-white/5 min-h-[44px] text-stone-400"
                                 >
-                                    Sin anclaje
+                                    [ UNLINK TARGET ]
                                 </button>
                                 {tasks.map(task => (
                                     <button
                                         key={task.id}
                                         onClick={() => { setSelectedTaskId(task.id); setIsDropdownOpen(false); }}
-                                        className="w-full text-left p-3 text-[10px] uppercase hover:bg-stone-50 dark:hover:bg-stone-800/50 border-b border-stone-100 dark:border-stone-800/50 flex flex-col min-h-[48px]"
+                                        className="w-full text-left p-3 text-[10px] uppercase hover:bg-white/5 border-b border-white/5 flex flex-col gap-1"
                                     >
-                                        <span className="font-bold truncate">{task.text}</span>
-                                        <span className="text-[8px] text-stone-400 uppercase tracking-tighter">{task.status}</span>
+                                        <span className="font-bold truncate text-white">{task.text}</span>
+                                        <span className="text-[8px] text-stone-500 tracking-widest">STATUS: {task.status}</span>
                                     </button>
                                 ))}
                             </motion.div>
@@ -372,7 +350,7 @@ export function PomodoroTimer() {
                             return (
                                 <div className="space-y-4 border-t border-stone-100 dark:border-stone-800 pt-4">
                                     <div className="text-[8px] uppercase font-bold tracking-widest text-stone-400 text-center mb-2">Modo Ejecución</div>
-                                    
+
                                     {hasActions && (
                                         <div className="space-y-2">
                                             <div className="text-[7px] uppercase font-bold text-user-b">Acciones</div>
@@ -407,25 +385,36 @@ export function PomodoroTimer() {
                 )}
 
                 {/* Controls */}
-                <div className="flex items-center gap-3 sm:gap-4 w-full">
-                    <button 
-                        onClick={handleReset}
-                        className="p-4 sm:p-5 border border-stone-200 dark:border-stone-800 text-stone-500 hover:text-stone-900 dark:hover:text-white transition-all bg-white/5 active:bg-stone-100 dark:active:bg-stone-800"
+                {!isRunning ? (
+                    <button
+                        onClick={handleStart}
+                        className="w-full mt-4 py-5 bg-user-a text-[#5c2000] text-[12px] uppercase font-black tracking-[0.2em] flex items-center justify-center gap-3 border border-user-a hover:bg-[#ffb595] transition-colors"
+                        style={{ boxShadow: '0 0 20px rgba(255, 112, 32, 0.2)' }}
                     >
-                        <RotateCcw size={20} />
+                        <Play size={16} fill="currentColor" /> [ START FOCUS ]
                     </button>
-
-                    <button 
-                        onClick={isRunning ? handlePause : handleStart}
-                        className={`flex-1 flex items-center justify-center gap-3 py-4 sm:py-5 text-[12px] uppercase font-black tracking-[0.3em] transition-all min-h-[56px] ${
-                            isRunning 
-                                ? 'bg-stone-900 text-white border border-stone-900 dark:bg-white dark:text-black dark:border-white'
-                                : 'bg-user-a text-white border border-user-a shadow-[4px_4px_0px_0px_rgba(249,115,22,0.2)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px]'
-                        }`}
-                    >
-                        {isRunning ? <><Pause size={20} fill="currentColor" /> Pause</> : <><Play size={20} fill="currentColor" /> Start</>}
-                    </button>
-                </div>
+                ) : (
+                    <div className="flex w-full gap-4 mt-6">
+                        <button
+                            onClick={handlePause}
+                            className="flex-1 py-4 border border-white/20 bg-[#0a0a0a] text-stone-300 text-[10px] font-bold tracking-[0.2em] flex flex-col items-center justify-center gap-2 hover:border-white transition-colors"
+                        >
+                            <Pause size={16} /> [ || PAUSE ]
+                        </button>
+                        <button
+                            onClick={handleReset}
+                            className="flex-1 py-4 border border-white/20 bg-[#0a0a0a] text-stone-300 text-[10px] font-bold tracking-[0.2em] flex flex-col items-center justify-center gap-2 hover:border-red-500 hover:text-red-500 transition-colors"
+                        >
+                            <RotateCcw size={16} /> [ (x) ABORT ]
+                        </button>
+                        <button
+                            onClick={handleComplete}
+                            className="flex-[2] py-4 bg-user-a text-[#5c2000] border border-user-a text-[10px] font-black tracking-[0.2em] flex flex-col items-center justify-center gap-2 hover:bg-[#ffb595] transition-colors"
+                        >
+                            <Check size={16} /> [ (v) COMPLETE EARLY ]
+                        </button>
+                    </div>
+                )}
 
                 {elapsedSeconds > 0 && selectedTaskId && (
                     <div className="text-[9px] uppercase font-bold tracking-widest text-user-a animate-pulse text-center">
