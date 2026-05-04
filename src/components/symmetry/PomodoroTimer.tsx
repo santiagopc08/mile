@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { Play, Pause, RotateCcw, Coffee, Focus, Target, ChevronDown } from 'lucide-react';
+import { Play, Pause, RotateCcw, Coffee, Focus, Target, ChevronDown, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { StoreService } from '@/services/storeService';
 import { useStore } from '@/context/StoreContext';
@@ -25,7 +25,7 @@ export function PomodoroTimer() {
     const [isRunning, setIsRunning] = useState(false);
     const [elapsedSeconds, setElapsedSeconds] = useState(0);
 
-    const { data } = useStore();
+    const { data, updateData } = useStore();
     const tasks = useMemo(() => {
         return (data?.tasks || []).filter((t: Task) => t.status !== 'done');
     }, [data?.tasks]);
@@ -182,17 +182,19 @@ export function PomodoroTimer() {
     };
 
     const toggleTaskChecklist = async (taskId: string, listType: 'actions' | 'validations', itemId: string) => {
-        const task = tasks.find(t => t.id === taskId);
-        if (!task) return;
-        const list = task[listType] || [];
-        const newList = list.map(i => i.id === itemId ? { ...i, checked: !i.checked } : i);
+        if (!data?.tasks) return;
         
-        // Update via store service (partial update)
+        const updatedTasks = data.tasks.map(t => {
+            if (t.id === taskId) {
+                const list = (t[listType] || []) as any[];
+                const newList = list.map(i => i.id === itemId ? { ...i, checked: !i.checked } : i);
+                return { ...t, [listType]: newList };
+            }
+            return t;
+        });
+
         try {
-            await StoreService.updateStore({
-                tasks: [{ ...task, [listType]: newList }] as any
-            });
-            window.dispatchEvent(new CustomEvent('tasks-refresh'));
+            await updateData({ tasks: updatedTasks as any });
         } catch (e) {
             console.error("Failed to update checklist", e);
         }
