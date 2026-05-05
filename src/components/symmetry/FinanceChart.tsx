@@ -8,7 +8,8 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
-  Legend
+  Legend,
+  CartesianGrid
 } from 'recharts';
 import { useVisibility } from '@/context/VisibilityContext';
 import { useProfile } from '@/context/ProfileContext';
@@ -17,11 +18,22 @@ const formatCOP = (val: number) => {
   return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(val);
 };
 
-export const FinanceChart = ({ allocationsA, allocationsB }: { allocationsA: any[], allocationsB: any[] }) => {
+interface Allocation {
+  date: string;
+  amount: number;
+}
+
+interface ChartDataPoint {
+  name: string;
+  Santiago: number;
+  Milena: number;
+}
+
+export const FinanceChart = ({ allocationsA, allocationsB }: { allocationsA: Allocation[], allocationsB: Allocation[] }) => {
   const { mode } = useVisibility();
   const { profile } = useProfile();
 
-  const chartData = useMemo(() => {
+  const chartData = useMemo<ChartDataPoint[]>(() => {
     const days = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
     const today = new Date();
 
@@ -31,11 +43,11 @@ export const FinanceChart = ({ allocationsA, allocationsB }: { allocationsA: any
       const dayLabel = days[d.getDay()];
       const dateStr = d.toLocaleDateString();
 
-      const sumA = allocationsA
+      const sumA = (allocationsA || [])
         .filter(e => new Date(e.date).toLocaleDateString() === dateStr)
         .reduce((sum, e) => sum + e.amount, 0);
 
-      const sumB = allocationsB
+      const sumB = (allocationsB || [])
         .filter(e => new Date(e.date).toLocaleDateString() === dateStr)
         .reduce((sum, e) => sum + e.amount, 0);
 
@@ -48,50 +60,66 @@ export const FinanceChart = ({ allocationsA, allocationsB }: { allocationsA: any
   }, [allocationsA, allocationsB]);
 
   return (
-    <div className="w-full h-full">
+    <div className="w-full h-full font-display">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={chartData}
-          margin={{ top: 20, right: 0, left: -10, bottom: 0 }}
+          margin={{ top: 20, right: 0, left: -20, bottom: 0 }}
         >
+          <CartesianGrid vertical={false} stroke="rgba(255,255,255,0.05)" />
           <XAxis
             dataKey="name"
             axisLine={false}
             tickLine={false}
-            tick={{ fontSize: 9, fontWeight: 'bold', fill: 'currentColor', opacity: 0.5 }}
+            tick={{ fontSize: 10, fontWeight: 'bold', fill: '#555' }}
           />
           <YAxis
             axisLine={false}
             tickLine={false}
             tickFormatter={(val) => new Intl.NumberFormat('es-CO', { notation: "compact", compactDisplay: "short" }).format(val)}
-            tick={{ fontSize: 9, fontWeight: 'bold', fill: 'currentColor', opacity: 0.5 }}
+            tick={{ fontSize: 10, fontWeight: 'bold', fill: '#555' }}
           />
           <Tooltip
-            formatter={(value: any) => [formatCOP(Number(value)), "Asignación"]}
-            cursor={{ fill: 'rgba(120, 113, 108, 0.05)' }}
+            cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }}
             contentStyle={{
-              backgroundColor: 'var(--background)',
-              border: '1px solid rgba(120, 113, 108, 0.2)',
+              backgroundColor: '#0a0a0a',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
               borderRadius: '0px',
-              fontSize: '10px',
+              fontSize: '11px',
               textTransform: 'uppercase',
-              fontWeight: 'bold',
-              padding: '8px'
+              fontWeight: 'black',
+              padding: '12px'
             }}
+            itemStyle={{ color: 'var(--color-user-a)' }}
+            formatter={(value: number) => [formatCOP(Number(value)), "OPERACIÓN"]}
           />
-          {mode === 'us' && <Legend iconType="square" verticalAlign="top" align="right" wrapperStyle={{ fontSize: '8px', textTransform: 'uppercase', fontWeight: 'bold', paddingBottom: '20px', letterSpacing: '0.1em' }} />}
+          {mode === 'us' && (
+            <Legend
+              iconType="rect"
+              verticalAlign="top"
+              align="right"
+              wrapperStyle={{
+                fontSize: '9px',
+                textTransform: 'uppercase',
+                fontWeight: 'black',
+                paddingBottom: '20px',
+                letterSpacing: '0.15em',
+                opacity: 0.8
+              }}
+            />
+          )}
 
           {mode === 'me' ? (
             <Bar
               dataKey={profile === 'el' ? 'Santiago' : 'Milena'}
               fill={profile === 'el' ? 'var(--color-user-a)' : 'var(--color-user-b)'}
-              barSize={20}
+              barSize={24}
               isAnimationActive={false}
             />
           ) : (
             <>
-              <Bar dataKey="Santiago" fill="var(--color-user-a)" barSize={10} isAnimationActive={false} />
-              <Bar dataKey="Milena" fill="var(--color-user-b)" barSize={10} isAnimationActive={false} />
+              <Bar dataKey="Santiago" fill="var(--color-user-a)" barSize={12} isAnimationActive={false} />
+              <Bar dataKey="Milena" fill="var(--color-user-b)" barSize={12} isAnimationActive={false} />
             </>
           )}
         </BarChart>

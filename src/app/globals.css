@@ -15,19 +15,20 @@
   --color-earth-soft: #D3C2B3;
   --color-earth-accent: #E8A87C;
 
-  /* User Accents */
+  /* User Accents - Derived from design.md */
   --color-user-a: #ff7020; /* Primary Accent (Vibrant Orange) */
   --color-user-b: #a100f0; /* Secondary Accent (Neon Purple) */
   --color-user-c: #00dbe9; /* Tertiary Accent (Teal) */
 
-  --color-surface: #131313;
-  --color-surface-dim: #0a0a0a;
-  --color-surface-dark: #000000;
+  --color-surface: #121212; /* Level 2 */
+  --color-surface-dim: #0a0a0a; /* Level 1 */
+  --color-surface-dark: #000000; /* Background */
   --color-border-subtle: rgba(255, 255, 255, 0.1);
 
   --spacing: 0.25rem;
   --font-sans: var(--font-inter);
   --font-mono: var(--font-mono);
+  --font-display: var(--font-space-grotesk);
 
   /* Geometric Accent */
   --color-geometric-accent: #f43f5e;
@@ -62,9 +63,15 @@ body {
 .geometric-card {
   background: var(--color-surface-dim);
   border: 1px solid var(--color-border-subtle);
-  border-radius: 0px; /* Minimalist Brutalism Signature */
+  border-radius: 0px !important; /* Minimalist Brutalism Signature */
   position: relative;
   overflow: hidden;
+}
+
+.geometric-card-active {
+  background: var(--color-surface);
+  border: 1px solid var(--color-user-a);
+  border-radius: 0px !important;
 }
 
 .bg-mosaic {
@@ -85,6 +92,7 @@ body {
 /* Touch targets */
 button, input, select {
   min-height: 44px;
+  border-radius: 0px !important;
 }
 
 /* Custom Scrollbar for inner components */
@@ -96,7 +104,7 @@ button, input, select {
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
+  border-radius: 0px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.2);
