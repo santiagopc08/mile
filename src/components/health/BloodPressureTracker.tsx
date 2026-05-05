@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Activity, Heart, Trash2, Plus, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { Activity, Heart, Trash2, Plus, TrendingUp, TrendingDown, Clipboard, User, Clock } from 'lucide-react';
 import { useProfile } from '@/context/ProfileContext';
 import {
     LineChart,
@@ -21,7 +21,7 @@ interface BloodPressureEntry {
     systolic: number;
     diastolic: number;
     heart_rate: number;
-    position: 'sitting' | 'edge of bed' | 'lied';
+    position: 'sentado' | 'borde_cama' | 'acostado';
     author: string;
     created_at: string;
 }
@@ -32,7 +32,7 @@ export const BloodPressureTracker = () => {
     const [systolic, setSystolic] = useState<number>(120);
     const [diastolic, setDiastolic] = useState<number>(80);
     const [heartRate, setHeartRate] = useState<number>(70);
-    const [position, setPosition] = useState<'sitting' | 'edge of bed' | 'lied'>('sitting');
+    const [position, setPosition] = useState<BloodPressureEntry['position']>('sentado');
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
@@ -115,129 +115,138 @@ export const BloodPressureTracker = () => {
     }, [entries]);
 
     return (
-        <div className="space-y-6">
-            <div className="geometric-card p-6 bg-dot-matrix border-stone-200 dark:border-stone-800">
-                <h2 className="text-[10px] uppercase font-bold tracking-[0.2em] mb-6 border-b border-stone-100 dark:border-stone-900 pb-3 flex justify-between items-center text-user-a">
-                    <span>Blood Pressure & Heart Rate</span>
-                    <span className="text-[8px] font-mono opacity-50">Vitals v1.1</span>
+        <div className="space-y-6 font-mono">
+            <div className="geometric-card p-6 border-white/10 relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-4 opacity-5">
+                    <Activity size={120} />
+                </div>
+                
+                <h2 className="text-[10px] uppercase font-black tracking-[0.3em] mb-8 border-b border-white/5 pb-4 flex justify-between items-center text-user-a">
+                    <span className="flex items-center gap-2">
+                        <Clipboard size={12} /> [ MONITOR_PRESIÓN_ARTERIAL ]
+                    </span>
+                    <span className="text-[8px] opacity-40">ESTADO: OPERATIVO</span>
                 </h2>
 
-                <form onSubmit={handleAddEntry} className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8 items-end">
-                    <div className="space-y-1">
-                        <label className="text-[8px] uppercase tracking-widest text-stone-500 font-bold">Systolic</label>
+                <form onSubmit={handleAddEntry} className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-10 items-end relative z-10">
+                    <div className="space-y-2">
+                        <label className="text-[7px] uppercase font-bold text-stone-500 tracking-widest">SISTÓLICA (mmHg)</label>
                         <input
                             type="number"
                             value={systolic}
                             onChange={e => setSystolic(Number(e.target.value))}
-                            className="w-full bg-transparent border border-stone-200 dark:border-stone-800 p-2 text-xs font-mono outline-none focus:border-user-a"
+                            className="w-full bg-black border border-white/10 p-3 text-xs font-bold outline-none focus:border-user-a text-white"
                             required
                         />
                     </div>
-                    <div className="space-y-1">
-                        <label className="text-[8px] uppercase tracking-widest text-stone-500 font-bold">Diastolic</label>
+                    <div className="space-y-2">
+                        <label className="text-[7px] uppercase font-bold text-stone-500 tracking-widest">DIASTÓLICA (mmHg)</label>
                         <input
                             type="number"
                             value={diastolic}
                             onChange={e => setDiastolic(Number(e.target.value))}
-                            className="w-full bg-transparent border border-stone-200 dark:border-stone-800 p-2 text-xs font-mono outline-none focus:border-user-a"
+                            className="w-full bg-black border border-white/10 p-3 text-xs font-bold outline-none focus:border-user-a text-white"
                             required
                         />
                     </div>
-                    <div className="space-y-1">
-                        <label className="text-[8px] uppercase tracking-widest text-stone-500 font-bold">Heart Rate</label>
+                    <div className="space-y-2">
+                        <label className="text-[7px] uppercase font-bold text-stone-500 tracking-widest">F. CARDÍACA (BPM)</label>
                         <input
                             type="number"
                             value={heartRate}
                             onChange={e => setHeartRate(Number(e.target.value))}
-                            className="w-full bg-transparent border border-stone-200 dark:border-stone-800 p-2 text-xs font-mono outline-none focus:border-user-a"
+                            className="w-full bg-black border border-white/10 p-3 text-xs font-bold outline-none focus:border-user-a text-white"
                             required
                         />
                     </div>
-                    <div className="space-y-1">
-                        <label className="text-[8px] uppercase tracking-widest text-stone-500 font-bold">Position</label>
+                    <div className="space-y-2">
+                        <label className="text-[7px] uppercase font-bold text-stone-500 tracking-widest">POSTURA DE TOMA</label>
                         <select
                             value={position}
                             onChange={e => setPosition(e.target.value as any)}
-                            className="w-full bg-transparent border border-stone-200 dark:border-stone-800 p-2 text-xs font-mono outline-none focus:border-user-a appearance-none"
+                            className="w-full bg-black border border-white/10 p-3 text-xs font-bold outline-none focus:border-user-a text-stone-300 appearance-none cursor-pointer"
                         >
-                            <option value="sitting">Sitting</option>
-                            <option value="edge of bed">Edge of Bed</option>
-                            <option value="lied">Lied</option>
+                            <option value="sentado">SENTADO</option>
+                            <option value="borde_cama">BORDE CAMA</option>
+                            <option value="acostado">ACOSTADO</option>
                         </select>
                     </div>
                     <button
                         type="submit"
                         disabled={loading}
-                        className="md:col-span-4 bg-user-a text-white py-3 text-[10px] uppercase font-bold tracking-[0.2em] hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+                        className="md:col-span-4 bg-user-a text-black py-4 text-[10px] uppercase font-black tracking-[0.3em] hover:bg-[#ffb595] transition-all flex items-center justify-center gap-2 border border-user-a mt-2"
                     >
-                        <Plus size={14} /> Log Vitals
+                        <Plus size={14} /> [ REGISTRAR_SIGNOS_VITALES ]
                     </button>
                 </form>
 
                 {stats && (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                        <div className="p-3 border border-stone-100 dark:border-stone-900 bg-white/5 space-y-3">
-                            <h3 className="text-[8px] uppercase font-bold text-stone-400 border-b border-stone-100 dark:border-stone-900 pb-1 flex items-center gap-1">
-                                <TrendingUp size={10} /> Systolic (mmHg)
-                            </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
+                        <div className="p-4 border border-white/5 bg-stone-900/20 space-y-4">
+                            <div className="flex justify-between items-center border-b border-white/5 pb-2">
+                                <h3 className="text-[8px] uppercase font-black text-stone-500 tracking-widest flex items-center gap-1">
+                                    <TrendingUp size={10} /> SISTÓLICA
+                                </h3>
+                                <span className="text-[6px] text-stone-600">mmHg</span>
+                            </div>
                             <div className="grid grid-cols-3 gap-2 text-center">
                                 <div className="flex flex-col">
-                                    <span className="text-[7px] text-stone-500 uppercase">High</span>
-                                    <span className="text-xs font-bold font-mono">{stats.systolic.max.systolic}</span>
-                                    <span className="text-[6px] uppercase text-stone-400">{stats.systolic.max.position}</span>
+                                    <span className="text-[6px] text-stone-600 uppercase">MAX</span>
+                                    <span className="text-sm font-bold text-white">{stats.systolic.max.systolic}</span>
+                                </div>
+                                <div className="flex flex-col border-x border-white/5">
+                                    <span className="text-[6px] text-stone-600 uppercase">AVG</span>
+                                    <span className="text-sm font-bold text-user-a">{stats.systolic.avg}</span>
                                 </div>
                                 <div className="flex flex-col">
-                                    <span className="text-[7px] text-stone-500 uppercase">Avg</span>
-                                    <span className="text-xs font-bold font-mono">{stats.systolic.avg}</span>
-                                </div>
-                                <div className="flex flex-col">
-                                    <span className="text-[7px] text-stone-500 uppercase">Low</span>
-                                    <span className="text-xs font-bold font-mono">{stats.systolic.min.systolic}</span>
-                                    <span className="text-[6px] uppercase text-stone-400">{stats.systolic.min.position}</span>
+                                    <span className="text-[6px] text-stone-600 uppercase">MIN</span>
+                                    <span className="text-sm font-bold text-white">{stats.systolic.min.systolic}</span>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="p-3 border border-stone-100 dark:border-stone-900 bg-white/5 space-y-3">
-                            <h3 className="text-[8px] uppercase font-bold text-stone-400 border-b border-stone-100 dark:border-stone-900 pb-1 flex items-center gap-1">
-                                <TrendingDown size={10} /> Diastolic (mmHg)
-                            </h3>
+                        <div className="p-4 border border-white/5 bg-stone-900/20 space-y-4">
+                            <div className="flex justify-between items-center border-b border-white/5 pb-2">
+                                <h3 className="text-[8px] uppercase font-black text-stone-500 tracking-widest flex items-center gap-1">
+                                    <TrendingDown size={10} /> DIASTÓLICA
+                                </h3>
+                                <span className="text-[6px] text-stone-600">mmHg</span>
+                            </div>
                             <div className="grid grid-cols-3 gap-2 text-center">
                                 <div className="flex flex-col">
-                                    <span className="text-[7px] text-stone-500 uppercase">High</span>
-                                    <span className="text-xs font-bold font-mono">{stats.diastolic.max.diastolic}</span>
-                                    <span className="text-[6px] uppercase text-stone-400">{stats.diastolic.max.position}</span>
+                                    <span className="text-[6px] text-stone-600 uppercase">MAX</span>
+                                    <span className="text-sm font-bold text-white">{stats.diastolic.max.diastolic}</span>
+                                </div>
+                                <div className="flex flex-col border-x border-white/5">
+                                    <span className="text-[6px] text-stone-600 uppercase">AVG</span>
+                                    <span className="text-sm font-bold text-user-a">{stats.diastolic.avg}</span>
                                 </div>
                                 <div className="flex flex-col">
-                                    <span className="text-[7px] text-stone-500 uppercase">Avg</span>
-                                    <span className="text-xs font-bold font-mono">{stats.diastolic.avg}</span>
-                                </div>
-                                <div className="flex flex-col">
-                                    <span className="text-[7px] text-stone-500 uppercase">Low</span>
-                                    <span className="text-xs font-bold font-mono">{stats.diastolic.min.diastolic}</span>
-                                    <span className="text-[6px] uppercase text-stone-400">{stats.diastolic.min.position}</span>
+                                    <span className="text-[6px] text-stone-600 uppercase">MIN</span>
+                                    <span className="text-sm font-bold text-white">{stats.diastolic.min.diastolic}</span>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="p-3 border border-stone-100 dark:border-stone-900 bg-white/5 space-y-3">
-                            <h3 className="text-[8px] uppercase font-bold text-stone-400 border-b border-stone-100 dark:border-stone-900 pb-1 flex items-center gap-1">
-                                <Heart size={10} /> Heart Rate (BPM)
-                            </h3>
+                        <div className="p-4 border border-white/5 bg-stone-900/20 space-y-4">
+                            <div className="flex justify-between items-center border-b border-white/5 pb-2">
+                                <h3 className="text-[8px] uppercase font-black text-stone-500 tracking-widest flex items-center gap-1">
+                                    <Heart size={10} /> F_CARDÍACA
+                                </h3>
+                                <span className="text-[6px] text-stone-600">BPM</span>
+                            </div>
                             <div className="grid grid-cols-3 gap-2 text-center">
                                 <div className="flex flex-col">
-                                    <span className="text-[7px] text-stone-500 uppercase">High</span>
-                                    <span className="text-xs font-bold font-mono">{stats.heartRate.max.heart_rate}</span>
-                                    <span className="text-[6px] uppercase text-stone-400">{stats.heartRate.max.position}</span>
+                                    <span className="text-[6px] text-stone-600 uppercase">MAX</span>
+                                    <span className="text-sm font-bold text-white">{stats.heartRate.max.heart_rate}</span>
+                                </div>
+                                <div className="flex flex-col border-x border-white/5">
+                                    <span className="text-[6px] text-stone-600 uppercase">AVG</span>
+                                    <span className="text-sm font-bold text-user-a">{stats.heartRate.avg}</span>
                                 </div>
                                 <div className="flex flex-col">
-                                    <span className="text-[7px] text-stone-500 uppercase">Avg</span>
-                                    <span className="text-xs font-bold font-mono">{stats.heartRate.avg}</span>
-                                </div>
-                                <div className="flex flex-col">
-                                    <span className="text-[7px] text-stone-500 uppercase">Low</span>
-                                    <span className="text-xs font-bold font-mono">{stats.heartRate.min.heart_rate}</span>
-                                    <span className="text-[6px] uppercase text-stone-400">{stats.heartRate.min.position}</span>
+                                    <span className="text-[6px] text-stone-600 uppercase">MIN</span>
+                                    <span className="text-sm font-bold text-white">{stats.heartRate.min.heart_rate}</span>
                                 </div>
                             </div>
                         </div>
@@ -245,97 +254,114 @@ export const BloodPressureTracker = () => {
                 )}
 
                 {entries.length > 0 && (
-                    <div className="h-64 w-full mb-8 border border-stone-100 dark:border-stone-900 p-4">
+                    <div className="h-72 w-full mb-10 border border-white/5 bg-black/40 p-6 relative">
+                        <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-user-a" />
                         <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={chartData}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(120, 113, 108, 0.1)" />
+                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.05)" vertical={false} />
                                 <XAxis
                                     dataKey="name"
                                     axisLine={false}
                                     tickLine={false}
-                                    tick={{ fontSize: 8, fill: 'currentColor', opacity: 0.5 }}
+                                    tick={{ fontSize: 7, fill: '#555', letterSpacing: '0.1em' }}
                                 />
                                 <YAxis
                                     axisLine={false}
                                     tickLine={false}
-                                    tick={{ fontSize: 8, fill: 'currentColor', opacity: 0.5 }}
+                                    tick={{ fontSize: 7, fill: '#555' }}
                                 />
                                 <Tooltip
+                                    cursor={{ stroke: 'rgba(255, 112, 32, 0.2)', strokeWidth: 1 }}
                                     contentStyle={{
-                                        backgroundColor: 'var(--background)',
-                                        border: '1px solid rgba(120, 113, 108, 0.2)',
+                                        backgroundColor: '#0a0a0a',
+                                        border: '1px solid rgba(255, 255, 255, 0.1)',
                                         borderRadius: '0px',
-                                        fontSize: '9px',
+                                        fontSize: '8px',
                                         textTransform: 'uppercase',
-                                        fontWeight: 'bold'
+                                        fontWeight: 'black',
+                                        padding: '12px'
                                     }}
                                 />
-                                <Legend wrapperStyle={{ fontSize: '8px', textTransform: 'uppercase', marginTop: '10px' }} />
+                                <Legend wrapperStyle={{ fontSize: '7px', textTransform: 'uppercase', marginTop: '20px', letterSpacing: '0.2em' }} />
                                 <Line
-                                    type="monotone"
+                                    type="stepAfter"
                                     dataKey="systolic"
                                     stroke="var(--color-user-a)"
                                     strokeWidth={2}
-                                    dot={{ r: 3, fill: 'var(--color-user-a)' }}
-                                    activeDot={{ r: 5 }}
-                                    name="Systolic"
+                                    dot={{ r: 2, fill: 'var(--color-user-a)' }}
+                                    activeDot={{ r: 4 }}
+                                    name="SISTÓLICA"
                                 />
                                 <Line
-                                    type="monotone"
+                                    type="stepAfter"
                                     dataKey="diastolic"
                                     stroke="var(--color-user-b)"
                                     strokeWidth={2}
-                                    dot={{ r: 3, fill: 'var(--color-user-b)' }}
-                                    activeDot={{ r: 5 }}
-                                    name="Diastolic"
+                                    dot={{ r: 2, fill: 'var(--color-user-b)' }}
+                                    activeDot={{ r: 4 }}
+                                    name="DIASTÓLICA"
                                 />
                                 <Line
                                     type="monotone"
                                     dataKey="heartRate"
-                                    stroke="#10b981"
-                                    strokeWidth={1.5}
-                                    strokeDasharray="5 5"
-                                    dot={{ r: 2, fill: '#10b981' }}
-                                    name="Heart Rate"
+                                    stroke="#555"
+                                    strokeWidth={1}
+                                    strokeDasharray="4 4"
+                                    dot={false}
+                                    name="F_CARDÍACA"
                                 />
                             </LineChart>
                         </ResponsiveContainer>
                     </div>
                 )}
 
-                <div className="space-y-2 max-h-60 overflow-y-auto custom-scrollbar pr-2">
-                    <AnimatePresence>
+                <div className="space-y-2 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
+                    <AnimatePresence mode="popLayout">
                         {entries.map((entry) => (
                             <motion.div
                                 key={entry.id}
-                                initial={{ opacity: 0, x: -10 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, scale: 0.95 }}
-                                className="flex items-center justify-between p-3 border border-stone-100 dark:border-stone-900 bg-white/5"
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.98 }}
+                                className="flex items-center justify-between p-4 border border-white/5 bg-[#0a0a0a] group hover:border-user-a/30 transition-all relative"
                             >
-                                <div className="flex items-center gap-6">
-                                    <div className="flex flex-col">
-                                        <span className="text-[10px] font-mono text-stone-400">
-                                            {new Date(entry.created_at).toLocaleDateString()} {new Date(entry.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                        </span>
-                                        <span className="text-[8px] uppercase font-bold text-user-a">{entry.position}</span>
+                                <div className="absolute top-0 left-0 w-1 h-1 bg-user-a opacity-20 group-hover:opacity-100 transition-opacity" />
+                                <div className="flex items-center gap-8">
+                                    <div className="flex flex-col min-w-[100px]">
+                                        <div className="flex items-center gap-1.5 text-stone-500 mb-1">
+                                            <Clock size={8} />
+                                            <span className="text-[7px] font-bold tracking-widest">
+                                                {new Date(entry.created_at).toLocaleDateString()}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-1.5 text-user-a">
+                                            <User size={8} />
+                                            <span className="text-[7px] uppercase font-black tracking-[0.2em]">{entry.author}</span>
+                                        </div>
                                     </div>
-                                    <div className="flex gap-4">
+                                    
+                                    <div className="grid grid-cols-3 gap-6">
                                         <div className="flex flex-col">
-                                            <span className="text-[8px] uppercase text-stone-500">BP</span>
-                                            <span className="text-sm font-bold font-mono">{entry.systolic}/{entry.diastolic}</span>
+                                            <span className="text-[6px] uppercase font-bold text-stone-600 mb-0.5">PRES_ART (mm)</span>
+                                            <span className="text-xs font-black tabular-nums text-white">
+                                                {entry.systolic}/{entry.diastolic}
+                                            </span>
                                         </div>
                                         <div className="flex flex-col">
-                                            <span className="text-[8px] uppercase text-stone-500">HR</span>
-                                            <span className="text-sm font-bold font-mono">{entry.heart_rate}</span>
+                                            <span className="text-[6px] uppercase font-bold text-stone-600 mb-0.5">FC (BPM)</span>
+                                            <span className="text-xs font-black tabular-nums text-white">{entry.heart_rate}</span>
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-[6px] uppercase font-bold text-stone-600 mb-0.5">POSTURA</span>
+                                            <span className="text-[8px] font-bold text-stone-400 uppercase tracking-tighter">{entry.position.replace('_', ' ')}</span>
                                         </div>
                                     </div>
                                 </div>
                                 <button
                                     onClick={() => handleDelete(entry.id)}
-                                    className="text-stone-300 hover:text-red-500 transition-colors"
+                                    className="p-2 text-stone-800 hover:text-red-500 hover:bg-red-500/10 transition-all opacity-20 group-hover:opacity-100"
                                 >
-                                    <Trash2 size={14} />
+                                    <Trash2 size={12} />
                                 </button>
                             </motion.div>
                         ))}
@@ -345,3 +371,4 @@ export const BloodPressureTracker = () => {
         </div>
     );
 };
+

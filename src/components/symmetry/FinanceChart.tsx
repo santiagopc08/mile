@@ -8,7 +8,8 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
-  Legend
+  Legend,
+  CartesianGrid
 } from 'recharts';
 import { useVisibility } from '@/context/VisibilityContext';
 import { useProfile } from '@/context/ProfileContext';
@@ -22,7 +23,7 @@ export const FinanceChart = ({ allocationsA, allocationsB }: { allocationsA: any
   const { profile } = useProfile();
 
   const chartData = useMemo(() => {
-    const days = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    const days = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'];
     const today = new Date();
 
     return Array.from({ length: 7 }).map((_, i) => {
@@ -41,57 +42,75 @@ export const FinanceChart = ({ allocationsA, allocationsB }: { allocationsA: any
 
       return {
         name: dayLabel,
-        Santiago: sumA,
-        Milena: sumB,
+        USER_A: sumA,
+        USER_B: sumB,
       };
     });
   }, [allocationsA, allocationsB]);
 
   return (
-    <div className="w-full h-full">
+    <div className="w-full h-full font-mono">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={chartData}
-          margin={{ top: 20, right: 0, left: -10, bottom: 0 }}
+          margin={{ top: 20, right: 0, left: -20, bottom: 0 }}
         >
+          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.05)" vertical={false} />
           <XAxis
             dataKey="name"
             axisLine={false}
             tickLine={false}
-            tick={{ fontSize: 9, fontWeight: 'bold', fill: 'currentColor', opacity: 0.5 }}
+            tick={{ fontSize: 7, fontWeight: 'bold', fill: '#555', letterSpacing: '0.1em' }}
           />
           <YAxis
             axisLine={false}
             tickLine={false}
             tickFormatter={(val) => new Intl.NumberFormat('es-CO', { notation: "compact", compactDisplay: "short" }).format(val)}
-            tick={{ fontSize: 9, fontWeight: 'bold', fill: 'currentColor', opacity: 0.5 }}
+            tick={{ fontSize: 7, fontWeight: 'bold', fill: '#555' }}
           />
           <Tooltip
-            formatter={(value: any) => [formatCOP(Number(value)), "Asignación"]}
-            cursor={{ fill: 'rgba(120, 113, 108, 0.05)' }}
+            cursor={{ fill: 'rgba(255, 255, 255, 0.03)' }}
             contentStyle={{
-              backgroundColor: 'var(--background)',
-              border: '1px solid rgba(120, 113, 108, 0.2)',
+              backgroundColor: '#0a0a0a',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
               borderRadius: '0px',
-              fontSize: '10px',
+              fontSize: '8px',
               textTransform: 'uppercase',
               fontWeight: 'bold',
-              padding: '8px'
+              padding: '10px',
+              boxShadow: '0 10px 20px rgba(0,0,0,0.5)'
             }}
+            itemStyle={{ padding: '2px 0' }}
+            formatter={(value: any, name: string) => [formatCOP(Number(value)), `[ ${name} ]`]}
           />
-          {mode === 'us' && <Legend iconType="square" verticalAlign="top" align="right" wrapperStyle={{ fontSize: '8px', textTransform: 'uppercase', fontWeight: 'bold', paddingBottom: '20px', letterSpacing: '0.1em' }} />}
+          {mode === 'us' && (
+            <Legend 
+              iconType="rect" 
+              verticalAlign="top" 
+              align="right" 
+              wrapperStyle={{ 
+                fontSize: '7px', 
+                textTransform: 'uppercase', 
+                fontWeight: 'black', 
+                paddingBottom: '20px', 
+                letterSpacing: '0.2em',
+                opacity: 0.6
+              }} 
+            />
+          )}
 
           {mode === 'me' ? (
             <Bar
-              dataKey={profile === 'el' ? 'Santiago' : 'Milena'}
+              dataKey={profile === 'el' ? 'USER_A' : 'USER_B'}
               fill={profile === 'el' ? 'var(--color-user-a)' : 'var(--color-user-b)'}
-              barSize={20}
-              isAnimationActive={false}
+              barSize={12}
+              isAnimationActive={true}
+              name={profile === 'el' ? 'SANTIAGO' : 'MILENA'}
             />
           ) : (
             <>
-              <Bar dataKey="Santiago" fill="var(--color-user-a)" barSize={10} isAnimationActive={false} />
-              <Bar dataKey="Milena" fill="var(--color-user-b)" barSize={10} isAnimationActive={false} />
+              <Bar dataKey="USER_A" fill="var(--color-user-a)" barSize={8} isAnimationActive={true} name="SANTIAGO" />
+              <Bar dataKey="USER_B" fill="var(--color-user-b)" barSize={8} isAnimationActive={true} name="MILENA" />
             </>
           )}
         </BarChart>
@@ -99,3 +118,4 @@ export const FinanceChart = ({ allocationsA, allocationsB }: { allocationsA: any
     </div>
   );
 };
+

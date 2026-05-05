@@ -152,8 +152,8 @@ export const SymmetryDashboard = () => {
               key={tabKey}
               onClick={() => setActiveTab(tabKey)}
               className={`pb-3 text-[10px] font-mono uppercase tracking-[0.2em] transition-all relative ${activeTab === tabKey
-                  ? 'text-user-a opacity-100'
-                  : 'text-stone-500 hover:text-stone-300'
+                ? 'text-user-a opacity-100'
+                : 'text-stone-500 hover:text-stone-300'
                 }`}
             >
               {tab.toUpperCase()}
@@ -184,7 +184,7 @@ export const SymmetryDashboard = () => {
                 <div className="absolute top-0 left-0 w-1.5 h-1.5 border-t border-l border-user-a" />
                 <div className="absolute bottom-0 right-0 w-1.5 h-1.5 border-b border-r border-user-a" />
                 <video
-                  className="w-32 h-32 object-cover grayscale contrast-125 opacity-80 mix-blend-screen"
+                  className="w-32 h-32 object-cover contrast-125 opacity-80 mix-blend-screen"
                   src="vid/planningCat.mp4"
                   autoPlay
                   loop
@@ -206,8 +206,8 @@ export const SymmetryDashboard = () => {
               <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-user-a" />
 
               <h2 className="text-[10px] uppercase font-mono tracking-[0.2em] mb-8 border-b border-white/10 pb-3 text-stone-400 flex justify-between items-center">
-                <span>[ SYSTEM_STATUS ] SYS_READY</span>
-                <span className="text-[8px] opacity-50">[ VERSION_INFO ] V2.4.0_STABLE</span>
+                <span>[ ESTADO_DEL_SISTEMA ] OPERATIVO</span>
+                <span className="text-[8px] opacity-50">[ VERSIÓN_NODO ] V2.4.0_ESTABLE</span>
               </h2>
               <PomodoroTimer />
             </div>
@@ -215,7 +215,7 @@ export const SymmetryDashboard = () => {
             {/* Row 1: Kanban Board */}
             <div className="geometric-card p-6 sm:p-8 border-white/10 relative">
               <h2 className="text-[10px] uppercase font-mono tracking-[0.2em] mb-8 border-b border-white/10 pb-3 text-stone-400 flex justify-between items-center">
-                <span>{'>'} _ TASK_MATRIX</span>
+                <span>{'>'} _ MATRIZ DE OPERACIONES</span>
                 <span className="text-[8px] opacity-50">[ DB_SYNC ] ONLINE</span>
               </h2>
               <TaskModule onTasksUpdate={handleTasksUpdate} />
@@ -225,7 +225,7 @@ export const SymmetryDashboard = () => {
             <div className="geometric-card p-6 sm:p-8 border-white/10 relative">
               <h2 className="text-[10px] uppercase font-mono tracking-[0.2em] mb-8 border-b border-white/10 pb-3 flex items-center gap-2 text-stone-400">
                 <div className="w-1.5 h-1.5 bg-user-c" style={{ boxShadow: '0 0 5px var(--color-user-c)' }} />
-                [ / ] MODULO 02 / ANALÍTICA
+                [ / ] DIAGNÓSTICO DE RENDIMIENTO
               </h2>
               <TaskAnalytics tasks={tasks} />
             </div>
@@ -244,8 +244,8 @@ export const SymmetryDashboard = () => {
                 <div className="absolute top-0 left-0 w-1.5 h-1.5 border-t border-l border-user-a" />
                 <div className="absolute bottom-0 right-0 w-1.5 h-1.5 border-b border-r border-user-a" />
                 <video
-                  className="w-32 h-32 object-cover grayscale contrast-125 opacity-80 mix-blend-screen"
-                  src="vid/moneyCat.mp4"
+                  className="w-32 h-32 object-cover contrast-125 opacity-80 mix-blend-screen"
+                  src="vid/financesCat.mp4"
                   autoPlay
                   loop
                   muted
@@ -261,8 +261,8 @@ export const SymmetryDashboard = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <div className="geometric-card p-6 border-white/10 relative">
                 <h2 className="text-[10px] uppercase font-mono tracking-[0.2em] mb-6 border-b border-white/10 pb-2 flex justify-between items-center text-stone-400">
-                  <span>[ / ] MODULO 03 / FISCAL</span>
-                  <span className="text-[8px] opacity-50">REGISTRO MAYOR</span>
+                  <span>[ / ] GESTIÓN FINANCIERA</span>
+                  <span className="text-[8px] opacity-50">BITÁCORA DE FLUJO</span>
                 </h2>
                 <DualWallet
                   allocations={profile === 'el' ? allocationsA : allocationsB}
@@ -272,7 +272,7 @@ export const SymmetryDashboard = () => {
               <div className="geometric-card p-6 sm:p-8 border-white/10 relative">
                 <h2 className="text-[10px] uppercase font-mono tracking-[0.2em] mb-8 border-b border-white/10 pb-3 flex items-center gap-2 text-stone-400">
                   <div className="w-1.5 h-1.5 bg-user-a" style={{ boxShadow: '0 0 5px var(--color-user-a)' }} />
-                  {'>'} 01. FLUJO DE GASTOS
+                  {'>'} ANÁLISIS DE BALANCE
                 </h2>
                 <div className="h-64">
                   <FinanceChart
