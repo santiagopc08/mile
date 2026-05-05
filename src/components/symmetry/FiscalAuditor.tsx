@@ -103,17 +103,6 @@ export const FiscalAuditor: React.FC<FiscalAuditorProps> = ({ allocations, onAdd
         <div className={`geometric-card p-6 transition-all duration-500 ${thresholdsExceeded ? 'border-system-alert bg-fractured-mosaic bg-system-alert-soft' : 'border-white/10 bg-[#0a0a0a] bg-dot-matrix'}`}>
             <h2 className={`mb-6 flex items-center justify-between border-b pb-3 text-[10px] font-black uppercase tracking-[0.22em] ${thresholdsExceeded ? 'border-system-alert/20 text-system-alert' : 'border-white/10 text-[#a88a7e]'}`}>
                 <span className="pr-2">Fiscal Health Guardian</span>
-                <div className="flex items-center justify-center px-2">
-                    <video
-                        className='h-20 w-20 border border-white/10 object-cover opacity-90 mix-blend-screen'
-                        src="vid/fatfit.mp4"
-                        autoPlay
-                        loop
-                        muted
-                        playsInline
-                        webkit-playsinline="true"
-                    />
-                </div>
                 <span className="text-[8px] font-mono opacity-50 pl-2">Auditor v1.0</span>
             </h2>
 
@@ -133,7 +122,7 @@ export const FiscalAuditor: React.FC<FiscalAuditorProps> = ({ allocations, onAdd
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
                 <div className="space-y-4">
-                <div className="flex justify-between text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">
+                    <div className="flex justify-between text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">
                         <span>Junk Food Tracker</span>
                         <span className={junkCount > 3 ? 'text-system-alert' : ''}>{junkCount} / 3</span>
                     </div>
