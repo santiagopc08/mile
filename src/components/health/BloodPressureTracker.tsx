@@ -29,9 +29,9 @@ interface BloodPressureEntry {
 export const BloodPressureTracker = () => {
     const { profile } = useProfile();
     const [entries, setEntries] = useState<BloodPressureEntry[]>([]);
-    const [systolic, setSystolic] = useState<number>(120);
-    const [diastolic, setDiastolic] = useState<number>(80);
-    const [heartRate, setHeartRate] = useState<number>(70);
+    const [systolic, setSystolic] = useState<number | ''>('');
+    const [diastolic, setDiastolic] = useState<number | ''>('');
+    const [heartRate, setHeartRate] = useState<number | ''>('');
     const [position, setPosition] = useState<BloodPressureEntry['position']>('sentado');
     const [loading, setLoading] = useState(false);
 
@@ -45,30 +45,61 @@ export const BloodPressureTracker = () => {
             .select('*')
             .order('created_at', { ascending: false });
 
+        if (error) {
+            console.error('Error fetching blood pressure entries:', error);
+            return;
+        }
         if (data) setEntries(data);
     };
 
     const handleAddEntry = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (systolic === '' || diastolic === '' || heartRate === '') return;
+        
         setLoading(true);
 
+        // Simple duplicate prevention: check if last entry is identical and within 30 seconds
+        const lastEntry = entries[0];
+        if (lastEntry) {
+            const timeDiff = Date.now() - new Date(lastEntry.created_at).getTime();
+            if (
+                timeDiff < 30000 && 
+                lastEntry.systolic === Number(systolic) && 
+                lastEntry.diastolic === Number(diastolic) && 
+                lastEntry.heart_rate === Number(heartRate) &&
+                lastEntry.position === position
+            ) {
+                console.warn('Duplicate entry detected. Ignoring.');
+                setLoading(false);
+                return;
+            }
+        }
+
         const { error } = await supabase.from('blood_pressure').insert({
-            systolic,
-            diastolic,
-            heart_rate: heartRate,
+            systolic: Number(systolic),
+            diastolic: Number(diastolic),
+            heart_rate: Number(heartRate),
             position,
             author: profile || 'el'
         });
 
-        if (!error) {
-            fetchEntries();
+        if (error) {
+            console.error('Error saving blood pressure entry:', error);
+        } else {
+            // Clear form
+            setSystolic('');
+            setDiastolic('');
+            setHeartRate('');
+            await fetchEntries();
         }
         setLoading(false);
     };
 
     const handleDelete = async (id: string) => {
         const { error } = await supabase.from('blood_pressure').delete().eq('id', id);
-        if (!error) {
+        if (error) {
+            console.error('Error deleting entry:', error);
+        } else {
             setEntries(entries.filter(e => e.id !== id));
         }
     };
@@ -134,7 +165,8 @@ export const BloodPressureTracker = () => {
                         <input
                             type="number"
                             value={systolic}
-                            onChange={e => setSystolic(Number(e.target.value))}
+                            onChange={e => setSystolic(e.target.value === '' ? '' : Number(e.target.value))}
+                            placeholder="120"
                             className="w-full bg-black border border-white/10 p-3 text-xs font-bold outline-none focus:border-user-a text-white"
                             required
                         />
@@ -144,7 +176,8 @@ export const BloodPressureTracker = () => {
                         <input
                             type="number"
                             value={diastolic}
-                            onChange={e => setDiastolic(Number(e.target.value))}
+                            onChange={e => setDiastolic(e.target.value === '' ? '' : Number(e.target.value))}
+                            placeholder="80"
                             className="w-full bg-black border border-white/10 p-3 text-xs font-bold outline-none focus:border-user-a text-white"
                             required
                         />
@@ -154,7 +187,8 @@ export const BloodPressureTracker = () => {
                         <input
                             type="number"
                             value={heartRate}
-                            onChange={e => setHeartRate(Number(e.target.value))}
+                            onChange={e => setHeartRate(e.target.value === '' ? '' : Number(e.target.value))}
+                            placeholder="70"
                             className="w-full bg-black border border-white/10 p-3 text-xs font-bold outline-none focus:border-user-a text-white"
                             required
                         />
@@ -174,9 +208,23 @@ export const BloodPressureTracker = () => {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="md:col-span-4 bg-user-a text-black py-4 text-[10px] uppercase font-black tracking-[0.3em] hover:bg-[#ffb595] transition-all flex items-center justify-center gap-2 border border-user-a mt-2"
+                        className={`md:col-span-4 py-4 text-[10px] uppercase font-black tracking-[0.3em] transition-all flex items-center justify-center gap-2 border mt-2 ${
+                            loading 
+                            ? 'bg-stone-800 text-stone-500 border-stone-800 cursor-not-allowed' 
+                            : 'bg-user-a text-black border-user-a hover:bg-[#ffb595]'
+                        }`}
                     >
-                        <Plus size={14} /> [ REGISTRAR_SIGNOS_VITALES ]
+                        {loading ? (
+                            <motion.div
+                                animate={{ rotate: 360 }}
+                                transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                            >
+                                <Activity size={14} />
+                            </motion.div>
+                        ) : (
+                            <Plus size={14} />
+                        )}
+                        [ {loading ? 'PROCESANDO_DATA' : 'REGISTRAR_SIGNOS_VITALES'} ]
                     </button>
                 </form>
 

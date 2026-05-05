@@ -7,12 +7,13 @@ import { FiscalAuditor } from "@/components/symmetry/FiscalAuditor";
 import { BloodPressureTracker } from "@/components/health/BloodPressureTracker";
 import { useStore } from "@/context/StoreContext";
 import { useProfile } from "@/context/ProfileContext";
-import { Activity, Heart, Utensils, Shield } from 'lucide-react';
+import { Activity, HeartPulse, Utensils, Shield, Radio } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Allocation, StoreService } from "@/services/storeService";
 
 export default function SaludPage() {
-    const [activeTab, setActiveTab] = useState<'vitals' | 'biometric' | 'fiscal'>('vitals');
+    type SaludTab = 'vitals' | 'biometric' | 'fiscal';
+    const [activeTab, setActiveTab] = useState<SaludTab>('vitals');
     const { data } = useStore();
     const { profile } = useProfile();
     const [allocations, setAllocations] = useState<Allocation[]>([]);
@@ -52,50 +53,93 @@ export default function SaludPage() {
         }
     };
 
-    const tabs = [
-        { id: 'vitals', label: 'Signos Vitales', icon: Activity },
+    const tabs: Array<{ id: SaludTab; label: string; icon: typeof Activity }> = [
+        { id: 'vitals', label: 'Signos Vitales', icon: HeartPulse },
         { id: 'biometric', label: 'Bóveda Biométrica', icon: Shield },
         { id: 'fiscal', label: 'Salud Fiscal', icon: Utensils },
     ];
 
     return (
         <PrivateRoute>
-            <main className="w-full flex flex-col items-center justify-start pt-12 px-4 md:px-12 pb-24 relative z-10">
-                <div className="w-full max-w-7xl mx-auto space-y-8">
-                    {/* Header */}
-                    <div className="flex flex-col items-center justify-center text-center border-b border-stone-200 dark:border-stone-800 pb-8">
-                        <h1 className="text-4xl sm:text-6xl font-black tracking-tighter uppercase italic leading-none">Salud</h1>
-                        <p className="text-stone-500 text-[10px] uppercase font-bold tracking-[0.4em] mt-4">
-                            Monitoreo de Parámetros Vitales y Bienestar
-                        </p>
+            <main className="relative z-10 min-h-screen w-full overflow-hidden bg-black px-4 pb-24 pt-6 text-[#e5e2e1] md:px-8 md:pt-8">
+                <div className="pointer-events-none fixed inset-0 -z-10 bg-mosaic opacity-60" />
+                <div className="pointer-events-none fixed inset-x-0 top-0 -z-10 h-64 bg-[linear-gradient(180deg,rgba(0,219,233,0.12),transparent)]" />
+                <div className="mx-auto w-full max-w-7xl border-x border-white/10">
+                    <div className="grid border-y border-white/10 bg-[#0a0a0a]/95 md:grid-cols-[1fr_auto]">
+                        <div className="relative p-5 sm:p-8 md:p-10">
+                            <div className="absolute left-0 top-0 h-full w-px bg-[#00dbe9]" />
+                            <div className="mb-8 flex flex-wrap items-center gap-3 text-[10px] font-black uppercase tracking-[0.28em] text-[#a88a7e]">
+                                <span className="border border-[#00dbe9]/50 px-2 py-1 text-[#7df4ff]">HEALTH // VITAL_CORE</span>
+                                <span className="flex items-center gap-2">
+                                    <span className="h-2 w-2 bg-[#ff7020]" />
+                                    MONITOR_ONLINE
+                                </span>
+                            </div>
+                            <h1 className="text-5xl font-black uppercase leading-[0.92] tracking-normal text-white sm:text-7xl lg:text-8xl">Salud</h1>
+                            <div className="mt-6 grid max-w-4xl gap-5 border-t border-white/10 pt-5 md:grid-cols-[1fr_auto] md:items-end">
+                                <p className="max-w-2xl text-sm leading-6 tracking-normal text-[#e1bfb2] md:text-base">
+                                    Monitoreo de parámetros vitales, privacidad biométrica y hábitos fiscales asociados al bienestar.
+                                </p>
+                                <div className="grid grid-cols-2 border border-white/10 text-center">
+                                    <div className="border-r border-white/10 px-4 py-3">
+                                        <div className="text-2xl font-black text-[#00dbe9]">{tabs.length}</div>
+                                        <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Módulos</div>
+                                    </div>
+                                    <div className="px-4 py-3">
+                                        <div className="text-2xl font-black text-[#ffb595]">{profile === 'ella' ? 'S' : 'A'}</div>
+                                        <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Modo</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <aside className="hidden min-w-56 border-l border-white/10 bg-black/60 p-5 md:flex md:flex-col md:justify-between">
+                            <div className="space-y-3 text-[10px] font-bold uppercase tracking-[0.24em] text-[#a88a7e]">
+                                <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                                    <span>Telemetry</span>
+                                    <Activity className="h-4 w-4 text-[#00dbe9]" />
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <span>Channel</span>
+                                    <span className="text-[#e5b5ff]">{activeTab}</span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <span>Signal</span>
+                                    <span className="text-[#ffb595]">ACTIVE</span>
+                                </div>
+                            </div>
+                            <Radio className="h-16 w-16 text-[#00dbe9]" strokeWidth={1} />
+                        </aside>
                     </div>
 
-                    {/* Tab Navigation */}
-                    <div className="flex justify-center gap-2 md:gap-4 border-b border-stone-100 dark:border-stone-900 pb-4 flex-wrap">
+                    <div className="grid grid-cols-1 border-b border-white/10 bg-black sm:grid-cols-3">
                         {tabs.map((tab) => (
                             <button
                                 key={tab.id}
-                                onClick={() => setActiveTab(tab.id as any)}
-                                className={`relative px-4 sm:px-6 py-3 flex items-center gap-2 transition-all ${
+                                onClick={() => setActiveTab(tab.id)}
+                                className={`group relative flex min-h-20 items-center justify-between border-b border-white/10 px-4 py-4 transition-all last:border-b-0 sm:border-b-0 sm:border-r sm:last:border-r-0 ${
                                     activeTab === tab.id
-                                        ? 'text-geometric-accent'
-                                        : 'text-stone-400 hover:text-stone-600 dark:hover:text-stone-200'
+                                        ? 'bg-[#00dbe9] text-black'
+                                        : 'bg-[#0a0a0a] text-[#a88a7e] hover:bg-[#121212] hover:text-white'
                                 }`}
                             >
-                                <tab.icon className="w-4 h-4" />
-                                <span className="text-[10px] uppercase font-black tracking-widest hidden sm:inline">{tab.label}</span>
+                                <span className="flex flex-col items-start gap-2">
+                                    <tab.icon className="h-4 w-4" />
+                                    <span className="text-[10px] font-black uppercase tracking-[0.22em]">{tab.label}</span>
+                                </span>
+                                <span className={`text-[9px] font-bold uppercase tracking-[0.2em] ${activeTab === tab.id ? 'text-black/55' : 'text-white/20 group-hover:text-[#ff7020]'}`}>
+                                    0{tabs.findIndex(item => item.id === tab.id) + 1}
+                                </span>
                                 {activeTab === tab.id && (
                                     <motion.div
                                         layoutId="activeTabSalud"
-                                        className="absolute bottom-[-17px] left-0 right-0 h-0.5 bg-geometric-accent"
+                                        className="absolute inset-x-0 bottom-0 h-1 bg-[#ff7020]"
                                     />
                                 )}
                             </button>
                         ))}
                     </div>
 
-                    {/* Tab Content */}
-                    <div className="mt-8">
+                    <div className="bg-[#050505] p-3 sm:p-5 md:p-8">
                         <AnimatePresence mode="wait">
                             <motion.div
                                 key={activeTab}
@@ -103,6 +147,7 @@ export default function SaludPage() {
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -10 }}
                                 transition={{ duration: 0.2 }}
+                                className="min-h-[560px]"
                             >
                                 {activeTab === 'vitals' && <BloodPressureTracker />}
                                 {activeTab === 'biometric' && <BiometricVault />}

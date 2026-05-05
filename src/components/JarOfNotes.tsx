@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, Sparkles, MessageCircleHeart, X, Circle, Triangle, Square } from 'lucide-react';
+import { MessageCircleHeart, X, Circle, Triangle, Square } from 'lucide-react';
 import { useStore } from '@/context/StoreContext';
 import { useProfile } from '@/context/ProfileContext';
 
@@ -100,6 +100,7 @@ export function JarOfNotes() {
         e.preventDefault();
         if (newNoteText.trim()) {
             const newNote = {
+                // eslint-disable-next-line react-hooks/purity
                 id: Date.now().toString(),
                 text: newNoteText.trim(),
                 author: profile || 'el'
@@ -115,7 +116,11 @@ export function JarOfNotes() {
     const showImg1 = ['idle', 'img1', 'reverse-img1'].includes(animState);
 
     return (
-        <div className="flex flex-col items-center justify-center w-full min-h-[70vh] relative bg-dot-matrix overflow-hidden border border-stone-200 dark:border-stone-800">
+        <div className="relative flex min-h-[70vh] w-full flex-col items-center justify-center overflow-hidden border border-white/10 bg-[#0a0a0a] bg-dot-matrix">
+            <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex justify-between border-b border-white/10 px-4 py-3 text-[9px] font-bold uppercase tracking-[0.24em] text-[#a88a7e]">
+                <span>NOTE_VAULT</span>
+                <span className="text-[#00dbe9]">{notes.length.toString().padStart(2, '0')} ENTRIES</span>
+            </div>
             {/* Header info - fades out when animation starts */}
             <AnimatePresence>
                 {animState === 'idle' && (
@@ -123,13 +128,13 @@ export function JarOfNotes() {
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -20 }}
-                        className="absolute top-8 left-0 right-0 text-center z-20 pointer-events-none"
+                        className="pointer-events-none absolute left-0 right-0 top-16 z-20 px-4 text-center"
                     >
-                        <h2 className="text-3xl font-bold text-stone-800 dark:text-stone-100 mb-3 uppercase tracking-tighter">
+                        <h2 className="mb-3 text-3xl font-black uppercase tracking-normal text-white md:text-4xl">
                             El Tarro de Notas
                         </h2>
-                        <div className="h-1 w-20 bg-geometric-accent mx-auto mb-4" />
-                        <p className="text-stone-500 dark:text-stone-400 font-light max-w-xs mx-auto">
+                        <div className="mx-auto mb-4 h-1 w-20 bg-[#ff7020]" />
+                        <p className="mx-auto max-w-xs text-sm leading-6 tracking-normal text-[#e1bfb2]">
                             La nave de Kiaro, llena de pensamientos y amor.
                         </p>
                     </motion.div>
@@ -190,52 +195,52 @@ export function JarOfNotes() {
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.9 }}
                             transition={{ type: 'spring', damping: 20 }}
-                            className="absolute inset-0 z-40 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+                            className="absolute inset-0 z-40 flex items-center justify-center bg-black/70 backdrop-blur-sm"
                             onClick={(e) => e.stopPropagation()} // prevent clicking through
                         >
                             {/* Decorative Shapes */}
                             <motion.div
-                                className="absolute top-1/4 left-1/4 text-geometric-accent opacity-50"
+                                className="absolute left-1/4 top-1/4 text-[#ff7020] opacity-50"
                                 animate={{ rotate: 360, y: [0, -20, 0] }}
                                 transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
                             >
                                 <Circle className="w-16 h-16" strokeWidth={1} />
                             </motion.div>
                             <motion.div
-                                className="absolute bottom-1/4 right-1/4 text-user-a opacity-50"
+                                className="absolute bottom-1/4 right-1/4 text-[#e5b5ff] opacity-50"
                                 animate={{ rotate: -360, x: [0, 20, 0] }}
                                 transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
                             >
                                 <Triangle className="w-20 h-20" strokeWidth={1} />
                             </motion.div>
                             <motion.div
-                                className="absolute top-1/3 right-1/3 text-user-b opacity-50"
+                                className="absolute right-1/3 top-1/3 text-[#00dbe9] opacity-50"
                                 animate={{ rotate: 180, scale: [1, 1.2, 1] }}
                                 transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
                             >
                                 <Square className="w-12 h-12" strokeWidth={1} />
                             </motion.div>
 
-                            <div className="geometric-card bg-white/90 dark:bg-stone-900/90 p-8 md:p-12 shadow-2xl relative max-w-lg w-full mx-4 border border-geometric-accent/30 backdrop-blur-md">
-                                <div className="absolute inset-0 bg-grid-mosaic opacity-5 pointer-events-none" />
+                            <div className="geometric-card relative mx-4 w-full max-w-lg border-[#ff7020]/70 bg-[#0a0a0a]/95 p-8 backdrop-blur-md md:p-12">
+                                <div className="pointer-events-none absolute inset-0 bg-mosaic opacity-40" />
 
-                                <div className="flex justify-between items-start mb-8 relative z-10 border-b border-stone-200 dark:border-stone-800 pb-4">
-                                    <span className="text-geometric-accent font-black text-xs tracking-[0.3em] uppercase flex items-center gap-2">
-                                        <div className="w-2 h-2 bg-geometric-accent" />
+                                <div className="relative z-10 mb-8 flex items-start justify-between border-b border-white/10 pb-4">
+                                    <span className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.3em] text-[#ffb595]">
+                                        <div className="h-2 w-2 bg-[#ff7020]" />
                                         Nota Diaria
                                     </span>
                                     <button
                                         onClick={closeSequence}
-                                        className="text-stone-400 hover:text-geometric-accent transition-colors p-2 -mr-4 -mt-4"
+                                        className="-mr-4 -mt-4 p-2 text-[#a88a7e] transition-colors hover:text-[#ffb595]"
                                     >
                                         <X className="w-6 h-6" />
                                     </button>
                                 </div>
-                                <p className="text-stone-800 dark:text-stone-100 font-medium text-2xl md:text-3xl italic text-center leading-relaxed relative z-10 py-4 px-2">
+                                <p className="relative z-10 px-2 py-4 text-center text-2xl font-medium leading-relaxed tracking-normal text-white md:text-3xl">
                                     &quot;{currentNote}&quot;
                                 </p>
 
-                                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-user-a via-geometric-accent to-user-b opacity-50" />
+                                <div className="absolute bottom-0 left-0 right-0 h-1 bg-[linear-gradient(90deg,#a100f0,#ff7020,#00dbe9)] opacity-80" />
                             </div>
                         </motion.div>
                     )}
@@ -247,28 +252,28 @@ export function JarOfNotes() {
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="absolute bottom-8 w-full max-w-sm z-20 px-4"
+                    className="absolute bottom-8 z-20 w-full max-w-sm px-4"
                 >
                     {!isAddingMode ? (
                         <button
                             onClick={() => setIsAddingMode(true)}
-                            className="w-full py-4 border border-geometric-border bg-white/80 dark:bg-stone-900/80 backdrop-blur-sm text-stone-500 hover:text-geometric-accent hover:border-geometric-accent transition-all flex items-center justify-center gap-2 rounded-none"
+                            className="flex w-full items-center justify-center gap-2 border border-white/10 bg-black/80 py-4 text-[#a88a7e] backdrop-blur-sm transition-all hover:border-[#ff7020] hover:text-[#ffb595]"
                         >
                             <MessageCircleHeart className="w-5 h-5" />
                             <span className="uppercase text-xs font-bold tracking-widest">Añadir Nueva Nota</span>
                         </button>
                     ) : (
-                        <form onSubmit={handleAddNote} className="geometric-card bg-white/95 dark:bg-stone-900/95 backdrop-blur-md p-6 border border-geometric-accent/30 shadow-2xl">
+                        <form onSubmit={handleAddNote} className="geometric-card border-[#ff7020]/50 bg-[#0a0a0a]/95 p-6 backdrop-blur-md">
                             <textarea
                                 value={newNoteText}
                                 onChange={(e) => setNewNoteText(e.target.value)}
                                 placeholder="Escribe un pensamiento para el futuro..."
-                                className="w-full bg-stone-50 dark:bg-stone-950 border border-geometric-border rounded-none p-4 min-h-[100px] outline-none focus:border-geometric-accent transition-colors mb-4 resize-none"
+                                className="mb-4 min-h-[100px] w-full resize-none border border-white/10 bg-black p-4 text-sm tracking-normal text-white outline-none transition-colors placeholder:text-[#594137] focus:border-[#ff7020]"
                                 autoFocus
                             />
                             <div className="flex gap-3">
-                                <button type="button" onClick={() => setIsAddingMode(false)} className="flex-1 py-3 border border-geometric-border text-stone-600 dark:text-stone-300 font-bold text-[10px] uppercase tracking-widest hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors rounded-none">Cancelar</button>
-                                <button type="submit" disabled={!newNoteText.trim()} className="flex-1 py-3 bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 font-bold text-[10px] uppercase tracking-widest disabled:opacity-50 hover:bg-geometric-accent dark:hover:bg-geometric-accent hover:text-white transition-colors rounded-none">Guardar</button>
+                                <button type="button" onClick={() => setIsAddingMode(false)} className="flex-1 border border-white/10 py-3 text-[10px] font-bold uppercase tracking-widest text-[#a88a7e] transition-colors hover:border-white/30 hover:text-white">Cancelar</button>
+                                <button type="submit" disabled={!newNoteText.trim()} className="flex-1 bg-[#ff7020] py-3 text-[10px] font-bold uppercase tracking-widest text-black transition-colors hover:bg-[#ffb595] disabled:opacity-50">Guardar</button>
                             </div>
                         </form>
                     )}

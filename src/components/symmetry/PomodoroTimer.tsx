@@ -213,24 +213,24 @@ export function PomodoroTimer() {
     const progress = 1 - (timeLeft / (activeDuration * 60));
 
     return (
-        <div className="w-full flex flex-col items-center justify-center p-4 sm:p-6 font-mono text-stone-200">
+        <div className="flex w-full flex-col items-center justify-center border border-white/10 bg-black/40 p-4 font-mono text-[#e5e2e1] sm:p-6">
 
 
             <div className="w-full flex flex-col items-center">
 
                 {isRunning && (
-                    <div className="w-full flex justify-between items-end mb-4 border-b border-user-a/30 pb-2">
-                        <div className="text-[10px] text-user-a font-bold tracking-[0.2em]">[ :: ACTIVE_SESSION ]<br /><span className="text-stone-400">SYS_SESSION_{currentSession.toString().padStart(2, '0')}</span></div>
-                        <div className="text-[8px] text-stone-500 tracking-[0.2em] text-right">UPLINK: SECURE<br />LATENCY: 14MS</div>
+                    <div className="mb-4 flex w-full items-end justify-between border-b border-user-a/30 pb-2">
+                        <div className="text-[10px] font-bold tracking-[0.2em] text-user-a">[ :: ACTIVE_SESSION ]<br /><span className="text-[#a88a7e]">SYS_SESSION_{currentSession.toString().padStart(2, '0')}</span></div>
+                        <div className="text-right text-[8px] tracking-[0.2em] text-[#594137]">UPLINK: SECURE<br />LATENCY: 14MS</div>
                     </div>
                 )}
 
                 {/* Main Countdown */}
-                <div className="w-full text-center my-6 relative">
-                    <div className="text-[8px] uppercase tracking-[0.3em] text-stone-500 mb-2">
+                <div className="relative my-6 w-full text-center">
+                    <div className="mb-2 text-[8px] uppercase tracking-[0.3em] text-[#a88a7e]">
                         [ REMAINING_BLOCK_TIME ]
                     </div>
-                    <div className="text-[100px] sm:text-[140px] leading-[0.85] font-bold tracking-tighter tabular-nums font-sans"
+                    <div className="font-sans text-[92px] font-black leading-[0.85] tracking-normal tabular-nums sm:text-[140px]"
                         style={{
                             color: isRunning ? 'var(--color-user-a)' : '#e5e2e1',
                             textShadow: isRunning ? '0 0 40px rgba(255, 112, 32, 0.4)' : 'none'
@@ -240,11 +240,11 @@ export function PomodoroTimer() {
 
                     {isRunning && (
                         <div className="w-full mt-6">
-                            <div className="flex justify-between text-[8px] tracking-[0.2em] text-stone-500 mb-1">
+                            <div className="mb-1 flex justify-between text-[8px] tracking-[0.2em] text-[#a88a7e]">
                                 <span>ELAPSED: {formatTime(elapsedSeconds)}</span>
                                 <span>TARGET: {currentSessionDuration}:00</span>
                             </div>
-                            <div className="w-full h-2 bg-stone-900 border border-stone-800">
+                            <div className="h-2 w-full border border-white/10 bg-[#050505]">
                                 <motion.div
                                     className="h-full"
                                     style={{
@@ -260,7 +260,7 @@ export function PomodoroTimer() {
                 {/* Budget Control - Hide when running */}
                 {!isRunning && (
                     <div className="w-full space-y-4">
-                        <div className="flex items-center justify-between text-[10px] uppercase font-bold tracking-widest text-stone-400">
+                        <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-[#a88a7e]">
                             <span>Tiempo Total</span>
                             <div className="flex items-center gap-2">
                                 <input
@@ -268,7 +268,7 @@ export function PomodoroTimer() {
                                     value={totalBudget}
                                     onChange={(e) => updateBudget(parseInt(e.target.value) || 1)}
                                     disabled={isRunning}
-                                    className="w-14 bg-transparent border-b border-stone-200 dark:border-stone-800 text-center text-stone-900 dark:text-white focus:border-user-a outline-none py-1 font-mono disabled:opacity-50"
+                                    className="w-14 border-b border-white/10 bg-transparent py-1 text-center font-mono text-white outline-none focus:border-user-a disabled:opacity-50"
                                 />
                                 <span>Min</span>
                             </div>
@@ -281,10 +281,10 @@ export function PomodoroTimer() {
                                 value={totalBudget}
                                 onChange={(e) => updateBudget(parseInt(e.target.value))}
                                 disabled={isRunning}
-                                className="w-full h-1.5 bg-stone-200 dark:bg-stone-800 appearance-none cursor-pointer accent-user-a rounded-none disabled:opacity-50"
+                                className="h-1.5 w-full cursor-pointer appearance-none bg-[#201f1f] accent-user-a disabled:opacity-50"
                             />
                         </div>
-                        <div className="text-[8px] text-center font-mono text-stone-500">
+                        <div className="text-center font-mono text-[8px] text-[#a88a7e]">
                             {sessionPlan.map((d, i) => `${d}m`).join(' + ')} = {totalBudget}min de foco
                         </div>
                     </div>
@@ -292,20 +292,20 @@ export function PomodoroTimer() {
 
                 {/* Task Anchoring */}
                 <div className="w-full relative mt-6 mb-2">
-                    <div className="text-[8px] uppercase tracking-[0.2em] text-stone-500 mb-2">
+                    <div className="mb-2 text-[8px] uppercase tracking-[0.2em] text-[#a88a7e]">
                         {'>'} OPERATION_TARGET
                     </div>
                     <button
                         onClick={() => !isRunning && setIsDropdownOpen(!isDropdownOpen)}
                         disabled={isRunning}
-                        className="w-full flex items-center justify-between p-4 min-h-[50px] border border-white/10 bg-black hover:border-white/30 transition-all disabled:opacity-50"
+                        className="flex min-h-[50px] w-full items-center justify-between border border-white/10 bg-black p-4 transition-all hover:border-user-a disabled:opacity-50"
                     >
                         <div className="flex items-center gap-3 overflow-hidden">
-                            <span className={`text-[12px] uppercase font-bold tracking-widest truncate ${selectedTaskId ? 'text-white' : 'text-stone-500'}`}>
+                            <span className={`truncate text-[12px] font-bold uppercase tracking-widest ${selectedTaskId ? 'text-white' : 'text-[#594137]'}`}>
                                 {selectedTaskId ? tasks.find(t => t.id === selectedTaskId)?.text : 'SELECT TASK...'}
                             </span>
                         </div>
-                        {!isRunning && <ChevronDown size={14} className="text-stone-500" />}
+                        {!isRunning && <ChevronDown size={14} className="text-[#a88a7e]" />}
                     </button>
 
                     <AnimatePresence>
@@ -314,11 +314,11 @@ export function PomodoroTimer() {
                                 initial={{ opacity: 0, y: -5 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -5 }}
-                                className="absolute top-full mt-1 left-0 right-0 bg-[#0a0a0a] border border-white/10 z-[60] max-h-48 overflow-y-auto custom-scrollbar shadow-2xl"
+                                className="absolute left-0 right-0 top-full z-[60] mt-1 max-h-48 overflow-y-auto border border-white/10 bg-[#0a0a0a] shadow-2xl custom-scrollbar"
                             >
                                 <button
                                     onClick={() => { setSelectedTaskId(''); setIsDropdownOpen(false); }}
-                                    className="w-full text-left p-3 text-[10px] uppercase hover:bg-white/5 border-b border-white/5 min-h-[44px] text-stone-400"
+                                    className="min-h-[44px] w-full border-b border-white/5 p-3 text-left text-[10px] uppercase text-[#a88a7e] hover:bg-white/5"
                                 >
                                     [ UNLINK TARGET ]
                                 </button>
@@ -326,10 +326,10 @@ export function PomodoroTimer() {
                                     <button
                                         key={task.id}
                                         onClick={() => { setSelectedTaskId(task.id); setIsDropdownOpen(false); }}
-                                        className="w-full text-left p-3 text-[10px] uppercase hover:bg-white/5 border-b border-white/5 flex flex-col gap-1"
+                                        className="flex w-full flex-col gap-1 border-b border-white/5 p-3 text-left text-[10px] uppercase hover:bg-white/5"
                                     >
                                         <span className="font-bold truncate text-white">{task.text}</span>
-                                        <span className="text-[8px] text-stone-500 tracking-widest">STATUS: {task.status}</span>
+                                        <span className="text-[8px] tracking-widest text-[#a88a7e]">STATUS: {task.status}</span>
                                     </button>
                                 ))}
                             </motion.div>
@@ -348,14 +348,14 @@ export function PomodoroTimer() {
                             if (!hasActions && !hasValidations) return null;
 
                             return (
-                                <div className="space-y-4 border-t border-stone-100 dark:border-stone-800 pt-4">
-                                    <div className="text-[8px] uppercase font-bold tracking-widest text-stone-400 text-center mb-2">Modo Ejecución</div>
+                                <div className="space-y-4 border-t border-white/10 pt-4">
+                                    <div className="mb-2 text-center text-[8px] font-bold uppercase tracking-widest text-[#a88a7e]">Modo Ejecución</div>
 
                                     {hasActions && (
                                         <div className="space-y-2">
                                             <div className="text-[7px] uppercase font-bold text-user-b">Acciones</div>
                                             {activeTask.actions!.map(act => (
-                                                <button key={act.id} onClick={() => toggleTaskChecklist(activeTask.id, 'actions', act.id)} className={`w-full flex items-center gap-2 p-2 text-left text-[9px] border transition-colors ${act.checked ? 'border-user-b/50 bg-user-b/10 opacity-50' : 'border-stone-200 dark:border-stone-800 hover:border-user-b'}`}>
+                                                <button key={act.id} onClick={() => toggleTaskChecklist(activeTask.id, 'actions', act.id)} className={`flex w-full items-center gap-2 border p-2 text-left text-[9px] transition-colors ${act.checked ? 'border-user-b/50 bg-user-b/10 opacity-50' : 'border-white/10 hover:border-user-b'}`}>
                                                     <div className={`w-3 h-3 flex items-center justify-center border ${act.checked ? 'border-user-b bg-user-b text-white' : 'border-stone-400'}`}>
                                                         {act.checked && <Check size={8} />}
                                                     </div>
@@ -369,7 +369,7 @@ export function PomodoroTimer() {
                                         <div className="space-y-2">
                                             <div className="text-[7px] uppercase font-bold text-emerald-500">Validaciones</div>
                                             {activeTask.validations!.map(val => (
-                                                <button key={val.id} onClick={() => toggleTaskChecklist(activeTask.id, 'validations', val.id)} className={`w-full flex items-center gap-2 p-2 text-left text-[9px] border transition-colors ${val.checked ? 'border-emerald-500/50 bg-emerald-500/10 opacity-50' : 'border-stone-200 dark:border-stone-800 hover:border-emerald-500'}`}>
+                                                <button key={val.id} onClick={() => toggleTaskChecklist(activeTask.id, 'validations', val.id)} className={`flex w-full items-center gap-2 border p-2 text-left text-[9px] transition-colors ${val.checked ? 'border-emerald-500/50 bg-emerald-500/10 opacity-50' : 'border-white/10 hover:border-emerald-500'}`}>
                                                     <div className={`w-3 h-3 flex items-center justify-center border ${val.checked ? 'border-emerald-500 bg-emerald-500 text-white' : 'border-stone-400'}`}>
                                                         {val.checked && <Check size={8} />}
                                                     </div>

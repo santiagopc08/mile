@@ -49,7 +49,7 @@ export const FinanceChart = ({ allocationsA, allocationsB }: { allocationsA: any
   }, [allocationsA, allocationsB]);
 
   return (
-    <div className="w-full h-full font-mono">
+    <div className="h-full w-full border border-white/10 bg-black/40 p-2 font-mono">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={chartData}
@@ -69,7 +69,7 @@ export const FinanceChart = ({ allocationsA, allocationsB }: { allocationsA: any
             tick={{ fontSize: 7, fontWeight: 'bold', fill: '#555' }}
           />
           <Tooltip
-            cursor={{ fill: 'rgba(255, 255, 255, 0.03)' }}
+            cursor={{ fill: 'rgba(255, 112, 32, 0.05)' }}
             contentStyle={{
               backgroundColor: '#0a0a0a',
               border: '1px solid rgba(255, 255, 255, 0.1)',
@@ -118,4 +118,3 @@ export const FinanceChart = ({ allocationsA, allocationsB }: { allocationsA: any
     </div>
   );
 };
-

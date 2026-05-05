@@ -220,74 +220,74 @@ export const BiometricVault = () => {
     const isSovereign = profile === 'ella';
 
     return (
-        <div className="border-2 border-stone-800 p-6 sm:p-8 bg-zinc-950 relative overflow-hidden rounded-none">
-            <div className="absolute inset-0 bg-grid-mosaic opacity-5 pointer-events-none" />
+        <div className="relative overflow-hidden border border-white/10 bg-[#0a0a0a] p-6 sm:p-8">
+            <div className="pointer-events-none absolute inset-0 bg-mosaic opacity-35" />
             
-            <h2 className="text-[10px] uppercase font-bold tracking-[0.2em] mb-8 border-b border-stone-800 pb-3 text-stone-300 flex justify-between items-center relative z-10 rounded-none">
-                <span className="flex items-center gap-2"><Fingerprint className="w-4 h-4 text-stone-500" /> Controlador de Bóveda Biométrica</span>
-                <span className="text-[8px] font-mono text-stone-600">ZERO-KNOWLEDGE PROTOCOL</span>
+            <h2 className="relative z-10 mb-8 flex items-center justify-between border-b border-white/10 pb-3 text-[10px] font-black uppercase tracking-[0.22em] text-[#a88a7e]">
+                <span className="flex items-center gap-2"><Fingerprint className="h-4 w-4 text-[#00dbe9]" /> Controlador de Bóveda Biométrica</span>
+                <span className="hidden font-mono text-[8px] text-[#594137] sm:inline">ZERO-KNOWLEDGE PROTOCOL</span>
             </h2>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 relative z-10">
                 <div className="lg:col-span-7 space-y-6">
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                        <div className="border border-stone-800 bg-black/50 p-4 flex flex-col items-center justify-center text-center rounded-none">
-                            <span className="text-[8px] uppercase tracking-widest text-stone-500 mb-1">Estado</span>
-                            <span className="text-sm font-mono text-stone-300">
+                        <div className="flex flex-col items-center justify-center border border-white/10 bg-black/60 p-4 text-center">
+                            <span className="mb-1 text-[8px] uppercase tracking-widest text-[#a88a7e]">Estado</span>
+                            <span className="font-mono text-sm text-white">
                                 {engineStats ? `DÍA ${engineStats.daysSinceLast}` : 'N/A'}
                             </span>
                         </div>
-                        <div className="border border-stone-800 bg-black/50 p-4 flex flex-col items-center justify-center text-center rounded-none">
-                            <span className="text-[8px] uppercase tracking-widest text-stone-500 mb-1">Índice Confianza</span>
-                            <span className="text-sm font-mono text-stone-300">
+                        <div className="flex flex-col items-center justify-center border border-white/10 bg-black/60 p-4 text-center">
+                            <span className="mb-1 text-[8px] uppercase tracking-widest text-[#a88a7e]">Índice Confianza</span>
+                            <span className="font-mono text-sm text-[#00dbe9]">
                                 {engineStats ? `${engineStats.confidenceScore}%` : '0%'}
                             </span>
                         </div>
-                        <div className="border border-stone-800 bg-black/50 p-4 flex flex-col items-center justify-center text-center rounded-none">
-                            <span className="text-[8px] uppercase tracking-widest text-stone-500 mb-1">Ciclo Previsto</span>
-                            <span className="text-sm font-mono text-stone-300">
+                        <div className="flex flex-col items-center justify-center border border-white/10 bg-black/60 p-4 text-center">
+                            <span className="mb-1 text-[8px] uppercase tracking-widest text-[#a88a7e]">Ciclo Previsto</span>
+                            <span className="font-mono text-sm text-white">
                                 {engineStats ? `${engineStats.predictedCycleLength}D` : 'N/A'}
                             </span>
                         </div>
-                        <div className="border border-stone-800 bg-black/50 p-4 flex flex-col items-center justify-center text-center rounded-none">
-                            <span className="text-[8px] uppercase tracking-widest text-stone-500 mb-1">Varianza</span>
-                            <span className="text-sm font-mono text-stone-300">
+                        <div className="flex flex-col items-center justify-center border border-white/10 bg-black/60 p-4 text-center">
+                            <span className="mb-1 text-[8px] uppercase tracking-widest text-[#a88a7e]">Varianza</span>
+                            <span className="font-mono text-sm text-white">
                                 ±15%
                             </span>
                         </div>
                     </div>
 
-                    <div className="border border-stone-800 bg-black p-6 rounded-none">
+                    <div className="border border-white/10 bg-black p-6">
                         <div className="flex items-center justify-between mb-4">
-                            <span className="text-[9px] uppercase tracking-widest text-stone-500">Horizonte Biológico</span>
-                            <span className="text-[9px] font-mono text-stone-600">Constante Lútea: {state.luteal_constant}D</span>
+                            <span className="text-[9px] uppercase tracking-widest text-[#a88a7e]">Horizonte Biológico</span>
+                            <span className="font-mono text-[9px] text-[#594137]">Constante Lútea: {state.luteal_constant}D</span>
                         </div>
                         
                         {engineStats ? (
                             <div className="space-y-4">
                                 <div className="flex justify-between items-center text-xs font-mono">
                                     <div className="flex flex-col">
-                                        <span className="text-stone-500 text-[8px] uppercase tracking-wider mb-1">Último Registro</span>
-                                        <span className="bg-red-900/20 text-red-500 px-2 py-1 border border-red-900 rounded-none">
+                                        <span className="mb-1 text-[8px] uppercase tracking-wider text-[#a88a7e]">Último Registro</span>
+                                        <span className="border border-red-900 bg-red-900/20 px-2 py-1 text-red-400">
                                             {format(engineStats.latestCycleDate, 'MMM dd, yyyy')}
                                         </span>
                                     </div>
-                                    <div className="flex-1 border-t border-dashed border-stone-800 mx-4" />
+                                    <div className="mx-4 flex-1 border-t border-dashed border-white/10" />
                                     <div className="flex flex-col items-end">
-                                        <span className="text-stone-500 text-[8px] uppercase tracking-wider mb-1">Inicio Previsto</span>
-                                        <span className="bg-red-950/20 text-red-500 px-2 py-1 border border-dashed border-red-500 rounded-none">
+                                        <span className="mb-1 text-[8px] uppercase tracking-wider text-[#a88a7e]">Inicio Previsto</span>
+                                        <span className="border border-dashed border-red-500 bg-red-950/20 px-2 py-1 text-red-400">
                                             {format(engineStats.predictedNextDate, 'MMM dd, yyyy')}
                                         </span>
                                     </div>
                                 </div>
                                 
                                 {!isSovereign && (
-                                    <div className="mt-6 p-4 border border-stone-800 bg-stone-900/50 rounded-none">
+                                    <div className="mt-6 border border-white/10 bg-[#0a0a0a] p-4">
                                         <div className="flex items-center gap-2 mb-2">
-                                            <ShieldAlert className="w-4 h-4 text-stone-400" />
-                                            <span className="text-[9px] uppercase tracking-widest font-bold text-stone-400">Directiva Estratégica</span>
+                                            <ShieldAlert className="h-4 w-4 text-[#00dbe9]" />
+                                            <span className="text-[9px] font-bold uppercase tracking-widest text-[#a88a7e]">Directiva Estratégica</span>
                                         </div>
-                                        <p className="text-sm text-stone-300 italic font-light">
+                                        <p className="text-sm font-light tracking-normal text-[#e1bfb2]">
                                             &quot;{getPartnerTranslation()}&quot;
                                         </p>
                                     </div>
@@ -310,7 +310,7 @@ export const BiometricVault = () => {
 
                 <div className="lg:col-span-5">
                     {isSovereign ? (
-                        <div className="border border-stone-800 p-6 bg-black rounded-none">
+                        <div className="border border-white/10 bg-black p-6">
                             <h3 className="text-[9px] uppercase tracking-widest text-red-500 font-bold mb-4 flex items-center gap-2">
                                 <Database className="w-3 h-3" /> Acceso Soberana de Datos
                             </h3>
@@ -322,7 +322,7 @@ export const BiometricVault = () => {
                                             type="date" 
                                             value={dateInput}
                                             onChange={e => setDateInput(e.target.value)}
-                                            className="w-full bg-stone-900 border border-stone-800 text-stone-300 p-2 text-xs font-mono outline-none focus:border-red-500 rounded-none"
+                                            className="w-full border border-white/10 bg-[#0a0a0a] p-2 font-mono text-xs text-white outline-none focus:border-red-500"
                                             required
                                         />
                                     </div>
@@ -331,7 +331,7 @@ export const BiometricVault = () => {
                                         <select 
                                             value={flowLevel}
                                             onChange={e => setFlowLevel(e.target.value as any)}
-                                            className="w-full bg-stone-900 border border-stone-800 text-stone-300 p-2 text-xs font-mono outline-none focus:border-red-500 appearance-none rounded-none"
+                                            className="w-full appearance-none border border-white/10 bg-[#0a0a0a] p-2 font-mono text-xs text-white outline-none focus:border-red-500"
                                             required
                                         >
                                             <option value="" disabled>Seleccionar Flujo</option>
@@ -350,7 +350,7 @@ export const BiometricVault = () => {
                                     </label>
                                     <div className="grid grid-cols-2 gap-2">
                                         {FLO_SYMPTOMS.map(sym => (
-                                            <label key={sym} className="flex items-center gap-2 p-2 border border-stone-800 bg-stone-900 cursor-pointer rounded-none">
+                                            <label key={sym} className="flex cursor-pointer items-center gap-2 border border-white/10 bg-[#0a0a0a] p-2">
                                                 <input 
                                                     type="checkbox" 
                                                     checked={selectedSymptoms.includes(sym)}
@@ -371,7 +371,7 @@ export const BiometricVault = () => {
                                     <textarea 
                                         value={notes}
                                         onChange={e => setNotes(e.target.value)}
-                                        className="w-full bg-stone-900 border border-stone-800 text-stone-300 p-2 text-xs font-mono outline-none focus:border-red-500 resize-none h-16 rounded-none"
+                                        className="h-16 w-full resize-none border border-white/10 bg-[#0a0a0a] p-2 font-mono text-xs text-white outline-none focus:border-red-500"
                                     />
                                 </div>
 
@@ -388,13 +388,13 @@ export const BiometricVault = () => {
                                     </label>
                                 </div>
 
-                                <button type="submit" className="w-full py-3 bg-red-950/30 text-red-500 border border-red-900 text-[10px] uppercase tracking-widest font-bold hover:bg-red-900/50 transition-colors rounded-none">
+                                <button type="submit" className="w-full border border-red-900 bg-red-950/30 py-3 text-[10px] font-bold uppercase tracking-widest text-red-400 transition-colors hover:bg-red-900/50">
                                     Comprometer Registro
                                 </button>
                             </form>
                         </div>
                     ) : (
-                        <div className="border border-stone-800 p-6 bg-black flex flex-col items-center justify-center text-center h-full min-h-[200px] rounded-none">
+                        <div className="flex h-full min-h-[200px] flex-col items-center justify-center border border-white/10 bg-black p-6 text-center">
                             <Lock className="w-8 h-8 text-stone-700 mb-4" />
                             <h3 className="text-[10px] uppercase tracking-widest text-stone-500 font-bold mb-2">
                                 Barrera Criptográfica Activa
@@ -408,13 +408,13 @@ export const BiometricVault = () => {
             </div>
 
             {state.cycles.length > 0 && (
-                <div className="mt-8 border-t border-stone-800 pt-6 relative z-10">
-                    <h3 className="text-[9px] uppercase tracking-widest text-stone-500 mb-4 flex justify-between">
+                <div className="relative z-10 mt-8 border-t border-white/10 pt-6">
+                    <h3 className="mb-4 flex justify-between text-[9px] uppercase tracking-widest text-[#a88a7e]">
                         <span>Registro de Bóveda</span>
                     </h3>
                     <div className="space-y-2 max-h-40 overflow-y-auto custom-scrollbar pr-2">
                         {[...state.cycles].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map(cycle => (
-                            <div key={cycle.id} className="flex items-center justify-between p-3 border border-stone-800 bg-stone-900/30 rounded-none">
+                            <div key={cycle.id} className="flex items-center justify-between border border-white/10 bg-black/40 p-3">
                                 <div className="flex items-center gap-4">
                                     <span className="text-xs font-mono text-stone-300">{format(parseISO(cycle.date), 'MM.dd.yy')}</span>
                                     {cycle.is_atypical && <span className="text-[8px] bg-yellow-900/30 text-yellow-500 px-1 border border-yellow-900 rounded-none">ATÍPICO</span>}

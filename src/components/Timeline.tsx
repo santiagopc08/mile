@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Calendar, Plus, Image as ImageIcon, Pencil, X, Check } from 'lucide-react';
+import { Calendar, Plus, Image as ImageIcon, Pencil } from 'lucide-react';
 import { useState } from 'react';
 import { useStore } from '@/context/StoreContext';
 import { useProfile } from '@/context/ProfileContext';
@@ -114,37 +114,41 @@ export function Timeline({ events }: TimelineProps) {
     };
 
     return (
-        <div className="relative w-full pl-6 md:pl-0 flex flex-col items-center bg-grid-mosaic py-12">
+        <div className="relative flex w-full flex-col items-center bg-mosaic py-8">
+            <div className="mb-10 w-full max-w-4xl border border-white/10 bg-[#0a0a0a] p-6 text-center">
+                <p className="text-[10px] font-bold uppercase tracking-[0.32em] text-[#a88a7e]">Temporal Archive</p>
+                <h2 className="mt-3 text-3xl font-black uppercase tracking-normal text-white">Historia Compartida</h2>
+            </div>
             
             {profile && (
-                <div className="w-full max-w-2xl mb-16 pl-8 md:pl-0 z-10">
+                <div className="z-10 mb-16 w-full max-w-2xl">
                     {!isAdding ? (
                         <button
                             onClick={() => setIsAdding(true)}
-                            className="w-full py-4 border border-geometric-border rounded-none text-stone-500 hover:text-geometric-accent hover:border-geometric-accent bg-white dark:bg-stone-900 transition-all flex items-center justify-center gap-2 font-medium"
+                            className="flex w-full items-center justify-center gap-2 border border-white/10 bg-[#0a0a0a] py-4 font-medium text-[#a88a7e] transition-all hover:border-[#ff7020] hover:text-[#ffb595]"
                         >
                             <Plus className="w-5 h-5" /> Añadir Nuevo Recuerdo
                         </button>
                     ) : (
-                        <form onSubmit={handleAddEvent} className="geometric-card bg-white dark:bg-stone-900 p-6 animate-in fade-in slide-in-from-top-4 space-y-4">
-                            <h3 className="text-lg font-medium text-stone-800 dark:text-stone-200 mb-4 border-l-4 border-geometric-accent pl-3 uppercase tracking-tight">Nuevo Recuerdo</h3>
+                        <form onSubmit={handleAddEvent} className="geometric-card animate-in space-y-4 border-white/10 bg-[#0a0a0a] p-6 fade-in slide-in-from-top-4">
+                            <h3 className="mb-4 border-l-4 border-[#ff7020] pl-3 text-lg font-medium uppercase tracking-normal text-white">Nuevo Recuerdo</h3>
                             <div className="grid md:grid-cols-2 gap-4">
-                                <input name="title" required placeholder="Título del recuerdo" className="bg-stone-50 dark:bg-stone-950 border border-geometric-border rounded-none px-4 py-3 outline-none focus:border-geometric-accent transition-colors" />
-                                <input name="date" type="date" required className="bg-stone-50 dark:bg-stone-950 border border-geometric-border rounded-none px-4 py-3 outline-none focus:border-geometric-accent text-stone-500 transition-colors" />
+                                <input name="title" required placeholder="Título del recuerdo" className="border border-white/10 bg-black px-4 py-3 text-white outline-none transition-colors placeholder:text-[#594137] focus:border-[#ff7020]" />
+                                <input name="date" type="date" required className="border border-white/10 bg-black px-4 py-3 text-[#a88a7e] outline-none transition-colors focus:border-[#ff7020]" />
                             </div>
-                            <textarea name="desc" required placeholder="Nuestra historia dice..." className="w-full bg-stone-50 dark:bg-stone-950 border border-geometric-border rounded-none px-4 py-3 min-h-[100px] outline-none focus:border-geometric-accent transition-colors" />
+                            <textarea name="desc" required placeholder="Nuestra historia dice..." className="min-h-[100px] w-full border border-white/10 bg-black px-4 py-3 text-white outline-none transition-colors placeholder:text-[#594137] focus:border-[#ff7020]" />
 
                             <div className="relative">
                                 <input name="image" type="file" accept="image/*" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-                                <div className="w-full px-4 py-3 border border-dashed border-geometric-border bg-stone-50 dark:bg-stone-950 flex items-center justify-center gap-2 text-stone-500 hover:border-geometric-accent transition-colors">
+                                <div className="flex w-full items-center justify-center gap-2 border border-dashed border-white/10 bg-black px-4 py-3 text-[#a88a7e] transition-colors hover:border-[#ff7020]">
                                     <ImageIcon className="w-5 h-5" />
                                     <span>Subir Foto (Opcional)</span>
                                 </div>
                             </div>
 
                             <div className="flex gap-3 pt-2">
-                                <button type="button" onClick={() => setIsAdding(false)} className="flex-1 py-3 border border-geometric-border text-stone-600 dark:text-stone-300 rounded-none hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors">Cancelar</button>
-                                <button type="submit" disabled={isUploading} className="flex-1 py-3 bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 rounded-none disabled:opacity-50 hover:bg-geometric-accent dark:hover:bg-geometric-accent hover:text-white transition-colors uppercase font-bold tracking-widest text-xs">
+                                <button type="button" onClick={() => setIsAdding(false)} className="flex-1 border border-white/10 py-3 text-[#a88a7e] transition-colors hover:border-white/30 hover:text-white">Cancelar</button>
+                                <button type="submit" disabled={isUploading} className="flex-1 bg-[#ff7020] py-3 text-xs font-bold uppercase tracking-widest text-black transition-colors hover:bg-[#ffb595] disabled:opacity-50">
                                     {isUploading ? 'Subiendo...' : 'Guardar Recuerdo'}
                                 </button>
                             </div>
@@ -153,9 +157,9 @@ export function Timeline({ events }: TimelineProps) {
                 </div>
             )}
 
-            <div className="relative w-full">
+            <div className="relative w-full pl-6 md:pl-0">
                 {/* Central Line - Mobile: Left Aligned | Desktop: Centered */}
-                <div className="absolute left-0 md:left-1/2 top-0 bottom-0 w-px bg-geometric-border md:-translate-x-1/2" />
+                <div className="absolute bottom-0 left-0 top-0 w-px bg-white/10 md:left-1/2 md:-translate-x-1/2" />
 
                 <div className="space-y-16 md:space-y-24">
                     {events.map((event, index) => {
@@ -171,14 +175,14 @@ export function Timeline({ events }: TimelineProps) {
                             className={`relative flex items-center justify-between w-full md:flex-row flex-col ${isLeft ? 'md:flex-row-reverse' : ''}`}
                         >
                             {/* Timeline dot - Square instead of circle */}
-                            <div className="absolute left-0 md:left-1/2 -ml-[8px] md:-translate-x-1/2 w-4 h-4 rounded-none bg-geometric-accent border-2 border-stone-50 dark:border-stone-950 z-10 top-6 md:top-auto rotate-45" />
+                            <div className="absolute left-0 top-6 z-10 -ml-[8px] h-4 w-4 rotate-45 border-2 border-black bg-[#ff7020] md:left-1/2 md:top-auto md:-translate-x-1/2" />
 
                                 {/* Empty space for opposite side (Desktop Only) */}
                                 <div className="hidden md:block md:w-5/12" />
 
                                 {/* Content Card */}
                                 <div className={`w-full pl-8 md:pl-0 md:w-5/12 ${isLeft ? 'md:text-right text-left' : 'text-left'}`}>
-                                    <div className={`geometric-card p-5 md:p-6 bg-white dark:bg-stone-900 transition-all hover:border-geometric-accent group ${editingId === event.id ? 'border-geometric-accent ring-1 ring-geometric-accent/30' : ''}`}>
+                                    <div className={`geometric-card group bg-[#0a0a0a] p-5 transition-all hover:border-[#ff7020] md:p-6 ${editingId === event.id ? 'border-[#ff7020] ring-1 ring-[#ff7020]/30' : 'border-white/10'}`}>
 
                                     {editingId === event.id ? (
                                         <form onSubmit={handleEditSave} className="space-y-3 text-left">
@@ -188,24 +192,24 @@ export function Timeline({ events }: TimelineProps) {
                                                     value={editTitle}
                                                     onChange={e => setEditTitle(e.target.value)}
                                                     placeholder="Título"
-                                                    className="bg-stone-50 dark:bg-stone-950 border border-geometric-border rounded-none px-3 py-2 text-sm outline-none focus:border-geometric-accent"
+                                                    className="border border-white/10 bg-black px-3 py-2 text-sm text-white outline-none placeholder:text-[#594137] focus:border-[#ff7020]"
                                                 />
                                                 <input
                                                     type="date"
                                                     value={editDate}
                                                     onChange={e => setEditDate(e.target.value)}
-                                                    className="bg-stone-50 dark:bg-stone-950 border border-geometric-border rounded-none px-3 py-2 text-sm outline-none focus:border-geometric-accent text-stone-500"
+                                                    className="border border-white/10 bg-black px-3 py-2 text-sm text-[#a88a7e] outline-none focus:border-[#ff7020]"
                                                 />
                                             </div>
                                             <textarea
                                                 value={editDesc}
                                                 onChange={e => setEditDesc(e.target.value)}
                                                 placeholder="Descripción"
-                                                className="w-full bg-stone-50 dark:bg-stone-950 border border-geometric-border rounded-none px-3 py-2 min-h-[80px] text-sm outline-none focus:border-geometric-accent"
+                                                className="min-h-[80px] w-full border border-white/10 bg-black px-3 py-2 text-sm text-white outline-none placeholder:text-[#594137] focus:border-[#ff7020]"
                                             />
 
                                             {editImageUrl && (
-                                                <div className="border border-geometric-border overflow-hidden">
+                                                <div className="overflow-hidden border border-white/10">
                                                     {/* eslint-disable-next-line @next/next/no-img-element */}
                                                     <img src={editImageUrl} alt="Current" className="w-full h-auto max-h-32 object-cover opacity-60" />
                                                 </div>
@@ -213,41 +217,41 @@ export function Timeline({ events }: TimelineProps) {
 
                                             <div className="relative">
                                                 <input name="editImage" type="file" accept="image/*" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-                                                <div className="w-full px-3 py-2 border border-dashed border-geometric-border bg-stone-50 dark:bg-stone-950 flex items-center justify-center gap-2 text-stone-500 hover:border-geometric-accent transition-colors text-xs">
+                                                <div className="flex w-full items-center justify-center gap-2 border border-dashed border-white/10 bg-black px-3 py-2 text-xs text-[#a88a7e] transition-colors hover:border-[#ff7020]">
                                                     <ImageIcon className="w-4 h-4" />
                                                     <span>{editImageUrl ? 'Reemplazar Foto' : 'Subir Foto'}</span>
                                                 </div>
                                             </div>
 
                                             <div className="flex gap-2 pt-1">
-                                                <button type="button" onClick={() => setEditingId(null)} className="flex-1 py-2 border border-geometric-border text-stone-500 text-xs uppercase font-bold tracking-widest hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors">
+                                                <button type="button" onClick={() => setEditingId(null)} className="flex-1 border border-white/10 py-2 text-xs font-bold uppercase tracking-widest text-[#a88a7e] transition-colors hover:border-white/30 hover:text-white">
                                                     Cancelar
                                                 </button>
-                                                <button type="submit" disabled={isEditUploading} className="flex-1 py-2 bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 text-xs uppercase font-bold tracking-widest hover:bg-geometric-accent hover:text-white transition-colors disabled:opacity-50">
+                                                <button type="submit" disabled={isEditUploading} className="flex-1 bg-[#ff7020] py-2 text-xs font-bold uppercase tracking-widest text-black transition-colors hover:bg-[#ffb595] disabled:opacity-50">
                                                     {isEditUploading ? 'Subiendo...' : 'Guardar'}
                                                 </button>
                                             </div>
                                         </form>
                                     ) : (
                                     <>
-                                    <div className={`flex items-center gap-2 text-sm text-stone-500 dark:text-stone-400 mb-3 ${isLeft ? 'md:justify-end justify-start' : 'justify-start'}`}>
-                                        <Calendar className="w-4 h-4 text-geometric-accent" />
+                                    <div className={`mb-3 flex items-center gap-2 text-sm text-[#a88a7e] ${isLeft ? 'justify-start md:justify-end' : 'justify-start'}`}>
+                                        <Calendar className="h-4 w-4 text-[#00dbe9]" />
                                         <time className="font-mono tracking-tighter">{event.date}</time>
                                         {profile && (
-                                            <button onClick={() => handleEditStart(event)} className="ml-auto text-stone-400 hover:text-geometric-accent transition-all">
+                                            <button onClick={() => handleEditStart(event)} className="ml-auto text-[#a88a7e] transition-all hover:text-[#ffb595]">
                                                 <Pencil className="w-3.5 h-3.5" />
                                             </button>
                                         )}
                                     </div>
-                                    <h3 className="text-xl font-bold text-stone-800 dark:text-stone-200 mb-2 uppercase tracking-tight group-hover:text-geometric-accent transition-colors">
+                                    <h3 className="mb-2 text-xl font-bold uppercase tracking-normal text-white transition-colors group-hover:text-[#ffb595]">
                                         {event.title}
                                     </h3>
-                                    <p className="text-stone-600 dark:text-stone-400 font-light leading-relaxed">
+                                    <p className="font-light leading-relaxed tracking-normal text-[#e1bfb2]">
                                         {event.description}
                                     </p>
 
                                     {event.imageUrl && (
-                                        <div className="mt-4 border border-geometric-border overflow-hidden min-h-32 bg-stone-100 dark:bg-stone-800">
+                                        <div className="mt-4 min-h-32 overflow-hidden border border-white/10 bg-black">
                                             {/* eslint-disable-next-line @next/next/no-img-element */}
                                             <img
                                                 src={event.imageUrl}
@@ -260,7 +264,7 @@ export function Timeline({ events }: TimelineProps) {
 
                                     {/* Geometric accent corner */}
                                     <div className="absolute top-0 right-0 w-8 h-8 pointer-events-none overflow-hidden">
-                                        <div className="absolute top-0 right-0 w-[140%] h-[1px] bg-geometric-accent/20 rotate-45 origin-top-right" />
+                                        <div className="absolute right-0 top-0 h-[1px] w-[140%] origin-top-right rotate-45 bg-[#ff7020]/30" />
                                     </div>
                                 </div>
                             </div>

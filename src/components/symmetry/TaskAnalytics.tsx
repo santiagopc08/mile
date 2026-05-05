@@ -55,13 +55,13 @@ export const TaskAnalytics = ({ tasks }: { tasks: Task[] }) => {
   if (!stats) return null;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-stone-200 font-mono">
+    <div className="grid grid-cols-1 gap-4 font-mono text-[#e5e2e1] md:grid-cols-2 lg:grid-cols-4">
       {/* Total Time */}
-      <div className="p-4 border border-white/10 bg-[#0a0a0a] flex flex-col justify-between min-h-[100px] relative">
-        <div className="absolute top-0 left-0 w-1.5 h-1.5 border-t border-l border-stone-500" />
+      <div className="relative flex min-h-[100px] flex-col justify-between border border-white/10 bg-black/40 p-4">
+        <div className="absolute left-0 top-0 h-1.5 w-1.5 border-l border-t border-user-a" />
         <div className="flex justify-between items-start">
-          <span className="text-[8px] uppercase font-bold tracking-[0.2em] text-stone-500">{'>'} 01. TIME_INV</span>
-          <Clock size={12} className="text-stone-500" />
+          <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">{'>'} 01. TIME_INV</span>
+          <Clock size={12} className="text-user-c" />
         </div>
         <div className="mt-4">
           <span className="text-3xl font-black tabular-nums tracking-tighter text-white">{stats.totalActual}</span>
@@ -70,20 +70,20 @@ export const TaskAnalytics = ({ tasks }: { tasks: Task[] }) => {
       </div>
 
       {/* Efficiency */}
-      <div className="p-4 border border-white/10 bg-[#0a0a0a] flex flex-col justify-between min-h-[100px] relative">
-        <div className="absolute top-0 right-0 w-1.5 h-1.5 border-t border-r border-stone-500" />
+      <div className="relative flex min-h-[100px] flex-col justify-between border border-white/10 bg-black/40 p-4">
+        <div className="absolute right-0 top-0 h-1.5 w-1.5 border-r border-t border-user-a" />
         <div className="flex justify-between items-start">
-          <span className="text-[8px] uppercase font-bold tracking-[0.2em] text-stone-500">{'>'} 02. SYS_PERF</span>
-          <TrendingUp size={12} className="text-stone-400" />
+          <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">{'>'} 02. SYS_PERF</span>
+          <TrendingUp size={12} className="text-user-c" />
         </div>
         <div className="mt-4 flex flex-col gap-2">
           <div className="flex items-end gap-2">
             <span className={`text-3xl font-black tabular-nums tracking-tighter ${stats.efficiency > 1 ? 'text-red-500' : 'text-white'}`}>
               {(stats.efficiency * 100).toFixed(0)}%
             </span>
-            <span className="text-[8px] text-stone-500 pb-1.5 tracking-widest">{stats.efficiency > 1 ? '[ OVERLOAD ]' : '[ OPTIMAL ]'}</span>
+            <span className="pb-1.5 text-[8px] tracking-widest text-[#a88a7e]">{stats.efficiency > 1 ? '[ OVERLOAD ]' : '[ OPTIMAL ]'}</span>
           </div>
-          <div className="h-1 w-full bg-stone-900 border border-stone-800">
+          <div className="h-1 w-full border border-white/10 bg-[#050505]">
             <div
               className="h-full transition-all"
               style={{
@@ -96,49 +96,49 @@ export const TaskAnalytics = ({ tasks }: { tasks: Task[] }) => {
       </div>
 
       {/* Most Worked */}
-      <div className="p-4 border border-white/10 bg-[#0a0a0a] flex flex-col justify-between min-h-[100px] relative">
-        <div className="absolute bottom-0 left-0 w-1.5 h-1.5 border-b border-l border-stone-500" />
+      <div className="relative flex min-h-[100px] flex-col justify-between border border-white/10 bg-black/40 p-4">
+        <div className="absolute bottom-0 left-0 h-1.5 w-1.5 border-b border-l border-user-a" />
         <div className="flex justify-between items-start">
-          <span className="text-[8px] uppercase font-bold tracking-[0.2em] text-stone-500">{'>'} MAX_NODE</span>
-          <Zap size={12} className="text-stone-400" />
+          <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">{'>'} MAX_NODE</span>
+          <Zap size={12} className="text-user-c" />
         </div>
         <div className="mt-4 overflow-hidden">
           <p className="text-[12px] uppercase font-bold truncate text-white" title={stats.mostWorked?.text}>
             {stats.mostWorked?.text || '---'}
           </p>
-          <p className="text-[8px] font-mono text-stone-500 mt-1 tracking-widest">{stats.mostWorked?.actual_time || 0}M SYNCED</p>
+          <p className="mt-1 font-mono text-[8px] tracking-widest text-[#a88a7e]">{stats.mostWorked?.actual_time || 0}M SYNCED</p>
         </div>
       </div>
 
       {/* Least Worked */}
-      <div className="p-4 border border-white/10 bg-[#0a0a0a] flex flex-col justify-between min-h-[100px] relative">
-        <div className="absolute bottom-0 right-0 w-1.5 h-1.5 border-b border-r border-stone-500" />
+      <div className="relative flex min-h-[100px] flex-col justify-between border border-white/10 bg-black/40 p-4">
+        <div className="absolute bottom-0 right-0 h-1.5 w-1.5 border-b border-r border-user-a" />
         <div className="flex justify-between items-start">
-          <span className="text-[8px] uppercase font-bold tracking-[0.2em] text-stone-500">{'>'} MIN_NODE</span>
-          <Target size={12} className="text-stone-400" />
+          <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">{'>'} MIN_NODE</span>
+          <Target size={12} className="text-user-c" />
         </div>
         <div className="mt-4 overflow-hidden">
           <p className="text-[12px] uppercase font-bold truncate text-white" title={stats.leastWorked?.text}>
             {stats.leastWorked?.text || '---'}
           </p>
-          <p className="text-[8px] font-mono text-stone-500 mt-1 tracking-widest">{stats.leastWorked?.actual_time || 0}M SYNCED</p>
+          <p className="mt-1 font-mono text-[8px] tracking-widest text-[#a88a7e]">{stats.leastWorked?.actual_time || 0}M SYNCED</p>
         </div>
       </div>
 
       {/* Category Distribution */}
-      <div className="md:col-span-2 lg:col-span-4 p-6 border border-white/10 bg-[#0a0a0a] relative mt-4">
-        <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-stone-500" />
-        <span className="text-[10px] uppercase font-bold tracking-[0.2em] text-stone-500 block mb-6">{'>'} 03. CAT_DISTRIBUTION</span>
+      <div className="relative mt-4 border border-white/10 bg-black/40 p-6 md:col-span-2 lg:col-span-4">
+        <div className="absolute left-0 top-0 h-2 w-2 border-l border-t border-user-a" />
+        <span className="mb-6 block text-[10px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">{'>'} 03. CAT_DISTRIBUTION</span>
         <div className="flex flex-col gap-3">
           {stats.catStats.map(cat => {
             const percent = stats.totalActual > 0 ? (cat.time / stats.totalActual) * 100 : 0;
             return (
               <div key={cat.name} className="space-y-1.5">
-                <div className="flex justify-between text-[9px] uppercase font-bold tracking-widest text-stone-300">
+                <div className="flex justify-between text-[9px] font-bold uppercase tracking-widest text-[#e1bfb2]">
                   <span>{cat.name}</span>
-                  <span className="text-stone-500">{cat.time}M ({percent.toFixed(1)}%)</span>
+                  <span className="text-[#a88a7e]">{cat.time}M ({percent.toFixed(1)}%)</span>
                 </div>
-                <div className="h-1 w-full bg-stone-900 border border-stone-800">
+                <div className="h-1 w-full border border-white/10 bg-[#050505]">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${percent}%` }}

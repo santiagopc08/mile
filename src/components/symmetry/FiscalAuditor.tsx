@@ -100,12 +100,12 @@ export const FiscalAuditor: React.FC<FiscalAuditorProps> = ({ allocations, onAdd
     };
 
     return (
-        <div className={`geometric-card p-6 transition-all duration-500 ${thresholdsExceeded ? 'bg-fractured-mosaic border-system-alert bg-system-alert-soft' : 'bg-dot-matrix'}`}>
-            <h2 className={`text-[10px] uppercase font-bold tracking-[0.2em] mb-6 border-b pb-3 flex justify-between items-center ${thresholdsExceeded ? 'text-system-alert border-system-alert/20' : 'text-stone-500 border-stone-100 dark:border-stone-900'}`}>
+        <div className={`geometric-card p-6 transition-all duration-500 ${thresholdsExceeded ? 'border-system-alert bg-fractured-mosaic bg-system-alert-soft' : 'border-white/10 bg-[#0a0a0a] bg-dot-matrix'}`}>
+            <h2 className={`mb-6 flex items-center justify-between border-b pb-3 text-[10px] font-black uppercase tracking-[0.22em] ${thresholdsExceeded ? 'border-system-alert/20 text-system-alert' : 'border-white/10 text-[#a88a7e]'}`}>
                 <span className="pr-2">Fiscal Health Guardian</span>
                 <div className="flex items-center justify-center px-2">
                     <video
-                        className='w-20 h-20 object-cover rounded-xl border border-stone-200 dark:border-stone-800 shadow-2xl'
+                        className='h-20 w-20 border border-white/10 object-cover opacity-90 mix-blend-screen'
                         src="vid/fatfit.mp4"
                         autoPlay
                         loop
@@ -133,11 +133,11 @@ export const FiscalAuditor: React.FC<FiscalAuditorProps> = ({ allocations, onAdd
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
                 <div className="space-y-4">
-                    <div className="flex justify-between text-[9px] uppercase font-bold tracking-[0.2em] text-stone-500">
+                <div className="flex justify-between text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">
                         <span>Junk Food Tracker</span>
                         <span className={junkCount > 3 ? 'text-system-alert' : ''}>{junkCount} / 3</span>
                     </div>
-                    <div className="w-full h-1.5 bg-stone-100 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 flex overflow-hidden">
+                    <div className="flex h-1.5 w-full overflow-hidden border border-white/10 bg-black">
                         <motion.div
                             className={`h-full transition-all duration-500 ${junkCount > 3 ? 'bg-system-alert' : 'bg-user-a'}`}
                             initial={{ width: 0 }}
@@ -147,11 +147,11 @@ export const FiscalAuditor: React.FC<FiscalAuditorProps> = ({ allocations, onAdd
                 </div>
 
                 <div className="space-y-4">
-                    <div className="flex justify-between text-[9px] uppercase font-bold tracking-[0.2em] text-stone-500">
+                    <div className="flex justify-between text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">
                         <span>Snacks Tracker</span>
                         <span className={snackCount > 5 ? 'text-system-alert' : ''}>{snackCount} / 5</span>
                     </div>
-                    <div className="w-full h-1.5 bg-stone-100 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 flex overflow-hidden">
+                    <div className="flex h-1.5 w-full overflow-hidden border border-white/10 bg-black">
                         <motion.div
                             className={`h-full transition-all duration-500 ${snackCount > 5 ? 'bg-system-alert' : 'bg-user-b'}`}
                             initial={{ width: 0 }}
@@ -168,29 +168,29 @@ export const FiscalAuditor: React.FC<FiscalAuditorProps> = ({ allocations, onAdd
                         value={price}
                         onChange={(e) => setPrice(e.target.value)}
                         placeholder="PRECIO (COP)"
-                        className={`flex-1 bg-transparent border px-4 py-2 text-xs uppercase tracking-widest outline-none transition-colors ${thresholdsExceeded ? 'border-system-alert/30 focus:border-system-alert' : 'border-stone-200 dark:border-stone-800 focus:border-stone-400'}`}
+                        className={`flex-1 border bg-black px-4 py-2 text-xs uppercase tracking-widest text-white outline-none transition-colors placeholder:text-[#594137] ${thresholdsExceeded ? 'border-system-alert/30 focus:border-system-alert' : 'border-white/10 focus:border-[#ff7020]'}`}
                     />
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                     <button
                         onClick={() => addVice('junk_food')}
-                        className={`py-3 px-4 flex items-center justify-center gap-2 text-[9px] font-bold uppercase tracking-[0.2em] transition-all border ${thresholdsExceeded ? 'bg-system-alert text-white border-system-alert' : 'bg-stone-800 dark:bg-stone-200 text-white dark:text-black border-stone-800'}`}
+                        className={`flex items-center justify-center gap-2 border px-4 py-3 text-[9px] font-bold uppercase tracking-[0.2em] transition-all ${thresholdsExceeded ? 'border-system-alert bg-system-alert text-white' : 'border-[#ff7020] bg-[#ff7020] text-black hover:bg-[#ffb595]'}`}
                     >
                         <Pizza size={14} /> Add Junk Food
                     </button>
                     <button
                         onClick={() => addVice('snack')}
-                        className={`py-3 px-4 flex items-center justify-center gap-2 text-[9px] font-bold uppercase tracking-[0.2em] transition-all border ${thresholdsExceeded ? 'bg-system-alert text-white border-system-alert' : 'bg-stone-800 dark:bg-stone-200 text-white dark:text-black border-stone-800'}`}
+                        className={`flex items-center justify-center gap-2 border px-4 py-3 text-[9px] font-bold uppercase tracking-[0.2em] transition-all ${thresholdsExceeded ? 'border-system-alert bg-system-alert text-white' : 'border-[#a100f0] bg-[#a100f0] text-white hover:bg-[#e5b5ff] hover:text-black'}`}
                     >
                         <Coffee size={14} /> Add Snack
                     </button>
                 </div>
             </div>
 
-            <div className="mt-8 border-t border-stone-100 dark:border-stone-900 pt-6">
+            <div className="mt-8 border-t border-white/10 pt-6">
                 <div className="flex justify-between items-center mb-4">
-                    <span className="text-[9px] uppercase font-black tracking-[0.3em] text-stone-400">% of Betrayal</span>
-                    <span className={`text-xl font-light tracking-tighter ${thresholdsExceeded ? 'text-system-alert' : 'text-stone-600'}`}>{betrayalPercentage.toFixed(1)}%</span>
+                    <span className="text-[9px] font-black uppercase tracking-[0.3em] text-[#a88a7e]">% of Betrayal</span>
+                    <span className={`text-xl font-light tracking-normal ${thresholdsExceeded ? 'text-system-alert' : 'text-[#e5e2e1]'}`}>{betrayalPercentage.toFixed(1)}%</span>
                 </div>
 
                 <div className="space-y-2 max-h-40 overflow-y-auto custom-scrollbar pr-2">
@@ -201,18 +201,18 @@ export const FiscalAuditor: React.FC<FiscalAuditorProps> = ({ allocations, onAdd
                                 initial={{ opacity: 0, x: -10 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, scale: 0.95 }}
-                                className="flex items-center justify-between p-2 border border-stone-100 dark:border-stone-900 bg-white/5"
+                                className="flex items-center justify-between border border-white/10 bg-black/40 p-2"
                             >
                                 <div className="flex items-center gap-3">
                                     <div className={`p-1.5 border ${vice.type === 'junk_food' ? 'border-user-a/20 text-user-a' : 'border-user-b/20 text-user-b'}`}>
                                         {vice.type === 'junk_food' ? <Pizza size={10} /> : <Coffee size={10} />}
                                     </div>
-                                    <span className="text-[9px] uppercase font-bold tracking-widest text-stone-600">
+                                    <span className="text-[9px] font-bold uppercase tracking-widest text-[#e1bfb2]">
                                         {vice.type === 'junk_food' ? 'Junk Food' : 'Snack'}
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-4">
-                                    <span className="text-[9px] font-mono text-stone-400">
+                                    <span className="font-mono text-[9px] text-[#a88a7e]">
                                         COP {vice.amount.toLocaleString()}
                                     </span>
                                     <button

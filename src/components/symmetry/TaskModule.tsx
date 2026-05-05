@@ -239,7 +239,7 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
   const isTaskOverflowed = (task: Task) => task.estimated_time > 0 && task.actual_time > task.estimated_time;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 border border-white/10 bg-black/40 p-4">
       {/* Creation UI */}
       <div className="flex flex-col gap-6">
         {/* Objectives First */}
@@ -249,9 +249,9 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
               value={newObjective}
               onChange={e => setNewObjective(e.target.value)}
               placeholder="NUEVO OBJETIVO"
-              className="flex-1 bg-transparent border border-stone-200 dark:border-stone-800 px-4 py-2 text-[10px] uppercase outline-none focus:border-user-b"
+              className="flex-1 border border-white/10 bg-black px-4 py-2 text-[10px] uppercase text-white outline-none placeholder:text-[#594137] focus:border-user-b"
             />
-            <button onClick={addObjective} className="px-4 py-2 bg-user-b text-white">
+            <button onClick={addObjective} className="border border-user-b bg-user-b px-4 py-2 text-white transition-colors hover:bg-user-b/80">
               <Plus size={16} />
             </button>
           </div>
@@ -264,12 +264,12 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
               const totalAct = objTasks.reduce((acc, t) => acc + (t.actual_time || 0), 0);
 
               return (
-                <div key={obj.id} className={`flex flex-col gap-1 px-2 py-1 border transition-all ${obj.is_complete ? 'border-emerald-500 bg-emerald-500/5 opacity-50' : 'border-user-b/20 bg-user-b/5'}`}>
+                <div key={obj.id} className={`flex flex-col gap-1 border px-2 py-1 transition-all ${obj.is_complete ? 'border-emerald-500 bg-emerald-500/5 opacity-50' : 'border-user-b/30 bg-user-b/5'}`}>
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => toggleObjectiveComplete(obj.id)}
                       disabled={pendingCount > 0}
-                      className={`p-0.5 rounded-sm border ${obj.is_complete ? 'border-emerald-500 bg-emerald-500 text-white' : 'border-user-b/50 text-transparent hover:border-user-b'} disabled:opacity-30 disabled:cursor-not-allowed`}
+                      className={`border p-0.5 ${obj.is_complete ? 'border-emerald-500 bg-emerald-500 text-white' : 'border-user-b/50 text-transparent hover:border-user-b'} disabled:cursor-not-allowed disabled:opacity-30`}
                     >
                       {obj.is_complete ? <Check size={10} /> : <div className="w-[10px] h-[10px]" />}
                     </button>
@@ -279,7 +279,7 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
                     </button>
                   </div>
                   {objTasks.length > 0 && (
-                    <div className="flex gap-2 text-[6px] uppercase font-mono text-stone-500 border-t border-user-b/10 pt-1 mt-0.5">
+                    <div className="mt-0.5 flex gap-2 border-t border-user-b/10 pt-1 font-mono text-[6px] uppercase text-[#a88a7e]">
                       <span>{completedCount}/{objTasks.length} Tareas</span>
                       <span>{totalAct}/{totalEst} Min</span>
                     </div>
@@ -297,9 +297,9 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              className="space-y-4 pt-4 border-t border-stone-100 dark:border-stone-900 overflow-hidden"
+              className="space-y-4 overflow-hidden border-t border-white/10 pt-4"
             >
-              <div className="flex justify-between items-center">
+              <div className="flex items-center justify-between">
                 <span className="text-[10px] font-mono text-user-a tracking-[0.2em]">[ NEW_OPERATION_SHEET ]</span>
                 <button onClick={() => setIsTaskFormOpen(false)} className="text-stone-500 hover:text-white transition-colors">
                   <X size={14} />
@@ -311,27 +311,42 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
               value={newTask}
               onChange={e => setNewTask(e.target.value)}
               placeholder="NUEVA TAREA"
-              className="flex-1 bg-transparent border border-stone-200 dark:border-stone-800 px-4 py-2 text-[10px] uppercase outline-none focus:border-user-a"
+              className="flex-1 border border-white/10 bg-black px-4 py-2 text-[10px] uppercase text-white outline-none placeholder:text-[#594137] focus:border-user-a"
             />
-            <button onClick={addTask} className="px-4 py-2 bg-user-a text-white">
+            <button onClick={addTask} className="border border-user-a bg-user-a px-4 py-2 text-black transition-colors hover:bg-[#ffb595]">
               <Plus size={16} />
             </button>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
+          <div className="grid grid-cols-1 gap-2 md:grid-cols-5">
             <div className="flex flex-col gap-1">
               <label className="text-[7px] uppercase font-bold text-stone-400">Objetivo</label>
               <select
                 value={selectedObjectiveId}
                 onChange={e => setSelectedObjectiveId(e.target.value)}
-                className="bg-transparent border border-stone-200 dark:border-stone-800 px-2 h-[32px] text-[8px] uppercase outline-none"
+                className="h-[32px] border border-white/10 bg-black px-2 text-[8px] uppercase text-[#e5e2e1] outline-none"
               >
                 <option value="">Sin Objetivo</option>
                 {objectives.map(o => <option key={o.id} value={o.id}>{o.title}</option>)}
               </select>
             </div>
             <div className="flex flex-col gap-1">
+              <label className="text-[7px] uppercase font-bold text-stone-400">Categoría</label>
+              <div className="flex min-h-[32px] border border-white/10 bg-black">
+                {(['work', 'home', 'personal'] as const).map(cat => (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => setCategory(cat)}
+                    className={`flex-1 px-1 py-2 text-[7px] font-bold uppercase transition-colors ${category === cat ? 'bg-user-a/15 text-user-a' : 'text-stone-500 hover:bg-white/5 hover:text-stone-300'}`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="flex flex-col gap-1">
               <label className="text-[7px] uppercase font-bold text-stone-400">Prioridad</label>
-              <div className="flex border border-stone-200 dark:border-stone-800 min-h-[32px]">
+              <div className="flex min-h-[32px] border border-white/10 bg-black">
                 {(['low', 'medium', 'high'] as const).map(p => (
                   <button
                     key={p}
@@ -349,7 +364,7 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
                 type="number"
                 value={newEstimatedTime}
                 onChange={e => setNewEstimatedTime(Number(e.target.value))}
-                className="bg-transparent border border-stone-200 dark:border-stone-800 px-2 h-[32px] text-[8px] outline-none"
+                className="h-[32px] border border-white/10 bg-black px-2 text-[8px] text-white outline-none"
               />
             </div>
             <div className="flex flex-col gap-1">
@@ -358,7 +373,7 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
                 type="datetime-local"
                 value={newDueDate}
                 onChange={e => setNewDueDate(e.target.value)}
-                className="bg-transparent border border-stone-200 dark:border-stone-800 px-2 h-[32px] text-[8px] outline-none"
+                className="h-[32px] border border-white/10 bg-black px-2 text-[8px] text-white outline-none"
               />
             </div>
           </div>
@@ -382,7 +397,7 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
                     value={newDetail}
                     onChange={e => setNewDetail(e.target.value)}
                     placeholder="Información adicional o contexto..."
-                    className="bg-transparent border border-stone-200 dark:border-stone-800 px-3 py-2 text-[10px] outline-none min-h-[60px] resize-none"
+                    className="min-h-[60px] resize-none border border-white/10 bg-black px-3 py-2 text-[10px] text-white outline-none placeholder:text-[#594137]"
                   />
                 </div>
 
@@ -414,9 +429,9 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
                         onChange={e => setNewActionText(e.target.value)}
                         onKeyDown={e => { if (e.key === 'Enter') { setNewActions([...newActions, { id: Date.now().toString(), text: newActionText, checked: false }]); setNewActionText(''); } }}
                         placeholder="Nueva acción..."
-                        className="flex-1 bg-transparent border border-stone-800 px-2 py-1 text-[9px] outline-none"
+                        className="flex-1 border border-white/10 bg-black px-2 py-1 text-[9px] text-white outline-none placeholder:text-[#594137]"
                       />
-                      <button onClick={() => { if (newActionText) { setNewActions([...newActions, { id: Date.now().toString(), text: newActionText, checked: false }]); setNewActionText(''); } }} className="px-2 border border-stone-800 hover:bg-white/5"><Plus size={10} /></button>
+                      <button onClick={() => { if (newActionText) { setNewActions([...newActions, { id: Date.now().toString(), text: newActionText, checked: false }]); setNewActionText(''); } }} className="border border-white/10 px-2 hover:border-user-b hover:bg-white/5"><Plus size={10} /></button>
                     </div>
                     <div className="space-y-1">
                       {newActions.map(act => (
@@ -455,9 +470,9 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
                         onChange={e => setNewValidationText(e.target.value)}
                         onKeyDown={e => { if (e.key === 'Enter') { setNewValidations([...newValidations, { id: Date.now().toString(), text: newValidationText, checked: false }]); setNewValidationText(''); } }}
                         placeholder="Nueva validación..."
-                        className="flex-1 bg-transparent border border-stone-800 px-2 py-1 text-[9px] outline-none"
+                        className="flex-1 border border-white/10 bg-black px-2 py-1 text-[9px] text-white outline-none placeholder:text-[#594137]"
                       />
-                      <button onClick={() => { if (newValidationText) { setNewValidations([...newValidations, { id: Date.now().toString(), text: newValidationText, checked: false }]); setNewValidationText(''); } }} className="px-2 border border-stone-800 hover:bg-white/5"><Plus size={10} /></button>
+                      <button onClick={() => { if (newValidationText) { setNewValidations([...newValidations, { id: Date.now().toString(), text: newValidationText, checked: false }]); setNewValidationText(''); } }} className="border border-white/10 px-2 hover:border-emerald-500 hover:bg-white/5"><Plus size={10} /></button>
                     </div>
                     <div className="space-y-1">
                       {newValidations.map(val => (
@@ -477,30 +492,7 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
     </AnimatePresence>
       </div>
 
-      {/* Category Filter */}
-      <div className="border-b border-white/10 mb-6">
-        <div className="flex gap-6">
-          {['work', 'home', 'personal'].map((cat: any) => (
-            <button
-              key={cat}
-              onClick={() => setCategory(cat)}
-              className={`text-[10px] uppercase font-mono font-bold tracking-[0.2em] pb-2 transition-colors relative ${category === cat ? 'text-user-a' : 'text-stone-500 hover:text-stone-300'
-                }`}
-            >
-              {cat}
-              {category === cat && (
-                <motion.div
-                  layoutId="taskCategory"
-                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-user-a"
-                  style={{ boxShadow: '0 0 5px var(--color-user-a)' }}
-                />
-              )}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 min-h-[250px]">
+      <div className="grid min-h-[250px] grid-cols-1 gap-4 md:grid-cols-4">
         {[
           { status: 'todo' as const, title: 'PENDIENTE', accent: 'text-stone-500', bgAccent: 'bg-stone-500' },
           { status: 'in_progress' as const, title: 'PROGRESO', accent: 'text-user-a', bgAccent: 'bg-user-a', pulse: true },
@@ -509,7 +501,7 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
         ].map((col) => {
           const colTasks = tasks.filter(t => t.status === col.status);
           return (
-          <div key={col.status} className={`h-full flex flex-col ${col.opacity || ''}`}>
+          <div key={col.status} className={`flex h-full flex-col border border-white/10 bg-black/30 p-3 ${col.opacity || ''}`}>
             <h4 className={`text-[10px] font-mono font-bold tracking-[0.2em] ${col.accent} mb-4 flex items-center justify-between`}>
               <div className="flex items-center gap-2">
                 <div className={`w-1.5 h-1.5 ${col.bgAccent} ${col.pulse ? 'animate-pulse' : ''}`} style={col.pulse ? { boxShadow: `0 0 5px var(--color-user-a)` } : {}} />
@@ -527,7 +519,7 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
                     initial={{ opacity: 0, y: 5 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95 }}
-                    className={`p-3 bg-stone-900/30 border border-white/5 hover:border-white/10 transition-colors ${editingTaskId === task.id ? 'border-user-a' : ''}`}
+                    className={`border bg-[#0a0a0a] p-3 transition-colors hover:border-white/20 ${editingTaskId === task.id ? 'border-user-a' : 'border-white/10'}`}
                   >
                     {editingTaskId === task.id ? (
                       <div className="space-y-3">

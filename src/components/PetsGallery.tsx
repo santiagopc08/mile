@@ -21,10 +21,15 @@ export const PetsGallery = () => {
   }, []);
 
   return (
-    <div className="w-full h-[60vh] min-h-[400px] flex items-center justify-center bg-stone-100 dark:bg-stone-900 overflow-hidden relative rounded-xl border border-stone-200 dark:border-stone-800">
+    <div className="relative flex h-[60vh] min-h-[420px] w-full items-center justify-center overflow-hidden border border-white/10 bg-[#0a0a0a]">
+      <div className="pointer-events-none absolute inset-0 bg-mosaic opacity-60" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex justify-between border-b border-white/10 px-4 py-3 text-[9px] font-bold uppercase tracking-[0.24em] text-[#a88a7e]">
+        <span>COMPANION_GALLERY</span>
+        <span className="text-[#00dbe9]">{String(activeIndex + 1).padStart(2, '0')} / {String(pets.length).padStart(2, '0')}</span>
+      </div>
       
       {/* Background static arrangement or a subtle ambient effect */}
-      <div className="absolute inset-0 opacity-10 blur-xl">
+      <div className="absolute inset-0 opacity-20 blur-xl grayscale">
         <motion.img 
           key={`bg-${activeIndex}`}
           src={pets[activeIndex].src} 
@@ -44,18 +49,19 @@ export const PetsGallery = () => {
           transition={{ duration: 1.5, ease: "easeInOut" }}
           className="relative z-10 flex flex-col items-center"
         >
-          <div className="relative w-64 h-64 md:w-80 md:h-80 rounded-full overflow-hidden border-4 border-white dark:border-stone-800 shadow-2xl">
+          <div className="relative h-64 w-64 overflow-hidden border border-[#ff7020]/70 bg-black p-2 md:h-80 md:w-80">
+            <div className="pointer-events-none absolute inset-0 z-10 border border-white/10" />
             <motion.img
               src={pets[activeIndex].src}
               alt={pets[activeIndex].name}
-              className="w-full h-full object-cover"
+              className="h-full w-full object-cover"
               initial={{ scale: 1.2 }}
               animate={{ scale: 1 }}
               transition={{ duration: 4, ease: "linear" }}
             />
           </div>
           <motion.h3 
-            className="mt-6 text-2xl font-black tracking-widest uppercase text-stone-800 dark:text-stone-200"
+            className="mt-6 border border-white/10 bg-black px-6 py-3 text-2xl font-black uppercase tracking-normal text-white"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
@@ -66,12 +72,12 @@ export const PetsGallery = () => {
       </AnimatePresence>
 
       {/* Indicators */}
-      <div className="absolute bottom-8 flex gap-3 z-20">
+      <div className="absolute bottom-8 z-20 flex gap-3">
         {pets.map((_, i) => (
           <button 
             key={i}
             onClick={() => setActiveIndex(i)}
-            className={`w-2 h-2 rounded-full transition-all ${i === activeIndex ? 'bg-geometric-accent w-6' : 'bg-stone-400 dark:bg-stone-600'}`}
+            className={`h-2 transition-all ${i === activeIndex ? 'w-8 bg-[#ff7020]' : 'w-2 bg-white/25 hover:bg-white/50'}`}
           />
         ))}
       </div>

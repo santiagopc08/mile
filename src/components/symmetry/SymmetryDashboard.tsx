@@ -13,6 +13,7 @@ import { DualWallet } from './DualWallet';
 import { FinanceChart } from './FinanceChart';
 import { StoreService } from '@/services/storeService';
 import { useMemo } from 'react';
+import { Activity, BarChart3, CircuitBoard, Eye, ShieldCheck, WalletCards } from 'lucide-react';
 
 interface Task {
   id: string;
@@ -110,63 +111,115 @@ export const SymmetryDashboard = () => {
   }, []);
 
   const [activeTab, setActiveTab] = useState<'tasks' | 'finances'>('tasks');
+  const activeAccent = mode === 'us' ? 'var(--color-user-b)' : 'var(--color-user-a)';
+  const completedTasks = tasks.filter(t => t.status === 'done').length;
+  const activeTasks = tasks.filter(t => t.status === 'in_progress').length;
 
   return (
-    <div className="w-full max-w-7xl mx-auto space-y-8 pb-24 px-4 sm:px-6 font-sans text-stone-200">
-      {/* Header */}
-      <div className="flex flex-col items-center justify-between gap-6 md:flex-row border-b border-white/10 pb-6 pt-6">
-        <div className="flex items-center gap-4">
-          <div className="flex flex-wrap gap-1">
-            <div className="w-2 h-2 bg-user-a" />
-            <div className="w-2 h-2 bg-user-a" />
-            <div className="w-2 h-2 bg-user-a" />
-            <div className="w-2 h-2 bg-user-a opacity-50" />
+    <div className="relative mx-auto w-full max-w-7xl px-4 pb-24 text-[#e5e2e1] sm:px-6">
+      <div className="pointer-events-none fixed inset-0 -z-10 bg-mosaic opacity-50" />
+
+      <div className="border-x border-white/10">
+        <div className="grid border-y border-white/10 bg-[#0a0a0a]/95 lg:grid-cols-[1fr_340px]">
+          <div className="relative p-5 sm:p-8 lg:p-10">
+            <div className="absolute left-0 top-0 h-full w-px bg-user-a" />
+            <div className="mb-8 flex flex-wrap items-center gap-3 text-[10px] font-black uppercase tracking-[0.22em] text-[#a88a7e]">
+              <span className="border border-user-a/50 px-2 py-1 text-[#ffb595]">SYMMETRY // OPS_CORE</span>
+              <span className="flex items-center gap-2">
+                <span className="h-2 w-2 bg-user-c" />
+                STORE_LINKED
+              </span>
+            </div>
+            <h1 className="text-5xl font-black uppercase leading-[0.92] tracking-normal text-white sm:text-7xl lg:text-8xl">
+              Symmetry
+            </h1>
+            <div className="mt-6 grid max-w-4xl gap-5 border-t border-white/10 pt-5 lg:grid-cols-[1fr_auto] lg:items-end">
+              <p className="max-w-2xl text-sm leading-6 tracking-normal text-[#e1bfb2] md:text-base">
+                Command surface for task execution, focus timing, money flow, and shared operational visibility.
+              </p>
+              <div className="grid grid-cols-3 border border-white/10 text-center">
+                <div className="border-r border-white/10 px-4 py-3">
+                  <div className="text-2xl font-black text-[#ffb595]">{tasks.length}</div>
+                  <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Tasks</div>
+                </div>
+                <div className="border-r border-white/10 px-4 py-3">
+                  <div className="text-2xl font-black text-[#00dbe9]">{activeTasks}</div>
+                  <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Active</div>
+                </div>
+                <div className="px-4 py-3">
+                  <div className="text-2xl font-black text-[#e5b5ff]">{Math.round(focusScore)}%</div>
+                  <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Focus</div>
+                </div>
+              </div>
+            </div>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black tracking-[0.3em] uppercase text-user-a font-mono">
-            Symmetry
-          </h1>
-        </div>
 
-        <div className="flex gap-4">
-          <motion.button
-            whileTap={{ scale: 0.95 }}
-            onClick={toggleMode}
-            className="px-6 py-2 uppercase text-[10px] font-mono tracking-[0.2em] transition-colors border"
-            style={{
-              borderColor: mode === 'us' ? 'var(--color-user-b)' : 'var(--color-user-a)',
-              color: mode === 'us' ? 'var(--color-user-b)' : 'var(--color-user-a)',
-              boxShadow: `0 0 10px ${mode === 'us' ? 'var(--color-user-b)' : 'var(--color-user-a)'}20`
-            }}
-          >
-            [ {mode === 'me' ? 'PERSONAL VIEW' : 'SHARED VIEW'} ]
-          </motion.button>
-        </div>
-      </div>
-
-      {/* Tab Navigation */}
-      <div className="flex gap-6 border-b border-white/10 pb-px">
-        {(['operaciones', 'finanzas'] as const).map((tab) => {
-          const tabKey = tab === 'operaciones' ? 'tasks' : 'finances';
-          return (
-            <button
-              key={tabKey}
-              onClick={() => setActiveTab(tabKey)}
-              className={`pb-3 text-[10px] font-mono uppercase tracking-[0.2em] transition-all relative ${activeTab === tabKey
-                ? 'text-user-a opacity-100'
-                : 'text-stone-500 hover:text-stone-300'
-                }`}
+          <aside className="border-t border-white/10 bg-black/60 p-5 lg:border-l lg:border-t-0">
+            <div className="mb-6 flex items-center justify-between border-b border-white/10 pb-3 text-[10px] font-bold uppercase tracking-[0.24em] text-[#a88a7e]">
+              <span>Telemetry</span>
+              <Activity className="h-4 w-4 text-user-c" />
+            </div>
+            <div className="space-y-3 text-[10px] font-bold uppercase tracking-[0.18em] text-[#a88a7e]">
+              <div className="flex items-center justify-between">
+                <span>Profile</span>
+                <span className="text-[#ffb595]">{profile || 'none'}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Mode</span>
+                <span className="text-[#e5b5ff]">{mode === 'me' ? 'personal' : 'shared'}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Complete</span>
+                <span className="text-user-c">{completedTasks.toString().padStart(2, '0')}</span>
+              </div>
+            </div>
+            <motion.button
+              whileTap={{ scale: 0.98 }}
+              onClick={toggleMode}
+              className="mt-8 flex w-full items-center justify-center gap-2 border px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] transition-colors hover:bg-white/5"
+              style={{
+                borderColor: activeAccent,
+                color: activeAccent,
+                boxShadow: `0 0 16px ${mode === 'us' ? 'rgba(161,0,240,0.16)' : 'rgba(255,112,32,0.16)'}`
+              }}
             >
-              {tab.toUpperCase()}
-              {activeTab === tabKey && (
+              <Eye className="h-4 w-4" />
+              {mode === 'me' ? 'Personal View' : 'Shared View'}
+            </motion.button>
+            <CircuitBoard className="mt-12 h-20 w-20 text-user-a" strokeWidth={1} />
+          </aside>
+        </div>
+
+        <div className="grid grid-cols-2 border-b border-white/10 bg-black">
+          {([
+            { label: 'Operaciones', key: 'tasks' as const, icon: ShieldCheck, index: '01' },
+            { label: 'Finanzas', key: 'finances' as const, icon: WalletCards, index: '02' },
+          ]).map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`group relative flex min-h-20 items-center justify-between border-r border-white/10 px-4 py-4 transition-all last:border-r-0 ${
+                activeTab === tab.key
+                  ? 'bg-user-a text-black'
+                  : 'bg-[#0a0a0a] text-[#a88a7e] hover:bg-[#121212] hover:text-white'
+              }`}
+            >
+              <span className="flex flex-col items-start gap-2">
+                <tab.icon className="h-4 w-4" />
+                <span className="text-[10px] font-black uppercase tracking-[0.22em]">{tab.label}</span>
+              </span>
+              <span className={`text-[9px] font-bold uppercase tracking-[0.2em] ${activeTab === tab.key ? 'text-black/55' : 'text-white/20 group-hover:text-user-c'}`}>
+                {tab.index}
+              </span>
+              {activeTab === tab.key && (
                 <motion.div
                   layoutId="activeTab"
-                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-user-a"
-                  style={{ boxShadow: '0 0 8px var(--color-user-a)' }}
+                  className="absolute inset-x-0 bottom-0 h-1 bg-user-c"
                 />
               )}
             </button>
-          );
-        })}
+          ))}
+        </div>
       </div>
 
       <AnimatePresence mode="wait">
@@ -176,15 +229,15 @@ export const SymmetryDashboard = () => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="space-y-12"
+            className="space-y-8 border-x border-white/10 bg-[#050505] p-3 sm:p-5 md:p-8"
           >
             {/* Task Video Header */}
-            <div className="flex justify-center py-4">
-              <div className="relative p-1 border border-white/10 bg-black">
-                <div className="absolute top-0 left-0 w-1.5 h-1.5 border-t border-l border-user-a" />
-                <div className="absolute bottom-0 right-0 w-1.5 h-1.5 border-b border-r border-user-a" />
+            <div className="grid gap-4 border border-white/10 bg-[#0a0a0a] p-4 md:grid-cols-[auto_1fr_auto] md:items-center">
+              <div className="relative h-28 w-28 border border-white/10 bg-black p-1">
+                <div className="absolute left-0 top-0 h-2 w-2 border-l border-t border-user-a" />
+                <div className="absolute bottom-0 right-0 h-2 w-2 border-b border-r border-user-a" />
                 <video
-                  className="w-32 h-32 object-cover contrast-125 opacity-80 mix-blend-screen"
+                  className="h-full w-full object-cover opacity-80 mix-blend-screen contrast-125"
                   src="vid/planningCat.mp4"
                   autoPlay
                   loop
@@ -192,38 +245,40 @@ export const SymmetryDashboard = () => {
                   playsInline
                   webkit-playsinline="true"
                 />
-                <div className="absolute top-2 right-2 flex gap-1">
-                  <div className="w-1 h-1 bg-user-a animate-pulse" />
-                </div>
               </div>
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-user-c">Operation Feed</p>
+                <h2 className="mt-2 text-2xl font-black uppercase tracking-normal text-white">Execution Console</h2>
+              </div>
+              <BarChart3 className="hidden h-10 w-10 text-user-a md:block" strokeWidth={1} />
             </div>
 
             {/* Row 0: Pomodoro */}
-            <div className="geometric-card p-6 sm:p-8 border-white/10 relative">
+            <div className="geometric-card relative border-white/10 bg-[#0a0a0a] p-6 sm:p-8">
               <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-user-a" />
               <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-user-a" />
               <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-user-a" />
               <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-user-a" />
 
-              <h2 className="text-[10px] uppercase font-mono tracking-[0.2em] mb-8 border-b border-white/10 pb-3 text-stone-400 flex justify-between items-center">
+              <h2 className="mb-8 flex items-center justify-between border-b border-white/10 pb-3 text-[10px] font-black uppercase tracking-[0.22em] text-[#a88a7e]">
                 <span>[ ESTADO_DEL_SISTEMA ] OPERATIVO</span>
-                <span className="text-[8px] opacity-50">[ VERSIÓN_NODO ] V2.4.0_ESTABLE</span>
+                <span className="hidden text-[8px] opacity-50 sm:inline">[ VERSIÓN_NODO ] V2.4.0_ESTABLE</span>
               </h2>
               <PomodoroTimer />
             </div>
 
             {/* Row 1: Kanban Board */}
-            <div className="geometric-card p-6 sm:p-8 border-white/10 relative">
-              <h2 className="text-[10px] uppercase font-mono tracking-[0.2em] mb-8 border-b border-white/10 pb-3 text-stone-400 flex justify-between items-center">
+            <div className="geometric-card relative border-white/10 bg-[#0a0a0a] p-6 sm:p-8">
+              <h2 className="mb-8 flex items-center justify-between border-b border-white/10 pb-3 text-[10px] font-black uppercase tracking-[0.22em] text-[#a88a7e]">
                 <span>{'>'} _ MATRIZ DE OPERACIONES</span>
-                <span className="text-[8px] opacity-50">[ DB_SYNC ] ONLINE</span>
+                <span className="hidden text-[8px] opacity-50 sm:inline">[ DB_SYNC ] ONLINE</span>
               </h2>
               <TaskModule onTasksUpdate={handleTasksUpdate} />
             </div>
 
             {/* Row 2: Analytics */}
-            <div className="geometric-card p-6 sm:p-8 border-white/10 relative">
-              <h2 className="text-[10px] uppercase font-mono tracking-[0.2em] mb-8 border-b border-white/10 pb-3 flex items-center gap-2 text-stone-400">
+            <div className="geometric-card relative border-white/10 bg-[#0a0a0a] p-6 sm:p-8">
+              <h2 className="mb-8 flex items-center gap-2 border-b border-white/10 pb-3 text-[10px] font-black uppercase tracking-[0.22em] text-[#a88a7e]">
                 <div className="w-1.5 h-1.5 bg-user-c" style={{ boxShadow: '0 0 5px var(--color-user-c)' }} />
                 [ / ] DIAGNÓSTICO DE RENDIMIENTO
               </h2>
@@ -236,15 +291,15 @@ export const SymmetryDashboard = () => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="space-y-12"
+            className="space-y-8 border-x border-white/10 bg-[#050505] p-3 sm:p-5 md:p-8"
           >
             {/* Finance Video Header */}
-            <div className="flex justify-center py-4">
-              <div className="relative p-1 border border-white/10 bg-black">
-                <div className="absolute top-0 left-0 w-1.5 h-1.5 border-t border-l border-user-a" />
-                <div className="absolute bottom-0 right-0 w-1.5 h-1.5 border-b border-r border-user-a" />
+            <div className="grid gap-4 border border-white/10 bg-[#0a0a0a] p-4 md:grid-cols-[auto_1fr_auto] md:items-center">
+              <div className="relative h-28 w-28 border border-white/10 bg-black p-1">
+                <div className="absolute left-0 top-0 h-2 w-2 border-l border-t border-user-a" />
+                <div className="absolute bottom-0 right-0 h-2 w-2 border-b border-r border-user-a" />
                 <video
-                  className="w-32 h-32 object-cover contrast-125 opacity-80 mix-blend-screen"
+                  className="h-full w-full object-cover opacity-80 mix-blend-screen contrast-125"
                   src="vid/financesCat.mp4"
                   autoPlay
                   loop
@@ -252,15 +307,17 @@ export const SymmetryDashboard = () => {
                   playsInline
                   webkit-playsinline="true"
                 />
-                <div className="absolute top-2 right-2 flex gap-1">
-                  <div className="w-1 h-1 bg-user-a animate-pulse" />
-                </div>
               </div>
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-user-c">Financial Feed</p>
+                <h2 className="mt-2 text-2xl font-black uppercase tracking-normal text-white">Balance Console</h2>
+              </div>
+              <WalletCards className="hidden h-10 w-10 text-user-a md:block" strokeWidth={1} />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <div className="geometric-card p-6 border-white/10 relative">
-                <h2 className="text-[10px] uppercase font-mono tracking-[0.2em] mb-6 border-b border-white/10 pb-2 flex justify-between items-center text-stone-400">
+              <div className="geometric-card relative border-white/10 bg-[#0a0a0a] p-6">
+                <h2 className="mb-6 flex items-center justify-between border-b border-white/10 pb-2 text-[10px] font-black uppercase tracking-[0.22em] text-[#a88a7e]">
                   <span>[ / ] GESTIÓN FINANCIERA</span>
                   <span className="text-[8px] opacity-50">BITÁCORA DE FLUJO</span>
                 </h2>
@@ -269,8 +326,8 @@ export const SymmetryDashboard = () => {
                   onAllocationsChange={profile === 'el' ? setAllocationsA : setAllocationsB}
                 />
               </div>
-              <div className="geometric-card p-6 sm:p-8 border-white/10 relative">
-                <h2 className="text-[10px] uppercase font-mono tracking-[0.2em] mb-8 border-b border-white/10 pb-3 flex items-center gap-2 text-stone-400">
+              <div className="geometric-card relative border-white/10 bg-[#0a0a0a] p-6 sm:p-8">
+                <h2 className="mb-8 flex items-center gap-2 border-b border-white/10 pb-3 text-[10px] font-black uppercase tracking-[0.22em] text-[#a88a7e]">
                   <div className="w-1.5 h-1.5 bg-user-a" style={{ boxShadow: '0 0 5px var(--color-user-a)' }} />
                   {'>'} ANÁLISIS DE BALANCE
                 </h2>

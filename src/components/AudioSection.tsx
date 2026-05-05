@@ -1,9 +1,16 @@
 'use client';
 
-import { Music, MessageSquare, User, Plus, X } from 'lucide-react';
+import { Music, MessageSquare, Plus, X } from 'lucide-react';
 import { useState } from 'react';
 import { useStore } from '@/context/StoreContext';
 import { useProfile } from '@/context/ProfileContext';
+
+interface TrackComment {
+    id: string;
+    author: string;
+    text: string;
+    track_id: string;
+}
 
 export function AudioSection() {
     const { data, updateData } = useStore();
@@ -27,6 +34,7 @@ export function AudioSection() {
         if (newComment.trim() && currentTrack && profile) {
             const authorName = profile === 'el' ? 'Él' : 'Ella';
             const comment = {
+                // eslint-disable-next-line react-hooks/purity
                 id: Date.now().toString(),
                 author: authorName,
                 text: newComment.trim(),
@@ -65,14 +73,14 @@ export function AudioSection() {
     };
 
     return (
-        <div id="audio" className="w-full max-w-5xl mx-auto space-y-12 py-12 px-4 bg-grid-mosaic">
-            <div className="text-center relative">
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-[1px] bg-geometric-accent opacity-50" />
-                <h2 className="text-3xl font-bold text-stone-800 dark:text-stone-100 mb-3 flex items-center justify-center gap-3 uppercase tracking-tighter pt-4">
-                    <Music className="w-6 h-6 text-geometric-accent" />
+        <div id="audio" className="mx-auto w-full max-w-5xl space-y-10 bg-mosaic px-1 py-6">
+            <div className="relative border border-white/10 bg-[#0a0a0a] p-8 text-center">
+                <div className="absolute left-1/2 top-0 h-[1px] w-24 -translate-x-1/2 bg-[#ff7020]" />
+                <h2 className="mb-3 flex items-center justify-center gap-3 pt-4 text-3xl font-black uppercase tracking-normal text-white">
+                    <Music className="h-6 w-6 text-[#ffb595]" />
                     Banda Sonora
                 </h2>
-                <p className="text-stone-500 dark:text-stone-400 font-light max-w-md mx-auto italic">
+                <p className="mx-auto max-w-md text-sm leading-6 tracking-normal text-[#e1bfb2]">
                     Música que quiero que escuches y pienses en mí, tanto como yo pienso en ti.
                 </p>
             </div>
@@ -80,11 +88,11 @@ export function AudioSection() {
             <div className="grid lg:grid-cols-5 gap-8">
                 {/* Playlist Sidebar */}
                 <div className="lg:col-span-2 space-y-4">
-                    <div className="flex items-center justify-between px-2 mb-4 border-b border-geometric-border pb-2">
-                        <h3 className="text-[10px] font-bold text-stone-400 uppercase tracking-[0.2em]">Playlist</h3>
+                    <div className="mb-4 flex items-center justify-between border-b border-white/10 px-2 pb-3">
+                        <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Playlist</h3>
                         <button
                             onClick={() => setIsAddingTrack(!isAddingTrack)}
-                            className="text-[10px] font-bold text-geometric-accent uppercase tracking-wider hover:text-stone-900 dark:hover:text-white transition-colors flex items-center gap-1"
+                            className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-[#ffb595] transition-colors hover:text-white"
                         >
                             {isAddingTrack ? <X className="w-3 h-3" /> : <Plus className="w-3 h-3" />}
                             {isAddingTrack ? 'Cancelar' : 'Añadir'}
@@ -92,11 +100,11 @@ export function AudioSection() {
                     </div>
 
                     {isAddingTrack && (
-                        <form onSubmit={handleAddTrack} className="geometric-card bg-white dark:bg-stone-900 p-4 mb-4 animate-in fade-in slide-in-from-top-2 space-y-3">
-                            <input value={newTitle} onChange={e => setNewTitle(e.target.value)} required placeholder="Título" className="w-full bg-stone-50 dark:bg-stone-950 border border-geometric-border rounded-none px-3 py-2 text-sm outline-none focus:border-geometric-accent transition-colors" />
-                            <input value={newArtist} onChange={e => setNewArtist(e.target.value)} placeholder="Artista" className="w-full bg-stone-50 dark:bg-stone-950 border border-geometric-border rounded-none px-3 py-2 text-sm outline-none focus:border-geometric-accent transition-colors" />
-                            <input value={newUrl} onChange={e => setNewUrl(e.target.value)} required placeholder="URL Spotify" className="w-full bg-stone-50 dark:bg-stone-950 border border-geometric-border rounded-none px-3 py-2 text-sm outline-none focus:border-geometric-accent transition-colors" />
-                            <button type="submit" disabled={!newTitle || !newUrl} className="w-full py-2 text-xs font-bold text-white bg-stone-900 dark:bg-stone-100 dark:text-stone-900 rounded-none uppercase tracking-widest hover:bg-geometric-accent dark:hover:bg-geometric-accent dark:hover:text-white transition-colors disabled:opacity-50">Guardar</button>
+                        <form onSubmit={handleAddTrack} className="geometric-card mb-4 animate-in space-y-3 border-white/10 bg-[#0a0a0a] p-4 fade-in slide-in-from-top-2">
+                            <input value={newTitle} onChange={e => setNewTitle(e.target.value)} required placeholder="Título" className="w-full border border-white/10 bg-black px-3 py-2 text-sm tracking-normal text-white outline-none transition-colors placeholder:text-[#594137] focus:border-[#ff7020]" />
+                            <input value={newArtist} onChange={e => setNewArtist(e.target.value)} placeholder="Artista" className="w-full border border-white/10 bg-black px-3 py-2 text-sm tracking-normal text-white outline-none transition-colors placeholder:text-[#594137] focus:border-[#ff7020]" />
+                            <input value={newUrl} onChange={e => setNewUrl(e.target.value)} required placeholder="URL Spotify" className="w-full border border-white/10 bg-black px-3 py-2 text-sm tracking-normal text-white outline-none transition-colors placeholder:text-[#594137] focus:border-[#ff7020]" />
+                            <button type="submit" disabled={!newTitle || !newUrl} className="w-full bg-[#ff7020] py-2 text-xs font-bold uppercase tracking-widest text-black transition-colors hover:bg-[#ffb595] disabled:opacity-50">Guardar</button>
                         </form>
                     )}
 
@@ -105,21 +113,21 @@ export function AudioSection() {
                             <button
                                 key={track.id}
                                 onClick={() => setActiveTrackId(track.id)}
-                                className={`w-full text-left p-4 rounded-none transition-all border ${currentTrackId === track.id
-                                    ? 'bg-white dark:bg-stone-900 border-geometric-accent'
-                                    : 'bg-transparent border-transparent hover:bg-white dark:hover:bg-stone-900/50 hover:border-geometric-border'
+                                className={`w-full border p-4 text-left transition-all ${currentTrackId === track.id
+                                    ? 'border-[#ff7020] bg-[#ff7020]/10'
+                                    : 'border-white/10 bg-[#0a0a0a] hover:border-white/25 hover:bg-[#121212]'
                                     }`}
                             >
                                 <div className="flex items-center gap-4">
-                                    <div className={`w-10 h-10 rounded-none flex items-center justify-center border ${currentTrackId === track.id ? 'bg-geometric-accent text-white border-geometric-accent' : 'bg-stone-100 dark:bg-stone-800 text-stone-400 border-geometric-border'
+                                    <div className={`flex h-10 w-10 items-center justify-center border ${currentTrackId === track.id ? 'border-[#ff7020] bg-[#ff7020] text-black' : 'border-white/10 bg-black text-[#a88a7e]'
                                         }`}>
                                         <Music className="w-5 h-5" />
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <p className={`font-bold truncate text-sm uppercase tracking-tight ${currentTrackId === track.id ? 'text-stone-900 dark:text-white' : 'text-stone-600 dark:text-stone-400'}`}>
+                                        <p className={`truncate text-sm font-bold uppercase tracking-normal ${currentTrackId === track.id ? 'text-white' : 'text-[#e1bfb2]'}`}>
                                             {track.title || 'Sin Título'}
                                         </p>
-                                        <p className="text-[10px] text-stone-400 truncate uppercase font-mono">{track.artist || 'Artista Desconocido'}</p>
+                                        <p className="truncate font-mono text-[10px] uppercase text-[#a88a7e]">{track.artist || 'Artista Desconocido'}</p>
                                     </div>
                                     {track.added_by && (
                                         <div className="flex flex-col items-center opacity-20 group-hover:opacity-100 transition-opacity">
@@ -134,15 +142,15 @@ export function AudioSection() {
 
                 {/* Player & Comments Area */}
                 <div className="lg:col-span-3">
-                    <div className="geometric-card bg-white dark:bg-stone-900 p-6 min-h-[550px] flex flex-col relative">
+                    <div className="geometric-card relative flex min-h-[550px] flex-col border-white/10 bg-[#0a0a0a] p-6">
                         {/* Background Decoration */}
-                        <div className="absolute top-0 right-0 w-16 h-16 bg-dot-matrix opacity-[0.05] pointer-events-none" />
+                        <div className="pointer-events-none absolute right-0 top-0 h-16 w-16 border-b border-l border-[#00dbe9]/30 bg-dot-matrix opacity-50" />
 
                         {currentTrack ? (
                             <>
                                 <div className="mb-6 z-10">
                                     {currentTrack.spotifyUrl ? (
-                                        <div className="border border-geometric-border p-1 bg-stone-50 dark:bg-stone-950">
+                                        <div className="border border-white/10 bg-black p-1">
                                             <iframe
                                                 style={{ borderRadius: '0px' }}
                                                 src={currentTrack.spotifyUrl.replace('open.spotify.com/', 'open.spotify.com/embed/').split('?')[0]}
@@ -155,41 +163,41 @@ export function AudioSection() {
                                             ></iframe>
                                         </div>
                                     ) : (
-                                        <div className="w-full bg-stone-50 dark:bg-stone-800 border border-geometric-border p-8 text-center text-stone-400 font-light italic">
+                                        <div className="w-full border border-white/10 bg-black p-8 text-center text-[#a88a7e]">
                                             Sin vista previa disponible.
                                         </div>
                                     )}
                                 </div>
 
                                 <div className="flex-1 flex flex-col z-10">
-                                    <h4 className="flex items-center gap-2 text-[10px] font-bold text-stone-400 uppercase tracking-[0.2em] mb-6 border-b border-geometric-border pb-4">
-                                        <MessageSquare className="w-3 h-3 text-geometric-accent" />
+                                    <h4 className="mb-6 flex items-center gap-2 border-b border-white/10 pb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">
+                                        <MessageSquare className="h-3 w-3 text-[#00dbe9]" />
                                         Contexto
                                     </h4>
 
                                     <div className="flex-1 space-y-4 mb-6 max-h-[250px] overflow-y-auto pr-2 custom-scrollbar">
                                         {currentTrack.comments && currentTrack.comments.length > 0 ? (
-                                            currentTrack.comments.map((comment: any) => (
-                                                <div key={comment.id} className="border-l-2 border-geometric-accent bg-stone-50 dark:bg-stone-950/40 p-4">
+                                            currentTrack.comments.map((comment: TrackComment) => (
+                                                <div key={comment.id} className="border-l-2 border-[#ff7020] bg-black p-4">
                                                     <div className="flex justify-between items-center mb-1">
-                                                        <span className={`text-[9px] font-bold uppercase tracking-widest ${comment.author === 'Ella' ? 'text-rose-500' : 'text-amber-500'}`}>
+                                                        <span className={`text-[9px] font-bold uppercase tracking-widest ${comment.author === 'Ella' ? 'text-[#e5b5ff]' : 'text-[#ffb595]'}`}>
                                                             {comment.author}
                                                         </span>
                                                     </div>
-                                                    <p className="text-stone-600 dark:text-stone-300 text-sm italic font-light">
+                                                    <p className="text-sm font-light tracking-normal text-[#e5e2e1]">
                                                         &quot;{comment.text}&quot;
                                                     </p>
                                                 </div>
                                             ))
                                         ) : (
-                                            <div className="flex flex-col items-center justify-center py-10 opacity-30">
+                                            <div className="flex flex-col items-center justify-center py-10 text-[#a88a7e] opacity-50">
                                                 <MessageSquare className="w-8 h-8 mb-2" />
                                                 <p className="text-[10px] uppercase tracking-widest">Sin comentarios</p>
                                             </div>
                                         )}
                                     </div>
 
-                                    <div className="mt-auto pt-4 border-t border-geometric-border">
+                                    <div className="mt-auto border-t border-white/10 pt-4">
                                         <div className="flex gap-2">
                                             <input
                                                 type="text"
@@ -197,12 +205,12 @@ export function AudioSection() {
                                                 onChange={(e) => setNewComment(e.target.value)}
                                                 onKeyDown={(e) => e.key === 'Enter' && handleAddComment()}
                                                 placeholder={`Añadir nota como ${profile === 'el' ? 'él' : 'ella'}...`}
-                                                className="flex-1 bg-stone-50 dark:bg-stone-800 border border-geometric-border rounded-none px-4 py-3 outline-none focus:border-geometric-accent text-sm transition-colors"
+                                                className="flex-1 border border-white/10 bg-black px-4 py-3 text-sm tracking-normal text-white outline-none transition-colors placeholder:text-[#594137] focus:border-[#ff7020]"
                                             />
                                             <button
                                                 onClick={handleAddComment}
                                                 disabled={!newComment.trim()}
-                                                className="px-6 py-3 bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 rounded-none font-bold text-xs uppercase tracking-widest transition-colors hover:bg-geometric-accent dark:hover:bg-geometric-accent hover:text-white disabled:opacity-50"
+                                                className="bg-[#ff7020] px-6 py-3 text-xs font-bold uppercase tracking-widest text-black transition-colors hover:bg-[#ffb595] disabled:opacity-50"
                                             >
                                                 Enviar
                                             </button>
@@ -211,7 +219,7 @@ export function AudioSection() {
                                 </div>
                             </>
                         ) : (
-                            <div className="flex-1 flex flex-col items-center justify-center text-stone-400 font-light italic p-10 text-center opacity-50">
+                            <div className="flex flex-1 flex-col items-center justify-center p-10 text-center font-light text-[#a88a7e] opacity-60">
                                 <Music className="w-12 h-12 mb-4" />
                                 <p className="uppercase text-[10px] tracking-[0.2em]">Playlist vacía</p>
                             </div>
