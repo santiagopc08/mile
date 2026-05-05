@@ -81,7 +81,7 @@ export const FinanceChart = ({ allocationsA, allocationsB }: { allocationsA: any
               boxShadow: '0 10px 20px rgba(0,0,0,0.5)'
             }}
             itemStyle={{ padding: '2px 0' }}
-            formatter={(value: any, name: string) => [formatCOP(Number(value)), `[ ${name} ]`]}
+            formatter={(value: any, name: any) => [formatCOP(Number(value)), `[ ${name} ]`]}
           />
           {mode === 'us' && (
             <Legend 
