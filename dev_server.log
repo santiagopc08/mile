@@ -5,107 +5,194 @@
 ▲ Next.js 16.2.4 (Turbopack)
 - Local:         http://localhost:3000
 - Network:       http://192.168.0.2:3000
-✓ Ready in 888ms
+✓ Ready in 530ms
 
 ○ Compiling / ...
- GET / 200 in 10.1s (next.js: 9.1s, application-code: 1059ms)
- GET /api/store 200 in 3.1s (next.js: 2.6s, application-code: 564ms)
- GET / 200 in 93ms (next.js: 5ms, application-code: 87ms)
- GET /api/store 200 in 157ms (next.js: 4ms, application-code: 153ms)
-[browser] The width(-1) and height(-1) of chart should be greater than 0,
-       please check the style of container, or the props width(100%) and height(100%),
-       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
-       height and width.
-[browser] The width(-1) and height(-1) of chart should be greater than 0,
-       please check the style of container, or the props width(100%) and height(100%),
-       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
-       height and width.
-[browser] The width(-1) and height(-1) of chart should be greater than 0,
-       please check the style of container, or the props width(100%) and height(100%),
-       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
-       height and width.
-[browser] The width(-1) and height(-1) of chart should be greater than 0,
-       please check the style of container, or the props width(100%) and height(100%),
-       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
-       height and width.
- PUT /api/store 200 in 188ms (next.js: 4ms, application-code: 184ms)
- GET /api/store 200 in 174ms (next.js: 4ms, application-code: 169ms)
- GET / 200 in 86ms (next.js: 3ms, application-code: 83ms)
- GET /api/store 200 in 216ms (next.js: 3ms, application-code: 213ms)
-[browser] The width(-1) and height(-1) of chart should be greater than 0,
-       please check the style of container, or the props width(100%) and height(100%),
-       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
-       height and width.
-[browser] The width(-1) and height(-1) of chart should be greater than 0,
-       please check the style of container, or the props width(100%) and height(100%),
-       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
-       height and width.
-[browser] The width(-1) and height(-1) of chart should be greater than 0,
-       please check the style of container, or the props width(100%) and height(100%),
-       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
-       height and width.
-[browser] The width(-1) and height(-1) of chart should be greater than 0,
-       please check the style of container, or the props width(100%) and height(100%),
-       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
-       height and width.
- PUT /api/store 200 in 198ms (next.js: 20ms, application-code: 178ms)
- GET /api/store 200 in 142ms (next.js: 3ms, application-code: 139ms)
- GET / 200 in 69ms (next.js: 4ms, application-code: 65ms)
- GET /api/store 200 in 146ms (next.js: 4ms, application-code: 142ms)
-[browser] The width(-1) and height(-1) of chart should be greater than 0,
-       please check the style of container, or the props width(100%) and height(100%),
-       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
-       height and width.
-[browser] The width(-1) and height(-1) of chart should be greater than 0,
-       please check the style of container, or the props width(100%) and height(100%),
-       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
-       height and width.
-[browser] The width(-1) and height(-1) of chart should be greater than 0,
-       please check the style of container, or the props width(100%) and height(100%),
-       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
-       height and width.
-[browser] The width(-1) and height(-1) of chart should be greater than 0,
-       please check the style of container, or the props width(100%) and height(100%),
-       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
-       height and width.
- PUT /api/store 200 in 172ms (next.js: 3ms, application-code: 169ms)
- GET /api/store 200 in 145ms (next.js: 2ms, application-code: 143ms)
- GET / 200 in 92ms (next.js: 5ms, application-code: 87ms)
- GET /api/store 200 in 229ms (next.js: 3ms, application-code: 226ms)
-[browser] The width(-1) and height(-1) of chart should be greater than 0,
-       please check the style of container, or the props width(100%) and height(100%),
-       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
-       height and width.
-[browser] The width(-1) and height(-1) of chart should be greater than 0,
-       please check the style of container, or the props width(100%) and height(100%),
-       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
-       height and width.
-[browser] The width(-1) and height(-1) of chart should be greater than 0,
-       please check the style of container, or the props width(100%) and height(100%),
-       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
-       height and width.
-[browser] The width(-1) and height(-1) of chart should be greater than 0,
-       please check the style of container, or the props width(100%) and height(100%),
-       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
-       height and width.
- GET / 200 in 70ms (next.js: 3ms, application-code: 67ms)
- GET /api/store 200 in 156ms (next.js: 2ms, application-code: 154ms)
-[browser] The width(-1) and height(-1) of chart should be greater than 0,
-       please check the style of container, or the props width(100%) and height(100%),
-       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
-       height and width.
-[browser] The width(-1) and height(-1) of chart should be greater than 0,
-       please check the style of container, or the props width(100%) and height(100%),
-       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
-       height and width.
-[browser] The width(-1) and height(-1) of chart should be greater than 0,
-       please check the style of container, or the props width(100%) and height(100%),
-       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
-       height and width.
-[browser] The width(-1) and height(-1) of chart should be greater than 0,
-       please check the style of container, or the props width(100%) and height(100%),
-       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
-       height and width.
- PUT /api/store 200 in 183ms (next.js: 5ms, application-code: 177ms)
- GET /api/store 200 in 175ms (next.js: 7ms, application-code: 168ms)
-[?25h
+⨯ Error: supabaseUrl is required.
+    at module evaluation (src/lib/supabase.ts:7:37)
+    at module evaluation (src/services/storeService.ts:1:1)
+    at module evaluation (src/components/symmetry/SymmetryDashboard.tsx:14:1)
+    at module evaluation (src/app/page.tsx:4:1)
+   5 |
+   6 | // Client for the browser (uses Anon Key)
+>  7 | export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+     |                                     ^
+   8 |
+   9 | // Helper for server-side (uses Service Role Key)
+  10 | export const createServerClient = () => { {
+  digest: '1721189513'
+}
+ GET / 500 in 11.9s (next.js: 9.3s, application-code: 2.6s)
+[browser] Uncaught Error: supabaseUrl is required.
+    at module evaluation (src/lib/supabase.ts:7:37)
+    at module evaluation (src/services/storeService.ts:1:1)
+    at module evaluation (src/components/symmetry/SymmetryDashboard.tsx:14:1)
+    at module evaluation (src/app/page.tsx:4:1)
+   5 |
+   6 | // Client for the browser (uses Anon Key)
+>  7 | export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+     |                                     ^
+   8 |
+   9 | // Helper for server-side (uses Service Role Key)
+  10 | export const createServerClient = () => {
+⨯ Error: supabaseUrl is required.
+    at module evaluation (src/lib/supabase.ts:7:37)
+    at module evaluation (src/services/storeService.ts:1:1)
+    at module evaluation (src/components/symmetry/SymmetryDashboard.tsx:14:1)
+    at module evaluation (src/app/page.tsx:4:1)
+   5 |
+   6 | // Client for the browser (uses Anon Key)
+>  7 | export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+     |                                     ^
+   8 |
+   9 | // Helper for server-side (uses Service Role Key)
+  10 | export const createServerClient = () => { {
+  digest: '1721189513'
+}
+ GET / 500 in 574ms (next.js: 6ms, application-code: 568ms)
+[browser] Uncaught Error: supabaseUrl is required.
+    at module evaluation (src/lib/supabase.ts:7:37)
+    at module evaluation (src/services/storeService.ts:1:1)
+    at module evaluation (src/components/symmetry/SymmetryDashboard.tsx:14:1)
+    at module evaluation (src/app/page.tsx:4:1)
+   5 |
+   6 | // Client for the browser (uses Anon Key)
+>  7 | export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+     |                                     ^
+   8 |
+   9 | // Helper for server-side (uses Service Role Key)
+  10 | export const createServerClient = () => {
+⨯ Error: supabaseUrl is required.
+    at module evaluation (src/lib/supabase.ts:7:37)
+    at module evaluation (src/services/storeService.ts:1:1)
+    at module evaluation (src/components/symmetry/SymmetryDashboard.tsx:14:1)
+    at module evaluation (src/app/page.tsx:4:1)
+   5 |
+   6 | // Client for the browser (uses Anon Key)
+>  7 | export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+     |                                     ^
+   8 |
+   9 | // Helper for server-side (uses Service Role Key)
+  10 | export const createServerClient = () => { {
+  digest: '1721189513'
+}
+ GET / 500 in 598ms (next.js: 10ms, application-code: 589ms)
+[browser] Uncaught Error: supabaseUrl is required.
+    at module evaluation (src/lib/supabase.ts:7:37)
+    at module evaluation (src/services/storeService.ts:1:1)
+    at module evaluation (src/components/symmetry/SymmetryDashboard.tsx:14:1)
+    at module evaluation (src/app/page.tsx:4:1)
+   5 |
+   6 | // Client for the browser (uses Anon Key)
+>  7 | export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+     |                                     ^
+   8 |
+   9 | // Helper for server-side (uses Service Role Key)
+  10 | export const createServerClient = () => {
+⨯ Error: supabaseUrl is required.
+    at module evaluation (src/lib/supabase.ts:7:37)
+    at module evaluation (src/services/storeService.ts:1:1)
+    at module evaluation (src/components/symmetry/SymmetryDashboard.tsx:14:1)
+    at module evaluation (src/app/page.tsx:4:1)
+   5 |
+   6 | // Client for the browser (uses Anon Key)
+>  7 | export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+     |                                     ^
+   8 |
+   9 | // Helper for server-side (uses Service Role Key)
+  10 | export const createServerClient = () => { {
+  digest: '1721189513'
+}
+ GET / 500 in 596ms (next.js: 10ms, application-code: 586ms)
+[browser] Uncaught Error: supabaseUrl is required.
+    at module evaluation (src/lib/supabase.ts:7:37)
+    at module evaluation (src/services/storeService.ts:1:1)
+    at module evaluation (src/components/symmetry/SymmetryDashboard.tsx:14:1)
+    at module evaluation (src/app/page.tsx:4:1)
+   5 |
+   6 | // Client for the browser (uses Anon Key)
+>  7 | export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+     |                                     ^
+   8 |
+   9 | // Helper for server-side (uses Service Role Key)
+  10 | export const createServerClient = () => {
+⨯ Error: supabaseUrl is required.
+    at module evaluation (src/lib/supabase.ts:7:37)
+    at module evaluation (src/services/storeService.ts:1:1)
+    at module evaluation (src/components/symmetry/SymmetryDashboard.tsx:14:1)
+    at module evaluation (src/app/page.tsx:4:1)
+   5 |
+   6 | // Client for the browser (uses Anon Key)
+>  7 | export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+     |                                     ^
+   8 |
+   9 | // Helper for server-side (uses Service Role Key)
+  10 | export const createServerClient = () => { {
+  digest: '1721189513'
+}
+ GET / 500 in 1013ms (next.js: 20ms, application-code: 993ms)
+[browser] Uncaught Error: supabaseUrl is required.
+    at module evaluation (src/lib/supabase.ts:7:37)
+    at module evaluation (src/services/storeService.ts:1:1)
+    at module evaluation (src/components/symmetry/SymmetryDashboard.tsx:14:1)
+    at module evaluation (src/app/page.tsx:4:1)
+   5 |
+   6 | // Client for the browser (uses Anon Key)
+>  7 | export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+     |                                     ^
+   8 |
+   9 | // Helper for server-side (uses Service Role Key)
+  10 | export const createServerClient = () => {
+⨯ Error: supabaseUrl is required.
+    at module evaluation (src/lib/supabase.ts:7:37)
+    at module evaluation (src/services/storeService.ts:1:1)
+    at module evaluation (src/components/symmetry/SymmetryDashboard.tsx:14:1)
+    at module evaluation (src/app/page.tsx:4:1)
+   5 |
+   6 | // Client for the browser (uses Anon Key)
+>  7 | export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+     |                                     ^
+   8 |
+   9 | // Helper for server-side (uses Service Role Key)
+  10 | export const createServerClient = () => { {
+  digest: '1721189513'
+}
+ GET / 500 in 495ms (next.js: 4ms, application-code: 490ms)
+[browser] Uncaught Error: supabaseUrl is required.
+    at module evaluation (src/lib/supabase.ts:7:37)
+    at module evaluation (src/services/storeService.ts:1:1)
+    at module evaluation (src/components/symmetry/SymmetryDashboard.tsx:14:1)
+    at module evaluation (src/app/page.tsx:4:1)
+   5 |
+   6 | // Client for the browser (uses Anon Key)
+>  7 | export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+     |                                     ^
+   8 |
+   9 | // Helper for server-side (uses Service Role Key)
+  10 | export const createServerClient = () => {
+⨯ Error: supabaseUrl is required.
+    at module evaluation (src/lib/supabase.ts:7:37)
+    at module evaluation (src/services/storeService.ts:1:1)
+    at module evaluation (src/components/symmetry/SymmetryDashboard.tsx:14:1)
+    at module evaluation (src/app/page.tsx:4:1)
+   5 |
+   6 | // Client for the browser (uses Anon Key)
+>  7 | export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+     |                                     ^
+   8 |
+   9 | // Helper for server-side (uses Service Role Key)
+  10 | export const createServerClient = () => { {
+  digest: '1721189513'
+}
+ GET /salud 500 in 2.3s (next.js: 1674ms, application-code: 643ms)
+[browser] Uncaught Error: supabaseUrl is required.
+    at module evaluation (src/lib/supabase.ts:7:37)
+    at module evaluation (src/components/health/BloodPressureTracker.tsx:4:1)
+    at module evaluation (src/app/salud/page.tsx:7:1)
+   5 |
+   6 | // Client for the browser (uses Anon Key)
+>  7 | export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+     |                                     ^
+   8 |
+   9 | // Helper for server-side (uses Service Role Key)
+  10 | export const createServerClient = () => {
