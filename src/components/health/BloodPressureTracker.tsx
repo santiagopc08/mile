@@ -16,12 +16,18 @@ import {
     Legend
 } from 'recharts';
 
+const POSITION_LABELS = {
+    sitting: 'SENTADO',
+    'edge of bed': 'BORDE CAMA',
+    lied: 'ACOSTADO'
+} as const;
+
 interface BloodPressureEntry {
     id: string;
     systolic: number;
     diastolic: number;
     heart_rate: number;
-    position: 'sentado' | 'borde_cama' | 'acostado';
+    position: keyof typeof POSITION_LABELS;
     author: string;
     created_at: string;
 }
@@ -32,7 +38,7 @@ export const BloodPressureTracker = () => {
     const [systolic, setSystolic] = useState<number | ''>('');
     const [diastolic, setDiastolic] = useState<number | ''>('');
     const [heartRate, setHeartRate] = useState<number | ''>('');
-    const [position, setPosition] = useState<BloodPressureEntry['position']>('sentado');
+    const [position, setPosition] = useState<BloodPressureEntry['position']>('sitting');
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
@@ -200,9 +206,9 @@ export const BloodPressureTracker = () => {
                             onChange={e => setPosition(e.target.value as any)}
                             className="w-full bg-black border border-white/10 p-3 text-xs font-bold outline-none focus:border-user-a text-stone-300 appearance-none cursor-pointer"
                         >
-                            <option value="sentado">SENTADO</option>
-                            <option value="borde_cama">BORDE CAMA</option>
-                            <option value="acostado">ACOSTADO</option>
+                            <option value="sitting">SENTADO</option>
+                            <option value="edge of bed">BORDE CAMA</option>
+                            <option value="lied">ACOSTADO</option>
                         </select>
                     </div>
                     <button
@@ -217,14 +223,14 @@ export const BloodPressureTracker = () => {
                         {loading ? (
                             <motion.div
                                 animate={{ rotate: 360 }}
-                                transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-                            >
-                                <Activity size={14} />
-                            </motion.div>
+                                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                                className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full"
+                            />
                         ) : (
-                            <Plus size={14} />
+                            <>
+                                <Plus size={14} /> REGISTRAR LECTURA
+                            </>
                         )}
-                        [ {loading ? 'PROCESANDO_DATA' : 'REGISTRAR_SIGNOS_VITALES'} ]
                     </button>
                 </form>
 
@@ -233,7 +239,7 @@ export const BloodPressureTracker = () => {
                         <div className="p-4 border border-white/5 bg-stone-900/20 space-y-4">
                             <div className="flex justify-between items-center border-b border-white/5 pb-2">
                                 <h3 className="text-[8px] uppercase font-black text-stone-500 tracking-widest flex items-center gap-1">
-                                    <TrendingUp size={10} /> SISTÓLICA
+                                    <Activity size={10} /> SISTÓLICA
                                 </h3>
                                 <span className="text-[6px] text-stone-600">mmHg</span>
                             </div>
@@ -256,7 +262,7 @@ export const BloodPressureTracker = () => {
                         <div className="p-4 border border-white/5 bg-stone-900/20 space-y-4">
                             <div className="flex justify-between items-center border-b border-white/5 pb-2">
                                 <h3 className="text-[8px] uppercase font-black text-stone-500 tracking-widest flex items-center gap-1">
-                                    <TrendingDown size={10} /> DIASTÓLICA
+                                    <Activity size={10} /> DIASTÓLICA
                                 </h3>
                                 <span className="text-[6px] text-stone-600">mmHg</span>
                             </div>
@@ -401,7 +407,7 @@ export const BloodPressureTracker = () => {
                                         </div>
                                         <div className="flex flex-col">
                                             <span className="text-[6px] uppercase font-bold text-stone-600 mb-0.5">POSTURA</span>
-                                            <span className="text-[8px] font-bold text-stone-400 uppercase tracking-tighter">{entry.position.replace('_', ' ')}</span>
+                                            <span className="text-[8px] font-bold text-stone-400 uppercase tracking-tighter">{POSITION_LABELS[entry.position as keyof typeof POSITION_LABELS] || entry.position}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -419,4 +425,3 @@ export const BloodPressureTracker = () => {
         </div>
     );
 };
-
