@@ -5,93 +5,17 @@
 ▲ Next.js 16.2.4 (Turbopack)
 - Local:         http://localhost:3000
 - Network:       http://192.168.0.2:3000
-✓ Ready in 529ms
+✓ Ready in 473ms
 
-○ Compiling / ...
-⨯ Error: supabaseUrl is required.
-    at module evaluation (src/lib/supabase.ts:7:37)
-    at module evaluation (src/services/storeService.ts:1:1)
-    at module evaluation (src/components/symmetry/TaskModule.tsx:8:1)
-    at module evaluation (src/components/symmetry/SymmetryDashboard.tsx:5:1)
-    at module evaluation (src/app/page.tsx:4:1)
-   5 |
-   6 | // Client for the browser (uses Anon Key)
->  7 | export const supabase = createClient(supabaseUrl, supabaseAnonKey);
-     |                                     ^
-   8 |
-   9 | // Helper for server-side (uses Service Role Key)
-  10 | export const createServerClient = () => { {
-  digest: '1721189513'
-}
- GET / 500 in 11.8s (next.js: 9.5s, application-code: 2.3s)
-[browser] Uncaught Error: supabaseUrl is required.
-    at module evaluation (src/lib/supabase.ts:7:37)
-    at module evaluation (src/services/storeService.ts:1:1)
-    at module evaluation (src/components/symmetry/TaskModule.tsx:8:1)
-    at module evaluation (src/components/symmetry/SymmetryDashboard.tsx:5:1)
-    at module evaluation (src/app/page.tsx:4:1)
-   5 |
-   6 | // Client for the browser (uses Anon Key)
->  7 | export const supabase = createClient(supabaseUrl, supabaseAnonKey);
-     |                                     ^
-   8 |
-   9 | // Helper for server-side (uses Service Role Key)
-  10 | export const createServerClient = () => {
-⨯ Error: supabaseUrl is required.
-    at module evaluation (src/lib/supabase.ts:7:37)
-    at module evaluation (src/services/storeService.ts:1:1)
-    at module evaluation (src/components/symmetry/TaskModule.tsx:8:1)
-    at module evaluation (src/components/symmetry/SymmetryDashboard.tsx:5:1)
-    at module evaluation (src/app/page.tsx:4:1)
-   5 |
-   6 | // Client for the browser (uses Anon Key)
->  7 | export const supabase = createClient(supabaseUrl, supabaseAnonKey);
-     |                                     ^
-   8 |
-   9 | // Helper for server-side (uses Service Role Key)
-  10 | export const createServerClient = () => { {
-  digest: '1721189513'
-}
- GET / 500 in 602ms (next.js: 6ms, application-code: 596ms)
-[browser] Uncaught Error: supabaseUrl is required.
-    at module evaluation (src/lib/supabase.ts:7:37)
-    at module evaluation (src/services/storeService.ts:1:1)
-    at module evaluation (src/components/symmetry/TaskModule.tsx:8:1)
-    at module evaluation (src/components/symmetry/SymmetryDashboard.tsx:5:1)
-    at module evaluation (src/app/page.tsx:4:1)
-   5 |
-   6 | // Client for the browser (uses Anon Key)
->  7 | export const supabase = createClient(supabaseUrl, supabaseAnonKey);
-     |                                     ^
-   8 |
-   9 | // Helper for server-side (uses Service Role Key)
-  10 | export const createServerClient = () => {
-⨯ Error: supabaseUrl is required.
-    at module evaluation (src/lib/supabase.ts:7:37)
-    at module evaluation (src/services/storeService.ts:1:1)
-    at module evaluation (src/components/symmetry/TaskModule.tsx:8:1)
-    at module evaluation (src/components/symmetry/SymmetryDashboard.tsx:5:1)
-    at module evaluation (src/app/page.tsx:4:1)
-   5 |
-   6 | // Client for the browser (uses Anon Key)
->  7 | export const supabase = createClient(supabaseUrl, supabaseAnonKey);
-     |                                     ^
-   8 |
-   9 | // Helper for server-side (uses Service Role Key)
-  10 | export const createServerClient = () => { {
-  digest: '1721189513'
-}
- GET / 500 in 590ms (next.js: 9ms, application-code: 580ms)
-[browser] Uncaught Error: supabaseUrl is required.
-    at module evaluation (src/lib/supabase.ts:7:37)
-    at module evaluation (src/services/storeService.ts:1:1)
-    at module evaluation (src/components/symmetry/TaskModule.tsx:8:1)
-    at module evaluation (src/components/symmetry/SymmetryDashboard.tsx:5:1)
-    at module evaluation (src/app/page.tsx:4:1)
-   5 |
-   6 | // Client for the browser (uses Anon Key)
->  7 | export const supabase = createClient(supabaseUrl, supabaseAnonKey);
-     |                                     ^
-   8 |
-   9 | // Helper for server-side (uses Service Role Key)
-  10 | export const createServerClient = () => {
+○ Compiling /salud ...
+ GET /salud 200 in 10.6s (next.js: 9.4s, application-code: 1194ms)
+ GET /salud 200 in 394ms (next.js: 23ms, application-code: 371ms)
+ GET /api/store 500 in 10ms (next.js: 3ms, application-code: 7ms)
+[browser] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[browser] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.

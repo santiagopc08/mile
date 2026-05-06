@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Activity, Heart, Trash2, Plus, TrendingUp, TrendingDown, Clipboard, User, Clock } from 'lucide-react';
@@ -41,14 +41,13 @@ export const BloodPressureTracker = () => {
     const [position, setPosition] = useState<BloodPressureEntry['position']>('sitting');
     const [loading, setLoading] = useState(false);
 
-    useEffect(() => {
-        fetchEntries();
-    }, []);
+    const fetchEntries = useCallback(async () => {
+        if (!profile) return;
 
-    const fetchEntries = async () => {
         const { data, error } = await supabase
             .from('blood_pressure')
             .select('*')
+            .eq('author', profile)
             .order('created_at', { ascending: false });
 
         if (error) {
@@ -56,7 +55,11 @@ export const BloodPressureTracker = () => {
             return;
         }
         if (data) setEntries(data);
-    };
+    }, [profile]);
+
+    useEffect(() => {
+        fetchEntries();
+    }, [fetchEntries]);
 
     const handleAddEntry = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -113,42 +116,57 @@ export const BloodPressureTracker = () => {
     const stats = useMemo(() => {
         if (entries.length === 0) return null;
 
-        const sortedBySystolic = [...entries].sort((a, b) => a.systolic - b.systolic);
-        const sortedByDiastolic = [...entries].sort((a, b) => a.diastolic - b.diastolic);
-        const sortedByHeartRate = [...entries].sort((a, b) => a.heart_rate - b.heart_rate);
+        const result = entries.reduce((acc, curr) => {
+            if (curr.systolic < acc.systolic.min.systolic) acc.systolic.min = curr;
+            if (curr.systolic > acc.systolic.max.systolic) acc.systolic.max = curr;
+            acc.systolic.sum += curr.systolic;
 
-        const avgSystolic = Math.round(entries.reduce((acc, curr) => acc + curr.systolic, 0) / entries.length);
-        const avgDiastolic = Math.round(entries.reduce((acc, curr) => acc + curr.diastolic, 0) / entries.length);
-        const avgHeartRate = Math.round(entries.reduce((acc, curr) => acc + curr.heart_rate, 0) / entries.length);
+            if (curr.diastolic < acc.diastolic.min.diastolic) acc.diastolic.min = curr;
+            if (curr.diastolic > acc.diastolic.max.diastolic) acc.diastolic.max = curr;
+            acc.diastolic.sum += curr.diastolic;
+
+            if (curr.heart_rate < acc.heartRate.min.heart_rate) acc.heartRate.min = curr;
+            if (curr.heart_rate > acc.heartRate.max.heart_rate) acc.heartRate.max = curr;
+            acc.heartRate.sum += curr.heart_rate;
+
+            return acc;
+        }, {
+            systolic: { min: entries[0], max: entries[0], sum: 0 },
+            diastolic: { min: entries[0], max: entries[0], sum: 0 },
+            heartRate: { min: entries[0], max: entries[0], sum: 0 }
+        });
 
         return {
             systolic: {
-                max: sortedBySystolic[sortedBySystolic.length - 1],
-                min: sortedBySystolic[0],
-                avg: avgSystolic
+                max: result.systolic.max,
+                min: result.systolic.min,
+                avg: Math.round(result.systolic.sum / entries.length)
             },
             diastolic: {
-                max: sortedByDiastolic[sortedByDiastolic.length - 1],
-                min: sortedByDiastolic[0],
-                avg: avgDiastolic
+                max: result.diastolic.max,
+                min: result.diastolic.min,
+                avg: Math.round(result.diastolic.sum / entries.length)
             },
             heartRate: {
-                max: sortedByHeartRate[sortedByHeartRate.length - 1],
-                min: sortedByHeartRate[0],
-                avg: avgHeartRate
+                max: result.heartRate.max,
+                min: result.heartRate.min,
+                avg: Math.round(result.heartRate.sum / entries.length)
             }
         };
     }, [entries]);
 
     const chartData = useMemo(() => {
-        return [...entries].reverse().map(entry => ({
-            name: new Date(entry.created_at).toLocaleDateString([], { month: 'short', day: 'numeric' }),
-            fullDate: new Date(entry.created_at).toLocaleString(),
-            systolic: entry.systolic,
-            diastolic: entry.diastolic,
-            heartRate: entry.heart_rate,
-            position: entry.position
-        }));
+        return entries.slice().reverse().map(entry => {
+            const date = new Date(entry.created_at);
+            return {
+                name: `${date.toLocaleDateString([], { month: 'short', day: 'numeric' })} ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}`,
+                fullDate: date.toLocaleString(),
+                systolic: entry.systolic,
+                diastolic: entry.diastolic,
+                heartRate: entry.heart_rate,
+                position: entry.position
+            };
+        });
     }, [entries]);
 
     return (
