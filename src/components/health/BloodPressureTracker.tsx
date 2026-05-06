@@ -326,10 +326,10 @@ export const BloodPressureTracker = () => {
                 )}
 
                 {entries.length > 0 && (
-                    <div className="h-72 w-full mb-10 border border-white/5 bg-black/40 p-6 relative">
+                    <div className="h-72 w-full mb-10 border border-white/5 bg-black/40 p-2 sm:p-6 relative">
                         <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-user-a" />
                         <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={chartData}>
+                            <LineChart data={chartData} margin={{ left: 0, right: 10, top: 10, bottom: 0 }}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.05)" vertical={false} />
                                 <XAxis
                                     dataKey="name"
@@ -337,7 +337,7 @@ export const BloodPressureTracker = () => {
                                     tickLine={false}
                                     tick={{ fontSize: 7, fill: '#555', letterSpacing: '0.1em' }}
                                 />
-                                <YAxis
+                                <YAxis width={15}
                                     axisLine={false}
                                     tickLine={false}
                                     tick={{ fontSize: 7, fill: '#555' }}
@@ -356,7 +356,7 @@ export const BloodPressureTracker = () => {
                                 />
                                 <Legend wrapperStyle={{ fontSize: '7px', textTransform: 'uppercase', marginTop: '20px', letterSpacing: '0.2em' }} />
                                 <Line
-                                    type="stepAfter"
+                                    type="monotone"
                                     dataKey="systolic"
                                     stroke="var(--color-user-a)"
                                     strokeWidth={2}
@@ -365,7 +365,7 @@ export const BloodPressureTracker = () => {
                                     name="SISTÓLICA"
                                 />
                                 <Line
-                                    type="stepAfter"
+                                    type="monotone"
                                     dataKey="diastolic"
                                     stroke="var(--color-user-b)"
                                     strokeWidth={2}
