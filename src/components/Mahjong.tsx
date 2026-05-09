@@ -500,7 +500,7 @@ export function Mahjong() {
         const xRem = (tile.x - (isMobile ? 5 : 9)) * spacingX;
         const yRem = tile.y * spacingY;
         return {
-            transform: `translate3d(calc(50% - ${halfWidth}rem + ${xRem}rem + ${pxShift}px), calc(${yRem}rem + ${pxShift}px), 0)`,
+            left: `calc(50% - ${halfWidth}rem + ${xRem}rem + ${pxShift}px)`, top: `calc(${yRem}rem + ${pxShift}px)`,
             zIndex: tile.z * 100 + tile.y,
             width,
             height

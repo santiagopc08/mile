@@ -37,7 +37,8 @@ interface MahjongTileProps {
     isFree: boolean;
     onPointerDown: (id: string) => void;
     positionStyle: {
-        transform: string;
+        left: string;
+        top: string;
         zIndex: number;
         width: string;
         height: string;
@@ -62,14 +63,12 @@ const MahjongTile = memo(({ tile, isFree, onPointerDown, positionStyle }: Mahjon
             }}
             style={{
                 position: 'absolute',
-                top: 0,
-                left: 0,
                 touchAction: 'none',
                 userSelect: 'none',
                 WebkitUserSelect: 'none',
                 ...positionStyle,
                 // Apply selection offset via transform to avoid layout recalculation
-                transform: `${positionStyle.transform} translateY(${vOffset}px)`,
+                transform: `translateY(${vOffset}px)`,
             }}
             className={`
                 tile-item rounded-none flex items-center justify-center overflow-hidden
