@@ -150,3 +150,8 @@ button, input, select {
     rgba(255, 255, 255, 0.1) 20px
   );
 }
+
+/* Input latency optimizations */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
