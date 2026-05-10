@@ -5,7 +5,7 @@ import { PrivateRoute } from "@/components/PrivateRoute";
 import { JarOfNotes } from "@/components/JarOfNotes";
 import { PersistentListening } from "@/components/PersistentListening";
 import { AudioSection } from "@/components/AudioSection";
-import { PetsGallery } from "@/components/PetsGallery";
+import { PetSpaceHub } from "@/components/pets/PetSpaceHub";
 import { Timeline } from "@/components/Timeline";
 import { useStore } from "@/context/StoreContext";
 import { MessageCircleHeart, Mic, Music, PawPrint, Clock, Activity, Radio } from 'lucide-react';
@@ -84,7 +84,7 @@ export default function RefugioPage() {
               >
                 <span className="flex flex-col items-start gap-2">
                   <tab.icon className="h-4 w-4" />
-                  <span className="text-[10px] font-black uppercase tracking-[0.22em]">{tab.label}</span>
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em]">{tab.label}</span>
                 </span>
                 <span className={`text-[9px] font-bold uppercase tracking-[0.2em] ${activeTab === tab.id ? 'text-black/55' : 'text-white/20 group-hover:text-[#00dbe9]'}`}>
                   0{tabs.findIndex((item) => item.id === tab.id) + 1}
@@ -112,7 +112,7 @@ export default function RefugioPage() {
                 {activeTab === 'notas' && <JarOfNotes />}
                 {activeTab === 'escucha' && <PersistentListening />}
                 {activeTab === 'musica' && <AudioSection />}
-                {activeTab === 'bebes' && <PetsGallery />}
+                {activeTab === 'bebes' && <PetSpaceHub />}
                 {activeTab === 'historia' && <Timeline events={events} />}
               </motion.div>
             </AnimatePresence>
