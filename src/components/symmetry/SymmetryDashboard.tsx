@@ -124,18 +124,18 @@ export const SymmetryDashboard = () => {
           <div className="relative p-5 sm:p-8 lg:p-10">
             <div className="absolute left-0 top-0 h-full w-px bg-user-a" />
             <div className="mb-8 flex flex-wrap items-center gap-3 text-[10px] font-black uppercase tracking-[0.22em] text-[#a88a7e]">
-              <span className="border border-user-a/50 px-2 py-1 text-[#ffb595]">SYMMETRY // OPS_CORE</span>
+              <span className="border border-user-a/50 px-2 py-1 text-[#ffb595]">OPS_CORE</span>
               <span className="flex items-center gap-2">
                 <span className="h-2 w-2 bg-user-c" />
                 STORE_LINKED
               </span>
             </div>
             <h1 className="text-5xl font-black uppercase leading-[0.92] tracking-normal text-white sm:text-7xl lg:text-8xl">
-              Symmetry
+              Eficiencia
             </h1>
             <div className="mt-6 grid max-w-4xl gap-5 border-t border-white/10 pt-5 lg:grid-cols-[1fr_auto] lg:items-end">
               <p className="max-w-2xl text-sm leading-6 tracking-normal text-[#e1bfb2] md:text-base">
-                Command surface for task execution, focus timing, money flow, and shared operational visibility.
+                Plataforma de gestión de operaciones, finanzas y tareas diarias.
               </p>
               <div className="grid grid-cols-3 border border-white/10 text-center">
                 <div className="border-r border-white/10 px-4 py-3">
@@ -198,11 +198,10 @@ export const SymmetryDashboard = () => {
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`group relative flex min-h-20 items-center justify-between border-r border-white/10 px-4 py-4 transition-all last:border-r-0 ${
-                activeTab === tab.key
-                  ? 'bg-user-a text-black'
-                  : 'bg-[#0a0a0a] text-[#a88a7e] hover:bg-[#121212] hover:text-white'
-              }`}
+              className={`group relative flex min-h-20 items-center justify-between border-r border-white/10 px-4 py-4 transition-all last:border-r-0 ${activeTab === tab.key
+                ? 'bg-user-a text-black'
+                : 'bg-[#0a0a0a] text-[#a88a7e] hover:bg-[#121212] hover:text-white'
+                }`}
             >
               <span className="flex flex-col items-start gap-2">
                 <tab.icon className="h-4 w-4" />
@@ -247,8 +246,8 @@ export const SymmetryDashboard = () => {
                 />
               </div>
               <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-user-c">Operation Feed</p>
-                <h2 className="mt-2 text-2xl font-black uppercase tracking-normal text-white">Execution Console</h2>
+                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-user-c">Plataforma de gestión</p>
+                <h2 className="mt-2 text-2xl font-black uppercase tracking-normal text-white">Ejecución y planeación</h2>
               </div>
               <BarChart3 className="hidden h-10 w-10 text-user-a md:block" strokeWidth={1} />
             </div>
@@ -260,10 +259,6 @@ export const SymmetryDashboard = () => {
               <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-user-a" />
               <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-user-a" />
 
-              <h2 className="mb-8 flex items-center justify-between border-b border-white/10 pb-3 text-[10px] font-black uppercase tracking-[0.22em] text-[#a88a7e]">
-                <span>[ ESTADO_DEL_SISTEMA ] OPERATIVO</span>
-                <span className="hidden text-[8px] opacity-50 sm:inline">[ VERSIÓN_NODO ] V2.4.0_ESTABLE</span>
-              </h2>
               <PomodoroTimer />
             </div>
 

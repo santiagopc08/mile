@@ -117,7 +117,7 @@ export default function SaludPage() {
                             <div className="absolute top-0 left-0 w-1.5 h-1.5 border-t border-l border-[#00dbe9]" />
                             <div className="absolute bottom-0 right-0 w-1.5 h-1.5 border-b border-r border-[#00dbe9]" />
                             <video
-                                className="w-48 h-32 object-cover contrast-125 opacity-80 mix-blend-screen"
+                                className="w-32 h-32 object-cover contrast-125 opacity-80 mix-blend-screen"
                                 src="vid/dogtor.mp4"
                                 autoPlay
                                 loop
@@ -137,8 +137,8 @@ export default function SaludPage() {
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
                                 className={`group relative flex min-h-20 items-center justify-between border-b border-white/10 px-4 py-4 transition-all last:border-b-0 sm:border-b-0 sm:border-r sm:last:border-r-0 ${activeTab === tab.id
-                                        ? 'bg-[#00dbe9] text-black'
-                                        : 'bg-[#0a0a0a] text-[#a88a7e] hover:bg-[#121212] hover:text-white'
+                                    ? 'bg-[#00dbe9] text-black'
+                                    : 'bg-[#0a0a0a] text-[#a88a7e] hover:bg-[#121212] hover:text-white'
                                     }`}
                             >
                                 <span className="flex flex-col items-start gap-2">
