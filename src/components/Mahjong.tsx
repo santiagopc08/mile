@@ -8,7 +8,6 @@ import { Undo2, Trophy, RotateCcw, Lightbulb } from 'lucide-react';
 import MahjongTimer, { MahjongTimerHandle } from './MahjongTimer';
 import MahjongTile, { TileState, TileContent, TileVisual } from './MahjongTile';
 
-// Standard Mahjong unicode characters
 const MAHJONG_UNICODE = [
     "🀀", "🀁", "🀂", "🀃", "🀄", "🀅", "🀆",
     "🀇", "🀈", "🀉", "🀊", "🀋", "🀌", "🀍", "🀎", "🀏",
@@ -16,7 +15,6 @@ const MAHJONG_UNICODE = [
     "🀙", "🀚", "🀛", "🀜", "🀝", "🀞", "🀟", "🀠", "🀡"
 ];
 
-// Shatter fragment data — pre-computed to avoid hydration mismatches
 interface ShatterFragment {
     id: number;
     dx: number;
@@ -58,8 +56,6 @@ function generateCoordinates(type: LayoutType, isMobile: boolean = false) {
         const maxLayers = isMobile ? 3 : 5;
         const width = isMobile ? 12 : 20;
         const height = isMobile ? 14 : 16;
-
-        // Base Layer (Fill ~60% of target)
         for (let x = 0; x < width; x += 2) {
             for (let y = 0; y < height; y += 2) {
                 if (Math.random() > 0.4 && coords.length < target * 0.6) {
@@ -67,8 +63,6 @@ function generateCoordinates(type: LayoutType, isMobile: boolean = false) {
                 }
             }
         }
-
-        // Higher Layers (Build only on top of existing support)
         for (let z = 1; z < maxLayers; z++) {
             const potential = coords.filter(c => c.z === z - 1);
             potential.forEach(p => {
@@ -78,8 +72,6 @@ function generateCoordinates(type: LayoutType, isMobile: boolean = false) {
                 }
             });
         }
-
-        // Safety-capped fill
         let fillIdx = 0;
         let safety = 0;
         while (coords.length < target && safety < 2000) {
@@ -91,7 +83,6 @@ function generateCoordinates(type: LayoutType, isMobile: boolean = false) {
             fillIdx++;
             safety++;
         }
-
         return coords.slice(0, target);
     }
 
@@ -116,7 +107,6 @@ function generateCoordinates(type: LayoutType, isMobile: boolean = false) {
             i++;
         }
     } else {
-        // Peaks
         for (let x = 0; x <= 8; x += 2) for (let y = 2; y <= 10; y += 2) coords.push({ x, y, z: 0 });
         for (let x = 2; x <= 6; x += 2) for (let y = 4; y <= 8; y += 2) coords.push({ x, y, z: 1 });
         coords.push({ x: 4, y: 6, z: 2 });
@@ -130,7 +120,6 @@ function generateCoordinates(type: LayoutType, isMobile: boolean = false) {
                 if (!exists) coords.push({ x, y, z: 0 });
             }
         }
-        // Fill remaining slots without duplicates
         let fillI = 0;
         const fillPositions = [];
         for (let fx = 0; fx <= 20; fx += 2) {
@@ -148,7 +137,6 @@ function generateCoordinates(type: LayoutType, isMobile: boolean = false) {
         }
     }
 
-    // Deduplicate coordinates (safety net for all layouts)
     const seen = new Set<string>();
     const deduped = coords.filter(c => {
         const key = `${c.x},${c.y},${c.z}`;
@@ -161,7 +149,6 @@ function generateCoordinates(type: LayoutType, isMobile: boolean = false) {
     return deduped.slice(0, target);
 }
 
-// Fisher-Yates array shuffle
 function shuffleArray<T>(array: T[]): T[] {
     const newArr = [...array];
     for (let i = newArr.length - 1; i > 0; i--) {
@@ -178,72 +165,54 @@ interface LeaderboardEntry {
     created_at: string;
 }
 
-// Checks if a tile is "free" using the same rules as the gameplay isTileFree.
-// A tile is free if: (1) nothing sits on top of it, and (2) it's not blocked on BOTH left AND right.
 function isSlotFree(
     target: { x: number; y: number; z: number },
     others: { x: number; y: number; z: number }[]
 ): boolean {
-    // Top check
     const topBlocked = others.some(n =>
         n.z - target.z === 1 &&
         Math.abs(n.x - target.x) < 2 &&
         Math.abs(n.y - target.y) < 2
     );
     if (topBlocked) return false;
-
-    // Lateral check
     const sameRow = others.filter(n => n.z === target.z && Math.abs(n.y - target.y) < 2);
     const hasLeft = sameRow.some(n => target.x - 2 <= n.x && n.x < target.x);
     const hasRight = sameRow.some(n => target.x < n.x && n.x <= target.x + 2);
     if (hasLeft && hasRight) return false;
-
     return true;
 }
 
 function generateSolvableBoard(rawCoords: { x: number; y: number; z: number }[], pairs: TileContent[]): TileState[] | null {
     const coords = rawCoords.map((c, i) => ({ ...c, id: `tile_${i}` }));
-
     for (let attempt = 0; attempt < 100; attempt++) {
         const pool = coords.map(c => ({ ...c }));
         const availablePairs = shuffleArray([...pairs]);
         const assignments = new Map<string, TileContent>();
         let deadlock = false;
-
         while (pool.length > 0) {
-            // Find free tiles — exclude each candidate from the "others" list
             const freeSlots = pool.filter((target, _idx) => {
                 const others = pool.filter(o => o.id !== target.id);
                 return isSlotFree(target, others);
             });
-
             if (freeSlots.length < 2) {
                 deadlock = true;
                 break;
             }
-
-            // Pick 2 distinct random free slots
             const i1 = Math.floor(Math.random() * freeSlots.length);
             let i2 = Math.floor(Math.random() * (freeSlots.length - 1));
             if (i2 >= i1) i2++;
-
             const slot1 = freeSlots[i1];
             const slot2 = freeSlots[i2];
-
             const pair = availablePairs.pop();
             if (!pair) { deadlock = true; break; }
-
             assignments.set(slot1.id, pair);
             assignments.set(slot2.id, pair);
-
-            // Remove both from the pool
             for (let r = pool.length - 1; r >= 0; r--) {
                 if (pool[r].id === slot1.id || pool[r].id === slot2.id) {
                     pool.splice(r, 1);
                 }
             }
         }
-
         if (!deadlock && pool.length === 0) {
             return coords.map(c => ({
                 id: c.id,
@@ -269,24 +238,17 @@ export function Mahjong() {
     const [isMobile, setIsMobile] = useState(false);
     const [initialDeal, setInitialDeal] = useState<TileState[] | null>(null);
 
-    // Timer handle
     const timerRef = useRef<MahjongTimerHandle>(null);
-
-    // Dock Mechanics State
     const [dockIds, setDockIds] = useState<string[]>([]);
     const [gameLost, setGameLost] = useState(false);
     const [undoStack, setUndoStack] = useState<string[][]>([]);
-
-    // Timer activity state
     const [timerActive, setTimerActive] = useState(false);
-
-    // Leaderboard
     const [leaderboard, setLeaderboard] = useState<{ el: LeaderboardEntry[]; ella: LeaderboardEntry[] }>({ el: [], ella: [] });
     const [scoreSaved, setScoreSaved] = useState(false);
-
-    // Shatter state: tiles waiting for shatter animation before removal
     const [shatteringTiles, setShatteringTiles] = useState<Map<string, { tile: TileState; fragments: ShatterFragment[]; dockIndex?: number }>>(new Map());
     const [isNewRecord, setIsNewRecord] = useState(false);
+
+    const isProcessingRef = useRef(false);
 
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -295,7 +257,6 @@ export function Mahjong() {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    // Load leaderboard on mount
     useEffect(() => {
         StoreService.getMahjongLeaderboard().then(setLeaderboard).catch(() => { });
     }, []);
@@ -306,19 +267,15 @@ export function Mahjong() {
         return `${mins}:${secs.toString().padStart(2, '0')}`;
     };
 
-    // Win detection & score saving
     useEffect(() => {
         if (matchedCount === tiles.length && tiles.length > 0 && timerActive) {
             setTimerActive(false);
             const time = timerRef.current?.getTime() || 0;
-
-            // Check best time
             const pKey = profile as 'el' | 'ella';
             const bestScores = leaderboard[pKey] || [];
             const isRecord = bestScores.length === 0 || time < bestScores[0].time_seconds;
             setIsNewRecord(isRecord);
 
-            // Save to DB
             if (profile && !scoreSaved) {
                 setScoreSaved(true);
                 StoreService.saveMahjongScore(
@@ -348,7 +305,6 @@ export function Mahjong() {
 
         const tilesCount = LAYOUT_INFO[selectedLayout].tiles;
         const pairsCount = tilesCount / 2;
-
         const pairs: TileContent[] = [];
         for (let i = 0; i < Math.min(imageUrls.length, pairsCount); i++) {
             pairs.push({ type: 'custom', value: imageUrls[i] });
@@ -358,13 +314,9 @@ export function Mahjong() {
             pairs.push({ type: 'traditional', value: MAHJONG_UNICODE[emojiIdx % MAHJONG_UNICODE.length] });
             emojiIdx++;
         }
-
         const rawCoords = generateCoordinates(selectedLayout, mobileState);
-
         let initialTiles = generateSolvableBoard(rawCoords, pairs);
-
         if (!initialTiles) {
-            console.warn("Deadlock simulation hit 50 limit. Falling back to random shuffle.");
             const fullDeck = shuffleArray([...pairs, ...pairs]);
             initialTiles = rawCoords.map((coord, idx) => ({
                 id: `tile_${idx}`,
@@ -377,7 +329,6 @@ export function Mahjong() {
                 isHinted: false
             }));
         }
-
         setInitialDeal(initialTiles);
         setTiles(initialTiles);
         setMatchedCount(0);
@@ -393,96 +344,72 @@ export function Mahjong() {
     };
 
     useEffect(() => {
-        if (!isLoaded) {
-            initializeGame();
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        if (!isLoaded) { initializeGame(); }
     }, [isLoaded]);
 
-    const isTileFree = useCallback((targetId: string, currentTiles: TileState[], currentDockIds: string[]) => {
-        const T = currentTiles.find(t => t.id === targetId);
-        if (!T || T.isMatched || currentDockIds.includes(targetId)) return false;
-
-        const activeTiles = currentTiles.filter(t => !t.isMatched && !currentDockIds.includes(t.id) && t.id !== targetId);
-
-        // Top Check (Z-Axis)
-        const isTopCovered = activeTiles.some(n =>
-            n.z - T.z === 1 &&
-            Math.abs(n.x - T.x) < 2 &&
-            Math.abs(n.y - T.y) < 2
-        );
-
-        if (isTopCovered) return false;
-
-        // Lateral Check (X-Axis)
-        const sameLayerRows = activeTiles.filter(n => n.z === T.z && Math.abs(n.y - T.y) < 2);
-        const hasLeft = sameLayerRows.some(n => T.x - 2 <= n.x && n.x < T.x);
-        const hasRight = sameLayerRows.some(n => T.x < n.x && n.x <= T.x + 2);
-
-        if (hasLeft && hasRight) return false;
-
-        return true;
-    }, []);
-
-    // Pre-calculate free tiles map
     const freeTilesMap = useMemo(() => {
         const map = new Map<string, boolean>();
+        const dockSet = new Set(dockIds);
+        const activeTiles = tiles.filter(t => !t.isMatched && !dockSet.has(t.id));
         tiles.forEach(tile => {
-            map.set(tile.id, isTileFree(tile.id, tiles, dockIds));
+            if (tile.isMatched || dockSet.has(tile.id)) {
+                map.set(tile.id, false);
+                return;
+            }
+            const isTopCovered = activeTiles.some(n =>
+                n.z - tile.z === 1 &&
+                Math.abs(n.x - tile.x) < 2 &&
+                Math.abs(n.y - tile.y) < 2
+            );
+            if (isTopCovered) {
+                map.set(tile.id, false);
+                return;
+            }
+            const sameLayerRows = activeTiles.filter(n => n.z === tile.z && Math.abs(n.y - tile.y) < 2);
+            const hasLeft = sameLayerRows.some(n => tile.x - 2 <= n.x && n.x < tile.x);
+            const hasRight = sameLayerRows.some(n => tile.x < n.x && n.x <= tile.x + 2);
+            map.set(tile.id, !(hasLeft && hasRight));
         });
         return map;
-    }, [tiles, dockIds, isTileFree]);
+    }, [tiles, dockIds]);
 
-    const triggerShatter = useCallback((tile1: TileState, tile2: TileState, dockIndex?: number) => {
+    const triggerShatter = useCallback((tileA: TileState, tileB: TileState, dockIndex?: number) => {
+        const fragments = createShatterFragments();
         setShatteringTiles(prev => {
             const next = new Map(prev);
-            // We mark which tile was in the dock to render the shatter there
-            next.set(tile1.id, {
-                tile: tile1,
-                fragments: createShatterFragments(),
-                dockIndex: dockIndex // If provided, shatter appears in tray
-            });
-            next.set(tile2.id, {
-                tile: tile2,
-                fragments: createShatterFragments()
-            });
+            next.set(tileA.id, { tile: tileA, fragments, dockIndex });
+            next.set(tileB.id, { tile: tileB, fragments, dockIndex });
             return next;
         });
-
-        // Remove shatter fragments after animation completes
         setTimeout(() => {
             setShatteringTiles(prev => {
                 const next = new Map(prev);
-                next.delete(tile1.id);
-                next.delete(tile2.id);
+                next.delete(tileA.id);
+                next.delete(tileB.id);
                 return next;
             });
-        }, 2000);
+        }, 1500);
     }, []);
 
-    const handleTileClickStable = useCallback((id: string) => {
-        if (gameLost || dockIds.includes(id)) return;
+    const handleTilePointerDown = useCallback((id: string) => {
+        if (isProcessingRef.current || gameLost) return;
+        if (dockIds.includes(id)) return;
         const tile = tiles.find(t => t.id === id);
         if (!tile || tile.isMatched || !freeTilesMap.get(id)) return;
-
-        if (!timerActive && matchedCount < tiles.length) {
-            setTimerActive(true);
-        }
-
+        isProcessingRef.current = true;
+        requestAnimationFrame(() => { isProcessingRef.current = false; });
+        if (!timerActive && matchedCount < tiles.length) { setTimerActive(true); }
         const matchingDockId = dockIds.find(dId => {
             const dockTile = tiles.find(t => t.id === dId);
             return dockTile && dockTile.content.value === tile.content.value;
         });
-
         if (matchingDockId) {
             const matchingDockTile = tiles.find(t => t.id === matchingDockId)!;
             const dockIndex = dockIds.indexOf(matchingDockId);
-
             setUndoStack(us => [...us, [matchingDockTile.id, tile.id]]);
             setMatchedCount(mc => mc + 2);
             setDockIds(prev => prev.filter(did => did !== matchingDockId));
             triggerShatter(matchingDockTile, tile, dockIndex);
-
             setTiles(prev => prev.map(t => {
                 if (t.id === matchingDockTile.id || t.id === tile.id) {
                     return { ...t, isMatched: true, isSelected: false };
@@ -517,77 +444,66 @@ export function Mahjong() {
         }
     };
 
-    const handleHint = () => {
-        const unmatched = tiles.filter(t => !t.isMatched);
-        const freeOnBoard = unmatched.filter(t => !dockIds.includes(t.id) && freeTilesMap.get(t.id));
-        const dockTilesArr = dockIds.map(dId => tiles.find(t => t.id === dId)!);
-        const candidates = [...freeOnBoard, ...dockTilesArr];
-
-        const groups = new Map<string, TileState[]>();
-        for (const t of candidates) {
-            const key = t.content.value;
-            if (!groups.has(key)) groups.set(key, []);
-            groups.get(key)!.push(t);
-        }
-
-        let hintFound: TileState[] | null = null;
-        for (const group of Array.from(groups.values())) {
-            if (group.length >= 2) {
-                hintFound = [group[0], group[1]];
-                break;
-            }
-        }
-
-        if (hintFound) {
-            const ids = hintFound.map(h => h.id);
-            setTiles(prev => prev.map(t => ids.includes(t.id) ? { ...t, isHinted: true } : t));
-
-            setTimeout(() => {
-                setTiles(prev => prev.map(t => ids.includes(t.id) ? { ...t, isHinted: false } : t));
-            }, 1500);
-        }
-    };
-
     const handleUndo = () => {
         if (undoStack.length === 0) return;
-
-        const stackCopy = [...undoStack];
-        const lastAction = stackCopy.pop()!;
-        setUndoStack(stackCopy);
-
-        if (lastAction.length === 1) {
-            // Un-dock
-            const id = lastAction[0];
+        const lastMove = undoStack[undoStack.length - 1];
+        setUndoStack(prev => prev.slice(0, prev.length - 1));
+        if (lastMove.length === 2) {
+            const [id1, id2] = lastMove;
+            setTiles(prev => prev.map(t =>
+                (t.id === id1 || t.id === id2) ? { ...t, isMatched: false, isSelected: false } : t
+            ));
+            setMatchedCount(mc => mc - 2);
+        } else {
+            const [id] = lastMove;
             setDockIds(prev => prev.filter(did => did !== id));
             setGameLost(false);
-        } else if (lastAction.length === 2) {
-            // Un-match
-            const [idDock, idBoard] = lastAction;
-            setDockIds(prev => [...prev, idDock]);
-            setTiles(prev => prev.map(t => {
-                if (t.id === idDock || t.id === idBoard) {
-                    return { ...t, isMatched: false, isSelected: false };
-                }
-                return t;
-            }));
-            setMatchedCount(mc => mc - 2);
         }
     };
 
-    // Helper to compute tile position
-    const getTilePosition = useCallback((tile: TileState) => {
+    const handleHint = () => {
+        const freeOnBoard = tiles.filter(t => !t.isMatched && !dockIds.includes(t.id) && freeTilesMap.get(t.id));
+        for (let i = 0; i < freeOnBoard.length; i++) {
+            for (let j = i + 1; j < freeOnBoard.length; j++) {
+                if (freeOnBoard[i].content.value === freeOnBoard[j].content.value) {
+                    const id1 = freeOnBoard[i].id;
+                    const id2 = freeOnBoard[j].id;
+                    setTiles(prev => prev.map(t => (t.id === id1 || t.id === id2) ? { ...t, isHinted: true } : t));
+                    setTimeout(() => {
+                        setTiles(prev => prev.map(t => (t.id === id1 || t.id === id2) ? { ...t, isHinted: false } : t));
+                    }, 2000);
+                    return;
+                }
+            }
+        }
+        for (const dId of dockIds) {
+            const dockTile = tiles.find(t => t.id === dId);
+            if (!dockTile) continue;
+            const match = freeOnBoard.find(t => t.content.value === dockTile.content.value);
+            if (match) {
+                setTiles(prev => prev.map(t => t.id === match.id ? { ...t, isHinted: true } : t));
+                setTimeout(() => {
+                    setTiles(prev => prev.map(t => t.id === match.id ? { ...t, isHinted: false } : t));
+                }, 2000);
+                return;
+            }
+        }
+    };
+
+    const getTileStyle = useCallback((tile: TileState) => {
         const pxShift = tile.z * -6;
         const spacingX = isMobile ? 1.5 : 2;
         const spacingY = isMobile ? 1.8 : 2.2;
         const halfWidth = isMobile ? 1.6 : 1.75;
-
+        const width = isMobile ? '3.2rem' : '3.5rem';
+        const height = isMobile ? '4.0rem' : '4.2rem';
         const xRem = (tile.x - (isMobile ? 5 : 9)) * spacingX;
         const yRem = tile.y * spacingY;
-
         return {
-            left: `calc(50% - ${halfWidth}rem + ${xRem}rem + ${pxShift}px)`,
-            top: `calc(${yRem}rem + ${pxShift}px)`,
+            left: `calc(50% - ${halfWidth}rem + ${xRem}rem + ${pxShift}px)`, top: `calc(${yRem}rem + ${pxShift}px)`,
             zIndex: tile.z * 100 + tile.y,
+            width,
+            height
         };
     }, [isMobile]);
 
@@ -596,11 +512,7 @@ export function Mahjong() {
         return scores.length > 0 ? scores[0] : null;
     };
 
-    if (!isLoaded) {
-        return <div className="min-h-screen flex items-center justify-center pt-20"><div className="animate-pulse flex flex-col items-center gap-4"><div className="w-12 h-12 w-12 h-12 border-2 border-geometric-accent animate-spin" /></div></div>;
-    }
-
-    const gameWon = matchedCount > 0 && matchedCount === tiles.length;
+    const gameWon = matchedCount === tiles.length && tiles.length > 0;
 
     return (
         <div className="w-full flex justify-center items-center flex-col py-8 md:py-12 relative overflow-hidden bg-grid-mosaic">
@@ -620,48 +532,31 @@ export function Mahjong() {
                 }
             `}} />
 
-            {/* Header */}
             <div className="w-full max-w-5xl px-6 md:px-6 flex flex-col md:flex-row justify-between items-center gap-4 mb-4 relative z-10">
-                <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6">
-                    <div className="space-y-1 text-center md:text-left">
-                        <h2 className="text-2xl md:text-3xl font-bold text-stone-800 dark:text-stone-200 uppercase tracking-tighter">Mahjong<span className="text-geometric-accent">Vita</span></h2>
-                        <span className="px-2 py-0.5 rounded-none border border-geometric-border bg-white dark:bg-stone-900 text-stone-500 text-[9px] md:text-[10px] font-bold uppercase tracking-widest">
-                            {LAYOUT_INFO[currentLayout].name}
-                        </span>
-                    </div>
-
-                    {/* Timer + Best Times */}
-                    <div className="flex items-center gap-4">
-                        <MahjongTimer
-                            ref={timerRef}
-                            isActive={timerActive && !gameWon}
-                            formatTime={formatTime}
-                        />
-
-                        {/* Mini leaderboard */}
-                        {(leaderboard.el.length > 0 || leaderboard.ella.length > 0) && (
-                            <div className="flex gap-3 border-l border-stone-200 dark:border-stone-700 pl-4">
-                                {getBestForProfile('el') && (
-                                    <div className="flex flex-col items-center">
-                                        <span className="text-[9px] text-amber-500 uppercase tracking-widest font-bold">Él</span>
-                                        <span className="text-sm font-mono text-stone-600 dark:text-stone-400 tabular-nums">{formatTime(getBestForProfile('el')!.time_seconds)}</span>
-                                    </div>
-                                )}
-                                {getBestForProfile('ella') && (
-                                    <div className="flex flex-col items-center">
-                                        <span className="text-[9px] text-rose-500 uppercase tracking-widest font-bold">Ella</span>
-                                        <span className="text-sm font-mono text-stone-600 dark:text-stone-400 tabular-nums">{formatTime(getBestForProfile('ella')!.time_seconds)}</span>
-                                    </div>
-                                )}
-                            </div>
-                        )}
+                <div className="flex flex-col items-center md:items-start">
+                    <h2 className="text-4xl md:text-5xl font-black text-stone-800 dark:text-stone-100 uppercase tracking-tighter leading-none mb-1">Memorias</h2>
+                    <div className="flex items-center gap-2">
+                        <span className="w-8 h-[2px] bg-geometric-accent" />
+                        <span className="text-[10px] text-stone-400 font-bold uppercase tracking-[0.3em]">Tablero {currentLayout}</span>
                     </div>
                 </div>
-                <div className="flex gap-3 md:gap-4 w-full md:w-auto justify-center">
+
+                <div className="flex items-center gap-4">
+                    <MahjongTimer isActive={timerActive} formatTime={formatTime} ref={timerRef} />
+                    <div className="flex flex-col items-end border-l border-geometric-border pl-4">
+                        <span className="text-[10px] text-stone-400 uppercase tracking-widest font-bold mb-1">Emparejados</span>
+                        <div className="flex items-baseline gap-1">
+                            <span className="text-3xl font-mono font-bold text-geometric-accent tabular-nums">{matchedCount}</span>
+                            <span className="text-xs text-stone-400 font-mono">/ {tiles.length}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="flex gap-2 w-full md:w-auto">
                     <button
                         onClick={handleUndo}
                         disabled={undoStack.length === 0}
-                        className="flex-1 md:flex-none px-3 md:px-4 py-2 rounded-none bg-white dark:bg-stone-900 border border-geometric-border text-stone-600 dark:text-stone-300 shadow-none disabled:opacity-40 hover:border-geometric-accent transition-colors active:scale-95 flex items-center justify-center gap-2 text-xs md:text-sm font-bold uppercase tracking-widest"
+                        className="flex-1 md:flex-none px-3 md:px-4 py-2 rounded-none bg-stone-50 dark:bg-stone-900 border border-geometric-border text-stone-600 dark:text-stone-300 shadow-none disabled:opacity-40 hover:border-geometric-accent transition-colors active:scale-95 flex items-center justify-center gap-2 text-xs md:text-sm font-bold uppercase tracking-widest"
                     >
                         <Undo2 className="w-3 md:w-4 h-3 md:h-4" /> Deshacer
                     </button>
@@ -680,7 +575,6 @@ export function Mahjong() {
                 </div>
             </div>
 
-            {/* Tray / Dock Area */}
             {isLoaded && (
                 <div className="w-full max-w-lg px-6 mb-8 relative z-20">
                     <div className="geometric-card bg-white/80 dark:bg-stone-900/80 backdrop-blur-md p-3 shadow-none flex justify-center gap-3 min-h-[5.5rem] items-center relative">
@@ -700,7 +594,6 @@ export function Mahjong() {
                                         </motion.div>
                                     )}
 
-                                    {/* Shatter fragments inside the tray slot */}
                                     {isShattering && (
                                         <div className="absolute inset-0 z-50 pointer-events-none">
                                             {shatteringTiles.get(dId!)?.fragments.map((frag) => (
@@ -738,7 +631,6 @@ export function Mahjong() {
                 </div>
             )}
 
-            {/* Game Over Overflow Overlay */}
             {gameLost && (
                 <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
@@ -765,7 +657,6 @@ export function Mahjong() {
                 </motion.div>
             )}
 
-            {/* Victory Overlay */}
             {gameWon && (
                 <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
@@ -789,7 +680,6 @@ export function Mahjong() {
                         </motion.div>
                     )}
 
-                    {/* Current game score */}
                     <div className="bg-stone-50 dark:bg-stone-950 border border-geometric-border rounded-none p-4 w-full mb-6 relative">
                         <div className="text-center">
                             <span className="block text-[10px] text-stone-400 uppercase font-bold tracking-widest mb-1">Tu Tiempo</span>
@@ -800,7 +690,6 @@ export function Mahjong() {
                         </div>
                     </div>
 
-                    {/* Leaderboard Table */}
                     {(leaderboard.el.length > 0 || leaderboard.ella.length > 0) && (
                         <div className="w-full mb-6">
                             <h4 className="text-[10px] text-stone-400 uppercase font-bold tracking-widest mb-3 text-center">Tabla de Récords</h4>
@@ -835,9 +724,7 @@ export function Mahjong() {
                 </motion.div>
             )}
 
-            {/* Board Container */}
             <div className="relative w-full max-w-[800px] min-h-[600px] md:min-h-[700px] flex justify-center">
-                {/* Main Tiles */}
                 <AnimatePresence>
                     {tiles.map(tile => {
                         if (tile.isMatched || dockIds.includes(tile.id)) return null;
@@ -847,24 +734,22 @@ export function Mahjong() {
                                 key={tile.id}
                                 tile={tile}
                                 isFree={!!freeTilesMap.get(tile.id)}
-                                onClick={handleTileClickStable}
-                                getTilePosition={getTilePosition}
+                                onPointerDown={handleTilePointerDown}
+                                positionStyle={getTileStyle(tile)}
                             />
                         );
                     })}
                 </AnimatePresence>
 
-                {/* Shatter Fragments Layer (Board Tiles only) */}
                 {Array.from(shatteringTiles.entries()).map(([tileId, { tile, fragments, dockIndex }]) => {
-                    if (dockIndex !== undefined) return null; // These shatter in the tray
-                    const pos = getTilePosition(tile);
+                    if (dockIndex !== undefined) return null;
+                    const pos = getTileStyle(tile);
                     return (
                         <div
                             key={`shatter-${tileId}`}
                             style={{
                                 position: 'absolute',
-                                left: pos.left,
-                                top: pos.top,
+                                ...pos,
                                 zIndex: pos.zIndex + 200,
                             }}
                             className="tile-item pointer-events-none"
@@ -889,14 +774,12 @@ export function Mahjong() {
                                     }}
                                 />
                             ))}
-                            {/* Central flash */}
                             <motion.div
                                 initial={{ opacity: 1, scale: 0.8 }}
                                 animate={{ opacity: 0, scale: 3 }}
                                 transition={{ duration: 0.6, ease: 'easeOut' }}
                                 className="absolute inset-0 bg-amber-400/40 rounded-none blur-md"
                             />
-                            {/* Secondary glow ring */}
                             <motion.div
                                 initial={{ opacity: 0.6, scale: 1 }}
                                 animate={{ opacity: 0, scale: 2 }}

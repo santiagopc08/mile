@@ -35,12 +35,17 @@ TileVisual.displayName = 'TileVisual';
 interface MahjongTileProps {
     tile: TileState;
     isFree: boolean;
-    onClick: (id: string) => void;
-    getTilePosition: (tile: TileState) => { left: string; top: string; zIndex: number };
+    onPointerDown: (id: string) => void;
+    positionStyle: {
+        left: string;
+        top: string;
+        zIndex: number;
+        width: string;
+        height: string;
+    };
 }
 
-const MahjongTile = memo(({ tile, isFree, onClick, getTilePosition }: MahjongTileProps) => {
-    const pos = getTilePosition(tile);
+const MahjongTile = memo(({ tile, isFree, onPointerDown, positionStyle }: MahjongTileProps) => {
     const vOffset = tile.isSelected ? -8 : 0;
 
     return (
@@ -53,16 +58,21 @@ const MahjongTile = memo(({ tile, isFree, onClick, getTilePosition }: MahjongTil
                 scale: 1.3,
                 transition: { duration: 0.3 }
             }}
-            onClick={() => onClick(tile.id)}
+            onPointerDown={(e) => {
+                if (isFree) onPointerDown(tile.id);
+            }}
             style={{
                 position: 'absolute',
-                left: pos.left,
-                top: `calc(${pos.top} + ${vOffset}px)`,
-                zIndex: pos.zIndex,
+                touchAction: 'none',
+                userSelect: 'none',
+                WebkitUserSelect: 'none',
+                ...positionStyle,
+                // Apply selection offset via transform to avoid layout recalculation
+                transform: `translateY(${vOffset}px)`,
             }}
             className={`
                 tile-item rounded-none flex items-center justify-center overflow-hidden
-                transition-all duration-300 shadow-none relative
+                transition-transform duration-300 shadow-none
                 ${isFree
                     ? 'cursor-pointer hover:brightness-110 active:scale-95 border-geometric-border dark:border-stone-600'
                     : 'brightness-50 dark:brightness-[0.35] grayscale-[0.8] cursor-not-allowed opacity-60 dark:opacity-40 border-stone-300 dark:border-stone-800'}

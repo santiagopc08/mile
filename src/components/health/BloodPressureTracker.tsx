@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Activity, Heart, Trash2, Plus, TrendingUp, TrendingDown, Clipboard, User, Clock } from 'lucide-react';
@@ -16,12 +16,18 @@ import {
     Legend
 } from 'recharts';
 
+const POSITION_LABELS = {
+    sitting: 'SENTADO',
+    'edge of bed': 'BORDE CAMA',
+    lied: 'ACOSTADO'
+} as const;
+
 interface BloodPressureEntry {
     id: string;
     systolic: number;
     diastolic: number;
     heart_rate: number;
-    position: 'sentado' | 'borde_cama' | 'acostado';
+    position: keyof typeof POSITION_LABELS;
     author: string;
     created_at: string;
 }
@@ -32,17 +38,16 @@ export const BloodPressureTracker = () => {
     const [systolic, setSystolic] = useState<number | ''>('');
     const [diastolic, setDiastolic] = useState<number | ''>('');
     const [heartRate, setHeartRate] = useState<number | ''>('');
-    const [position, setPosition] = useState<BloodPressureEntry['position']>('sentado');
+    const [position, setPosition] = useState<BloodPressureEntry['position']>('sitting');
     const [loading, setLoading] = useState(false);
 
-    useEffect(() => {
-        fetchEntries();
-    }, []);
+    const fetchEntries = useCallback(async () => {
+        if (!profile) return;
 
-    const fetchEntries = async () => {
         const { data, error } = await supabase
             .from('blood_pressure')
             .select('*')
+            .eq('author', profile)
             .order('created_at', { ascending: false });
 
         if (error) {
@@ -50,7 +55,11 @@ export const BloodPressureTracker = () => {
             return;
         }
         if (data) setEntries(data);
-    };
+    }, [profile]);
+
+    useEffect(() => {
+        fetchEntries();
+    }, [fetchEntries]);
 
     const handleAddEntry = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -107,42 +116,57 @@ export const BloodPressureTracker = () => {
     const stats = useMemo(() => {
         if (entries.length === 0) return null;
 
-        const sortedBySystolic = [...entries].sort((a, b) => a.systolic - b.systolic);
-        const sortedByDiastolic = [...entries].sort((a, b) => a.diastolic - b.diastolic);
-        const sortedByHeartRate = [...entries].sort((a, b) => a.heart_rate - b.heart_rate);
+        const result = entries.reduce((acc, curr) => {
+            if (curr.systolic < acc.systolic.min.systolic) acc.systolic.min = curr;
+            if (curr.systolic > acc.systolic.max.systolic) acc.systolic.max = curr;
+            acc.systolic.sum += curr.systolic;
 
-        const avgSystolic = Math.round(entries.reduce((acc, curr) => acc + curr.systolic, 0) / entries.length);
-        const avgDiastolic = Math.round(entries.reduce((acc, curr) => acc + curr.diastolic, 0) / entries.length);
-        const avgHeartRate = Math.round(entries.reduce((acc, curr) => acc + curr.heart_rate, 0) / entries.length);
+            if (curr.diastolic < acc.diastolic.min.diastolic) acc.diastolic.min = curr;
+            if (curr.diastolic > acc.diastolic.max.diastolic) acc.diastolic.max = curr;
+            acc.diastolic.sum += curr.diastolic;
+
+            if (curr.heart_rate < acc.heartRate.min.heart_rate) acc.heartRate.min = curr;
+            if (curr.heart_rate > acc.heartRate.max.heart_rate) acc.heartRate.max = curr;
+            acc.heartRate.sum += curr.heart_rate;
+
+            return acc;
+        }, {
+            systolic: { min: entries[0], max: entries[0], sum: 0 },
+            diastolic: { min: entries[0], max: entries[0], sum: 0 },
+            heartRate: { min: entries[0], max: entries[0], sum: 0 }
+        });
 
         return {
             systolic: {
-                max: sortedBySystolic[sortedBySystolic.length - 1],
-                min: sortedBySystolic[0],
-                avg: avgSystolic
+                max: result.systolic.max,
+                min: result.systolic.min,
+                avg: Math.round(result.systolic.sum / entries.length)
             },
             diastolic: {
-                max: sortedByDiastolic[sortedByDiastolic.length - 1],
-                min: sortedByDiastolic[0],
-                avg: avgDiastolic
+                max: result.diastolic.max,
+                min: result.diastolic.min,
+                avg: Math.round(result.diastolic.sum / entries.length)
             },
             heartRate: {
-                max: sortedByHeartRate[sortedByHeartRate.length - 1],
-                min: sortedByHeartRate[0],
-                avg: avgHeartRate
+                max: result.heartRate.max,
+                min: result.heartRate.min,
+                avg: Math.round(result.heartRate.sum / entries.length)
             }
         };
     }, [entries]);
 
     const chartData = useMemo(() => {
-        return [...entries].reverse().map(entry => ({
-            name: new Date(entry.created_at).toLocaleDateString([], { month: 'short', day: 'numeric' }),
-            fullDate: new Date(entry.created_at).toLocaleString(),
-            systolic: entry.systolic,
-            diastolic: entry.diastolic,
-            heartRate: entry.heart_rate,
-            position: entry.position
-        }));
+        return entries.slice().reverse().map(entry => {
+            const date = new Date(entry.created_at);
+            return {
+                name: `${date.toLocaleDateString([], { month: 'short', day: 'numeric' })} ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}`,
+                fullDate: date.toLocaleString(),
+                systolic: entry.systolic,
+                diastolic: entry.diastolic,
+                heartRate: entry.heart_rate,
+                position: entry.position
+            };
+        });
     }, [entries]);
 
     return (
@@ -200,9 +224,9 @@ export const BloodPressureTracker = () => {
                             onChange={e => setPosition(e.target.value as any)}
                             className="w-full bg-black border border-white/10 p-3 text-xs font-bold outline-none focus:border-user-a text-stone-300 appearance-none cursor-pointer"
                         >
-                            <option value="sentado">SENTADO</option>
-                            <option value="borde_cama">BORDE CAMA</option>
-                            <option value="acostado">ACOSTADO</option>
+                            <option value="sitting">SENTADO</option>
+                            <option value="edge of bed">BORDE CAMA</option>
+                            <option value="lied">ACOSTADO</option>
                         </select>
                     </div>
                     <button
@@ -217,14 +241,14 @@ export const BloodPressureTracker = () => {
                         {loading ? (
                             <motion.div
                                 animate={{ rotate: 360 }}
-                                transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-                            >
-                                <Activity size={14} />
-                            </motion.div>
+                                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                                className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full"
+                            />
                         ) : (
-                            <Plus size={14} />
+                            <>
+                                <Plus size={14} /> REGISTRAR LECTURA
+                            </>
                         )}
-                        [ {loading ? 'PROCESANDO_DATA' : 'REGISTRAR_SIGNOS_VITALES'} ]
                     </button>
                 </form>
 
@@ -233,7 +257,7 @@ export const BloodPressureTracker = () => {
                         <div className="p-4 border border-white/5 bg-stone-900/20 space-y-4">
                             <div className="flex justify-between items-center border-b border-white/5 pb-2">
                                 <h3 className="text-[8px] uppercase font-black text-stone-500 tracking-widest flex items-center gap-1">
-                                    <TrendingUp size={10} /> SISTÓLICA
+                                    <Activity size={10} /> SISTÓLICA
                                 </h3>
                                 <span className="text-[6px] text-stone-600">mmHg</span>
                             </div>
@@ -256,7 +280,7 @@ export const BloodPressureTracker = () => {
                         <div className="p-4 border border-white/5 bg-stone-900/20 space-y-4">
                             <div className="flex justify-between items-center border-b border-white/5 pb-2">
                                 <h3 className="text-[8px] uppercase font-black text-stone-500 tracking-widest flex items-center gap-1">
-                                    <TrendingDown size={10} /> DIASTÓLICA
+                                    <Activity size={10} /> DIASTÓLICA
                                 </h3>
                                 <span className="text-[6px] text-stone-600">mmHg</span>
                             </div>
@@ -302,10 +326,10 @@ export const BloodPressureTracker = () => {
                 )}
 
                 {entries.length > 0 && (
-                    <div className="h-72 w-full mb-10 border border-white/5 bg-black/40 p-6 relative">
+                    <div className="h-72 w-full mb-10 border border-white/5 bg-black/40 p-2 sm:p-6 relative">
                         <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-user-a" />
                         <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={chartData}>
+                            <LineChart data={chartData} margin={{ left: 0, right: 10, top: 10, bottom: 0 }}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.05)" vertical={false} />
                                 <XAxis
                                     dataKey="name"
@@ -313,7 +337,7 @@ export const BloodPressureTracker = () => {
                                     tickLine={false}
                                     tick={{ fontSize: 7, fill: '#555', letterSpacing: '0.1em' }}
                                 />
-                                <YAxis
+                                <YAxis width={15}
                                     axisLine={false}
                                     tickLine={false}
                                     tick={{ fontSize: 7, fill: '#555' }}
@@ -332,7 +356,7 @@ export const BloodPressureTracker = () => {
                                 />
                                 <Legend wrapperStyle={{ fontSize: '7px', textTransform: 'uppercase', marginTop: '20px', letterSpacing: '0.2em' }} />
                                 <Line
-                                    type="stepAfter"
+                                    type="monotone"
                                     dataKey="systolic"
                                     stroke="var(--color-user-a)"
                                     strokeWidth={2}
@@ -341,7 +365,7 @@ export const BloodPressureTracker = () => {
                                     name="SISTÓLICA"
                                 />
                                 <Line
-                                    type="stepAfter"
+                                    type="monotone"
                                     dataKey="diastolic"
                                     stroke="var(--color-user-b)"
                                     strokeWidth={2}
@@ -401,7 +425,7 @@ export const BloodPressureTracker = () => {
                                         </div>
                                         <div className="flex flex-col">
                                             <span className="text-[6px] uppercase font-bold text-stone-600 mb-0.5">POSTURA</span>
-                                            <span className="text-[8px] font-bold text-stone-400 uppercase tracking-tighter">{entry.position.replace('_', ' ')}</span>
+                                            <span className="text-[8px] font-bold text-stone-400 uppercase tracking-tighter">{POSITION_LABELS[entry.position as keyof typeof POSITION_LABELS] || entry.position}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -419,4 +443,3 @@ export const BloodPressureTracker = () => {
         </div>
     );
 };
-
