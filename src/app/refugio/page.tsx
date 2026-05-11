@@ -5,7 +5,7 @@ import { PrivateRoute } from "@/components/PrivateRoute";
 import { JarOfNotes } from "@/components/JarOfNotes";
 import { PersistentListening } from "@/components/PersistentListening";
 import { AudioSection } from "@/components/AudioSection";
-import { PetsGallery } from "@/components/PetsGallery";
+import { PetSpaceHub } from "@/components/PetSpaceHub";
 import { Timeline } from "@/components/Timeline";
 import { useStore } from "@/context/StoreContext";
 import { MessageCircleHeart, Mic, Music, PawPrint, Clock, Activity, Radio } from 'lucide-react';
@@ -112,7 +112,7 @@ export default function RefugioPage() {
                 {activeTab === 'notas' && <JarOfNotes />}
                 {activeTab === 'escucha' && <PersistentListening />}
                 {activeTab === 'musica' && <AudioSection />}
-                {activeTab === 'bebes' && <PetsGallery />}
+                {activeTab === 'bebes' && <PetSpaceHub />}
                 {activeTab === 'historia' && <Timeline events={events} />}
               </motion.div>
             </AnimatePresence>

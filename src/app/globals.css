@@ -155,3 +155,18 @@ button, input, select {
 * {
   -webkit-tap-highlight-color: transparent;
 }
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes holo-float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes holo-glow {
+  0%, 100% { filter: brightness(1) drop-shadow(0 0 8px rgba(255, 112, 32, 0.3)); }
+  50% { filter: brightness(1.1) drop-shadow(0 0 16px rgba(255, 112, 32, 0.5)); }
+}
