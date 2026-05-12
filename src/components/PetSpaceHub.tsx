@@ -1,8 +1,10 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PawPrint, Plus, Calendar, Edit2, RefreshCw, Activity, ChevronLeft, ChevronRight } from 'lucide-react';
+import { StoreService } from '@/services/storeService';
+import { supabase } from '@/lib/supabase';
 
 interface Pet {
   id: string;
@@ -52,9 +54,9 @@ const PETS: Pet[] = [
     id: 'sam',
     name: 'Sam',
     src: '/img/pets/Sam.png',
-    designation: 'MACHO',
+    designation: 'HEMBRA',
     birthDate: '08 JUN 2020',
-    gender: '♂',
+    gender: '♀',
     role: 'Navegante',
     description: 'Navegante estelar y compañero de misiones.',
     accent: '#a100f0',
@@ -80,87 +82,152 @@ const PETS: Pet[] = [
 
 // --- Sub-components ---
 
-function OrbitalViewport({ pet, onPrev, onNext }: { pet: Pet; onPrev: () => void; onNext: () => void }) {
-  return (
-    <div className="flex flex-col items-center gap-0">
-      {/* Floating assembly: viewport + platform */}
-      <div
-        className="relative flex flex-col items-center"
-        style={{ animation: 'holo-float 4s ease-in-out infinite' }}
-      >
-        {/* Spinning rings + pet photo */}
-        <div className="relative w-52 h-52 sm:w-64 sm:h-64 flex-shrink-0 z-10">
-          {/* Outer spinning ring */}
-          <div
-            className="absolute inset-0 border-2 border-white/5 rounded-full"
-            style={{ animation: 'spin 10s linear infinite', borderTopColor: pet.accent }}
-          />
-          {/* Inner spinning ring */}
-          <div
-            className="absolute inset-2 border border-white/5 rounded-full"
-            style={{ animation: 'spin 15s linear infinite reverse', borderBottomColor: '#a100f0' }}
-          />
-          {/* Viewport */}
-          <div className="absolute inset-4 rounded-full overflow-hidden border-2 border-white/10 bg-[#0a0a0a]">
-            <AnimatePresence mode="wait">
-              <motion.img
-                key={pet.id}
-                src={pet.src}
-                alt={pet.name}
-                className="w-full h-full object-cover object-center contrast-125 saturate-110"
-                initial={{ opacity: 0, scale: 1.15 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.5 }}
-              />
-            </AnimatePresence>
-          </div>
-          {/* Glow */}
-          <div
-            className="absolute inset-4 rounded-full pointer-events-none"
-            style={{ boxShadow: `0 0 40px ${pet.accent}22, inset 0 0 20px ${pet.accent}11` }}
-          />
-        </div>
+function SpaceDecorations({ isWarping, direction }: { isWarping: boolean; direction: number }) {
+  const stars = useMemo(() => Array.from({ length: 80 }).map(() => ({
+    top: Math.random() * 100,
+    left: Math.random() * 100,
+    size: Math.random() * 2 + 1,
+    delay: Math.random() * 5,
+    duration: Math.random() * 3 + 2,
+  })), []);
 
-        {/* Platform image below the orbital rings */}
-        <div
-          className="relative w-[340px] sm:w-[420px] -mt-6 z-0"
-          style={{ animation: 'holo-glow 3s ease-in-out infinite' }}
-        >
-          <img
-            src="/img/pets/platform2.png"
-            alt="Presentation Platform"
-            className="w-full h-auto"
-          />
-          {/* Pet name overlaid on the "NOMBRE" position */}
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={pet.id}
-              initial={{ opacity: 0, y: 4 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -4 }}
-              transition={{ duration: 0.4 }}
-              className="absolute bottom-[22%] left-1/2 -translate-x-1/2 text-center"
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden z-0">
+      {/* Background stars */}
+      {stars.map((star, i) => (
+        <motion.div
+          key={i}
+          className="absolute bg-white rounded-full mix-blend-screen"
+          style={{
+            top: `${star.top}%`,
+            left: `${star.left}%`,
+            height: `${star.size}px`,
+          }}
+          initial={false}
+          animate={isWarping ? {
+            width: [star.size, 100, 300],
+            x: [0, direction * -1000],
+            opacity: [0.8, 1, 0]
+          } : {
+            width: star.size,
+            x: 0,
+            opacity: [0.1, 0.8, 0.1]
+          }}
+          transition={isWarping ? {
+            duration: 0.6,
+            ease: "easeIn",
+          } : {
+            x: { duration: 0 },
+            width: { duration: 0 },
+            opacity: {
+              duration: star.duration,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: star.delay,
+            }
+          }}
+        />
+      ))}
+
+      {/* Nebula glow */}
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#a100f0]/10 rounded-full blur-[100px] mix-blend-screen opacity-50" />
+    </div>
+  );
+}
+
+function OrbitalViewport({ pet, isWarping, direction, onPrev, onNext }: { pet: Pet; isWarping: boolean; direction: number; onPrev: () => void; onNext: () => void }) {
+  return (
+    <div className="relative flex flex-col items-center gap-0 w-full max-w-3xl py-10 overflow-hidden">
+
+      {/* Deep Space Background behind the viewport */}
+      <div className="absolute inset-0">
+        <SpaceDecorations isWarping={isWarping} direction={direction} />
+      </div>
+
+      {/* Sliding Assembly: viewport + platform */}
+      <div className="relative w-full h-[400px]">
+        <AnimatePresence mode="popLayout" custom={direction}>
+          <motion.div
+            key={pet.id}
+            custom={direction}
+            initial={{ x: direction * 200, opacity: 0, filter: 'blur(10px)' }}
+            animate={{ x: 0, opacity: 1, filter: 'blur(0px)' }}
+            exit={{ x: direction * -200, opacity: 0, filter: 'blur(10px)' }}
+            transition={{ duration: 0.6, ease: [0.2, 0.8, 0.2, 1] }}
+            className="absolute inset-0 flex flex-col items-center z-10 w-full"
+          >
+            {/* Spinning rings + pet photo (with holo-float and moved up by 24px) */}
+            <div
+              className="relative w-52 h-52 sm:w-64 sm:h-64 flex-shrink-0 z-20 translate-y-6"
+              style={{ animation: 'holo-float 4s ease-in-out infinite' }}
             >
-              <span
-                className="text-sm sm:text-base font-black uppercase tracking-[0.35em] font-mono"
-                style={{ color: pet.accent, textShadow: `0 0 12px ${pet.accent}88` }}
-              >
-                {pet.name}
-              </span>
-            </motion.div>
-          </AnimatePresence>
-        </div>
+              {/* Outer spinning ring */}
+              <div
+                className="absolute inset-0 border-2 border-white/5 rounded-full"
+                style={{ animation: 'spin 10s linear infinite', borderTopColor: pet.accent }}
+              />
+              {/* Inner spinning ring */}
+              <div
+                className="absolute inset-2 border border-white/5 rounded-full"
+                style={{ animation: 'spin 15s linear infinite reverse', borderBottomColor: '#a100f0' }}
+              />
+              {/* Viewport */}
+              <div className="absolute inset-4 rounded-full overflow-hidden border border-white/20 backdrop-blur-md shadow-[inset_0_0_30px_rgba(0,0,0,1)]">
+                <img
+                  src={pet.src}
+                  alt={pet.name}
+                  className="w-full h-full object-cover object-center contrast-125 saturate-110 mix-blend-luminosity hover:mix-blend-normal transition-all duration-500"
+                />
+
+                {/* Holo scanning line effect from OrbitCarousel */}
+                <motion.div
+                  className="absolute inset-x-0 h-px opacity-60 z-30"
+                  style={{ backgroundColor: pet.accent, boxShadow: `0 0 15px ${pet.accent}` }}
+                  animate={{ top: ['-10%', '110%', '-10%'] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                />
+              </div>
+              {/* Glow */}
+              <div
+                className="absolute inset-4 rounded-full pointer-events-none"
+                style={{ boxShadow: `0 0 50px ${pet.accent}33, inset 0 0 20px ${pet.accent}22` }}
+              />
+            </div>
+
+            {/* Platform image below the orbital rings */}
+            <div
+              className="relative w-[340px] sm:w-[460px] -mt-16 z-10 pointer-events-none"
+              style={{ animation: 'holo-glow 4s ease-in-out infinite' }}
+            >
+              <img
+                src="/img/pets/platform2.png"
+                alt="Presentation Platform"
+                className="w-full h-auto drop-shadow-2xl"
+              />
+              {/* Pet name overlaid on the "NOMBRE" position */}
+              <div className="absolute bottom-[20%] left-1/2 -translate-x-1/2 text-center">
+                <span
+                  className="text-sm sm:text-base font-black uppercase tracking-[0.35em] font-mono"
+                  style={{ color: pet.accent, textShadow: `0 0 15px ${pet.accent}` }}
+                >
+                  {pet.name}
+                </span>
+              </div>
+            </div>
+          </motion.div>
+        </AnimatePresence>
       </div>
 
       {/* Nav arrows */}
-      <div className="flex items-center gap-6 mt-4">
-        <button onClick={onPrev} className="border border-white/10 p-2 text-[#a88a7e] hover:text-white hover:border-white/30 transition-colors">
-          <ChevronLeft size={16} />
+      <div className="flex items-center gap-6 mt-8 z-20">
+        <button onClick={onPrev} className="border border-white/10 bg-black/40 backdrop-blur-sm p-3 text-[#a88a7e] hover:text-white hover:border-white/30 hover:bg-white/5 transition-colors rounded-full">
+          <ChevronLeft size={20} />
         </button>
-        <span className="text-xs font-bold uppercase tracking-[0.3em] text-white font-mono">{pet.name}</span>
-        <button onClick={onNext} className="border border-white/10 p-2 text-[#a88a7e] hover:text-white hover:border-white/30 transition-colors">
-          <ChevronRight size={16} />
+        <div className="flex flex-col items-center">
+          <span className="text-[8px] tracking-[0.4em] text-[#00dbe9] mt-1 opacity-70">ONLINE</span>
+        </div>
+        <button onClick={onNext} className="border border-white/10 bg-black/40 backdrop-blur-sm p-3 text-[#a88a7e] hover:text-white hover:border-white/30 hover:bg-white/5 transition-colors rounded-full">
+          <ChevronRight size={20} />
         </button>
       </div>
     </div>
@@ -197,7 +264,45 @@ function PetSelector({ pets, activeId, onSelect }: { pets: Pet[]; activeId: stri
   );
 }
 
-function HabitatModule({ pet }: { pet: Pet }) {
+function HabitatModule({ pet, photos }: { pet: Pet; photos: string[] }) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [direction, setDirection] = useState(0);
+
+  // Reset carousel when pet changes
+  useEffect(() => {
+    setCurrentIndex(0);
+  }, [pet.id]);
+
+  const handlePrev = () => {
+    setDirection(-1);
+    setCurrentIndex(prev => (prev - 1 + photos.length) % photos.length);
+  };
+  
+  const handleNext = () => {
+    setDirection(1);
+    setCurrentIndex(prev => (prev + 1) % photos.length);
+  };
+
+  const variants = {
+    enter: (dir: number) => ({
+      x: dir > 0 ? 300 : -300,
+      opacity: 0,
+      scale: 0.95
+    }),
+    center: {
+      zIndex: 1,
+      x: 0,
+      opacity: 1,
+      scale: 1
+    },
+    exit: (dir: number) => ({
+      zIndex: 0,
+      x: dir < 0 ? 300 : -300,
+      opacity: 0,
+      scale: 0.95
+    })
+  };
+
   return (
     <div className="geometric-card relative p-5 sm:p-6">
       {/* Corner accents */}
@@ -217,20 +322,47 @@ function HabitatModule({ pet }: { pet: Pet }) {
         </span>
       </div>
 
-      {/* Pet Image */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={pet.id}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="relative w-full aspect-square max-w-xs mx-auto mb-6 overflow-hidden border border-white/10 bg-black"
-        >
-          <div className="absolute inset-0 bg-mosaic opacity-30 pointer-events-none z-10" />
-          <img src={pet.src} alt={pet.name} className="w-full h-full object-cover contrast-110" />
-          <div className="absolute inset-0 pointer-events-none" style={{ boxShadow: `inset 0 0 60px ${pet.accent}15` }} />
-        </motion.div>
-      </AnimatePresence>
+      {/* Pet Image Carousel */}
+      <div className="relative w-full h-[350px] max-w-md mx-auto mb-6 overflow-hidden border border-white/10 bg-black group flex items-center justify-center">
+        <div className="absolute inset-0 bg-mosaic opacity-30 pointer-events-none z-10" />
+        
+        <AnimatePresence initial={false} custom={direction}>
+          <motion.div
+            key={photos[currentIndex] || pet.id}
+            custom={direction}
+            variants={variants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="absolute inset-0 p-2 flex items-center justify-center"
+          >
+            <img 
+              src={photos[currentIndex] || pet.src} 
+              alt={pet.name} 
+              className="w-full h-full object-contain contrast-110 drop-shadow-2xl" 
+            />
+          </motion.div>
+        </AnimatePresence>
+
+        <div className="absolute inset-0 pointer-events-none z-10" style={{ boxShadow: `inset 0 0 80px ${pet.accent}15` }} />
+
+        {/* Carousel Controls */}
+        {photos.length > 1 && (
+          <>
+            <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between px-2 opacity-0 group-hover:opacity-100 transition-opacity z-20">
+              <button onClick={handlePrev} className="p-2 bg-black/60 border border-white/20 text-[#a88a7e] hover:text-white backdrop-blur-md rounded-sm transition-colors"><ChevronLeft size={18} /></button>
+              <button onClick={handleNext} className="p-2 bg-black/60 border border-white/20 text-[#a88a7e] hover:text-white backdrop-blur-md rounded-sm transition-colors"><ChevronRight size={18} /></button>
+            </div>
+            {/* Indicators */}
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-20 bg-black/40 px-2 py-1 rounded-full backdrop-blur-sm border border-white/5">
+              {photos.map((_, i) => (
+                <div key={i} className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${i === currentIndex ? 'bg-[#00dbe9] scale-125' : 'bg-white/30'}`} />
+              ))}
+            </div>
+          </>
+        )}
+      </div>
 
       {/* Vitals */}
       <div className="grid grid-cols-2 gap-4 mb-5">
@@ -278,52 +410,78 @@ function HabitatModule({ pet }: { pet: Pet }) {
   );
 }
 
-function StasisChamber({ pet }: { pet: Pet | undefined }) {
-  if (!pet) return null;
-  return (
-    <div className="geometric-card relative p-5 sm:p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-xs font-black uppercase tracking-[0.15em] text-white font-sans">STASIS_CHAMBER_B</h3>
-        <RefreshCw size={14} className="text-[#a88a7e] animate-spin" style={{ animationDuration: '8s' }} />
-      </div>
-      <div className="relative w-28 h-28 mx-auto mb-4 overflow-hidden border border-white/10 bg-black rounded-full">
-        <img src={pet.src} alt={pet.name} className="w-full h-full object-cover grayscale-[60%] opacity-70" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-      </div>
-      <p className="text-center text-[8px] font-bold uppercase tracking-[0.3em] text-[#594137] font-mono mb-4">RESTING</p>
-      <div className="flex gap-2">
-        <button className="flex-1 border border-white/10 bg-black/40 py-2 text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e] hover:text-white hover:border-white/20 transition-colors font-mono">
-          WAKE
-        </button>
-        <button className="flex-1 border border-white/10 bg-black/40 py-2 text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e] hover:text-white hover:border-white/20 transition-colors font-mono">
-          DIAGNOSTIC
-        </button>
-      </div>
-    </div>
-  );
-}
+function GalleryStrip({ pet, photos, onUploadComplete }: { pet: Pet; photos: string[]; onUploadComplete: () => Promise<void> }) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
-function GalleryStrip({ pet }: { pet: Pet }) {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      setIsUploading(true);
+      console.log('Starting upload for pet:', pet.id);
+      
+      const url = await StoreService.uploadTimelineImage(file);
+      console.log('File uploaded to storage, public URL:', url);
+
+      const { error: insertError } = await supabase
+        .from('pet_gallery')
+        .insert({ 
+          pet_id: pet.id, 
+          image_url: url,
+          created_at: new Date().toISOString()
+        });
+
+      if (insertError) {
+        console.error('Database insert error:', insertError);
+        throw new Error(`DB Error: ${insertError.message}`);
+      }
+
+      console.log('Insert successful, reloading photos...');
+      await onUploadComplete();
+    } catch (err: any) {
+      console.error('Upload process failed:', err);
+      alert(`Error al subir la foto: ${err.message || 'Error desconocido'}`);
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
   return (
     <div className="geometric-card relative p-5 sm:p-6">
       <div className="flex items-center justify-between mb-4">
         <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#a88a7e] font-mono">FOTOS</span>
-        <button className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-[0.2em] text-[#ff7020] hover:text-[#ffb595] transition-colors font-mono">
-          AGREGAR <Plus size={10} />
+        <button 
+          onClick={() => fileInputRef.current?.click()}
+          disabled={isUploading}
+          className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-[0.2em] text-[#ff7020] hover:text-[#ffb595] transition-colors font-mono disabled:opacity-50"
+        >
+          {isUploading ? 'SUBIENDO...' : 'AGREGAR'} <Plus size={10} />
         </button>
       </div>
       <div className="flex gap-2 overflow-x-auto custom-scrollbar pb-1">
-        {pet.gallery.map((src, i) => (
-          <div key={i} className="relative flex-shrink-0 w-20 h-20 border border-white/10 overflow-hidden bg-black hover:border-[#ff7020]/50 transition-colors cursor-pointer">
+        {photos.map((src, i) => (
+          <div key={src} className="relative flex-shrink-0 w-20 h-20 border border-white/10 overflow-hidden bg-black hover:border-[#ff7020]/50 transition-colors cursor-pointer">
             <img src={src} alt="" className="w-full h-full object-cover" />
             {i === 0 && <div className="absolute bottom-1 left-1 w-1.5 h-1.5 bg-[#ff7020]" />}
           </div>
         ))}
-        <div className="flex-shrink-0 w-20 h-20 border border-dashed border-[#ff7020]/30 flex flex-col items-center justify-center text-[#ff7020]/40 hover:text-[#ff7020] hover:border-[#ff7020]/60 transition-colors cursor-pointer gap-1">
+        <div 
+          onClick={() => fileInputRef.current?.click()}
+          className={`flex-shrink-0 w-20 h-20 border border-dashed border-[#ff7020]/30 flex flex-col items-center justify-center text-[#ff7020]/40 hover:text-[#ff7020] hover:border-[#ff7020]/60 transition-colors cursor-pointer gap-1 ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}
+        >
           <Plus size={16} />
-          <span className="text-[7px] font-bold uppercase tracking-wider font-mono">AGREGAR</span>
+          <span className="text-[7px] font-bold uppercase tracking-wider font-mono">{isUploading ? '...' : 'AGREGAR'}</span>
         </div>
       </div>
+      <input 
+        type="file" 
+        accept="image/*" 
+        ref={fileInputRef} 
+        onChange={handleFileChange} 
+        className="hidden" 
+      />
     </div>
   );
 }
@@ -351,12 +509,62 @@ function SystemLog({ pet }: { pet: Pet }) {
 
 export function PetSpaceHub() {
   const [activeId, setActiveId] = useState(PETS[0].id);
+  const [direction, setDirection] = useState(1);
+  const [isWarping, setIsWarping] = useState(false);
+  const [supabasePhotos, setSupabasePhotos] = useState<string[]>([]);
+  
   const activePet = PETS.find(p => p.id === activeId) || PETS[0];
   const activeIdx = PETS.findIndex(p => p.id === activeId);
-  const stasisPet = PETS[(activeIdx + 1) % PETS.length];
 
-  const goPrev = () => setActiveId(PETS[(activeIdx - 1 + PETS.length) % PETS.length].id);
-  const goNext = () => setActiveId(PETS[(activeIdx + 1) % PETS.length].id);
+  const warpTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const loadPhotos = async (petId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('pet_gallery')
+        .select('image_url')
+        .eq('pet_id', petId)
+        .order('created_at', { ascending: false });
+      
+      if (!error && data) {
+        setSupabasePhotos(data.map(d => d.image_url));
+      }
+    } catch (e) {
+      console.error('Unexpected error loading photos:', e);
+    }
+  };
+
+  useEffect(() => {
+    loadPhotos(activePet.id);
+  }, [activePet.id]);
+
+  const allPhotos = [...activePet.gallery, ...supabasePhotos];
+
+  const triggerWarp = (newId: string, dir: number) => {
+    if (newId === activeId) return;
+
+    // Clear any existing timeout
+    if (warpTimeoutRef.current) {
+      clearTimeout(warpTimeoutRef.current);
+    }
+
+    setDirection(dir);
+    setIsWarping(true);
+    setActiveId(newId);
+
+    warpTimeoutRef.current = setTimeout(() => {
+      setIsWarping(false);
+      warpTimeoutRef.current = null;
+    }, 600);
+  };
+
+  const goPrev = () => triggerWarp(PETS[(activeIdx - 1 + PETS.length) % PETS.length].id, -1);
+  const goNext = () => triggerWarp(PETS[(activeIdx + 1) % PETS.length].id, 1);
+  const handleSelect = (id: string) => {
+    const newIdx = PETS.findIndex(p => p.id === id);
+    if (newIdx === activeIdx) return;
+    triggerWarp(id, newIdx > activeIdx ? 1 : -1);
+  };
 
   return (
     <div className="space-y-6 font-mono">
@@ -371,31 +579,18 @@ export function PetSpaceHub() {
       </div>
 
       {/* Pet Selector */}
-      <PetSelector pets={PETS} activeId={activeId} onSelect={setActiveId} />
+      <PetSelector pets={PETS} activeId={activeId} onSelect={handleSelect} />
 
       {/* Orbital Viewport */}
-      <div className="flex justify-center py-4">
-        <OrbitalViewport pet={activePet} onPrev={goPrev} onNext={goNext} />
+      <div className="flex justify-center py-4 w-full">
+        <OrbitalViewport pet={activePet} isWarping={isWarping} direction={direction} onPrev={goPrev} onNext={goNext} />
       </div>
 
       {/* Habitat Module */}
-      <HabitatModule pet={activePet} />
-
-      {/* Grid: Stasis + Sys Log */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <StasisChamber pet={stasisPet} />
-        <div className="flex flex-col gap-4">
-          {/* Init Module Button */}
-          <div className="geometric-card relative p-5 flex flex-col items-center justify-center gap-3 min-h-[120px]">
-            <Plus size={24} className="text-[#ff7020]/40" />
-            <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#ff7020]/60 font-mono">INITIALIZE_MODULE</span>
-          </div>
-          <SystemLog pet={activePet} />
-        </div>
-      </div>
+      <HabitatModule pet={activePet} photos={allPhotos} />
 
       {/* Gallery */}
-      <GalleryStrip pet={activePet} />
+      <GalleryStrip pet={activePet} photos={allPhotos} onUploadComplete={() => loadPhotos(activePet.id)} />
     </div>
   );
 }
