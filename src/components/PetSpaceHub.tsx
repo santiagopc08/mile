@@ -264,42 +264,45 @@ function PetSelector({ pets, activeId, onSelect }: { pets: Pet[]; activeId: stri
   );
 }
 
-function HabitatModule({ pet, photos }: { pet: Pet; photos: string[] }) {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [direction, setDirection] = useState(0);
-
-  // Reset carousel when pet changes
-  useEffect(() => {
-    setCurrentIndex(0);
-  }, [pet.id]);
-
-  const handlePrev = () => {
-    setDirection(-1);
-    setCurrentIndex(prev => (prev - 1 + photos.length) % photos.length);
-  };
-  
-  const handleNext = () => {
-    setDirection(1);
-    setCurrentIndex(prev => (prev + 1) % photos.length);
-  };
+function HabitatModule({
+  pet,
+  photos,
+  currentIndex,
+  direction,
+  onPrev,
+  onNext
+}: {
+  pet: Pet;
+  photos: string[];
+  currentIndex: number;
+  direction: number;
+  onPrev: () => void;
+  onNext: () => void;
+}) {
 
   const variants = {
     enter: (dir: number) => ({
-      x: dir > 0 ? 300 : -300,
+      rotateY: dir > 0 ? 45 : -45,
+      z: -100,
+      x: dir > 0 ? 200 : -200,
       opacity: 0,
-      scale: 0.95
+      scale: 0.8
     }),
     center: {
       zIndex: 1,
+      rotateY: 0,
+      z: 0,
       x: 0,
       opacity: 1,
       scale: 1
     },
     exit: (dir: number) => ({
       zIndex: 0,
-      x: dir < 0 ? 300 : -300,
+      rotateY: dir < 0 ? 45 : -45,
+      z: -100,
+      x: dir < 0 ? 200 : -200,
       opacity: 0,
-      scale: 0.95
+      scale: 0.8
     })
   };
 
@@ -323,7 +326,7 @@ function HabitatModule({ pet, photos }: { pet: Pet; photos: string[] }) {
       </div>
 
       {/* Pet Image Carousel */}
-      <div className="relative w-full h-[350px] max-w-md mx-auto mb-6 overflow-hidden border border-white/10 bg-black group flex items-center justify-center">
+      <div className="relative w-full h-[350px] max-w-md mx-auto mb-6 overflow-hidden border border-white/10 bg-black group flex items-center justify-center" style={{ perspective: "1200px" }}>
         <div className="absolute inset-0 bg-mosaic opacity-30 pointer-events-none z-10" />
         
         <AnimatePresence initial={false} custom={direction}>
@@ -334,8 +337,8 @@ function HabitatModule({ pet, photos }: { pet: Pet; photos: string[] }) {
             initial="enter"
             animate="center"
             exit="exit"
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="absolute inset-0 p-2 flex items-center justify-center"
+            transition={{ type: "spring", stiffness: 200, damping: 25, mass: 1 }}
+            className="absolute inset-0 p-4 flex items-center justify-center" style={{ transformStyle: "preserve-3d" }}
           >
             <img 
               src={photos[currentIndex] || pet.src} 
@@ -351,8 +354,8 @@ function HabitatModule({ pet, photos }: { pet: Pet; photos: string[] }) {
         {photos.length > 1 && (
           <>
             <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between px-2 opacity-0 group-hover:opacity-100 transition-opacity z-20">
-              <button onClick={handlePrev} className="p-2 bg-black/60 border border-white/20 text-[#a88a7e] hover:text-white backdrop-blur-md rounded-sm transition-colors"><ChevronLeft size={18} /></button>
-              <button onClick={handleNext} className="p-2 bg-black/60 border border-white/20 text-[#a88a7e] hover:text-white backdrop-blur-md rounded-sm transition-colors"><ChevronRight size={18} /></button>
+              <button onClick={onPrev} className="p-2 bg-black/60 border border-white/20 text-[#a88a7e] hover:text-white backdrop-blur-md rounded-sm transition-colors"><ChevronLeft size={18} /></button>
+              <button onClick={onNext} className="p-2 bg-black/60 border border-white/20 text-[#a88a7e] hover:text-white backdrop-blur-md rounded-sm transition-colors"><ChevronRight size={18} /></button>
             </div>
             {/* Indicators */}
             <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-20 bg-black/40 px-2 py-1 rounded-full backdrop-blur-sm border border-white/5">
@@ -410,7 +413,7 @@ function HabitatModule({ pet, photos }: { pet: Pet; photos: string[] }) {
   );
 }
 
-function GalleryStrip({ pet, photos, onUploadComplete }: { pet: Pet; photos: string[]; onUploadComplete: () => Promise<void> }) {
+function GalleryStrip({ pet, photos, currentIndex, onSelect, onUploadComplete }: { pet: Pet; photos: string[]; currentIndex: number; onSelect: (index: number) => void; onUploadComplete: () => Promise<void> }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
 
@@ -462,9 +465,13 @@ function GalleryStrip({ pet, photos, onUploadComplete }: { pet: Pet; photos: str
       </div>
       <div className="flex gap-2 overflow-x-auto custom-scrollbar pb-1">
         {photos.map((src, i) => (
-          <div key={src} className="relative flex-shrink-0 w-20 h-20 border border-white/10 overflow-hidden bg-black hover:border-[#ff7020]/50 transition-colors cursor-pointer">
+          <div
+            key={src}
+            onClick={() => onSelect(i)}
+            className={`relative flex-shrink-0 w-20 h-20 border overflow-hidden bg-black transition-all duration-300 cursor-pointer ${i === currentIndex ? "border-[#ff7020] scale-105 z-10 shadow-[0_0_15px_rgba(255,112,32,0.3)]" : "border-white/10 hover:border-white/30"}`}
+          >
             <img src={src} alt="" className="w-full h-full object-cover" />
-            {i === 0 && <div className="absolute bottom-1 left-1 w-1.5 h-1.5 bg-[#ff7020]" />}
+            {i === currentIndex && <div className="absolute bottom-1 left-1 w-1.5 h-1.5 bg-[#ff7020]" />}
           </div>
         ))}
         <div 
@@ -508,6 +515,8 @@ function SystemLog({ pet }: { pet: Pet }) {
 // --- Main Component ---
 
 export function PetSpaceHub() {
+  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+  const [photoDirection, setPhotoDirection] = useState(0);
   const [activeId, setActiveId] = useState(PETS[0].id);
   const [direction, setDirection] = useState(1);
   const [isWarping, setIsWarping] = useState(false);
@@ -536,9 +545,25 @@ export function PetSpaceHub() {
 
   useEffect(() => {
     loadPhotos(activePet.id);
+    setCurrentPhotoIndex(0);
   }, [activePet.id]);
 
   const allPhotos = [...activePet.gallery, ...supabasePhotos];
+
+  const handlePhotoPrev = () => {
+    setPhotoDirection(-1);
+    setCurrentPhotoIndex(prev => (prev - 1 + allPhotos.length) % allPhotos.length);
+  };
+
+  const handlePhotoNext = () => {
+    setPhotoDirection(1);
+    setCurrentPhotoIndex(prev => (prev + 1) % allPhotos.length);
+  };
+
+  const handlePhotoSelect = (index: number) => {
+    setPhotoDirection(index > currentPhotoIndex ? 1 : -1);
+    setCurrentPhotoIndex(index);
+  };
 
   const triggerWarp = (newId: string, dir: number) => {
     if (newId === activeId) return;
@@ -587,10 +612,23 @@ export function PetSpaceHub() {
       </div>
 
       {/* Habitat Module */}
-      <HabitatModule pet={activePet} photos={allPhotos} />
+      <HabitatModule
+        pet={activePet}
+        photos={allPhotos}
+        currentIndex={currentPhotoIndex}
+        direction={photoDirection}
+        onPrev={handlePhotoPrev}
+        onNext={handlePhotoNext}
+      />
 
       {/* Gallery */}
-      <GalleryStrip pet={activePet} photos={allPhotos} onUploadComplete={() => loadPhotos(activePet.id)} />
+      <GalleryStrip
+        pet={activePet}
+        photos={allPhotos}
+        currentIndex={currentPhotoIndex}
+        onSelect={handlePhotoSelect}
+        onUploadComplete={() => loadPhotos(activePet.id)}
+      />
     </div>
   );
 }
