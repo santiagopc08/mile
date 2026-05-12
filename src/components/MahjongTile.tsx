@@ -22,9 +22,9 @@ export interface TileState {
 export const TileVisual = memo(({ tile }: { tile: TileState }) => (
     tile.content.type === 'custom' ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={tile.content.value} alt="Memory" className="w-full h-full object-cover p-0.5 rounded-none select-none pointer-events-none" />
+        <img src={tile.content.value} alt="Memory" className="h-full w-full select-none rounded-none object-cover p-0.5 opacity-95 saturate-[0.9] pointer-events-none" />
     ) : (
-        <div className={`w-full h-full flex items-center justify-center text-[2rem] md:text-[2.2rem] leading-none select-none pointer-events-none ${tile.content.value === '🀄' || tile.content.value === '🀆' ? 'text-rose-500' : 'text-stone-800 dark:text-stone-300'}`}>
+        <div className={`flex h-full w-full select-none items-center justify-center text-[2rem] leading-none pointer-events-none md:text-[2.2rem] ${tile.content.value === '🀄' || tile.content.value === '🀆' ? 'text-[#ff7020]' : 'text-[#e5e2e1]'}`}>
             {tile.content.value}
         </div>
     )
@@ -71,26 +71,26 @@ const MahjongTile = memo(({ tile, isFree, onPointerDown, positionStyle }: Mahjon
                 transform: `translateY(${vOffset}px)`,
             }}
             className={`
-                tile-item rounded-none flex items-center justify-center overflow-hidden
-                transition-transform duration-300 shadow-none
+                tile-item flex items-center justify-center overflow-hidden rounded-none
+                shadow-none transition-transform duration-300
                 ${isFree
-                    ? 'cursor-pointer hover:brightness-110 active:scale-95 border-geometric-border dark:border-stone-600'
-                    : 'brightness-50 dark:brightness-[0.35] grayscale-[0.8] cursor-not-allowed opacity-60 dark:opacity-40 border-stone-300 dark:border-stone-800'}
+                    ? 'cursor-pointer border-[#4b403a] hover:border-[#00dbe9] hover:brightness-125 active:scale-95'
+                    : 'cursor-not-allowed border-white/10 opacity-35 grayscale-[0.9] brightness-50'}
                 ${tile.isHinted
-                    ? 'bg-white dark:bg-stone-900 ring-4 ring-geometric-accent shadow-2xl z-50 animate-pulse'
+                    ? 'z-50 animate-pulse border-[#00dbe9] bg-[#0a0a0a] ring-4 ring-[#00dbe9]/60'
                     : tile.isSelected
-                        ? 'bg-white dark:bg-stone-900 border-2 border-geometric-accent shadow-xl'
-                        : 'bg-white dark:bg-stone-800 border border-geometric-border border-r-[3px] border-b-[4px]'}
+                        ? 'border-2 border-[#ff7020] bg-[#0a0a0a] shadow-[0_0_22px_rgba(255,112,32,0.28)]'
+                        : 'border border-r-[3px] border-b-[4px] bg-[#111]'}
             `}
         >
             {tile.isSelected && (
-                <div className="absolute inset-0 ring-1 ring-geometric-accent/40 rounded-none pointer-events-none" />
+                <div className="pointer-events-none absolute inset-0 rounded-none ring-1 ring-[#ff7020]/50" />
             )}
 
             <TileVisual tile={tile} />
 
             {/* Geometric corner mark */}
-            <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-geometric-accent/30 pointer-events-none" />
+            <div className="pointer-events-none absolute right-0 top-0 h-2 w-2 border-r border-t border-[#00dbe9]/40" />
         </motion.div>
     );
 });

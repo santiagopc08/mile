@@ -104,12 +104,12 @@ export function GeospatialPlanTracker() {
   if (!GOOGLE_MAPS_API_KEY) {
     return (
       <div className="w-full space-y-6">
-        <div className="p-8 border border-dashed border-stone-300 dark:border-stone-700 flex flex-col items-center justify-center gap-4 bg-stone-50 dark:bg-stone-950 min-h-[300px]">
-          <AlertTriangle className="w-8 h-8 text-stone-400" />
-          <p className="text-[10px] uppercase font-black tracking-widest text-stone-400 text-center">
+        <div className="flex min-h-[300px] flex-col items-center justify-center gap-4 border border-dashed border-white/10 bg-black/60 p-8">
+          <AlertTriangle className="h-8 w-8 text-[#ff7020]" />
+          <p className="text-center text-[10px] font-black uppercase tracking-[0.24em] text-[#a88a7e]">
             API Key de Google Maps no configurada
           </p>
-          <p className="text-[8px] uppercase tracking-widest text-stone-400 text-center max-w-xs">
+          <p className="max-w-xs text-center text-[8px] uppercase tracking-[0.2em] text-white/35">
             Agrega NEXT_PUBLIC_GOOGLE_MAPS_API_KEY a tu archivo .env.local para habilitar el mapa
           </p>
         </div>
@@ -125,8 +125,10 @@ export function GeospatialPlanTracker() {
 
   return (
     <div className="w-full space-y-6">
-      <div className="relative p-2 border border-stone-200 dark:border-stone-800 bg-mosaic shadow-sm">
-        <div className="h-[400px] md:h-[500px] w-full border border-stone-200 dark:border-stone-800 overflow-hidden bg-stone-100 dark:bg-stone-900">
+      <div className="relative border border-white/10 bg-black p-2">
+        <div className="absolute left-0 top-0 h-2 w-2 border-l border-t border-[#00dbe9]" />
+        <div className="absolute bottom-0 right-0 h-2 w-2 border-b border-r border-[#a100f0]" />
+        <div className="h-[400px] w-full overflow-hidden border border-white/10 bg-[#111] md:h-[500px]">
           <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
             <Map
               defaultCenter={mapCenter}
@@ -161,27 +163,27 @@ export function GeospatialPlanTracker() {
                   position={{ lat: selectedLocation.latitud, lng: selectedLocation.longitud }}
                   onCloseClick={() => setSelectedId(null)}
                 >
-                  <div className="p-2 min-w-[150px]">
-                    <h4 className="text-[10px] font-black uppercase tracking-widest mb-2 border-b border-stone-100 pb-1">
+                  <div className="min-w-[150px] p-2">
+                    <h4 className="mb-2 border-b border-stone-100 pb-1 text-[10px] font-black uppercase tracking-widest">
                       {selectedLocation.nombre}
                     </h4>
                     <div className="flex flex-col gap-2">
                       <button
                         onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${selectedLocation.latitud},${selectedLocation.longitud}`, '_blank')}
-                        className="flex items-center justify-center gap-2 bg-stone-900 text-white p-2 text-[8px] uppercase font-bold tracking-tighter h-8"
+                        className="flex h-8 items-center justify-center gap-2 bg-stone-900 p-2 text-[8px] font-bold uppercase tracking-normal text-white"
                       >
                         <Navigation className="w-3 h-3" /> Navegar
                       </button>
                       <div className="flex gap-1">
                         <button
                           onClick={() => toggleStatus(selectedLocation.id, selectedLocation.status)}
-                          className="flex-1 border border-stone-200 p-2 text-[8px] uppercase font-bold h-8"
+                          className="h-8 flex-1 border border-stone-200 p-2 text-[8px] font-bold uppercase"
                         >
                           {selectedLocation.status === 'visited' ? 'Pendiente' : 'Visitado'}
                         </button>
                         <button
                           onClick={() => deleteLocation(selectedLocation.id)}
-                          className="px-2 border border-stone-200 text-red-500 h-8"
+                          className="h-8 border border-stone-200 px-2 text-red-500"
                         >
                           <Trash2 className="w-3 h-3" />
                         </button>
@@ -214,8 +216,8 @@ function LocationLists({ locations, onSelect, onDelete, onToggle }: {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
       <div className="space-y-4">
-        <h4 className="text-[10px] uppercase font-black tracking-[0.3em] text-stone-400 mb-2 flex items-center gap-2">
-          <Circle className="w-3 h-3 text-geometric-accent" /> Próximos Destinos
+        <h4 className="mb-2 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.24em] text-[#a88a7e]">
+          <Circle className="h-3 w-3 text-[#00dbe9]" /> Próximos Destinos
         </h4>
         <div className="space-y-2 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
           {locations.filter(l => l.status === 'to-visit').map(loc => (
@@ -228,14 +230,14 @@ function LocationLists({ locations, onSelect, onDelete, onToggle }: {
             />
           ))}
           {locations.filter(l => l.status === 'to-visit').length === 0 && (
-            <p className="text-[8px] uppercase opacity-30 italic p-4 border border-dashed border-stone-200 text-center">No hay planes pendientes</p>
+            <p className="border border-dashed border-white/10 p-4 text-center text-[8px] uppercase italic tracking-[0.2em] text-white/25">No hay planes pendientes</p>
           )}
         </div>
       </div>
 
       <div className="space-y-4">
-        <h4 className="text-[10px] uppercase font-black tracking-[0.3em] text-stone-400 mb-2 flex items-center gap-2">
-          <CheckCircle className="w-3 h-3 text-stone-300" /> Memorias Visitadas
+        <h4 className="mb-2 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.24em] text-[#a88a7e]">
+          <CheckCircle className="h-3 w-3 text-[#a100f0]" /> Memorias Visitadas
         </h4>
         <div className="space-y-2 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
           {locations.filter(l => l.status === 'visited').map(loc => (
@@ -248,7 +250,7 @@ function LocationLists({ locations, onSelect, onDelete, onToggle }: {
             />
           ))}
           {locations.filter(l => l.status === 'visited').length === 0 && (
-            <p className="text-[8px] uppercase opacity-30 italic p-4 border border-dashed border-stone-200 text-center">Aún no hay memorias</p>
+            <p className="border border-dashed border-white/10 p-4 text-center text-[8px] uppercase italic tracking-[0.2em] text-white/25">Aún no hay memorias</p>
           )}
         </div>
       </div>
@@ -266,26 +268,26 @@ function LocationListItem({ loc, onSelect, onDelete, onToggle }: {
   const accentColor = loc.created_by === 'ella' ? 'border-user-b' : 'border-user-a';
 
   return (
-    <div className={`flex items-center gap-3 p-4 bg-white dark:bg-black border transition-all min-h-[56px] ${
-      isVisited ? 'border-stone-100 dark:border-stone-900 opacity-60' : `border-dashed ${accentColor}`
+    <div className={`flex min-h-[56px] items-center gap-3 border bg-black/65 p-4 transition-all hover:bg-white/[0.04] ${
+      isVisited ? 'border-white/10 opacity-60' : `border-dashed ${accentColor}`
     }`}>
       <button
         onClick={onSelect}
-        className="flex-1 flex flex-col items-start min-w-0"
+        className="flex min-w-0 flex-1 flex-col items-start"
       >
-        <span className={`text-[11px] font-black uppercase tracking-widest truncate w-full text-left ${isVisited ? 'line-through opacity-50' : 'text-stone-800 dark:text-stone-100'}`}>
+        <span className={`w-full truncate text-left text-[11px] font-black uppercase tracking-[0.18em] ${isVisited ? 'line-through opacity-50' : 'text-white'}`}>
           {loc.nombre}
         </span>
-        <span className="text-[8px] font-mono opacity-40 uppercase tracking-tighter">
+        <span className="font-mono text-[8px] uppercase tracking-normal text-white/35">
           {loc.created_by} • {new Date(loc.created_at).toLocaleDateString()}
         </span>
       </button>
 
       <div className="flex gap-4 shrink-0">
-        <button onClick={onToggle} className="text-stone-300 hover:text-geometric-accent transition-colors">
+        <button onClick={onToggle} className="text-[#a88a7e] transition-colors hover:text-[#00dbe9]">
           {isVisited ? <Circle className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
         </button>
-        <button onClick={onDelete} className="text-stone-200 hover:text-red-500 transition-colors">
+        <button onClick={onDelete} className="text-[#a88a7e] transition-colors hover:text-red-400">
           <Trash2 className="w-4 h-4" />
         </button>
       </div>
