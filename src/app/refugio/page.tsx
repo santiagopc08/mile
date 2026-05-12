@@ -78,8 +78,8 @@ export default function RefugioPage() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`group relative flex min-h-20 items-center justify-between border-r border-white/10 px-4 py-4 transition-all last:border-r-0 ${activeTab === tab.id
-                    ? 'bg-[#ff7020] text-black'
-                    : 'bg-[#0a0a0a] text-[#a88a7e] hover:bg-[#121212] hover:text-white'
+                  ? 'bg-[#ff7020] text-black'
+                  : 'bg-[#0a0a0a] text-[#a88a7e] hover:bg-[#121212] hover:text-white'
                   }`}
               >
                 <span className="flex flex-col items-start gap-2">

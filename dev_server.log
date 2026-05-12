@@ -5,5 +5,2268 @@
 ▲ Next.js 16.2.4 (Turbopack)
 - Local:         http://localhost:3000
 - Network:       http://192.168.0.2:3000
-✓ Ready in 578ms
+✓ Ready in 572ms
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
 
+
+○ Compiling /refugio ...
+⨯ Error: supabaseUrl is required.
+    at module evaluation (src/lib/supabase.ts:7:37)
+    at module evaluation (src/services/storeService.ts:1:1)
+    at module evaluation (src/components/Timeline.tsx:8:1)
+    at module evaluation (src/app/refugio/page.tsx:9:1)
+   5 |
+   6 | // Client for the browser (uses Anon Key)
+>  7 | export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+     |                                     ^
+   8 |
+   9 | // Helper for server-side (uses Service Role Key)
+  10 | export const createServerClient = () => { {
+  digest: '812566248'
+}
+ GET /refugio 500 in 10.0s (next.js: 8.1s, application-code: 1942ms)
+[browser] Uncaught Error: supabaseUrl is required.
+    at module evaluation (src/lib/supabase.ts:7:37)
+    at module evaluation (src/services/storeService.ts:1:1)
+    at module evaluation (src/components/Timeline.tsx:8:1)
+    at module evaluation (src/app/refugio/page.tsx:9:1)
+   5 |
+   6 | // Client for the browser (uses Anon Key)
+>  7 | export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+     |                                     ^
+   8 |
+   9 | // Helper for server-side (uses Service Role Key)
+  10 | export const createServerClient = () => {
+⨯ Error: supabaseUrl is required.
+    at module evaluation (src/lib/supabase.ts:7:37)
+    at module evaluation (src/services/storeService.ts:1:1)
+    at module evaluation (src/components/Timeline.tsx:8:1)
+    at module evaluation (src/app/refugio/page.tsx:9:1)
+   5 |
+   6 | // Client for the browser (uses Anon Key)
+>  7 | export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+     |                                     ^
+   8 |
+   9 | // Helper for server-side (uses Service Role Key)
+  10 | export const createServerClient = () => { {
+  digest: '812566248'
+}
+ GET /refugio 500 in 601ms (next.js: 5ms, application-code: 596ms)
+[browser] Uncaught Error: supabaseUrl is required.
+    at module evaluation (src/lib/supabase.ts:7:37)
+    at module evaluation (src/services/storeService.ts:1:1)
+    at module evaluation (src/components/Timeline.tsx:8:1)
+    at module evaluation (src/app/refugio/page.tsx:9:1)
+   5 |
+   6 | // Client for the browser (uses Anon Key)
+>  7 | export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+     |                                     ^
+   8 |
+   9 | // Helper for server-side (uses Service Role Key)
+  10 | export const createServerClient = () => {
+ GET /test-pets 200 in 1162ms (next.js: 848ms, application-code: 314ms)
+[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <RedirectErrorBoundary router={{...}}>
+      <InnerLayoutRouter url="/test-pets" tree={[...]} params={{}} cacheNode={{rsc:{...}, ...}} segmentPath={[...]} ...>
+        <SegmentViewNode type="page" pagePath="src/test-p...">
+          <SegmentTrieNode>
+          <ClientPageRoot Component={function TestPetsPage} serverProvidedParams={{...}}>
+            <TestPetsPage params={Promise} searchParams={Promise}>
+              <div className="min-h-scre...">
+                <PetSpaceHub>
+                  <div className="relative m...">
+                    <div>
+                    <SpaceDecorations>
+                      <div className="pointer-ev...">
+                        <motion.div className="absolute h..." style={{top:"89.92...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "89.92931200666543%"
+-                             top: "20.5897%"
++                             left: "48.49566138044767%"
+-                             left: "22.6648%"
++                             opacity: 0.37294648313071643
+-                             opacity: "0.110967"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"99.24...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "99.24075702873107%"
+-                             top: "15.3924%"
++                             left: "49.35563839791668%"
+-                             left: "64.4757%"
++                             opacity: 0.28327832882278203
+-                             opacity: "0.47429"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"53.45...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "53.452059880451216%"
+-                             top: "50.0207%"
++                             left: "47.499680020135024%"
+-                             left: "16.0878%"
++                             opacity: 0.1486913566679604
+-                             opacity: "0.20515"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"67.11...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "67.11368852283547%"
+-                             top: "60.1994%"
++                             left: "96.70561602313249%"
+-                             left: "25.2219%"
++                             opacity: 0.42946823387704525
+-                             opacity: "0.261759"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"23.91...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "23.916402257468306%"
+-                             top: "82.5684%"
++                             left: "67.44819773936506%"
+-                             left: "94.0456%"
++                             opacity: 0.7812249104302297
+-                             opacity: "0.577339"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"30.56...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "30.56152001480894%"
+-                             top: "0.205897%"
++                             left: "50.26464145733422%"
+-                             left: "59.2204%"
++                             opacity: 0.7136757045075597
+-                             opacity: "0.409451"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"10.80...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "10.800988666269095%"
+-                             top: "84.132%"
++                             left: "7.791072975712233%"
+-                             left: "3.51542%"
++                             opacity: 0.10311572267566207
+-                             opacity: "0.747109"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"7.472...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "7.472296784631038%"
+-                             top: "19.1629%"
++                             left: "38.6661275408685%"
+-                             left: "24.4421%"
++                             opacity: 0.39022526000473245
+-                             opacity: "0.547194"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"90.09...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "90.0916210315031%"
+-                             top: "57.9785%"
++                             left: "35.59153674106519%"
+-                             left: "5.73002%"
++                             opacity: 0.5538954183393768
+-                             opacity: "0.363341"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"0.315...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "0.31551387662573926%"
+-                             top: "88.1668%"
++                             left: "41.26758844570999%"
+-                             left: "17.1035%"
++                             opacity: 0.2698125397519687
+-                             opacity: "0.427224"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"50.44...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "50.44028349274055%"
+-                             top: "76.4731%"
++                             left: "48.52207461775261%"
+-                             left: "47.978%"
++                             opacity: 0.10020386077972394
+-                             opacity: "0.534312"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"55.91...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "55.91910664848157%"
+-                             top: "89.5722%"
++                             left: "3.8451579562564397%"
+-                             left: "27.1623%"
++                             opacity: 0.1745563314339412
+-                             opacity: "0.78766"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"52.45...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "52.455705388133666%"
+-                             top: "0.606454%"
++                             left: "68.56677887985278%"
+-                             left: "28.9515%"
++                             opacity: 0.24603230352654154
+-                             opacity: "0.177096"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"25.89...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "25.899159000173277%"
+-                             top: "31.7723%"
++                             left: "22.787245023557656%"
+-                             left: "64.1626%"
++                             opacity: 0.40251014070945645
+-                             opacity: "0.373483"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"47.43...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "47.431362927512%"
+-                             top: "97.1257%"
++                             left: "13.752362219776682%"
+-                             left: "83.7524%"
++                             opacity: 0.23663100313048985
+-                             opacity: "0.742639"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"88.98...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "88.98155282277463%"
+-                             top: "41.6955%"
++                             left: "32.656423523447806%"
+-                             left: "68.5034%"
++                             opacity: 0.6148371275210418
+-                             opacity: "0.442789"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"47.98...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "47.98428662076031%"
+-                             top: "46.7692%"
++                             left: "71.1275587890576%"
+-                             left: "97.1117%"
++                             opacity: 0.20466142940991666
+-                             opacity: "0.663579"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"7.707...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "7.707988023822976%"
+-                             top: "75.6309%"
++                             left: "86.59898925141036%"
+-                             left: "4.1497%"
++                             opacity: 0.6038983252482782
+-                             opacity: "0.157795"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"45.17...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "45.17447220499822%"
+-                             top: "63.9036%"
++                             left: "99.50539686553228%"
+-                             left: "71.8716%"
++                             opacity: 0.5125106057892365
+-                             opacity: "0.389311"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"53.17...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "53.17714315354847%"
+-                             top: "63.0198%"
++                             left: "95.17714449896656%"
+-                             left: "29.7018%"
++                             opacity: 0.12810189301131147
+-                             opacity: "0.442258"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"85.92...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "85.92630613815938%"
+-                             top: "6.60258%"
++                             left: "21.925425033173028%"
+-                             left: "64.2439%"
++                             opacity: 0.4553914609182934
+-                             opacity: "0.213898"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"2.134...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "2.1349868615014644%"
+-                             top: "8.34462%"
++                             left: "72.09512647952637%"
+-                             left: "22.1466%"
++                             opacity: 0.7287690473740931
+-                             opacity: "0.630203"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"21.28...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "21.282513798889724%"
+-                             top: "99.2351%"
++                             left: "40.97305616734557%"
+-                             left: "15.425%"
++                             opacity: 0.6639934908132036
+-                             opacity: "0.472039"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"70.95...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "70.9544079843617%"
+-                             top: "79.3137%"
++                             left: "2.083933595049281%"
+-                             left: "40.1178%"
++                             opacity: 0.5613695894965753
+-                             opacity: "0.515124"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"8.359...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "8.359311195552277%"
+-                             top: "68.7704%"
++                             left: "8.98966147002821%"
+-                             left: "61.8525%"
++                             opacity: 0.20695482536534776
+-                             opacity: "0.589005"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"47.46...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "47.4678003147655%"
+-                             top: "72.9964%"
++                             left: "78.05370201449391%"
+-                             left: "79.2597%"
++                             opacity: 0.7299194548453207
+-                             opacity: "0.285463"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"57.75...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "57.75542902466838%"
+-                             top: "95.691%"
++                             left: "45.59365960903056%"
+-                             left: "82.8841%"
++                             opacity: 0.42845439699820165
+-                             opacity: "0.226721"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"92.72...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "92.72085674966706%"
+-                             top: "70.7795%"
++                             left: "38.69031902451574%"
+-                             left: "89.3878%"
++                             opacity: 0.35731695776062034
+-                             opacity: "0.738568"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"68.73...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "68.73185100438577%"
+-                             top: "92.4871%"
++                             left: "34.969268308371404%"
+-                             left: "8.64911%"
++                             opacity: 0.37750078008680577
+-                             opacity: "0.767416"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"56.32...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "56.328275616937475%"
+-                             top: "14.9383%"
++                             left: "3.2139912968208173%"
+-                             left: "16.8218%"
++                             opacity: 0.6594779967942853
+-                             opacity: "0.545179"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"24.79...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "24.79718027112274%"
+-                             top: "96.8898%"
++                             left: "46.55090580554141%"
+-                             left: "16.1313%"
++                             opacity: 0.10530096361167059
+-                             opacity: "0.726841"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"96.33...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "96.33263067575649%"
+-                             top: "4.51947%"
++                             left: "48.94632987460409%"
+-                             left: "73.2452%"
++                             opacity: 0.1472600483088584
+-                             opacity: "0.519823"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"36.30...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "36.309485868591054%"
+-                             top: "57.0636%"
++                             left: "42.53042591703503%"
+-                             left: "25.7801%"
++                             opacity: 0.1337862363661069
+-                             opacity: "0.68651"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"64.92...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "64.92270434273179%"
+-                             top: "63.6545%"
++                             left: "37.71423441002857%"
+-                             left: "13.5842%"
++                             opacity: 0.5275392315181975
+-                             opacity: "0.471711"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"85.14...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "85.14965794903232%"
+-                             top: "81.2407%"
++                             left: "21.101306487293414%"
+-                             left: "65.7945%"
++                             opacity: 0.3488045934241899
+-                             opacity: "0.360683"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"92.23...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "92.23335451326038%"
+-                             top: "99.1054%"
++                             left: "76.86519247309371%"
+-                             left: "98.4646%"
++                             opacity: 0.495719042935591
+-                             opacity: "0.734482"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"17.79...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "17.796120948153636%"
+-                             top: "64.0483%"
++                             left: "40.32928815326516%"
+-                             left: "12.7713%"
++                             opacity: 0.3320441188228791
+-                             opacity: "0.263514"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"74.99...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "74.99208690044419%"
+-                             top: "93.9397%"
++                             left: "21.026716300484992%"
+-                             left: "92.2933%"
++                             opacity: 0.2708051624341119
+-                             opacity: "0.447087"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"12.02...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "12.025304591652885%"
+-                             top: "58.2721%"
++                             left: "82.91424988354153%"
+-                             left: "97.9536%"
++                             opacity: 0.131497328993612
+-                             opacity: "0.445477"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"68.04...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "68.04884052159308%"
+-                             top: "21.0872%"
++                             left: "71.76471360894%"
+-                             left: "63.3166%"
++                             opacity: 0.1152278662780698
+-                             opacity: "0.312209"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <div>
+                        <svg>
+                        <motion.div className="absolute h..." style={{top:"66.60...", ...}} animate={{y:[...], ...}} ...>
+                          <div
+                            className="absolute h-[1px] w-[1px] bg-[#00dbe9]/30"
+                            style={{
++                             top: "66.6097412802935%"
+-                             top: "89.4518%"
++                             left: "61.376902435907596%"
+-                             left: "30.6785%"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"30.68...", ...}} animate={{y:[...], ...}} ...>
+                          <div
+                            className="absolute h-[1px] w-[1px] bg-[#00dbe9]/30"
+                            style={{
++                             top: "30.68361685439901%"
+-                             top: "85.764%"
++                             left: "26.053711228175235%"
+-                             left: "89.222%"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"99.73...", ...}} animate={{y:[...], ...}} ...>
+                          <div
+                            className="absolute h-[1px] w-[1px] bg-[#00dbe9]/30"
+                            style={{
++                             top: "99.73642996409923%"
+-                             top: "17.2903%"
++                             left: "1.971534845206857%"
+-                             left: "25.7219%"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"47.49...", ...}} animate={{y:[...], ...}} ...>
+                          <div
+                            className="absolute h-[1px] w-[1px] bg-[#00dbe9]/30"
+                            style={{
++                             top: "47.4906590962002%"
+-                             top: "42.6596%"
++                             left: "17.40459215089424%"
+-                             left: "84.2792%"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"65.54...", ...}} animate={{y:[...], ...}} ...>
+                          <div
+                            className="absolute h-[1px] w-[1px] bg-[#00dbe9]/30"
+                            style={{
++                             top: "65.54671878297927%"
+-                             top: "48.6633%"
++                             left: "84.70283520019045%"
+-                             left: "96.4485%"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"86.00...", ...}} animate={{y:[...], ...}} ...>
+                          <div
+                            className="absolute h-[1px] w-[1px] bg-[#00dbe9]/30"
+                            style={{
++                             top: "86.00781812669808%"
+-                             top: "4.47764%"
++                             left: "88.0450546061079%"
+-                             left: "66.9149%"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"42.65...", ...}} animate={{y:[...], ...}} ...>
+                          <div
+                            className="absolute h-[1px] w-[1px] bg-[#00dbe9]/30"
+                            style={{
++                             top: "42.6519530919648%"
+-                             top: "8.69486%"
++                             left: "53.377441989521756%"
+-                             left: "99.3113%"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"39.25...", ...}} animate={{y:[...], ...}} ...>
+                          <div
+                            className="absolute h-[1px] w-[1px] bg-[#00dbe9]/30"
+                            style={{
++                             top: "39.25884460107286%"
+-                             top: "69.9365%"
++                             left: "98.3865034168856%"
+-                             left: "14.823%"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"65.14...", ...}} animate={{y:[...], ...}} ...>
+                          <div
+                            className="absolute h-[1px] w-[1px] bg-[#00dbe9]/30"
+                            style={{
++                             top: "65.14355506783173%"
+-                             top: "81.9993%"
++                             left: "78.26138349950538%"
+-                             left: "11.0604%"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"9.639...", ...}} animate={{y:[...], ...}} ...>
+                          <div
+                            className="absolute h-[1px] w-[1px] bg-[#00dbe9]/30"
+                            style={{
++                             top: "9.639327002125487%"
+-                             top: "39.6367%"
++                             left: "39.850437493208176%"
+-                             left: "20.0968%"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"54.34...", ...}} animate={{y:[...], ...}} ...>
+                          <div
+                            className="absolute h-[1px] w-[1px] bg-[#00dbe9]/30"
+                            style={{
++                             top: "54.34889178503387%"
+-                             top: "27.1298%"
++                             left: "70.98962516832614%"
+-                             left: "19.3764%"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"66.27...", ...}} animate={{y:[...], ...}} ...>
+                          <div
+                            className="absolute h-[1px] w-[1px] bg-[#00dbe9]/30"
+                            style={{
++                             top: "66.27146770566983%"
+-                             top: "60.1469%"
++                             left: "41.97752864440283%"
+-                             left: "55.1607%"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"92.52...", ...}} animate={{y:[...], ...}} ...>
+                          <div
+                            className="absolute h-[1px] w-[1px] bg-[#00dbe9]/30"
+                            style={{
++                             top: "92.52909055335802%"
+-                             top: "51.9063%"
++                             left: "9.225109852165048%"
+-                             left: "45.2429%"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"8.185...", ...}} animate={{y:[...], ...}} ...>
+                          <div
+                            className="absolute h-[1px] w-[1px] bg-[#00dbe9]/30"
+                            style={{
++                             top: "8.185048075588208%"
+-                             top: "42.8806%"
++                             left: "58.81971366374841%"
+-                             left: "60.0224%"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"30.29...", ...}} animate={{y:[...], ...}} ...>
+                          <div
+                            className="absolute h-[1px] w-[1px] bg-[#00dbe9]/30"
+                            style={{
++                             top: "30.295048563606763%"
+-                             top: "87.9019%"
++                             left: "16.939703938418738%"
+-                             left: "57.0275%"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                    ...
+        ...
+      ...
+
+⨯ Error: supabaseUrl is required.
+    at module evaluation (src/lib/supabase.ts:7:37)
+    at module evaluation (src/services/storeService.ts:1:1)
+    at module evaluation (src/app/api/store/route.ts:2:1)
+    at Object.<anonymous> (.next/dev/server/app/api/store/route.js:8:3)
+   5 |
+   6 | // Client for the browser (uses Anon Key)
+>  7 | export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+     |                                     ^
+   8 |
+   9 | // Helper for server-side (uses Service Role Key)
+  10 | export const createServerClient = () => { {
+  page: '/api/store'
+}
+ GET /api/store 500 in 4.6s (next.js: 4.2s, application-code: 406ms)
+ GET /test-pets 200 in 127ms (next.js: 7ms, application-code: 120ms)
+⨯ Error: supabaseUrl is required.
+    at module evaluation (src/lib/supabase.ts:7:37)
+    at module evaluation (src/services/storeService.ts:1:1)
+    at module evaluation (src/app/api/store/route.ts:2:1)
+    at Object.<anonymous> (.next/dev/server/app/api/store/route.js:8:3)
+   5 |
+   6 | // Client for the browser (uses Anon Key)
+>  7 | export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+     |                                     ^
+   8 |
+   9 | // Helper for server-side (uses Service Role Key)
+  10 | export const createServerClient = () => { {
+  page: '/api/store'
+}
+ GET /api/store 500 in 99ms (next.js: 82ms, application-code: 17ms)
+[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <RedirectErrorBoundary router={{...}}>
+      <InnerLayoutRouter url="/test-pets" tree={[...]} params={{}} cacheNode={{rsc:{...}, ...}} segmentPath={[...]} ...>
+        <SegmentViewNode type="page" pagePath="src/test-p...">
+          <SegmentTrieNode>
+          <ClientPageRoot Component={function TestPetsPage} serverProvidedParams={{...}}>
+            <TestPetsPage params={Promise} searchParams={Promise}>
+              <div className="min-h-scre...">
+                <PetSpaceHub>
+                  <div className="relative m...">
+                    <div>
+                    <SpaceDecorations>
+                      <div className="pointer-ev...">
+                        <motion.div className="absolute h..." style={{top:"32.08...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "32.08379254333291%"
+-                             top: "14.6324%"
++                             left: "79.32356505257697%"
+-                             left: "57.7998%"
++                             opacity: 0.23376489258117258
+-                             opacity: "0.619004"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"62.12...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "62.12718397080829%"
+-                             top: "98.0655%"
++                             left: "28.54221001916032%"
+-                             left: "78.9699%"
++                             opacity: 0.36875729605748886
+-                             opacity: "0.166009"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"96.44...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "96.44805115534729%"
+-                             top: "34.4706%"
++                             left: "98.0108368125648%"
+-                             left: "47.912%"
++                             opacity: 0.48368097128621645
+-                             opacity: "0.203525"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"20.20...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "20.209205205334037%"
+-                             top: "14.4168%"
++                             left: "28.984430364418312%"
+-                             left: "86.3449%"
++                             opacity: 0.1213230826579445
+-                             opacity: "0.321985"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"45.01...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "45.01674736046311%"
+-                             top: "85.6911%"
++                             left: "64.95403973041621%"
+-                             left: "99.624%"
++                             opacity: 0.5013788773789944
+-                             opacity: "0.162214"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"26.81...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "26.811492489690615%"
+-                             top: "84.1405%"
++                             left: "58.286955928933374%"
+-                             left: "29.8467%"
++                             opacity: 0.49671579350561845
+-                             opacity: "0.796788"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"17.31...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "17.316073575792647%"
+-                             top: "13.2491%"
++                             left: "37.24059645254294%"
+-                             left: "15.7233%"
++                             opacity: 0.3904823279395263
+-                             opacity: "0.555522"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"67.01...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "67.01173608884507%"
+-                             top: "70.5023%"
++                             left: "5.03090275587531%"
+-                             left: "25.5687%"
++                             opacity: 0.4927490538392655
+-                             opacity: "0.512463"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"62.06...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "62.061759433771044%"
+-                             top: "59.7457%"
++                             left: "84.01731524553988%"
+-                             left: "28.996%"
++                             opacity: 0.6538523433542712
+-                             opacity: "0.758845"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"13.70...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "13.709266737798986%"
+-                             top: "50.059%"
++                             left: "26.482726461437434%"
+-                             left: "9.1908%"
++                             opacity: 0.6246491384892124
+-                             opacity: "0.147649"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"34.79...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "34.795985653170256%"
+-                             top: "73.4557%"
++                             left: "43.3194759805383%"
+-                             left: "77.357%"
++                             opacity: 0.7774947396214189
+-                             opacity: "0.207011"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"72.16...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "72.16943846887263%"
+-                             top: "66.5558%"
++                             left: "3.3874806448764505%"
+-                             left: "4.60029%"
++                             opacity: 0.32534978797319997
+-                             opacity: "0.506823"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"70.81...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "70.81523908657485%"
+-                             top: "30.6626%"
++                             left: "46.15229387981711%"
+-                             left: "5.25129%"
++                             opacity: 0.4853770000237244
+-                             opacity: "0.266935"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"42.12...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "42.125139692267034%"
+-                             top: "88.3298%"
++                             left: "71.54266127166584%"
+-                             left: "33.2807%"
++                             opacity: 0.355592329650368
+-                             opacity: "0.128154"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"18.91...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "18.916750209990095%"
+-                             top: "19.9613%"
++                             left: "10.82779540622546%"
+-                             left: "30.3814%"
++                             opacity: 0.231831227204794
+-                             opacity: "0.427895"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"61.22...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "61.22372342082827%"
+-                             top: "74.8672%"
++                             left: "0.481712119028177%"
+-                             left: "63.5352%"
++                             opacity: 0.14239093647314996
+-                             opacity: "0.422526"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"75.41...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "75.41238937391317%"
+-                             top: "44.7724%"
++                             left: "79.41879601713634%"
+-                             left: "95.7316%"
++                             opacity: 0.28693817159990076
+-                             opacity: "0.540523"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"30.48...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "30.48959828885924%"
+-                             top: "97.9502%"
++                             left: "74.86636230307809%"
+-                             left: "88.7516%"
++                             opacity: 0.3559126143724255
+-                             opacity: "0.434806"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"22.60...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "22.607310242551538%"
+-                             top: "38.7866%"
++                             left: "30.9086911609329%"
+-                             left: "20.8834%"
++                             opacity: 0.5959931299447383
+-                             opacity: "0.185917"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"1.456...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "1.4569023627686861%"
+-                             top: "30.4955%"
++                             left: "45.29499479017185%"
+-                             left: "90.9187%"
++                             opacity: 0.20584064211569714
+-                             opacity: "0.113606"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"36.78...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "36.78541353709727%"
+-                             top: "69.3222%"
++                             left: "43.457905073938704%"
+-                             left: "87.7523%"
++                             opacity: 0.3953125401177341
+-                             opacity: "0.174123"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"40.30...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "40.30357233677082%"
+-                             top: "23.5468%"
++                             left: "18.979850088904303%"
+-                             left: "80.0442%"
++                             opacity: 0.49868195711269103
+-                             opacity: "0.422112"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"39.34...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "39.34059719641312%"
+-                             top: "78.6259%"
++                             left: "50.72251534460433%"
+-                             left: "87.9704%"
++                             opacity: 0.1552125522621952
+-                             opacity: "0.275557"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"91.01...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "91.01830749966445%"
+-                             top: "22.4923%"
++                             left: "71.9942572319296%"
+-                             left: "32.9396%"
++                             opacity: 0.33444139997267996
+-                             opacity: "0.232977"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"76.38...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "76.38729933875642%"
+-                             top: "98.9548%"
++                             left: "6.9499852793294625%"
+-                             left: "94.8782%"
++                             opacity: 0.6191864023897621
+-                             opacity: "0.468526"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"80.60...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "80.60168689030453%"
+-                             top: "64.9596%"
++                             left: "29.821398488881144%"
+-                             left: "91.1823%"
++                             opacity: 0.7926307146491285
+-                             opacity: "0.574127"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"19.21...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "19.21219709950128%"
+-                             top: "81.0506%"
++                             left: "41.04520684119104%"
+-                             left: "40.8169%"
++                             opacity: 0.7751623359071531
+-                             opacity: "0.690147"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"41.59...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "41.59933758512432%"
+-                             top: "13.2519%"
++                             left: "62.71540932029488%"
+-                             left: "31.1571%"
++                             opacity: 0.5193096943187757
+-                             opacity: "0.353411"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"77.61...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "77.61970549896945%"
+-                             top: "90.8782%"
++                             left: "20.181448035062978%"
+-                             left: "79.7484%"
++                             opacity: 0.5905645704121696
+-                             opacity: "0.653908"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"78.36...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "78.36628023871971%"
+-                             top: "26.5252%"
++                             left: "95.67393687752227%"
+-                             left: "11.5957%"
++                             opacity: 0.43233127261531745
+-                             opacity: "0.211219"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"21.45...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "21.45936175420291%"
+-                             top: "95.2896%"
++                             left: "76.1636898359272%"
+-                             left: "67.728%"
++                             opacity: 0.2509843399753515
+-                             opacity: "0.199862"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"9.038...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "9.038950859494133%"
+-                             top: "56.2808%"
++                             left: "18.975299389414%"
+-                             left: "5.56872%"
++                             opacity: 0.3723114487444399
+-                             opacity: "0.192285"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"53.80...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "53.80311403482013%"
+-                             top: "29.6574%"
++                             left: "87.53693290277734%"
+-                             left: "93.2471%"
++                             opacity: 0.2113512575976998
+-                             opacity: "0.300216"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"74.63...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "74.63283670108738%"
+-                             top: "2.99619%"
++                             left: "11.558862579761264%"
+-                             left: "56.7192%"
++                             opacity: 0.7148938722690878
+-                             opacity: "0.336889"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"57.03...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "57.03350537198818%"
+-                             top: "35.5079%"
++                             left: "68.70099611520722%"
+-                             left: "69.9883%"
++                             opacity: 0.17565627186060614
+-                             opacity: "0.138863"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"53.43...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "53.439055999437414%"
+-                             top: "18.8073%"
++                             left: "50.171016342836225%"
+-                             left: "93.9742%"
++                             opacity: 0.41090911358512483
+-                             opacity: "0.195936"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"8.361...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "8.361552569943676%"
+-                             top: "4.84364%"
++                             left: "1.6532988912936974%"
+-                             left: "36.0322%"
++                             opacity: 0.7725538635533243
+-                             opacity: "0.654669"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"11.41...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "11.417459836846621%"
+-                             top: "58.7111%"
++                             left: "25.541754070196475%"
+-                             left: "67.2377%"
++                             opacity: 0.5254930937726029
+-                             opacity: "0.610627"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"93.07...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "93.07594880554898%"
+-                             top: "34.8178%"
++                             left: "73.13121011940693%"
+-                             left: "48.4234%"
++                             opacity: 0.52685178270931
+-                             opacity: "0.63235"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"27.05...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "27.056884376659863%"
+-                             top: "29.2674%"
++                             left: "86.56861883960453%"
+-                             left: "27.1986%"
++                             opacity: 0.4306055883903599
+-                             opacity: "0.342463"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <div>
+                        <svg>
+                        <motion.div className="absolute h..." style={{top:"60.72...", ...}} animate={{y:[...], ...}} ...>
+                          <div
+                            className="absolute h-[1px] w-[1px] bg-[#00dbe9]/30"
+                            style={{
++                             top: "60.72156587359333%"
+-                             top: "40.4226%"
++                             left: "74.32877493356091%"
+-                             left: "61.2991%"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"57.45...", ...}} animate={{y:[...], ...}} ...>
+                          <div
+                            className="absolute h-[1px] w-[1px] bg-[#00dbe9]/30"
+                            style={{
++                             top: "57.45208242379491%"
+-                             top: "16.2133%"
++                             left: "34.04737808653081%"
+-                             left: "75.2648%"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"34.55...", ...}} animate={{y:[...], ...}} ...>
+                          <div
+                            className="absolute h-[1px] w-[1px] bg-[#00dbe9]/30"
+                            style={{
++                             top: "34.55226128100405%"
+-                             top: "91.0139%"
++                             left: "32.959421261549636%"
+-                             left: "11.8652%"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"7.779...", ...}} animate={{y:[...], ...}} ...>
+                          <div
+                            className="absolute h-[1px] w-[1px] bg-[#00dbe9]/30"
+                            style={{
++                             top: "7.779535234532742%"
+-                             top: "76.7785%"
++                             left: "52.83350947639376%"
+-                             left: "33.2109%"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"17.40...", ...}} animate={{y:[...], ...}} ...>
+                          <div
+                            className="absolute h-[1px] w-[1px] bg-[#00dbe9]/30"
+                            style={{
++                             top: "17.40329906828223%"
+-                             top: "48.3788%"
++                             left: "31.35242614519037%"
+-                             left: "1.09983%"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"75.70...", ...}} animate={{y:[...], ...}} ...>
+                          <div
+                            className="absolute h-[1px] w-[1px] bg-[#00dbe9]/30"
+                            style={{
++                             top: "75.70398782119726%"
+-                             top: "57.6096%"
++                             left: "48.785386790603%"
+-                             left: "49.108%"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"81.31...", ...}} animate={{y:[...], ...}} ...>
+                          <div
+                            className="absolute h-[1px] w-[1px] bg-[#00dbe9]/30"
+                            style={{
++                             top: "81.31976852286867%"
+-                             top: "79.9322%"
++                             left: "37.677511185485834%"
+-                             left: "95.8394%"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"81.40...", ...}} animate={{y:[...], ...}} ...>
+                          <div
+                            className="absolute h-[1px] w-[1px] bg-[#00dbe9]/30"
+                            style={{
++                             top: "81.40773722685692%"
+-                             top: "30.1618%"
++                             left: "77.7737161798648%"
+-                             left: "23.0105%"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"38.70...", ...}} animate={{y:[...], ...}} ...>
+                          <div
+                            className="absolute h-[1px] w-[1px] bg-[#00dbe9]/30"
+                            style={{
++                             top: "38.70393558818898%"
+-                             top: "61.2172%"
++                             left: "29.386517484112375%"
+-                             left: "51.6128%"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"68.72...", ...}} animate={{y:[...], ...}} ...>
+                          <div
+                            className="absolute h-[1px] w-[1px] bg-[#00dbe9]/30"
+                            style={{
++                             top: "68.72163813648994%"
+-                             top: "13.1059%"
++                             left: "40.07441367335569%"
+-                             left: "4.68806%"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"42.80...", ...}} animate={{y:[...], ...}} ...>
+                          <div
+                            className="absolute h-[1px] w-[1px] bg-[#00dbe9]/30"
+                            style={{
++                             top: "42.80072704742498%"
+-                             top: "76.437%"
++                             left: "6.023212123519361%"
+-                             left: "26.9612%"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"73.08...", ...}} animate={{y:[...], ...}} ...>
+                          <div
+                            className="absolute h-[1px] w-[1px] bg-[#00dbe9]/30"
+                            style={{
++                             top: "73.08135221351972%"
+-                             top: "49.0856%"
++                             left: "14.442243938442001%"
+-                             left: "41.001%"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"62.84...", ...}} animate={{y:[...], ...}} ...>
+                          <div
+                            className="absolute h-[1px] w-[1px] bg-[#00dbe9]/30"
+                            style={{
++                             top: "62.847834550650425%"
+-                             top: "65.3683%"
++                             left: "14.579680819062013%"
+-                             left: "31.4319%"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"54.62...", ...}} animate={{y:[...], ...}} ...>
+                          <div
+                            className="absolute h-[1px] w-[1px] bg-[#00dbe9]/30"
+                            style={{
++                             top: "54.628361072948586%"
+-                             top: "19.8006%"
++                             left: "47.25029127173034%"
+-                             left: "3.67708%"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"5.965...", ...}} animate={{y:[...], ...}} ...>
+                          <div
+                            className="absolute h-[1px] w-[1px] bg-[#00dbe9]/30"
+                            style={{
++                             top: "5.965935008819923%"
+-                             top: "66.1947%"
++                             left: "52.363061539078736%"
+-                             left: "42.2107%"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                    ...
+        ...
+      ...
+
+[browser] 'oklab(0.999994 0.0000455678 0.0000200868 / 0.2)' is not an animatable color. Use the equivalent color code instead.. For more information and steps for solving, visit https://motion.dev/troubleshooting/color-not-animatable (<anonymous>)
+[browser] 'oklab(0.999994 0.0000455678 0.0000200868 / 0.2)' is not an animatable color. Use the equivalent color code instead.. For more information and steps for solving, visit https://motion.dev/troubleshooting/color-not-animatable (<anonymous>)
+[browser] 'oklab(0.999994 0.0000455678 0.0000200868 / 0.2)' is not an animatable color. Use the equivalent color code instead.. For more information and steps for solving, visit https://motion.dev/troubleshooting/color-not-animatable (<anonymous>)
+[browser] 'oklab(0.999994 0.0000455678 0.0000200868 / 0.2)' is not an animatable color. Use the equivalent color code instead.. For more information and steps for solving, visit https://motion.dev/troubleshooting/color-not-animatable (<anonymous>)
+[browser] 'oklab(0.999994 0.0000455678 0.0000200868 / 0.2)' is not an animatable color. Use the equivalent color code instead.. For more information and steps for solving, visit https://motion.dev/troubleshooting/color-not-animatable (<anonymous>)
+[browser] 'oklab(0.999994 0.0000455678 0.0000200868 / 0.2)' is not an animatable color. Use the equivalent color code instead.. For more information and steps for solving, visit https://motion.dev/troubleshooting/color-not-animatable (<anonymous>)
+ GET /test-pets 200 in 104ms (next.js: 4ms, application-code: 100ms)
+⨯ Error: supabaseUrl is required.
+    at module evaluation (src/lib/supabase.ts:7:37)
+    at module evaluation (src/services/storeService.ts:1:1)
+    at module evaluation (src/app/api/store/route.ts:2:1)
+    at Object.<anonymous> (.next/dev/server/app/api/store/route.js:8:3)
+   5 |
+   6 | // Client for the browser (uses Anon Key)
+>  7 | export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+     |                                     ^
+   8 |
+   9 | // Helper for server-side (uses Service Role Key)
+  10 | export const createServerClient = () => { {
+  page: '/api/store'
+}
+ GET /api/store 500 in 91ms (next.js: 71ms, application-code: 20ms)
+[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <RedirectErrorBoundary router={{...}}>
+      <InnerLayoutRouter url="/test-pets" tree={[...]} params={{}} cacheNode={{rsc:{...}, ...}} segmentPath={[...]} ...>
+        <SegmentViewNode type="page" pagePath="src/test-p...">
+          <SegmentTrieNode>
+          <ClientPageRoot Component={function TestPetsPage} serverProvidedParams={{...}}>
+            <TestPetsPage params={Promise} searchParams={Promise}>
+              <div className="min-h-scre...">
+                <PetSpaceHub>
+                  <div className="relative m...">
+                    <div>
+                    <SpaceDecorations>
+                      <div className="pointer-ev...">
+                        <motion.div className="absolute h..." style={{top:"84.07...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "84.07387579536723%"
+-                             top: "25.5572%"
++                             left: "78.41956294625008%"
+-                             left: "35.9634%"
++                             opacity: 0.6035943482255107
+-                             opacity: "0.542919"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"30.42...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "30.42831541510862%"
+-                             top: "47.3628%"
++                             left: "1.015729572857349%"
+-                             left: "87.303%"
++                             opacity: 0.6112060420336735
+-                             opacity: "0.21698"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"44.87...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "44.87745713276414%"
+-                             top: "33.7164%"
++                             left: "4.491466377931075%"
+-                             left: "1.524%"
++                             opacity: 0.5094896802678398
+-                             opacity: "0.621037"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"92.91...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "92.91577182336702%"
+-                             top: "43.9843%"
++                             left: "47.60813218950225%"
+-                             left: "51.9088%"
++                             opacity: 0.19647045511027378
+-                             opacity: "0.161201"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"40.80...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "40.80003884230191%"
+-                             top: "46.5587%"
++                             left: "43.786030045353506%"
+-                             left: "75.4736%"
++                             opacity: 0.7973701030911418
+-                             opacity: "0.369807"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"70.19...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "70.19339650341179%"
+-                             top: "68.7148%"
++                             left: "26.12120784596832%"
+-                             left: "21.0615%"
++                             opacity: 0.6802504525883515
+-                             opacity: "0.533847"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"78.09...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "78.09416929528635%"
+-                             top: "51.0163%"
++                             left: "75.43243576817548%"
+-                             left: "70.8285%"
++                             opacity: 0.33331271983807803
+-                             opacity: "0.275676"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"58.46...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "58.46866507725162%"
+-                             top: "91.5398%"
++                             left: "47.43506207167339%"
+-                             left: "58.4622%"
++                             opacity: 0.18424807506280497
+-                             opacity: "0.415682"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"53.15...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "53.15974934028213%"
+-                             top: "68.1058%"
++                             left: "38.26490520782666%"
+-                             left: "77.2991%"
++                             opacity: 0.24347377652266658
+-                             opacity: "0.331181"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"99.77...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "99.77775090824233%"
+-                             top: "21.1222%"
++                             left: "18.348085132396463%"
+-                             left: "16.8683%"
++                             opacity: 0.5990009457076964
+-                             opacity: "0.454559"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"24.13...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "24.13096815351532%"
+-                             top: "37.9041%"
++                             left: "2.450540539496626%"
+-                             left: "16.0763%"
++                             opacity: 0.350896707473774
+-                             opacity: "0.48535"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"55.62...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "55.62146984023416%"
+-                             top: "32.4074%"
++                             left: "7.495788423288219%"
+-                             left: "1.46383%"
++                             opacity: 0.5372152896690096
+-                             opacity: "0.685794"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"20.36...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "20.365446262559207%"
+-                             top: "47.5971%"
++                             left: "55.60770137764077%"
+-                             left: "93.4523%"
++                             opacity: 0.393455638350661
+-                             opacity: "0.412298"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"3.066...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "3.0667729877282612%"
+-                             top: "59.9467%"
++                             left: "41.63637752214846%"
+-                             left: "15.4493%"
++                             opacity: 0.30186179725933915
+-                             opacity: "0.272244"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"14.49...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "14.497899155574734%"
+-                             top: "22.5618%"
++                             left: "13.476484802139355%"
+-                             left: "89.912%"
++                             opacity: 0.5442185781197242
+-                             opacity: "0.314233"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"30.71...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "30.719795619075295%"
+-                             top: "61.1832%"
++                             left: "10.401044053462105%"
+-                             left: "79.4609%"
++                             opacity: 0.6507041754602337
+-                             opacity: "0.180008"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"5.306...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "5.306052357327484%"
+-                             top: "19.5212%"
++                             left: "19.36202468921723%"
+-                             left: "49.7315%"
++                             opacity: 0.20034083216230897
+-                             opacity: "0.563813"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"21.04...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "21.04522799729498%"
+-                             top: "86.0489%"
++                             left: "36.43583813705408%"
+-                             left: "11.4858%"
++                             opacity: 0.648812762031878
+-                             opacity: "0.691741"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"77.53...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "77.53344115867705%"
+-                             top: "29.9398%"
++                             left: "96.80588739013852%"
+-                             left: "71.6279%"
++                             opacity: 0.7052961794550849
+-                             opacity: "0.254686"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"91.55...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "91.55338692744462%"
+-                             top: "62.0588%"
++                             left: "54.12640885561051%"
+-                             left: "86.5664%"
++                             opacity: 0.122019417175146
+-                             opacity: "0.754856"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"25.72...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "25.726983489603207%"
+-                             top: "37.1827%"
++                             left: "66.7061499911849%"
+-                             left: "64.4603%"
++                             opacity: 0.7294346714407799
+-                             opacity: "0.261271"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"38.50...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "38.5053116816517%"
+-                             top: "15.3566%"
++                             left: "95.23005148019863%"
+-                             left: "89.543%"
++                             opacity: 0.3328413722832272
+-                             opacity: "0.361169"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"98.75...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "98.75867668050866%"
+-                             top: "49.7886%"
++                             left: "99.12134216060579%"
+-                             left: "67.6859%"
++                             opacity: 0.5881539734230601
+-                             opacity: "0.408025"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"0.469...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "0.4698898911203453%"
+-                             top: "99.5935%"
++                             left: "64.56401462563177%"
+-                             left: "20.381%"
++                             opacity: 0.43634353296357986
+-                             opacity: "0.14879"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"38.51...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "38.5143402062444%"
+-                             top: "87.0698%"
++                             left: "11.615272789776443%"
+-                             left: "15.0734%"
++                             opacity: 0.2300184568873769
+-                             opacity: "0.201678"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"69.68...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "69.68570286939398%"
+-                             top: "34.0586%"
++                             left: "73.18145494856255%"
+-                             left: "0.155286%"
++                             opacity: 0.42515601975286754
+-                             opacity: "0.489848"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"24.64...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "24.648478763645578%"
+-                             top: "42.1751%"
++                             left: "66.3753117695501%"
+-                             left: "95.4163%"
++                             opacity: 0.7064372312342472
+-                             opacity: "0.164802"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"60.92...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "60.92491118314772%"
+-                             top: "91.4086%"
++                             left: "48.31009992650041%"
+-                             left: "61.2462%"
++                             opacity: 0.5590054338228306
+-                             opacity: "0.142773"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"17.66...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "17.66370911825259%"
+-                             top: "2.31104%"
++                             left: "21.69883489153167%"
+-                             left: "71.6706%"
++                             opacity: 0.5771140092478457
+-                             opacity: "0.107903"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"87.08...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "87.08963701023215%"
+-                             top: "35.1508%"
++                             left: "23.147789033582644%"
+-                             left: "30.0828%"
++                             opacity: 0.2156755180065963
+-                             opacity: "0.357888"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"16.13...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "16.138161957547037%"
+-                             top: "20.6695%"
++                             left: "85.15222898912735%"
+-                             left: "42.4301%"
++                             opacity: 0.1073568216571863
+-                             opacity: "0.353999"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"31.30...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "31.304374424208525%"
+-                             top: "15.4705%"
++                             left: "3.961317276156351%"
+-                             left: "72.9279%"
++                             opacity: 0.400228600676391
+-                             opacity: "0.427961"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"96.95...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "96.9517448369605%"
+-                             top: "77.2954%"
++                             left: "72.56476222119407%"
+-                             left: "29.2187%"
++                             opacity: 0.441320870161819
+-                             opacity: "0.237284"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"12.92...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "12.926519952750827%"
+-                             top: "53.2517%"
++                             left: "80.44738462129047%"
+-                             left: "11.6507%"
++                             opacity: 0.5019969206957471
+-                             opacity: "0.693734"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"90.57...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "90.57069349509486%"
+-                             top: "67.6265%"
++                             left: "78.63210179492138%"
+-                             left: "36.8764%"
++                             opacity: 0.703538425997278
+-                             opacity: "0.511575"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"90.76...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "90.76889932288816%"
+-                             top: "11.7577%"
++                             left: "38.10263751440559%"
+-                             left: "3.27572%"
++                             opacity: 0.43951277632355046
+-                             opacity: "0.783188"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"85.26...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "85.26228293937605%"
+-                             top: "74.7682%"
++                             left: "30.764532345514862%"
+-                             left: "59.8087%"
++                             opacity: 0.6839372950846679
+-                             opacity: "0.717849"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"91.99...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "91.99879329752314%"
+-                             top: "83.2804%"
++                             left: "40.49013904975968%"
+-                             left: "32.8131%"
++                             opacity: 0.7168520984165073
+-                             opacity: "0.581749"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"91.57...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "91.57912892427291%"
+-                             top: "8.30687%"
++                             left: "84.86908758144756%"
+-                             left: "82.9759%"
++                             opacity: 0.20635300314209554
+-                             opacity: "0.220955"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"46.55...", ...}} animate={{opacity:[...]}} ...>
+                          <div
+                            className="absolute h-px w-px bg-white"
+                            style={{
++                             top: "46.55541043221346%"
+-                             top: "42.4111%"
++                             left: "55.57828459683862%"
+-                             left: "31.7297%"
++                             opacity: 0.7615391946405012
+-                             opacity: "0.11654"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <div>
+                        <svg>
+                        <motion.div className="absolute h..." style={{top:"93.36...", ...}} animate={{y:[...], ...}} ...>
+                          <div
+                            className="absolute h-[1px] w-[1px] bg-[#00dbe9]/30"
+                            style={{
++                             top: "93.36365429463034%"
+-                             top: "5.81734%"
++                             left: "9.974029512894866%"
+-                             left: "5.54445%"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"14.43...", ...}} animate={{y:[...], ...}} ...>
+                          <div
+                            className="absolute h-[1px] w-[1px] bg-[#00dbe9]/30"
+                            style={{
++                             top: "14.437951209883693%"
+-                             top: "35.4027%"
++                             left: "26.055779969121474%"
+-                             left: "81.6396%"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"98.06...", ...}} animate={{y:[...], ...}} ...>
+                          <div
+                            className="absolute h-[1px] w-[1px] bg-[#00dbe9]/30"
+                            style={{
++                             top: "98.06459239244583%"
+-                             top: "5.7837%"
++                             left: "13.351600388920716%"
+-                             left: "36.9403%"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"22.35...", ...}} animate={{y:[...], ...}} ...>
+                          <div
+                            className="absolute h-[1px] w-[1px] bg-[#00dbe9]/30"
+                            style={{
++                             top: "22.35261176780805%"
+-                             top: "5.50529%"
++                             left: "40.26757943061179%"
+-                             left: "52.2571%"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"35.66...", ...}} animate={{y:[...], ...}} ...>
+                          <div
+                            className="absolute h-[1px] w-[1px] bg-[#00dbe9]/30"
+                            style={{
++                             top: "35.660520841803375%"
+-                             top: "6.92172%"
++                             left: "73.66577486909247%"
+-                             left: "7.54053%"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"22.56...", ...}} animate={{y:[...], ...}} ...>
+                          <div
+                            className="absolute h-[1px] w-[1px] bg-[#00dbe9]/30"
+                            style={{
++                             top: "22.563863451154877%"
+-                             top: "56.0811%"
++                             left: "40.91409385122666%"
+-                             left: "95.864%"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"56.15...", ...}} animate={{y:[...], ...}} ...>
+                          <div
+                            className="absolute h-[1px] w-[1px] bg-[#00dbe9]/30"
+                            style={{
++                             top: "56.15593986800508%"
+-                             top: "50.5554%"
++                             left: "12.689011581641662%"
+-                             left: "25.7777%"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"45.93...", ...}} animate={{y:[...], ...}} ...>
+                          <div
+                            className="absolute h-[1px] w-[1px] bg-[#00dbe9]/30"
+                            style={{
++                             top: "45.934596559847776%"
+-                             top: "92.9088%"
++                             left: "51.084361861631265%"
+-                             left: "39.0567%"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"21.61...", ...}} animate={{y:[...], ...}} ...>
+                          <div
+                            className="absolute h-[1px] w-[1px] bg-[#00dbe9]/30"
+                            style={{
++                             top: "21.619458131046454%"
+-                             top: "45.5332%"
++                             left: "78.88603635733874%"
+-                             left: "88.3103%"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"34.47...", ...}} animate={{y:[...], ...}} ...>
+                          <div
+                            className="absolute h-[1px] w-[1px] bg-[#00dbe9]/30"
+                            style={{
++                             top: "34.47426720121103%"
+-                             top: "24.0733%"
++                             left: "92.22892882609959%"
+-                             left: "38.2477%"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"12.38...", ...}} animate={{y:[...], ...}} ...>
+                          <div
+                            className="absolute h-[1px] w-[1px] bg-[#00dbe9]/30"
+                            style={{
++                             top: "12.38249628027206%"
+-                             top: "6.85343%"
++                             left: "0.726747341763867%"
+-                             left: "65.0806%"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"71.72...", ...}} animate={{y:[...], ...}} ...>
+                          <div
+                            className="absolute h-[1px] w-[1px] bg-[#00dbe9]/30"
+                            style={{
++                             top: "71.72651419520216%"
+-                             top: "81.5176%"
++                             left: "69.25501639338847%"
+-                             left: "11.0063%"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"63.08...", ...}} animate={{y:[...], ...}} ...>
+                          <div
+                            className="absolute h-[1px] w-[1px] bg-[#00dbe9]/30"
+                            style={{
++                             top: "63.08576505719634%"
+-                             top: "62.6525%"
++                             left: "50.75626565067023%"
+-                             left: "22.6505%"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"94.13...", ...}} animate={{y:[...], ...}} ...>
+                          <div
+                            className="absolute h-[1px] w-[1px] bg-[#00dbe9]/30"
+                            style={{
++                             top: "94.13961536453309%"
+-                             top: "26.3631%"
++                             left: "81.98213707324985%"
+-                             left: "45.6976%"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                        <motion.div className="absolute h..." style={{top:"20.38...", ...}} animate={{y:[...], ...}} ...>
+                          <div
+                            className="absolute h-[1px] w-[1px] bg-[#00dbe9]/30"
+                            style={{
++                             top: "20.385143828661757%"
+-                             top: "89.02%"
++                             left: "92.87929139918846%"
+-                             left: "33.0646%"
+                            }}
+                            ref={function useMotionRef.useCallback}
+                          >
+                    ...
+        ...
+      ...
+
+[?25h
