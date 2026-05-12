@@ -270,7 +270,8 @@ function HabitatModule({
   currentIndex,
   direction,
   onPrev,
-  onNext
+  onNext,
+  onSelect
 }: {
   pet: Pet;
   photos: string[];
@@ -278,15 +279,17 @@ function HabitatModule({
   direction: number;
   onPrev: () => void;
   onNext: () => void;
+  onSelect: (index: number) => void;
 }) {
 
   const variants = {
     enter: (dir: number) => ({
-      rotateY: dir > 0 ? 45 : -45,
-      z: -100,
-      x: dir > 0 ? 200 : -200,
+      rotateY: dir > 0 ? 90 : -90,
+      z: -300,
+      x: dir > 0 ? 300 : -300,
       opacity: 0,
-      scale: 0.8
+      scale: 0.9,
+      filter: "blur(10px) brightness(0.5)"
     }),
     center: {
       zIndex: 1,
@@ -294,15 +297,17 @@ function HabitatModule({
       z: 0,
       x: 0,
       opacity: 1,
-      scale: 1
+      scale: 1,
+      filter: "blur(0px) brightness(1)"
     },
     exit: (dir: number) => ({
       zIndex: 0,
-      rotateY: dir < 0 ? 45 : -45,
-      z: -100,
-      x: dir < 0 ? 200 : -200,
+      rotateY: dir < 0 ? 90 : -90,
+      z: -300,
+      x: dir < 0 ? 300 : -300,
       opacity: 0,
-      scale: 0.8
+      scale: 0.9,
+      filter: "blur(10px) brightness(0.5)"
     })
   };
 
@@ -326,8 +331,15 @@ function HabitatModule({
       </div>
 
       {/* Pet Image Carousel */}
-      <div className="relative w-full h-[350px] max-w-md mx-auto mb-6 overflow-hidden border border-white/10 bg-black group flex items-center justify-center" style={{ perspective: "1200px" }}>
-        <div className="absolute inset-0 bg-mosaic opacity-30 pointer-events-none z-10" />
+      <div className="relative w-full min-h-[350px] max-w-md mx-auto mb-6 overflow-hidden border border-white/10 bg-black group flex items-center justify-center" style={{ perspective: "2000px" }}>
+                <div className="absolute inset-0 bg-mosaic opacity-30 pointer-events-none z-10" />
+
+        {/* Ghost image to drive dynamic height */}
+        <img
+          src={photos[currentIndex] || pet.src}
+          alt=""
+          className="w-full h-auto opacity-0 pointer-events-none invisible"
+        />
         
         <AnimatePresence initial={false} custom={direction}>
           <motion.div
@@ -337,13 +349,27 @@ function HabitatModule({
             initial="enter"
             animate="center"
             exit="exit"
-            transition={{ type: "spring", stiffness: 200, damping: 25, mass: 1 }}
-            className="absolute inset-0 p-4 flex items-center justify-center" style={{ transformStyle: "preserve-3d" }}
+            transition={{
+              x: { type: "spring", stiffness: 300, damping: 30 },
+              opacity: { duration: 0.2 },
+              rotateY: { type: "spring", stiffness: 200, damping: 20 },
+              default: { duration: 0.4 }
+            }}
+            drag="x"
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.7}
+            onDragEnd={(_, info) => {
+              const swipe = info.offset.x;
+              if (swipe < -50) onNext();
+              else if (swipe > 50) onPrev();
+            }}
+            className="absolute inset-0 p-4 flex items-center justify-center cursor-grab active:cursor-grabbing"
+            style={{ transformStyle: "preserve-3d", backfaceVisibility: "hidden" }}
           >
             <img 
               src={photos[currentIndex] || pet.src} 
               alt={pet.name} 
-              className="w-full h-full object-contain contrast-110 drop-shadow-2xl" 
+              className="max-w-full max-h-full w-auto h-auto object-contain contrast-110 drop-shadow-[0_0_30px_rgba(255,255,255,0.1)] transition-transform duration-500 hover:scale-[1.02]"
             />
           </motion.div>
         </AnimatePresence>
@@ -360,7 +386,11 @@ function HabitatModule({
             {/* Indicators */}
             <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-20 bg-black/40 px-2 py-1 rounded-full backdrop-blur-sm border border-white/5">
               {photos.map((_, i) => (
-                <div key={i} className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${i === currentIndex ? 'bg-[#00dbe9] scale-125' : 'bg-white/30'}`} />
+                <button
+                  key={i}
+                  onClick={() => onSelect(i)}
+                  className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${i === currentIndex ? "bg-[#00dbe9] scale-125" : "bg-white/30 hover:bg-white/50"}`}
+                />
               ))}
             </div>
           </>
@@ -550,6 +580,15 @@ export function PetSpaceHub() {
 
   const allPhotos = [...activePet.gallery, ...supabasePhotos];
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft") handlePhotoPrev();
+      if (e.key === "ArrowRight") handlePhotoNext();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [allPhotos.length]); // Dependencies to ensure handlers are fresh
+
   const handlePhotoPrev = () => {
     setPhotoDirection(-1);
     setCurrentPhotoIndex(prev => (prev - 1 + allPhotos.length) % allPhotos.length);
@@ -619,6 +658,7 @@ export function PetSpaceHub() {
         direction={photoDirection}
         onPrev={handlePhotoPrev}
         onNext={handlePhotoNext}
+        onSelect={handlePhotoSelect}
       />
 
       {/* Gallery */}
