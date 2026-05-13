@@ -82,7 +82,7 @@ const PETS: Pet[] = [
 
 // --- Sub-components ---
 
-function SpaceDecorations({ isWarping, direction }: { isWarping: boolean; direction: number }) {
+function SpaceDecorations({ isWarping, direction, petId }: { isWarping: boolean; direction: number; petId: string }) {
   const stars = useMemo(() => Array.from({ length: 80 }).map(() => ({
     top: Math.random() * 100,
     left: Math.random() * 100,
@@ -90,6 +90,20 @@ function SpaceDecorations({ isWarping, direction }: { isWarping: boolean; direct
     delay: Math.random() * 5,
     duration: Math.random() * 3 + 2,
   })), []);
+
+  const nebulas = useMemo(() => {
+    const list = ['1.png', '2.png', '3.jpg', '4.jpg', '5.jpg', '6.jpg'];
+    const count = Math.floor(Math.random() * 3) + 2; // 2 to 4 nebulas
+    return Array.from({ length: count }).map((_, i) => ({
+      id: `${petId}-${i}`,
+      src: `/img/nebulosas/${list[Math.floor(Math.random() * list.length)]}`,
+      top: Math.random() * 80 + 10,
+      left: Math.random() * 80 + 10,
+      size: Math.random() * 60 + 50, // 50px to 110px
+      rotation: Math.random() * 360,
+      opacity: Math.random() * 0.3 + 0.2
+    }));
+  }, [petId]);
 
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden z-0">
@@ -129,6 +143,36 @@ function SpaceDecorations({ isWarping, direction }: { isWarping: boolean; direct
         />
       ))}
 
+      {/* Decorative Nebulas */}
+      <AnimatePresence>
+        {nebulas.map((neb) => (
+          <motion.img
+            key={neb.id}
+            src={neb.src}
+            initial={{ opacity: 0, scale: 0.8, x: direction > 0 ? 100 : -100 }}
+            animate={isWarping ? {
+              opacity: 0,
+              scale: 0.5,
+              x: direction * -500
+            } : { 
+              opacity: neb.opacity, 
+              scale: 1, 
+              x: 0 
+            }}
+            transition={{ duration: isWarping ? 0.6 : 1, ease: "easeOut" }}
+            className="absolute object-cover mix-blend-screen"
+            style={{
+              top: `${neb.top}%`,
+              left: `${neb.left}%`,
+              width: `${neb.size}px`,
+              height: `${neb.size}px`,
+              rotate: `${neb.rotation}deg`,
+              filter: 'blur(2px) contrast(150%)',
+            }}
+          />
+        ))}
+      </AnimatePresence>
+
       {/* Nebula glow */}
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#a100f0]/10 rounded-full blur-[100px] mix-blend-screen opacity-50" />
     </div>
@@ -141,7 +185,7 @@ function OrbitalViewport({ pet, isWarping, direction, onPrev, onNext }: { pet: P
 
       {/* Deep Space Background behind the viewport */}
       <div className="absolute inset-0">
-        <SpaceDecorations isWarping={isWarping} direction={direction} />
+        <SpaceDecorations isWarping={isWarping} direction={direction} petId={pet.id} />
       </div>
 
       {/* Sliding Assembly: viewport + platform */}
@@ -156,27 +200,27 @@ function OrbitalViewport({ pet, isWarping, direction, onPrev, onNext }: { pet: P
             transition={{ duration: 0.6, ease: [0.2, 0.8, 0.2, 1] }}
             className="absolute inset-0 flex flex-col items-center z-10 w-full"
           >
-            {/* Spinning rings + pet photo (with holo-float and moved up by 24px) */}
+            {/* Spinning rings + pet photo (with holo-float and moved up by 25px from previous position) */}
             <div
-              className="relative w-52 h-52 sm:w-64 sm:h-64 flex-shrink-0 z-20 translate-y-6"
+              className="relative w-52 h-52 sm:w-64 sm:h-64 flex-shrink-0 z-20 translate-y-[-1px]"
               style={{ animation: 'holo-float 4s ease-in-out infinite' }}
             >
               {/* Outer spinning ring */}
               <div
-                className="absolute inset-0 border-2 border-white/5 rounded-full"
+                className="absolute inset-0 border-2 border-white/5"
                 style={{ animation: 'spin 10s linear infinite', borderTopColor: pet.accent }}
               />
               {/* Inner spinning ring */}
               <div
-                className="absolute inset-2 border border-white/5 rounded-full"
+                className="absolute inset-2 border border-white/5"
                 style={{ animation: 'spin 15s linear infinite reverse', borderBottomColor: '#a100f0' }}
               />
               {/* Viewport */}
-              <div className="absolute inset-4 rounded-full overflow-hidden border border-white/20 backdrop-blur-md shadow-[inset_0_0_30px_rgba(0,0,0,1)]">
+              <div className="absolute inset-4 rotate-45 overflow-hidden border border-white/20 backdrop-blur-md shadow-[inset_0_0_30px_rgba(0,0,0,1)]">
                 <img
                   src={pet.src}
                   alt={pet.name}
-                  className="w-full h-full object-cover object-center contrast-125 saturate-110 mix-blend-luminosity hover:mix-blend-normal transition-all duration-500"
+                  className="w-[150%] h-[150%] max-w-none -ml-[25%] -mt-[25%] -rotate-45 object-cover object-center contrast-125 saturate-110 mix-blend-luminosity hover:mix-blend-normal transition-all duration-500"
                 />
 
                 {/* Holo scanning line effect from OrbitCarousel */}
@@ -578,7 +622,17 @@ export function PetSpaceHub() {
     setCurrentPhotoIndex(0);
   }, [activePet.id]);
 
-  const allPhotos = [...activePet.gallery, ...supabasePhotos];
+  const carouselPhotos = supabasePhotos.length > 0 ? supabasePhotos : [activePet.src];
+
+  // Autoplay
+  useEffect(() => {
+    if (carouselPhotos.length <= 1) return;
+    const interval = setInterval(() => {
+      setPhotoDirection(1);
+      setCurrentPhotoIndex(prev => (prev + 1) % carouselPhotos.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [carouselPhotos.length]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -587,16 +641,16 @@ export function PetSpaceHub() {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [allPhotos.length]); // Dependencies to ensure handlers are fresh
+  }, [carouselPhotos.length]); // Dependencies to ensure handlers are fresh
 
   const handlePhotoPrev = () => {
     setPhotoDirection(-1);
-    setCurrentPhotoIndex(prev => (prev - 1 + allPhotos.length) % allPhotos.length);
+    setCurrentPhotoIndex(prev => (prev - 1 + carouselPhotos.length) % carouselPhotos.length);
   };
 
   const handlePhotoNext = () => {
     setPhotoDirection(1);
-    setCurrentPhotoIndex(prev => (prev + 1) % allPhotos.length);
+    setCurrentPhotoIndex(prev => (prev + 1) % carouselPhotos.length);
   };
 
   const handlePhotoSelect = (index: number) => {
@@ -653,7 +707,7 @@ export function PetSpaceHub() {
       {/* Habitat Module */}
       <HabitatModule
         pet={activePet}
-        photos={allPhotos}
+        photos={carouselPhotos}
         currentIndex={currentPhotoIndex}
         direction={photoDirection}
         onPrev={handlePhotoPrev}
@@ -664,7 +718,7 @@ export function PetSpaceHub() {
       {/* Gallery */}
       <GalleryStrip
         pet={activePet}
-        photos={allPhotos}
+        photos={carouselPhotos}
         currentIndex={currentPhotoIndex}
         onSelect={handlePhotoSelect}
         onUploadComplete={() => loadPhotos(activePet.id)}

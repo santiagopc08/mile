@@ -1,149 +1,174 @@
 ---
 name: Symmetry
 colors:
-  surface: '#131313'
-  surface-dim: '#131313'
-  surface-bright: '#393939'
-  surface-container-lowest: '#0e0e0e'
-  surface-container-low: '#1c1b1b'
-  surface-container: '#201f1f'
-  surface-container-high: '#2a2a2a'
-  surface-container-highest: '#353534'
-  on-surface: '#e5e2e1'
-  on-surface-variant: '#e1bfb2'
-  inverse-surface: '#e5e2e1'
-  inverse-on-surface: '#313030'
-  outline: '#a88a7e'
-  outline-variant: '#594137'
-  surface-tint: '#ffb595'
-  primary: '#ffb595'
-  on-primary: '#571e00'
-  primary-container: '#ff7020'
-  on-primary-container: '#5c2000'
-  inverse-primary: '#a23f00'
-  secondary: '#e5b5ff'
-  on-secondary: '#4e0078'
-  secondary-container: '#a100f0'
-  on-secondary-container: '#f7e1ff'
-  tertiary: '#00dbe9'
-  on-tertiary: '#00363a'
-  tertiary-container: '#00acb7'
-  on-tertiary-container: '#00393e'
+  surface: '#1f0e13'
+  surface-dim: '#1f0e13'
+  surface-bright: '#493338'
+  surface-container-lowest: '#19090d'
+  surface-container-low: '#28161b'
+  surface-container: '#2d1a1f'
+  surface-container-high: '#382529'
+  surface-container-highest: '#442f34'
+  on-surface: '#fbdae0'
+  on-surface-variant: '#e5bcc4'
+  inverse-surface: '#fbdae0'
+  inverse-on-surface: '#3f2b2f'
+  outline: '#ac878f'
+  outline-variant: '#5c3f45'
+  surface-tint: '#ffb1c3'
+  primary: '#ffb1c3'
+  on-primary: '#66002c'
+  primary-container: '#ff4b89'
+  on-primary-container: '#590026'
+  inverse-primary: '#bb0058'
+  secondary: '#ffffff'
+  on-secondary: '#283500'
+  secondary-container: '#c3f400'
+  on-secondary-container: '#556d00'
+  tertiary: '#d1bcff'
+  on-tertiary: '#3c0090'
+  tertiary-container: '#a178ff'
+  on-tertiary-container: '#34007f'
   error: '#ffb4ab'
   on-error: '#690005'
   error-container: '#93000a'
   on-error-container: '#ffdad6'
-  primary-fixed: '#ffdbcc'
-  primary-fixed-dim: '#ffb595'
-  on-primary-fixed: '#351000'
-  on-primary-fixed-variant: '#7c2e00'
-  secondary-fixed: '#f4d9ff'
-  secondary-fixed-dim: '#e5b5ff'
-  on-secondary-fixed: '#30004b'
-  on-secondary-fixed-variant: '#7000a8'
-  tertiary-fixed: '#7df4ff'
-  tertiary-fixed-dim: '#00dbe9'
-  on-tertiary-fixed: '#002022'
-  on-tertiary-fixed-variant: '#004f54'
-  background: '#131313'
-  on-background: '#e5e2e1'
-  surface-variant: '#353534'
+  primary-fixed: '#ffd9e0'
+  primary-fixed-dim: '#ffb1c3'
+  on-primary-fixed: '#3f0019'
+  on-primary-fixed-variant: '#8f0041'
+  secondary-fixed: '#c3f400'
+  secondary-fixed-dim: '#abd600'
+  on-secondary-fixed: '#161e00'
+  on-secondary-fixed-variant: '#3c4d00'
+  tertiary-fixed: '#e9ddff'
+  tertiary-fixed-dim: '#d1bcff'
+  on-tertiary-fixed: '#23005b'
+  on-tertiary-fixed-variant: '#5700c9'
+  background: '#1f0e13'
+  on-background: '#fbdae0'
+  surface-variant: '#442f34'
 typography:
-  display-xl:
+  headline-xl:
     fontFamily: Space Grotesk
-    fontSize: 64px
+    fontSize: 48px
     fontWeight: '700'
     lineHeight: '1.1'
     letterSpacing: -0.04em
   headline-lg:
     fontFamily: Space Grotesk
     fontSize: 32px
-    fontWeight: '700'
-    lineHeight: '1.2'
-    letterSpacing: 0.05em
-  headline-md:
-    fontFamily: Space Grotesk
-    fontSize: 20px
     fontWeight: '600'
     lineHeight: '1.2'
-    letterSpacing: 0.1em
+    letterSpacing: -0.02em
+  headline-sm:
+    fontFamily: Space Grotesk
+    fontSize: 24px
+    fontWeight: '600'
+    lineHeight: '1.2'
   body-lg:
-    fontFamily: Inter
-    fontSize: 16px
-    fontWeight: '400'
-    lineHeight: '1.6'
-    letterSpacing: 0.01em
-  body-sm:
-    fontFamily: Inter
-    fontSize: 14px
+    fontFamily: Space Grotesk
+    fontSize: 18px
     fontWeight: '400'
     lineHeight: '1.5'
-    letterSpacing: 0.01em
-  mono-data:
+  body-md:
+    fontFamily: Space Grotesk
+    fontSize: 16px
+    fontWeight: '400'
+    lineHeight: '1.5'
+  body-sm:
     fontFamily: Space Grotesk
     fontSize: 14px
-    fontWeight: '500'
+    fontWeight: '400'
     lineHeight: '1.4'
-    letterSpacing: 0.02em
-  label-caps:
+  label-mono:
     fontFamily: Space Grotesk
     fontSize: 12px
-    fontWeight: '600'
+    fontWeight: '500'
     lineHeight: '1'
-    letterSpacing: 0.15em
+    letterSpacing: 0.1em
+  code-display:
+    fontFamily: Space Grotesk
+    fontSize: 14px
+    fontWeight: '300'
+    lineHeight: '1.2'
 spacing:
   unit: 4px
-  gutter: 16px
-  margin: 24px
-  grid-size: 32px
+  xs: 4px
+  sm: 8px
+  md: 16px
+  lg: 24px
+  xl: 40px
+  grid-margin: 24px
+  grid-gutter: 1px
 ---
 
 ## Brand & Style
 
-This design system is built for elite productivity, channeling the aesthetic of a **tactical dashboard** or a **high-end IDE**. The personality is focused, analytical, and uncompromisingly technical. It targets "power users" who view their workflow as a series of precise operations rather than casual tasks.
+This design system is rooted in **High-Tech Brutalism**, prioritizing raw structural logic and information density over decorative softness. The aesthetic is inspired by mainframe terminals, blueprint schematics, and cyberpunk utility. It targets technical power-users who require high data visibility and a "pro-tool" interface.
 
-The visual style is **Refined Brutalism**. It utilizes a strict adherence to a grid, sharp geometric forms, and high-contrast accents to create a sense of digital permanence. The interface avoids organic shapes and soft shadows in favor of hard edges, hair-line borders, and "glowing" data points, ensuring the user feels in total control of a complex, futuristic system.
+The emotional response is one of precision, urgency, and absolute control. Visual interest is generated not through depth or gradients, but through rigid geometric repetition, tactical use of neon accents, and the transparency of the layout's underlying grid.
 
 ## Colors
 
-The palette is anchored in a **Deep Black (#000000)** foundation to maximize contrast and visual depth. 
+The palette is anchored by a deep obsidian base (`#131313`), providing a high-contrast environment for luminous signal colors. 
 
-- **Primary Accent (Vibrant Orange):** Reserved for critical actions, active focus states, and progress indicators. It serves as the "ignition" color of the system.
-- **Secondary Accent (Neon Purple):** Used for navigation highlights, categorization of creative tasks, and secondary interaction feedback.
-- **Tertiary Accent (Teal):** Applied to data visualization, status "OK" indicators, and technical categorization.
-- **Neutral Layers:** Greys are kept exceptionally dark (#121212, #1A1A1A) to maintain the "stealth" aesthetic, used primarily for container backgrounds and input fields.
+- **Primary (Vibrant Pink):** Reserved for critical actions, active states, and primary branding elements.
+- **Secondary (Neon Green):** Used for "system-ready" status, success indicators, and secondary technical readouts.
+- **Tertiary (Deep Purple):** Applied to auxiliary data streams, background accents, and low-priority structural highlights.
+- **Functional Grays:** A range of cool-toned grays is used for borders and inactive states to maintain the blueprint aesthetic without competing with the neon signals.
+
+Color should be used "digitally"—meaning full saturation or off. Avoid muddy transitions; prefer hard color steps and glowing strokes.
 
 ## Typography
 
-The typography strategy leverages the technical grit of **Space Grotesk** for all structural and data-heavy elements. Headlines are intentionally bold and condensed to mimic military-spec labeling.
+The design system exclusively utilizes **Space Grotesk** to maintain a monospaced, technical feel across all hierarchies. The typography is treated as a structural element:
 
-**Inter** provides the necessary legibility for body text and long-form descriptions, ensuring that while the shell is brutalist, the information remains highly readable. A heavy reliance on **Uppercase** with increased letter spacing for labels and sub-headers reinforces the "dashboard" feel. Large numerals (e.g., timers, stats) should always use the Display style for maximum impact.
+- **Headlines:** Should be tightly tracked and heavy. Use "headline-xl" sparingly for hero sections or major dashboard headers.
+- **Labels:** Always uppercase with increased letter spacing. These are used for categories, metadata, and status indicators.
+- **Readability:** Despite the brutalist style, body text maintains standard line heights to ensure long-form technical data remains legible.
+- **Special Treatment:** Important values or IDs should use "label-mono" to simulate terminal output.
 
 ## Layout & Spacing
 
-The design system utilizes a **Fixed 12-Column Grid** layered over a **subtle 32px background grid pattern**. All components must align to the grid intersections.
+The layout follows a **Fixed-Grid Structural** model. A global 20px blueprint grid (1px lines at 10% opacity) should be visible in the background of the workspace.
 
-Spacing is governed by a 4px base unit, favoring density over whitespace. The "Symmetry" name is reflected in perfectly balanced horizontal distributions. Large components are separated by 32px or 48px blocks, while internal element padding is kept tight (8px to 16px) to maintain a sense of precision and information density common in professional monitoring tools.
+- **Grid:** A 12-column system is used, but instead of wide gutters, elements are separated by 1px borders. This creates a "joined-cell" look common in complex technical interfaces.
+- **Density:** Information density is high. Padding within components should be minimal (`sm` or `md`) to allow for maximum data visualization.
+- **Structural Brackets:** Key sections or containers should be capped with L-shaped corner brackets in the primary or secondary color to define their boundaries.
+- **Reflow:** On mobile, columns collapse to a single stack, but the 1px border separation remains to maintain the structural integrity.
 
 ## Elevation & Depth
 
-This design system rejects traditional shadows. Depth is achieved through:
-- **Tonal Layering:** Background surfaces are #000000. Level 1 containers are #0A0A0A. Level 2 (active cards) are #121212.
-- **Thin Borders:** 1px solid borders in low-opacity white (10%) or primary orange (100%) define edges.
-- **Glowing Accents:** Active elements utilize a 0px blur, high-spread "glow" using the primary or secondary accent colors to simulate an illuminated hardware display.
-- **Grid Transparency:** A fixed background grid pattern is visible through semi-transparent containers, creating a sense of "glass-on-metal" layering.
+This system rejects shadows and organic depth. Hierarchy is established through:
+
+- **Border Weight:** 1px for standard containers, 2px for active or focused elements.
+- **Tonal Stepping:** Using `#131313` for the base, `#1A1A1A` for cards, and `#252525` for elevated headers or tooltips.
+- **Glow Accents:** Focused elements use an `outer-glow` (box-shadow with 0 blur, or very small spread of 4px) using the Primary or Secondary neon colors.
+- **Overlays:** Content that sits "above" the UI (like modals) must have a thick 2px solid border and a 100% opaque background to clearly "cut out" from the grid beneath.
 
 ## Shapes
 
-The shape language is strictly **Sharp (0px)**. No rounded corners are permitted in the standard UI kit. This reinforces the brutalist, architectural nature of the interface. 
+The shape language is strictly **Sharp (0px)**. There are no rounded corners in this design system. 
 
-Buttons, input fields, and containers are all perfect rectangles. The only exception is the "Circular Profile" element (as seen in the reference), which acts as a focal point of "organic" data within the rigid machine environment.
+Every element—buttons, inputs, cards, and tags—must be perfectly rectangular. This reinforces the "blueprint" and "technical drawing" feel. In place of roundedness, use chamfered corners (clipped 45-degree angles) exclusively for decorative tab treatments or primary action buttons to denote special functionality.
 
 ## Components
 
-- **Buttons:** Sharp edges. Primary buttons are solid Orange with Black text. Secondary buttons are Black with a 1px border and Orange text. Use a slight outer glow on hover.
-- **Input Fields:** Dark grey backgrounds (#0A0A0A) with a bottom-only or full 1px border. Focus state triggers an Orange border and a "Label-Caps" label floating above.
-- **Cards:** 1px border (#1A1A1A). Headers within cards should have a subtle horizontal separator line. Use the background grid pattern as a "fill" for empty states.
-- **Progress Bars:** Thin, linear, and non-rounded. Use segment markers to show granular progress rather than a smooth fill.
-- **Chips/Tags:** Monospaced text inside a small rectangular frame. Use Teal or Purple for categorization tags.
-- **Tactical HUD Elements:** Small, non-interactive "status" text like "V2.0" or "SYS_READY" in the corners of containers to enhance the futuristic aesthetic.
+### Buttons
+Buttons are rectangular blocks with 1px solid borders. 
+- **Primary:** Pink background, black text, 2px bottom-right "offset" border to simulate a tech-tactile feel.
+- **Ghost:** Transparent background, 1px Pink or Green border, monospaced uppercase text.
+- **State:** On hover, the button should "invert" (background color becomes the text color).
+
+### Inputs & Terminal Fields
+Input fields are styled like terminal prompts. They feature a bottom border only or a full 1px border with a "dot-matrix" texture background. The cursor should be a solid block or underscore that pulses rather than blinks.
+
+### Cards & Modules
+Modules must display their "Coordinates" or "ID" in the top-left corner using a small label-mono font. Use structural brackets `[ ]` around title text. A subtle dot-matrix pattern should be applied to the background of header sections within cards.
+
+### Icons
+Icons must be 1px thin-line style, geometric, and strictly non-rounded. Use 24x24px bounding boxes with a 2px padding. Icons should never be filled; they should appear as "wireframes."
+
+### Progress & Data
+Progress bars should be "chunked"—composed of individual rectangular segments rather than a smooth continuous bar. Each segment represents 5% or 10% of the total value.
