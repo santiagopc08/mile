@@ -8,6 +8,7 @@ import { AudioSection } from "@/components/AudioSection";
 import { PetSpaceHub } from "@/components/PetSpaceHub";
 import { Timeline } from "@/components/Timeline";
 import { useStore } from "@/context/StoreContext";
+import { useProfile } from "@/context/ProfileContext";
 import { MessageCircleHeart, Mic, Music, PawPrint, Clock, Activity, Radio } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -16,6 +17,11 @@ export default function RefugioPage() {
 
   const [activeTab, setActiveTab] = useState<RefugioTab>('notas');
   const { data } = useStore();
+  const { profile } = useProfile();
+  const accentColor = profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)';
+  const accentClass = profile === 'ella' ? 'user-a' : 'user-b';
+  const secondaryColor = profile === 'ella' ? 'var(--color-user-b)' : 'var(--color-user-a)';
+  const secondaryClass = profile === 'ella' ? 'user-b' : 'user-a';
   const events = data?.events || [];
 
   const tabs: Array<{ id: RefugioTab; label: string; icon: typeof MessageCircleHeart }> = [
@@ -30,16 +36,16 @@ export default function RefugioPage() {
     <PrivateRoute>
       <main className="relative z-10 min-h-screen w-full overflow-hidden bg-black px-4 pb-24 pt-6 text-[#e5e2e1] md:px-8 md:pt-8">
         <div className="pointer-events-none fixed inset-0 -z-10 bg-mosaic opacity-70" />
-        <div className="pointer-events-none fixed inset-x-0 top-0 -z-10 h-64 bg-[linear-gradient(180deg,rgba(255,112,32,0.16),transparent)]" />
+        <div className="pointer-events-none fixed inset-x-0 top-0 -z-10 h-64 opacity-20" style={{ backgroundImage: `linear-gradient(180deg, ${accentColor}, transparent)` }} />
 
         <div className="mx-auto w-full max-w-7xl border-x border-white/10">
           <div className="grid border-y border-white/10 bg-[#0a0a0a]/92 md:grid-cols-[1fr_auto]">
             <div className="relative p-5 sm:p-8 md:p-10">
-              <div className="absolute left-0 top-0 h-full w-px bg-[#ff7020]" />
+              <div className={`absolute left-0 top-0 h-full w-px bg-${accentClass}`} style={{ backgroundColor: accentColor }} />
               <div className="mb-8 flex flex-wrap items-center gap-3 text-[10px] font-bold uppercase tracking-[0.28em] text-[#a88a7e]">
-                <span className="border border-[#ff7020]/50 px-2 py-1 text-[#ffb595]">REFUGIO // V2.0</span>
+                <span className={`border border-${accentClass}/50 px-2 py-1 text-${accentClass}`} style={{ borderColor: `${accentColor}80`, color: accentColor }}>REFUGIO // V2.0</span>
                 <span className="flex items-center gap-2">
-                  <span className="h-2 w-2 bg-[#00dbe9]" />
+                  <span className={`h-2 w-2 bg-${secondaryClass}`} style={{ backgroundColor: secondaryColor }} />
                   SYS_READY
                 </span>
               </div>
@@ -57,18 +63,18 @@ export default function RefugioPage() {
               <div className="space-y-3 text-[10px] font-bold uppercase tracking-[0.24em] text-[#a88a7e]">
                 <div className="flex items-center justify-between border-b border-white/10 pb-3">
                   <span>Telemetry</span>
-                  <Activity className="h-4 w-4 text-[#00dbe9]" />
+                  <Activity className={`h-4 w-4 text-${accentClass}`} style={{ color: accentColor }} />
                 </div>
                 <div className="flex items-center justify-between">
                   <span>Signal</span>
-                  <span className="text-[#ffb595]">ACTIVE</span>
+                  <span className={`text-${secondaryClass}`} style={{ color: secondaryColor }}>ACTIVE</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span>Channel</span>
                   <span className="text-[#e5b5ff]">{activeTab}</span>
                 </div>
               </div>
-              <Radio className="h-16 w-16 text-[#ff7020]" strokeWidth={1} />
+              <Radio className={`h-16 w-16 text-${accentClass}`} style={{ color: accentColor }} strokeWidth={1} />
             </aside>
           </div>
 
@@ -78,21 +84,23 @@ export default function RefugioPage() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`group relative flex min-h-20 items-center justify-between border-r border-white/10 px-4 py-4 transition-all last:border-r-0 ${activeTab === tab.id
-                  ? 'bg-[#ff7020] text-black'
+                  ? 'text-black'
                   : 'bg-[#0a0a0a] text-[#a88a7e] hover:bg-[#121212] hover:text-white'
                   }`}
+                style={activeTab === tab.id ? { backgroundColor: accentColor } : {}}
               >
                 <span className="flex flex-col items-start gap-2">
                   <tab.icon className="h-4 w-4" />
                   <span className="text-[10px] font-black uppercase tracking-[0.22em]">{tab.label}</span>
                 </span>
-                <span className={`text-[9px] font-bold uppercase tracking-[0.2em] ${activeTab === tab.id ? 'text-black/55' : 'text-white/20 group-hover:text-[#00dbe9]'}`}>
+                <span className={`text-[9px] font-bold uppercase tracking-[0.2em] ${activeTab === tab.id ? 'text-black/55' : `text-white/20 group-hover:text-${secondaryClass}`}`} style={activeTab !== tab.id ? { '--tw-hover-text-opacity': 1 } as any : {}}>
                   0{tabs.findIndex((item) => item.id === tab.id) + 1}
                 </span>
                 {activeTab === tab.id && (
                   <motion.div
                     layoutId="activeTabRefugio"
-                    className="absolute inset-x-0 bottom-0 h-1 bg-[#00dbe9]"
+                    className={`absolute inset-x-0 bottom-0 h-1 bg-${secondaryClass}`}
+                    style={{ backgroundColor: secondaryColor }}
                   />
                 )}
               </button>

@@ -18,7 +18,7 @@ const formatCOP = (val: number) => {
   return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(val);
 };
 
-export const FinanceChart = ({ allocationsA, allocationsB }: { allocationsA: any[], allocationsB: any[] }) => {
+export const FinanceChart = ({ allocationsElla, allocationsEl }: { allocationsElla: any[], allocationsEl: any[] }) => {
   const { mode } = useVisibility();
   const { profile } = useProfile();
 
@@ -32,21 +32,21 @@ export const FinanceChart = ({ allocationsA, allocationsB }: { allocationsA: any
       const dayLabel = days[d.getDay()];
       const dateStr = d.toLocaleDateString();
 
-      const sumA = allocationsA
+      const sumElla = (allocationsElla || [])
         .filter(e => new Date(e.date).toLocaleDateString() === dateStr)
         .reduce((sum, e) => sum + e.amount, 0);
 
-      const sumB = allocationsB
+      const sumEl = (allocationsEl || [])
         .filter(e => new Date(e.date).toLocaleDateString() === dateStr)
         .reduce((sum, e) => sum + e.amount, 0);
 
       return {
         name: dayLabel,
-        USER_A: sumA,
-        USER_B: sumB,
+        USER_A: sumElla,
+        USER_B: sumEl,
       };
     });
-  }, [allocationsA, allocationsB]);
+  }, [allocationsElla, allocationsEl]);
 
   return (
     <div className="h-full w-full border border-white/10 bg-black/40 p-2 font-mono">
@@ -101,16 +101,16 @@ export const FinanceChart = ({ allocationsA, allocationsB }: { allocationsA: any
 
           {mode === 'me' ? (
             <Bar
-              dataKey={profile === 'el' ? 'USER_A' : 'USER_B'}
-              fill={profile === 'el' ? 'var(--color-user-a)' : 'var(--color-user-b)'}
+              dataKey={profile === 'ella' ? 'USER_A' : 'USER_B'}
+              fill={profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)'}
               barSize={12}
               isAnimationActive={true}
-              name={profile === 'el' ? 'SANTIAGO' : 'MILENA'}
+              name={profile === 'ella' ? 'MILENA' : 'SANTIAGO'}
             />
           ) : (
             <>
-              <Bar dataKey="USER_A" fill="var(--color-user-a)" barSize={8} isAnimationActive={true} name="SANTIAGO" />
-              <Bar dataKey="USER_B" fill="var(--color-user-b)" barSize={8} isAnimationActive={true} name="MILENA" />
+              <Bar dataKey="USER_A" fill="var(--color-user-a)" barSize={8} isAnimationActive={true} name="MILENA" />
+              <Bar dataKey="USER_B" fill="var(--color-user-b)" barSize={8} isAnimationActive={true} name="SANTIAGO" />
             </>
           )}
         </BarChart>

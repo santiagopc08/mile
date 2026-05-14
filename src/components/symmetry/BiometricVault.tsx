@@ -30,6 +30,10 @@ const FLO_SYMPTOMS = ['Cólicos', 'Hinchazón', 'Cambios de Humor', 'Fatiga', 'A
 
 export const BiometricVault = () => {
     const { profile } = useProfile();
+    const accentColor = profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)';
+    const accentClass = profile === 'ella' ? 'user-a' : 'user-b';
+    const secondaryColor = profile === 'ella' ? 'var(--color-user-b)' : 'var(--color-user-a)';
+    const secondaryClass = profile === 'ella' ? 'user-b' : 'user-a';
     const [state, setState] = useState<BiometricState>({ cycles: [], luteal_constant: 14 });
     const [isClient, setIsClient] = useState(false);
     
@@ -224,7 +228,7 @@ export const BiometricVault = () => {
             <div className="pointer-events-none absolute inset-0 bg-mosaic opacity-35" />
             
             <h2 className="relative z-10 mb-8 flex items-center justify-between border-b border-white/10 pb-3 text-[10px] font-black uppercase tracking-[0.22em] text-[#a88a7e]">
-                <span className="flex items-center gap-2"><Fingerprint className="h-4 w-4 text-[#00dbe9]" /> Controlador de Bóveda Biométrica</span>
+                <span className="flex items-center gap-2"><Fingerprint className={`h-4 w-4 text-${accentClass}`} style={{ color: accentColor }} /> Controlador de Bóveda Biométrica</span>
                 <span className="hidden font-mono text-[8px] text-[#594137] sm:inline">ZERO-KNOWLEDGE PROTOCOL</span>
             </h2>
 
@@ -239,7 +243,7 @@ export const BiometricVault = () => {
                         </div>
                         <div className="flex flex-col items-center justify-center border border-white/10 bg-black/60 p-4 text-center">
                             <span className="mb-1 text-[8px] uppercase tracking-widest text-[#a88a7e]">Índice Confianza</span>
-                            <span className="font-mono text-sm text-[#00dbe9]">
+                            <span className={`font-mono text-sm text-${accentClass}`} style={{ color: accentColor }}>
                                 {engineStats ? `${engineStats.confidenceScore}%` : '0%'}
                             </span>
                         </div>
@@ -268,14 +272,14 @@ export const BiometricVault = () => {
                                 <div className="flex justify-between items-center text-xs font-mono">
                                     <div className="flex flex-col">
                                         <span className="mb-1 text-[8px] uppercase tracking-wider text-[#a88a7e]">Último Registro</span>
-                                        <span className="border border-red-900 bg-red-900/20 px-2 py-1 text-red-400">
+                                        <span className={`border border-${accentClass}/50 px-2 py-1 text-${accentClass}`} style={{ borderColor: `${accentColor}80`, color: accentColor, backgroundColor: `${accentColor}1a` }}>
                                             {format(engineStats.latestCycleDate, 'MMM dd, yyyy')}
                                         </span>
                                     </div>
                                     <div className="mx-4 flex-1 border-t border-dashed border-white/10" />
                                     <div className="flex flex-col items-end">
                                         <span className="mb-1 text-[8px] uppercase tracking-wider text-[#a88a7e]">Inicio Previsto</span>
-                                        <span className="border border-dashed border-red-500 bg-red-950/20 px-2 py-1 text-red-400">
+                                        <span className={`border border-dashed border-${secondaryClass}/50 px-2 py-1 text-${secondaryClass}`} style={{ borderColor: `${secondaryColor}80`, color: secondaryColor, backgroundColor: `${secondaryColor}1a` }}>
                                             {format(engineStats.predictedNextDate, 'MMM dd, yyyy')}
                                         </span>
                                     </div>
@@ -284,7 +288,7 @@ export const BiometricVault = () => {
                                 {!isSovereign && (
                                     <div className="mt-6 border border-white/10 bg-[#0a0a0a] p-4">
                                         <div className="flex items-center gap-2 mb-2">
-                                            <ShieldAlert className="h-4 w-4 text-[#00dbe9]" />
+                                            <ShieldAlert className={`h-4 w-4 text-${accentClass}`} style={{ color: accentColor }} />
                                             <span className="text-[9px] font-bold uppercase tracking-widest text-[#a88a7e]">Directiva Estratégica</span>
                                         </div>
                                         <p className="text-sm font-light tracking-normal text-[#e1bfb2]">
@@ -311,7 +315,7 @@ export const BiometricVault = () => {
                 <div className="lg:col-span-5">
                     {isSovereign ? (
                         <div className="border border-white/10 bg-black p-6">
-                            <h3 className="text-[9px] uppercase tracking-widest text-red-500 font-bold mb-4 flex items-center gap-2">
+                            <h3 className={`text-[9px] uppercase tracking-widest text-${accentClass} font-bold mb-4 flex items-center gap-2`} style={{ color: accentColor }}>
                                 <Database className="w-3 h-3" /> Acceso Soberana de Datos
                             </h3>
                             <form onSubmit={handleLogCycle} className="space-y-4">
@@ -322,7 +326,7 @@ export const BiometricVault = () => {
                                             type="date" 
                                             value={dateInput}
                                             onChange={e => setDateInput(e.target.value)}
-                                            className="w-full border border-white/10 bg-[#0a0a0a] p-2 font-mono text-xs text-white outline-none focus:border-red-500"
+                                            className={`w-full border border-white/10 bg-[#0a0a0a] p-2 font-mono text-xs text-white outline-none focus:border-${accentClass}`}
                                             required
                                         />
                                     </div>
@@ -331,7 +335,7 @@ export const BiometricVault = () => {
                                         <select 
                                             value={flowLevel}
                                             onChange={e => setFlowLevel(e.target.value as any)}
-                                            className="w-full appearance-none border border-white/10 bg-[#0a0a0a] p-2 font-mono text-xs text-white outline-none focus:border-red-500"
+                                            className={`w-full appearance-none border border-white/10 bg-[#0a0a0a] p-2 font-mono text-xs text-white outline-none focus:border-${accentClass}`}
                                             required
                                         >
                                             <option value="" disabled>Seleccionar Flujo</option>
@@ -355,7 +359,7 @@ export const BiometricVault = () => {
                                                     type="checkbox" 
                                                     checked={selectedSymptoms.includes(sym)}
                                                     onChange={() => toggleSymptom(sym)}
-                                                    className="accent-red-500 rounded-none"
+                                                    className={`accent-${accentClass} rounded-none`}
                                                 />
                                                 <span className="text-[10px] uppercase text-stone-400">{sym}</span>
                                             </label>
@@ -371,7 +375,7 @@ export const BiometricVault = () => {
                                     <textarea 
                                         value={notes}
                                         onChange={e => setNotes(e.target.value)}
-                                        className="h-16 w-full resize-none border border-white/10 bg-[#0a0a0a] p-2 font-mono text-xs text-white outline-none focus:border-red-500"
+                                        className={`h-16 w-full resize-none border border-white/10 bg-[#0a0a0a] p-2 font-mono text-xs text-white outline-none focus:border-${accentClass}`}
                                     />
                                 </div>
 
@@ -381,14 +385,14 @@ export const BiometricVault = () => {
                                         id="atypical"
                                         checked={isAtypical}
                                         onChange={e => setIsAtypical(e.target.checked)}
-                                        className="accent-red-500 rounded-none"
+                                        className={`accent-${accentClass} rounded-none`}
                                     />
                                     <label htmlFor="atypical" className="text-[9px] uppercase tracking-widest text-stone-400 cursor-pointer">
                                         Marcar como Atípico (Excluir del modelo WMA)
                                     </label>
                                 </div>
 
-                                <button type="submit" className="w-full border border-red-900 bg-red-950/30 py-3 text-[10px] font-bold uppercase tracking-widest text-red-400 transition-colors hover:bg-red-900/50">
+                                <button type="submit" className={`w-full border border-${accentClass} bg-${accentClass}/20 py-3 text-[10px] font-bold uppercase tracking-widest text-${accentClass} transition-colors hover:bg-${accentClass}/40`} style={{ borderColor: `${accentColor}80`, color: accentColor }}>
                                     Comprometer Registro
                                 </button>
                             </form>
@@ -426,7 +430,7 @@ export const BiometricVault = () => {
                                         <div className="text-[9px] text-stone-500 hidden md:block max-w-[200px] truncate">
                                             S: {decrypt(cycle.symptoms_enc) || 'Ninguno'} | N: {decrypt(cycle.notes_enc) || 'N/A'}
                                         </div>
-                                        <button onClick={() => handleDelete(cycle.id)} className="text-stone-600 hover:text-red-500 text-[10px] uppercase">Purgar</button>
+                                        <button onClick={() => handleDelete(cycle.id)} className={`text-stone-600 hover:text-${accentClass} text-[10px] uppercase`}>Purgar</button>
                                     </div>
                                 ) : (
                                     <div className="flex items-center gap-2 text-[9px] font-mono text-stone-700">

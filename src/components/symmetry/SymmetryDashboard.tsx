@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { TaskModule } from './TaskModule';
-import { TaskStatsChart } from './TaskStatsChart';
 import { useStore } from '@/context/StoreContext';
 import { useVisibility } from '@/context/VisibilityContext';
 import { useProfile } from '@/context/ProfileContext';
@@ -30,6 +29,7 @@ export const SymmetryDashboard = () => {
   const { profile } = useProfile();
   const { data } = useStore();
   const tasks = useMemo(() => (data?.tasks as Task[]) || [], [data?.tasks]);
+  const objectives = useMemo(() => (data?.objectives as any[]) || [], [data?.objectives]);
   const [focusScore, setFocusScore] = useState(0);
   const [isFragmented, setIsFragmented] = useState(false);
   const [dataA, setDataA] = useState({ academic: 45, fitness: 65, work: 80, home: 70, personal: 60 });
@@ -111,20 +111,29 @@ export const SymmetryDashboard = () => {
   }, []);
 
   const [activeTab, setActiveTab] = useState<'tasks' | 'finances'>('tasks');
-  const activeAccent = mode === 'us' ? 'var(--color-user-b)' : 'var(--color-user-a)';
+  const activeAccent = profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)';
   const completedTasks = tasks.filter(t => t.status === 'done').length;
   const activeTasks = tasks.filter(t => t.status === 'in_progress').length;
 
+  const accentColorValue = profile === 'ella' ? '#ff4b89' : '#c3f400';
+  const accentAlphaValue = profile === 'ella' ? 'rgba(255, 75, 137, 0.3)' : 'rgba(195, 244, 0, 0.3)';
+
   return (
-    <div className="relative mx-auto w-full max-w-7xl px-4 pb-24 text-[#e5e2e1] sm:px-6">
+    <div 
+      className="relative mx-auto w-full max-w-7xl px-4 pb-24 text-[#e5e2e1] sm:px-6"
+      style={{ 
+        '--color-profile-accent': accentColorValue,
+        '--color-profile-accent-alpha': accentAlphaValue
+      } as React.CSSProperties}
+    >
       <div className="pointer-events-none fixed inset-0 -z-10 bg-mosaic opacity-50" />
 
       <div className="border-x border-white/10">
         <div className="grid border-y border-white/10 bg-[#0a0a0a]/95 lg:grid-cols-[1fr_340px]">
           <div className="relative p-5 sm:p-8 lg:p-10">
-            <div className="absolute left-0 top-0 h-full w-px bg-user-a" />
+            <div className="absolute left-0 top-0 h-full w-px" style={{ backgroundColor: activeAccent }} />
             <div className="mb-8 flex flex-wrap items-center gap-3 text-[10px] font-black uppercase tracking-[0.22em] text-[#a88a7e]">
-              <span className="border border-user-a/50 px-2 py-1 text-[#ffb595]">OPS_CORE</span>
+              <span className={`border px-2 py-1 ${profile === 'ella' ? 'border-user-a/50 text-user-a' : 'border-user-b/50 text-user-b'}`}>OPS_CORE</span>
               <span className="flex items-center gap-2">
                 <span className="h-2 w-2 bg-user-c" />
                 STORE_LINKED
@@ -139,15 +148,15 @@ export const SymmetryDashboard = () => {
               </p>
               <div className="grid grid-cols-3 border border-white/10 text-center">
                 <div className="border-r border-white/10 px-4 py-3">
-                  <div className="text-2xl font-black text-[#ffb595]">{tasks.length}</div>
+                  <div className={`text-2xl font-black ${profile === 'ella' ? 'text-user-a' : 'text-user-b'}`}>{tasks.length}</div>
                   <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Tasks</div>
                 </div>
                 <div className="border-r border-white/10 px-4 py-3">
-                  <div className="text-2xl font-black text-[#00dbe9]">{activeTasks}</div>
+                  <div className="text-2xl font-black text-user-c">{activeTasks}</div>
                   <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Active</div>
                 </div>
                 <div className="px-4 py-3">
-                  <div className="text-2xl font-black text-[#e5b5ff]">{Math.round(focusScore)}%</div>
+                  <div className={`text-2xl font-black ${profile === 'ella' ? 'text-user-b' : 'text-user-a'}`}>{Math.round(focusScore)}%</div>
                   <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Focus</div>
                 </div>
               </div>
@@ -162,7 +171,7 @@ export const SymmetryDashboard = () => {
             <div className="space-y-3 text-[10px] font-bold uppercase tracking-[0.18em] text-[#a88a7e]">
               <div className="flex items-center justify-between">
                 <span>Profile</span>
-                <span className="text-[#ffb595]">{profile || 'none'}</span>
+                <span className={profile === 'ella' ? 'text-user-a' : 'text-user-b'}>{profile || 'none'}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span>Mode</span>
@@ -207,7 +216,7 @@ export const SymmetryDashboard = () => {
                 <tab.icon className="h-4 w-4" />
                 <span className="text-[10px] font-black uppercase tracking-[0.22em]">{tab.label}</span>
               </span>
-              <span className={`text-[9px] font-bold uppercase tracking-[0.2em] ${activeTab === tab.key ? 'text-black/55' : 'text-white/20 group-hover:text-user-c'}`}>
+              <span className={`text-[9px] font-bold uppercase tracking-[0.2em] ${activeTab === tab.key ? 'text-black/55' : 'text-white/20 group-hover:text-white'}`}>
                 {tab.index}
               </span>
               {activeTab === tab.key && (
@@ -277,7 +286,7 @@ export const SymmetryDashboard = () => {
                 <div className="w-1.5 h-1.5 bg-user-c" style={{ boxShadow: '0 0 5px var(--color-user-c)' }} />
                 [ / ] DIAGNÓSTICO DE RENDIMIENTO
               </h2>
-              <TaskAnalytics tasks={tasks} />
+              <TaskAnalytics tasks={tasks} objectives={objectives} />
             </div>
           </motion.div>
         ) : (
@@ -328,8 +337,8 @@ export const SymmetryDashboard = () => {
                 </h2>
                 <div className="h-64">
                   <FinanceChart
-                    allocationsA={mode === 'me' && profile === 'ella' ? [] : allocationsA}
-                    allocationsB={mode === 'me' && profile === 'el' ? [] : allocationsB}
+                    allocationsElla={mode === 'me' && profile === 'el' ? [] : allocationsB}
+                    allocationsEl={mode === 'me' && profile === 'ella' ? [] : allocationsA}
                   />
                 </div>
               </div>

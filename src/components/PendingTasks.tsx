@@ -14,12 +14,12 @@ export function PendingTasks() {
     const [title, setTitle] = useState('');
     const [priority, setPriority] = useState('medium');
 
-    // Edit state
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editTitle, setEditTitle] = useState('');
     const [editPriority, setEditPriority] = useState<'low' | 'medium' | 'high'>('medium');
 
     const tasks = data?.tasks || [];
+    const accentColor = profile === 'ella' ? 'user-a' : 'user-b';
 
     const handleAddTask = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -87,7 +87,7 @@ export function PendingTasks() {
                 <button 
                     onClick={() => { setIsAdding(!isAdding); setEditingId(null); }}
                     className={`w-8 h-8 flex items-center justify-center border transition-all ${
-                        isAdding ? 'border-geometric-accent bg-geometric-accent/10 text-white' : 'border-stone-800 text-stone-600 hover:text-white hover:border-stone-600'
+                        isAdding ? `border-${accentColor} bg-${accentColor}/10 text-white` : 'border-stone-800 text-stone-600 hover:text-white hover:border-stone-600'
                     }`}
                 >
                     <Plus className={`w-4 h-4 transition-transform ${isAdding ? 'rotate-45' : ''}`} />
@@ -108,7 +108,7 @@ export function PendingTasks() {
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
                             placeholder="ESPECIFICAR NUEVA TAREA..."
-                            className="w-full bg-black/40 border border-stone-800 rounded-none px-4 py-3 text-xs uppercase tracking-widest text-white placeholder-stone-700 outline-none focus:border-geometric-accent"
+                            className={`w-full bg-black/40 border border-stone-800 rounded-none px-4 py-3 text-xs uppercase tracking-widest text-white placeholder-stone-700 outline-none focus:border-${accentColor}`}
                         />
                         <div className="flex gap-4 mt-4">
                             <select 
@@ -123,7 +123,7 @@ export function PendingTasks() {
                             <button 
                                 type="submit"
                                 disabled={!title.trim()}
-                                className="flex-1 bg-white text-black text-[10px] font-bold uppercase tracking-[0.2em] transition-all disabled:opacity-30 hover:bg-geometric-accent hover:text-white"
+                                className={`flex-1 bg-white text-black text-[10px] font-bold uppercase tracking-[0.2em] transition-all disabled:opacity-30 hover:bg-${accentColor} hover:text-white`}
                             >
                                 INSERTAR TAREA
                             </button>
@@ -146,11 +146,11 @@ export function PendingTasks() {
                                 task.status === 'done'
                                 ? 'bg-black/40 border-stone-900 opacity-30 shadow-none' 
                                 : 'bg-white/5 border-stone-800 hover:border-stone-600 hover:bg-white/10 shadow-sm'
-                            } ${editingId === task.id ? 'border-geometric-accent ring-1 ring-geometric-accent/30' : ''}`}
+                            } ${editingId === task.id ? `border-${accentColor} ring-1 ring-${accentColor}/30` : ''}`}
                         >
-                            <div className="flex items-center justify-center">
+                             <div className="flex items-center justify-center">
                                 <div className={`w-5 h-5 border flex items-center justify-center transition-all ${
-                                    task.status === 'done' ? 'bg-geometric-accent border-geometric-accent' : 'border-stone-700'
+                                    task.status === 'done' ? `bg-${accentColor} border-${accentColor}` : 'border-stone-700'
                                 }`}>
                                     {task.status === 'done' && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
                                 </div>

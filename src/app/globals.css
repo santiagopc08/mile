@@ -9,42 +9,42 @@
   --color-stone-200: #e7e5e4;
   --color-stone-100: #f5f5f4;
   --color-stone-50: #fafaf9;
-  --color-earth-dark: #2C2621;
-  --color-earth-base: #534538;
-  --color-earth-light: #8E7A68;
-  --color-earth-soft: #D3C2B3;
-  --color-earth-accent: #E8A87C;
 
-  /* User Accents */
-  --color-user-a: #ff7020; /* Primary Accent (Vibrant Orange) */
-  --color-user-b: #a100f0; /* Secondary Accent (Neon Purple) */
-  --color-user-c: #00dbe9; /* Tertiary Accent (Teal) */
+  /* User Accents - From design.md */
+  --color-user-a: #ff4b89; /* Ella (Vibrant Pink) */
+  --color-user-b: #c3f400; /* Yo (Neon Green) */
+  --color-user-c: #a178ff; /* Tertiary (Deep Purple) */
 
-  --color-surface: #131313;
-  --color-surface-dim: #0a0a0a;
-  --color-surface-dark: #000000;
-  --color-border-subtle: rgba(255, 255, 255, 0.1);
+  --color-surface: #1f0e13;
+  --color-surface-dim: #19090d;
+  --color-surface-bright: #493338;
+  --color-surface-container: #2d1a1f;
+  
+  --color-on-surface: #fbdae0;
+  --color-on-surface-variant: #e5bcc4;
+  
+  --color-outline: #ac878f;
+  --color-border-subtle: rgba(172, 135, 143, 0.1);
 
   --spacing: 0.25rem;
-  --font-sans: var(--font-inter);
-  --font-mono: var(--font-mono);
+  --font-sans: "Space Grotesk", sans-serif;
+  --font-mono: "Space Grotesk", monospace;
 
-  /* Geometric Accent */
-  --color-geometric-accent: #f43f5e;
-  --color-geometric-border: #292524;
-  --color-system-alert: #EF4444;
+  /* High-Tech Brutalism Signature */
+  --color-geometric-accent: var(--color-user-a);
+  --color-system-alert: #ffb4ab;
 }
 
 :root {
-  --background: #000000;
-  --foreground: #e5e2e1;
-  --tracking-tight: 0.05em;
+  --background: #1f0e13;
+  --foreground: #fbdae0;
+  --tracking-tight: -0.02em;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #000000;
-    --foreground: #e5e2e1;
+    --background: #1f0e13;
+    --foreground: #fbdae0;
   }
 }
 
@@ -167,6 +167,6 @@ button, input, select {
 }
 
 @keyframes holo-glow {
-  0%, 100% { filter: brightness(1) drop-shadow(0 0 8px rgba(255, 112, 32, 0.3)); }
-  50% { filter: brightness(1.1) drop-shadow(0 0 16px rgba(255, 112, 32, 0.5)); }
+  0%, 100% { filter: brightness(1) drop-shadow(0 0 8px var(--color-profile-accent-alpha)); }
+  50% { filter: brightness(1.1) drop-shadow(0 0 16px var(--color-profile-accent-alpha)); }
 }

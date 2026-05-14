@@ -4,6 +4,7 @@ import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useProfile } from '@/context/ProfileContext';
 import { Clock, TrendingUp, Zap, Target } from 'lucide-react';
+import { TaskStatsChart } from './TaskStatsChart';
 
 interface Task {
   id: string;
@@ -14,9 +15,10 @@ interface Task {
   status: string;
 }
 
-export const TaskAnalytics = ({ tasks }: { tasks: Task[] }) => {
+export const TaskAnalytics = ({ tasks, objectives }: { tasks: Task[], objectives: any[] }) => {
   const { profile } = useProfile();
-  const accentColor = profile === 'ella' ? 'var(--color-user-b)' : 'var(--color-user-a)';
+  const accentColor = profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)';
+  const accentClass = profile === 'ella' ? 'user-a' : 'user-b';
 
   const stats = useMemo(() => {
     if (!tasks || tasks.length === 0) return null;
@@ -58,10 +60,10 @@ export const TaskAnalytics = ({ tasks }: { tasks: Task[] }) => {
     <div className="grid grid-cols-1 gap-4 font-mono text-[#e5e2e1] md:grid-cols-2 lg:grid-cols-4">
       {/* Total Time */}
       <div className="relative flex min-h-[100px] flex-col justify-between border border-white/10 bg-black/40 p-4">
-        <div className="absolute left-0 top-0 h-1.5 w-1.5 border-l border-t border-user-a" />
+        <div className={`absolute left-0 top-0 h-1.5 w-1.5 border-l border-t border-${accentClass}`} style={{ borderColor: accentColor }} />
         <div className="flex justify-between items-start">
           <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">{'>'} 01. TIME_INV</span>
-          <Clock size={12} className="text-user-c" />
+          <Clock size={12} className={`text-${accentClass}`} style={{ color: accentColor }} />
         </div>
         <div className="mt-4">
           <span className="text-3xl font-black tabular-nums tracking-tighter text-white">{stats.totalActual}</span>
@@ -71,10 +73,10 @@ export const TaskAnalytics = ({ tasks }: { tasks: Task[] }) => {
 
       {/* Efficiency */}
       <div className="relative flex min-h-[100px] flex-col justify-between border border-white/10 bg-black/40 p-4">
-        <div className="absolute right-0 top-0 h-1.5 w-1.5 border-r border-t border-user-a" />
+        <div className={`absolute right-0 top-0 h-1.5 w-1.5 border-r border-t border-${accentClass}`} style={{ borderColor: accentColor }} />
         <div className="flex justify-between items-start">
           <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">{'>'} 02. SYS_PERF</span>
-          <TrendingUp size={12} className="text-user-c" />
+          <TrendingUp size={12} className={`text-${accentClass}`} style={{ color: accentColor }} />
         </div>
         <div className="mt-4 flex flex-col gap-2">
           <div className="flex items-end gap-2">
@@ -97,10 +99,10 @@ export const TaskAnalytics = ({ tasks }: { tasks: Task[] }) => {
 
       {/* Most Worked */}
       <div className="relative flex min-h-[100px] flex-col justify-between border border-white/10 bg-black/40 p-4">
-        <div className="absolute bottom-0 left-0 h-1.5 w-1.5 border-b border-l border-user-a" />
+        <div className={`absolute bottom-0 left-0 h-1.5 w-1.5 border-b border-l border-${accentClass}`} style={{ borderColor: accentColor }} />
         <div className="flex justify-between items-start">
           <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">{'>'} MAX_NODE</span>
-          <Zap size={12} className="text-user-c" />
+          <Zap size={12} className={`text-${accentClass}`} style={{ color: accentColor }} />
         </div>
         <div className="mt-4 overflow-hidden">
           <p className="text-[12px] uppercase font-bold truncate text-white" title={stats.mostWorked?.text}>
@@ -112,10 +114,10 @@ export const TaskAnalytics = ({ tasks }: { tasks: Task[] }) => {
 
       {/* Least Worked */}
       <div className="relative flex min-h-[100px] flex-col justify-between border border-white/10 bg-black/40 p-4">
-        <div className="absolute bottom-0 right-0 h-1.5 w-1.5 border-b border-r border-user-a" />
+        <div className={`absolute bottom-0 right-0 h-1.5 w-1.5 border-b border-r border-${accentClass}`} style={{ borderColor: accentColor }} />
         <div className="flex justify-between items-start">
           <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">{'>'} MIN_NODE</span>
-          <Target size={12} className="text-user-c" />
+          <Target size={12} className={`text-${accentClass}`} style={{ color: accentColor }} />
         </div>
         <div className="mt-4 overflow-hidden">
           <p className="text-[12px] uppercase font-bold truncate text-white" title={stats.leastWorked?.text}>
@@ -127,7 +129,7 @@ export const TaskAnalytics = ({ tasks }: { tasks: Task[] }) => {
 
       {/* Category Distribution */}
       <div className="relative mt-4 border border-white/10 bg-black/40 p-6 md:col-span-2 lg:col-span-4">
-        <div className="absolute left-0 top-0 h-2 w-2 border-l border-t border-user-a" />
+        <div className={`absolute left-0 top-0 h-2 w-2 border-l border-t border-${accentClass}`} style={{ borderColor: accentColor }} />
         <span className="mb-6 block text-[10px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">{'>'} 03. CAT_DISTRIBUTION</span>
         <div className="flex flex-col gap-3">
           {stats.catStats.map(cat => {
@@ -150,6 +152,13 @@ export const TaskAnalytics = ({ tasks }: { tasks: Task[] }) => {
             )
           })}
         </div>
+      </div>
+
+      {/* Weekly Stats Chart */}
+      <div className="relative mt-4 border border-white/10 bg-black/40 p-6 md:col-span-2 lg:col-span-4 h-64">
+        <div className={`absolute right-0 bottom-0 h-2 w-2 border-r border-b border-${accentClass}`} style={{ borderColor: accentColor }} />
+        <span className="mb-6 block text-[10px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">{'>'} 04. WEEKLY_PERFORMANCE</span>
+        <TaskStatsChart tasks={tasks} objectives={objectives} />
       </div>
     </div>
   );

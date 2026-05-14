@@ -3,22 +3,29 @@
 import { PrivateRoute } from "@/components/PrivateRoute";
 import { Mahjong } from "@/components/Mahjong";
 import { Activity, Gamepad2, Radio } from "lucide-react";
+import { useProfile } from "@/context/ProfileContext";
 
 export default function JuegoPage() {
+  const { profile } = useProfile();
+  const accentColor = profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)';
+  const accentClass = profile === 'ella' ? 'user-a' : 'user-b';
+  const secondaryColor = profile === 'ella' ? 'var(--color-user-b)' : 'var(--color-user-a)';
+  const secondaryClass = profile === 'ella' ? 'user-b' : 'user-a';
+
   return (
     <PrivateRoute>
       <main className="relative z-10 min-h-screen w-full overflow-hidden bg-black px-4 pb-24 pt-6 text-[#e5e2e1] md:px-8 md:pt-8">
         <div className="pointer-events-none fixed inset-0 -z-10 bg-mosaic opacity-65" />
-        <div className="pointer-events-none fixed inset-x-0 top-0 -z-10 h-64 bg-[linear-gradient(180deg,rgba(255,112,32,0.16),transparent)]" />
+        <div className="pointer-events-none fixed inset-x-0 top-0 -z-10 h-64 opacity-20" style={{ backgroundImage: `linear-gradient(180deg, ${accentColor}, transparent)` }} />
 
         <div className="mx-auto w-full max-w-7xl border-x border-white/10">
           <div className="grid border-y border-white/10 bg-[#0a0a0a]/95 md:grid-cols-[1fr_auto]">
             <div className="relative p-5 sm:p-8 md:p-10">
-              <div className="absolute left-0 top-0 h-full w-px bg-[#ff7020]" />
+              <div className={`absolute left-0 top-0 h-full w-px bg-${accentClass}`} style={{ backgroundColor: accentColor }} />
               <div className="mb-8 flex flex-wrap items-center gap-3 text-[10px] font-black uppercase tracking-[0.28em] text-[#a88a7e]">
-                <span className="border border-[#ff7020]/60 px-2 py-1 text-[#ffb595]">GAME // MEMORY_MATRIX</span>
+                <span className={`border border-${accentClass}/60 px-2 py-1 text-${accentClass}`} style={{ borderColor: `${accentColor}99`, color: accentColor }}>GAME // MEMORY_MATRIX</span>
                 <span className="flex items-center gap-2">
-                  <span className="h-2 w-2 bg-[#00dbe9]" />
+                  <span className={`h-2 w-2 bg-${secondaryClass}`} style={{ backgroundColor: secondaryColor }} />
                   BOARD_ONLINE
                 </span>
               </div>
@@ -31,11 +38,11 @@ export default function JuegoPage() {
                 </p>
                 <div className="grid grid-cols-2 border border-white/10 text-center">
                   <div className="border-r border-white/10 px-4 py-3">
-                    <Gamepad2 className="mx-auto h-7 w-7 text-[#ff7020]" strokeWidth={1.5} />
+                    <Gamepad2 className={`mx-auto h-7 w-7 text-${accentClass}`} style={{ color: accentColor }} strokeWidth={1.5} />
                     <div className="mt-1 text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Puzzle</div>
                   </div>
                   <div className="px-4 py-3">
-                    <div className="text-2xl font-black text-[#00dbe9]">04</div>
+                    <div className={`text-2xl font-black text-${secondaryClass}`} style={{ color: secondaryColor }}>04</div>
                     <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Slots</div>
                   </div>
                 </div>
@@ -46,18 +53,18 @@ export default function JuegoPage() {
               <div className="space-y-3 text-[10px] font-bold uppercase tracking-[0.24em] text-[#a88a7e]">
                 <div className="flex items-center justify-between border-b border-white/10 pb-3">
                   <span>Telemetry</span>
-                  <Activity className="h-4 w-4 text-[#00dbe9]" />
+                  <Activity className={`h-4 w-4 text-${accentClass}`} style={{ color: accentColor }} />
                 </div>
                 <div className="flex items-center justify-between">
                   <span>Signal</span>
-                  <span className="text-[#ffb595]">ACTIVE</span>
+                  <span className={`text-${secondaryClass}`} style={{ color: secondaryColor }}>ACTIVE</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span>Module</span>
                   <span className="text-[#e5b5ff]">MAHJONG</span>
                 </div>
               </div>
-              <Radio className="h-16 w-16 text-[#ff7020]" strokeWidth={1} />
+              <Radio className={`h-16 w-16 text-${accentClass}`} style={{ color: accentColor }} strokeWidth={1} />
             </aside>
           </div>
 

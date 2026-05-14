@@ -34,6 +34,9 @@ interface BloodPressureEntry {
 
 export const BloodPressureTracker = () => {
     const { profile } = useProfile();
+    const accentColor = profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)';
+    const accentClass = profile === 'ella' ? 'user-a' : 'user-b';
+    const accentHoverBg = profile === 'ella' ? '#ffb595' : '#e1ff80';
     const [entries, setEntries] = useState<BloodPressureEntry[]>([]);
     const [systolic, setSystolic] = useState<number | ''>('');
     const [diastolic, setDiastolic] = useState<number | ''>('');
@@ -191,7 +194,7 @@ export const BloodPressureTracker = () => {
                             value={systolic}
                             onChange={e => setSystolic(e.target.value === '' ? '' : Number(e.target.value))}
                             placeholder="120"
-                            className="w-full bg-black border border-white/10 p-3 text-xs font-bold outline-none focus:border-user-a text-white"
+                            className={`w-full bg-black border border-white/10 p-3 text-xs font-bold outline-none focus:border-${accentClass} text-white`}
                             required
                         />
                     </div>
@@ -202,7 +205,7 @@ export const BloodPressureTracker = () => {
                             value={diastolic}
                             onChange={e => setDiastolic(e.target.value === '' ? '' : Number(e.target.value))}
                             placeholder="80"
-                            className="w-full bg-black border border-white/10 p-3 text-xs font-bold outline-none focus:border-user-a text-white"
+                            className={`w-full bg-black border border-white/10 p-3 text-xs font-bold outline-none focus:border-${accentClass} text-white`}
                             required
                         />
                     </div>
@@ -213,7 +216,7 @@ export const BloodPressureTracker = () => {
                             value={heartRate}
                             onChange={e => setHeartRate(e.target.value === '' ? '' : Number(e.target.value))}
                             placeholder="70"
-                            className="w-full bg-black border border-white/10 p-3 text-xs font-bold outline-none focus:border-user-a text-white"
+                            className={`w-full bg-black border border-white/10 p-3 text-xs font-bold outline-none focus:border-${accentClass} text-white`}
                             required
                         />
                     </div>
@@ -222,7 +225,7 @@ export const BloodPressureTracker = () => {
                         <select
                             value={position}
                             onChange={e => setPosition(e.target.value as any)}
-                            className="w-full bg-black border border-white/10 p-3 text-xs font-bold outline-none focus:border-user-a text-stone-300 appearance-none cursor-pointer"
+                            className={`w-full bg-black border border-white/10 p-3 text-xs font-bold outline-none focus:border-${accentClass} text-stone-300 appearance-none cursor-pointer`}
                         >
                             <option value="sitting">SENTADO</option>
                             <option value="edge of bed">BORDE CAMA</option>
@@ -235,8 +238,9 @@ export const BloodPressureTracker = () => {
                         className={`md:col-span-4 py-4 text-[10px] uppercase font-black tracking-[0.3em] transition-all flex items-center justify-center gap-2 border mt-2 ${
                             loading 
                             ? 'bg-stone-800 text-stone-500 border-stone-800 cursor-not-allowed' 
-                            : 'bg-user-a text-black border-user-a hover:bg-[#ffb595]'
+                            : `bg-${accentClass} text-black border-${accentClass}`
                         }`}
+                        style={!loading ? { backgroundColor: accentColor, borderColor: accentColor } : {}}
                     >
                         {loading ? (
                             <motion.div
@@ -268,7 +272,7 @@ export const BloodPressureTracker = () => {
                                 </div>
                                 <div className="flex flex-col border-x border-white/5">
                                     <span className="text-[6px] text-stone-600 uppercase">AVG</span>
-                                    <span className="text-sm font-bold text-user-a">{stats.systolic.avg}</span>
+                                    <span className={`text-sm font-bold text-${accentClass}`} style={{ color: accentColor }}>{stats.systolic.avg}</span>
                                 </div>
                                 <div className="flex flex-col">
                                     <span className="text-[6px] text-stone-600 uppercase">MIN</span>
@@ -291,7 +295,7 @@ export const BloodPressureTracker = () => {
                                 </div>
                                 <div className="flex flex-col border-x border-white/5">
                                     <span className="text-[6px] text-stone-600 uppercase">AVG</span>
-                                    <span className="text-sm font-bold text-user-a">{stats.diastolic.avg}</span>
+                                    <span className={`text-sm font-bold text-${accentClass}`} style={{ color: accentColor }}>{stats.diastolic.avg}</span>
                                 </div>
                                 <div className="flex flex-col">
                                     <span className="text-[6px] text-stone-600 uppercase">MIN</span>
@@ -314,7 +318,7 @@ export const BloodPressureTracker = () => {
                                 </div>
                                 <div className="flex flex-col border-x border-white/5">
                                     <span className="text-[6px] text-stone-600 uppercase">AVG</span>
-                                    <span className="text-sm font-bold text-user-a">{stats.heartRate.avg}</span>
+                                    <span className={`text-sm font-bold text-${accentClass}`} style={{ color: accentColor }}>{stats.heartRate.avg}</span>
                                 </div>
                                 <div className="flex flex-col">
                                     <span className="text-[6px] text-stone-600 uppercase">MIN</span>
@@ -327,7 +331,7 @@ export const BloodPressureTracker = () => {
 
                 {entries.length > 0 && (
                     <div className="h-72 w-full mb-10 border border-white/5 bg-black/40 p-2 sm:p-6 relative">
-                        <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-user-a" />
+                        <div className={`absolute top-0 left-0 w-2 h-2 border-t border-l border-${accentClass}`} style={{ borderColor: accentColor }} />
                         <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={chartData} margin={{ left: 0, right: 10, top: 10, bottom: 0 }}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.05)" vertical={false} />
@@ -395,9 +399,9 @@ export const BloodPressureTracker = () => {
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, scale: 0.98 }}
-                                className="flex items-center justify-between p-4 border border-white/5 bg-[#0a0a0a] group hover:border-user-a/30 transition-all relative"
+                                className={`flex items-center justify-between p-4 border border-white/5 bg-[#0a0a0a] group hover:border-${accentClass}/30 transition-all relative`}
                             >
-                                <div className="absolute top-0 left-0 w-1 h-1 bg-user-a opacity-20 group-hover:opacity-100 transition-opacity" />
+                                <div className={`absolute top-0 left-0 w-1 h-1 bg-${accentClass} opacity-20 group-hover:opacity-100 transition-opacity`} style={{ backgroundColor: accentColor }} />
                                 <div className="flex items-center gap-8">
                                     <div className="flex flex-col min-w-[100px]">
                                         <div className="flex items-center gap-1.5 text-stone-500 mb-1">
@@ -406,7 +410,7 @@ export const BloodPressureTracker = () => {
                                                 {new Date(entry.created_at).toLocaleDateString()}
                                             </span>
                                         </div>
-                                        <div className="flex items-center gap-1.5 text-user-a">
+                                        <div className={`flex items-center gap-1.5 text-${accentClass}`} style={{ color: accentColor }}>
                                             <User size={8} />
                                             <span className="text-[7px] uppercase font-black tracking-[0.2em]">{entry.author}</span>
                                         </div>

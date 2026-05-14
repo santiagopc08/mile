@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertCircle, Plus, Trash2, Pizza, Coffee } from 'lucide-react';
+import { useProfile } from '@/context/ProfileContext';
 
 interface ViceEntry {
     id: string;
@@ -27,7 +28,13 @@ interface FiscalAuditorProps {
     profile: 'el' | 'ella';
 }
 
-export const FiscalAuditor: React.FC<FiscalAuditorProps> = ({ allocations, onAddAllocation, onRemoveAllocation, profile }) => {
+export const FiscalAuditor: React.FC<FiscalAuditorProps> = ({ allocations, onAddAllocation, onRemoveAllocation, profile: propProfile }) => {
+    const { profile: contextProfile } = useProfile();
+    const profile = propProfile || contextProfile || 'el';
+    const accentColor = profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)';
+    const accentClass = profile === 'ella' ? 'user-a' : 'user-b';
+    const secondaryColor = profile === 'ella' ? 'var(--color-user-b)' : 'var(--color-user-a)';
+    const secondaryClass = profile === 'ella' ? 'user-b' : 'user-a';
     const [vices, setVices] = useState<ViceEntry[]>([]);
     const [price, setPrice] = useState<string>('');
 
@@ -157,19 +164,22 @@ export const FiscalAuditor: React.FC<FiscalAuditorProps> = ({ allocations, onAdd
                         value={price}
                         onChange={(e) => setPrice(e.target.value)}
                         placeholder="PRECIO (COP)"
-                        className={`flex-1 border bg-black px-4 py-2 text-xs uppercase tracking-widest text-white outline-none transition-colors placeholder:text-[#594137] ${thresholdsExceeded ? 'border-system-alert/30 focus:border-system-alert' : 'border-white/10 focus:border-[#ff7020]'}`}
+                        className={`flex-1 border bg-black px-4 py-2 text-xs uppercase tracking-widest text-white outline-none transition-colors placeholder:text-[#594137] ${thresholdsExceeded ? 'border-system-alert/30 focus:border-system-alert' : 'border-white/10 focus:border-profile-accent'}`}
+                        style={!thresholdsExceeded ? { borderColor: accentColor } as any : {}}
                     />
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                     <button
                         onClick={() => addVice('junk_food')}
-                        className={`flex items-center justify-center gap-2 border px-4 py-3 text-[9px] font-bold uppercase tracking-[0.2em] transition-all ${thresholdsExceeded ? 'border-system-alert bg-system-alert text-white' : 'border-[#ff7020] bg-[#ff7020] text-black hover:bg-[#ffb595]'}`}
+                        className={`flex items-center justify-center gap-2 border px-4 py-3 text-[9px] font-bold uppercase tracking-[0.2em] transition-all ${thresholdsExceeded ? 'border-system-alert bg-system-alert text-white' : `border-${accentClass} bg-${accentClass} text-black hover:opacity-80`}`}
+                        style={!thresholdsExceeded ? { backgroundColor: accentColor, borderColor: accentColor } : {}}
                     >
                         <Pizza size={14} /> Add Junk Food
                     </button>
                     <button
                         onClick={() => addVice('snack')}
-                        className={`flex items-center justify-center gap-2 border px-4 py-3 text-[9px] font-bold uppercase tracking-[0.2em] transition-all ${thresholdsExceeded ? 'border-system-alert bg-system-alert text-white' : 'border-[#a100f0] bg-[#a100f0] text-white hover:bg-[#e5b5ff] hover:text-black'}`}
+                        className={`flex items-center justify-center gap-2 border px-4 py-3 text-[9px] font-bold uppercase tracking-[0.2em] transition-all ${thresholdsExceeded ? 'border-system-alert bg-system-alert text-white' : `border-${secondaryClass} bg-${secondaryClass} text-white hover:opacity-80`}`}
+                        style={!thresholdsExceeded ? { backgroundColor: secondaryColor, borderColor: secondaryColor } : {}}
                     >
                         <Coffee size={14} /> Add Snack
                     </button>

@@ -17,6 +17,10 @@ interface ListeningNote {
 export function PersistentListening() {
     const { data, updateData } = useStore();
     const { profile } = useProfile();
+    const accentColor = profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)';
+    const accentClass = profile === 'ella' ? 'user-a' : 'user-b';
+    const secondaryColor = profile === 'ella' ? 'var(--color-user-b)' : 'var(--color-user-a)';
+    const secondaryClass = profile === 'ella' ? 'user-b' : 'user-a';
     const [isAdding, setIsAdding] = useState(false);
     const [topic, setTopic] = useState('');
     const [reflection, setReflection] = useState('');
@@ -45,8 +49,8 @@ export function PersistentListening() {
         <div className="mx-auto w-full max-w-5xl space-y-10">
             {/* Geometric Header Block */}
             <div className="relative overflow-hidden border border-white/10 bg-[#0a0a0a] bg-mosaic p-8 text-center md:p-12">
-                <div className="absolute right-0 top-0 h-16 w-16 border-b border-l border-[#ff7020]/40 bg-[#ff7020]/10" />
-                <div className="mb-6 inline-flex h-12 w-12 items-center justify-center border border-[#00dbe9]/40 bg-[#00dbe9]/10 text-[#00dbe9]">
+                <div className={`absolute right-0 top-0 h-16 w-16 border-b border-l border-${accentClass}/40 bg-${accentClass}/10`} style={{ borderColor: `${accentColor}66`, backgroundColor: `${accentColor}1a` }} />
+                <div className={`mb-6 inline-flex h-12 w-12 items-center justify-center border border-${secondaryClass}/40 bg-${secondaryClass}/10 text-${secondaryClass}`} style={{ borderColor: `${secondaryColor}66`, backgroundColor: `${secondaryColor}1a`, color: secondaryColor }}>
                     <Ear className="w-5 h-5" />
                 </div>
                 <h2 className="mb-4 text-3xl font-black uppercase tracking-normal text-white md:text-4xl">Registro de Escucha</h2>
@@ -58,7 +62,7 @@ export function PersistentListening() {
             {profile === 'el' && (
                 <div className="flex justify-center mb-8">
                     {!isAdding ? (
-                        <button onClick={() => setIsAdding(true)} className="border border-[#ff7020] bg-[#ff7020]/10 px-10 py-4 text-xs font-bold uppercase tracking-[0.3em] text-[#ffb595] transition-all hover:bg-[#ff7020] hover:text-black">
+                        <button onClick={() => setIsAdding(true)} className={`border border-${accentClass} bg-${accentClass}/10 px-10 py-4 text-xs font-bold uppercase tracking-[0.3em] text-${accentClass} transition-all hover:bg-${accentClass} hover:text-black`} style={{ borderColor: accentColor, color: accentColor }}>
                             INICIAR NUEVA ENTRADA
                         </button>
                     ) : (
@@ -67,20 +71,20 @@ export function PersistentListening() {
                             <div className="grid md:grid-cols-2 gap-6 mb-6">
                                 <div className="space-y-2">
                                     <label className="ml-1 text-[9px] font-bold uppercase tracking-widest text-[#a88a7e]">Ref. Tema</label>
-                                    <input required value={topic} onChange={e => setTopic(e.target.value)} placeholder="TEMA DE ENFOQUE..." className="w-full border border-white/10 bg-black px-4 py-3 text-xs uppercase tracking-widest text-white outline-none placeholder:text-[#594137] focus:border-[#ff7020]" />
+                                    <input required value={topic} onChange={e => setTopic(e.target.value)} placeholder="TEMA DE ENFOQUE..." className={`w-full border border-white/10 bg-black px-4 py-3 text-xs uppercase tracking-widest text-white outline-none placeholder:text-[#594137] focus:border-${accentClass}`} style={{ '--tw-ring-color': accentColor } as any} />
                                 </div>
                                 <div className="space-y-2">
                                     <label className="ml-1 text-[9px] font-bold uppercase tracking-widest text-[#a88a7e]">Sello de Fecha</label>
-                                    <input required type="date" value={date} onChange={e => setDate(e.target.value)} className="w-full border border-white/10 bg-black px-4 py-3 text-xs uppercase tracking-widest text-white outline-none focus:border-[#ff7020]" />
+                                    <input required type="date" value={date} onChange={e => setDate(e.target.value)} className={`w-full border border-white/10 bg-black px-4 py-3 text-xs uppercase tracking-widest text-white outline-none focus:border-${accentClass}`} style={{ '--tw-ring-color': accentColor } as any} />
                                 </div>
                             </div>
                             <div className="space-y-2 mb-8">
                                 <label className="ml-1 text-[9px] font-bold uppercase tracking-widest text-[#a88a7e]">Análisis Reflexivo</label>
-                                <textarea required value={reflection} onChange={e => setReflection(e.target.value)} placeholder="CONTENIDO DE LA REFLEXIÓN..." className="min-h-[140px] w-full resize-none border border-white/10 bg-black px-4 py-4 text-xs uppercase tracking-widest text-white outline-none placeholder:text-[#594137] focus:border-[#ff7020]" />
+                                <textarea required value={reflection} onChange={e => setReflection(e.target.value)} placeholder="CONTENIDO DE LA REFLEXIÓN..." className={`min-h-[140px] w-full resize-none border border-white/10 bg-black px-4 py-4 text-xs uppercase tracking-widest text-white outline-none placeholder:text-[#594137] focus:border-${accentClass}`} style={{ '--tw-ring-color': accentColor } as any} />
                             </div>
                             <div className="flex gap-4">
                                 <button type="button" onClick={() => setIsAdding(false)} className="flex-1 border border-white/10 py-4 text-[10px] font-bold uppercase tracking-[0.2em] text-[#a88a7e] transition-all hover:border-white/30 hover:text-white">Abortar</button>
-                                <button type="submit" disabled={!topic || !reflection || !date} className="flex-1 bg-[#ff7020] py-4 text-[10px] font-bold uppercase tracking-[0.2em] text-black transition-all hover:bg-[#ffb595] disabled:opacity-30">Publicar Entrada</button>
+                                <button type="submit" disabled={!topic || !reflection || !date} className={`flex-1 bg-${accentClass} py-4 text-[10px] font-bold uppercase tracking-[0.2em] text-black transition-all hover:opacity-80 disabled:opacity-30`} style={{ backgroundColor: accentColor }}>Publicar Entrada</button>
                             </div>
                         </form>
                     )}
@@ -103,14 +107,14 @@ export function PersistentListening() {
                         transition={{ delay: idx * 0.1 }}
                         className="geometric-card group border-white/10 bg-[#0a0a0a] bg-mosaic p-8"
                     >
-                        <div className="absolute left-0 top-0 h-2 w-2 bg-[#ff7020]" />
+                        <div className={`absolute left-0 top-0 h-2 w-2 bg-${accentClass}`} style={{ backgroundColor: accentColor }} />
                         
                         <div className="relative z-10 flex flex-col h-full">
                             <div className="flex justify-between items-start mb-6">
                                 <h3 className="text-sm font-bold uppercase tracking-[0.2em] text-white">
                                     {note.topic}
                                 </h3>
-                                <div className="flex items-center gap-2 text-[9px] font-mono uppercase tracking-widest text-[#00dbe9]">
+                                <div className={`flex items-center gap-2 text-[9px] font-mono uppercase tracking-widest text-${secondaryClass}`} style={{ color: secondaryColor }}>
                                     <Calendar className="w-3 h-3" />
                                     <span>{new Intl.DateTimeFormat('es-CO', { dateStyle: 'short' }).format(new Date(note.date))}</span>
                                 </div>

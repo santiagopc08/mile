@@ -2,6 +2,7 @@
 
 import { memo } from 'react';
 import { motion } from 'framer-motion';
+import { useProfile } from '@/context/ProfileContext';
 
 export interface TileContent {
     type: 'custom' | 'traditional';
@@ -19,16 +20,19 @@ export interface TileState {
     isHinted?: boolean;
 }
 
-export const TileVisual = memo(({ tile }: { tile: TileState }) => (
-    tile.content.type === 'custom' ? (
+export const TileVisual = memo(({ tile }: { tile: TileState }) => {
+    const { profile } = useProfile();
+    const accentColor = profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)';
+    
+    return tile.content.type === 'custom' ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={tile.content.value} alt="Memory" className="h-full w-full select-none rounded-none object-cover p-0.5 opacity-95 saturate-[0.9] pointer-events-none" />
     ) : (
-        <div className={`flex h-full w-full select-none items-center justify-center text-[2rem] leading-none pointer-events-none md:text-[2.2rem] ${tile.content.value === '🀄' || tile.content.value === '🀆' ? 'text-[#ff7020]' : 'text-[#e5e2e1]'}`}>
+        <div className={`flex h-full w-full select-none items-center justify-center text-[2rem] leading-none pointer-events-none md:text-[2.2rem] ${tile.content.value === '🀄' || tile.content.value === '🀆' ? '' : 'text-[#e5e2e1]'}`} style={tile.content.value === '🀄' || tile.content.value === '🀆' ? { color: accentColor } : {}}>
             {tile.content.value}
         </div>
-    )
-));
+    );
+});
 
 TileVisual.displayName = 'TileVisual';
 
@@ -46,6 +50,9 @@ interface MahjongTileProps {
 }
 
 const MahjongTile = memo(({ tile, isFree, onPointerDown, positionStyle }: MahjongTileProps) => {
+    const { profile } = useProfile();
+    const accentColor = profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)';
+    const accentClass = profile === 'ella' ? 'user-a' : 'user-b';
     const vOffset = tile.isSelected ? -8 : 0;
 
     return (
@@ -69,28 +76,29 @@ const MahjongTile = memo(({ tile, isFree, onPointerDown, positionStyle }: Mahjon
                 ...positionStyle,
                 // Apply selection offset via transform to avoid layout recalculation
                 transform: `translateY(${vOffset}px)`,
+                ...(tile.isHinted ? { borderColor: accentColor, boxShadow: `0 0 15px ${accentColor}99` } : tile.isSelected ? { borderColor: accentColor, boxShadow: `0 0 22px ${accentColor}44` } : {})
             }}
             className={`
                 tile-item flex items-center justify-center overflow-hidden rounded-none
                 shadow-none transition-transform duration-300
                 ${isFree
-                    ? 'cursor-pointer border-[#4b403a] hover:border-[#00dbe9] hover:brightness-125 active:scale-95'
+                    ? `cursor-pointer border-[#4b403a] hover:border-${accentClass} hover:brightness-125 active:scale-95`
                     : 'cursor-not-allowed border-white/10 opacity-35 grayscale-[0.9] brightness-50'}
                 ${tile.isHinted
-                    ? 'z-50 animate-pulse border-[#00dbe9] bg-[#0a0a0a] ring-4 ring-[#00dbe9]/60'
+                    ? `z-50 animate-pulse border-${accentClass} bg-[#0a0a0a]`
                     : tile.isSelected
-                        ? 'border-2 border-[#ff7020] bg-[#0a0a0a] shadow-[0_0_22px_rgba(255,112,32,0.28)]'
+                        ? `border-2 border-${accentClass} bg-[#0a0a0a]`
                         : 'border border-r-[3px] border-b-[4px] bg-[#111]'}
             `}
         >
             {tile.isSelected && (
-                <div className="pointer-events-none absolute inset-0 rounded-none ring-1 ring-[#ff7020]/50" />
+                <div className="pointer-events-none absolute inset-0 rounded-none ring-1" style={{ ringColor: `${accentColor}80` } as any} />
             )}
 
             <TileVisual tile={tile} />
 
             {/* Geometric corner mark */}
-            <div className="pointer-events-none absolute right-0 top-0 h-2 w-2 border-r border-t border-[#00dbe9]/40" />
+            <div className="pointer-events-none absolute right-0 top-0 h-2 w-2 border-r border-t" style={{ borderColor: `${accentColor}66` }} />
         </motion.div>
     );
 });

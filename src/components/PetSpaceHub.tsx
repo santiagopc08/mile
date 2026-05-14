@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { PawPrint, Plus, Calendar, Edit2, RefreshCw, Activity, ChevronLeft, ChevronRight } from 'lucide-react';
 import { StoreService } from '@/services/storeService';
 import { supabase } from '@/lib/supabase';
+import { useProfile } from '@/context/ProfileContext';
 
 interface Pet {
   id: string;
@@ -174,7 +175,7 @@ function SpaceDecorations({ isWarping, direction, petId }: { isWarping: boolean;
       </AnimatePresence>
 
       {/* Nebula glow */}
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#a100f0]/10 rounded-full blur-[100px] mix-blend-screen opacity-50" />
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full blur-[100px] mix-blend-screen opacity-50" style={{ backgroundColor: 'var(--color-profile-accent-alpha)' }} />
     </div>
   );
 }
@@ -205,15 +206,15 @@ function OrbitalViewport({ pet, isWarping, direction, onPrev, onNext }: { pet: P
               className="relative w-52 h-52 sm:w-64 sm:h-64 flex-shrink-0 z-20 translate-y-[-1px]"
               style={{ animation: 'holo-float 4s ease-in-out infinite' }}
             >
-              {/* Outer spinning ring */}
+              {/* Outer spinning square */}
               <div
                 className="absolute inset-0 border-2 border-white/5"
                 style={{ animation: 'spin 10s linear infinite', borderTopColor: pet.accent }}
               />
-              {/* Inner spinning ring */}
+              {/* Inner spinning square */}
               <div
                 className="absolute inset-2 border border-white/5"
-                style={{ animation: 'spin 15s linear infinite reverse', borderBottomColor: '#a100f0' }}
+                style={{ animation: 'spin 15s linear infinite reverse', borderBottomColor: 'var(--color-profile-accent)' }}
               />
               {/* Viewport */}
               <div className="absolute inset-4 rotate-45 overflow-hidden border border-white/20 backdrop-blur-md shadow-[inset_0_0_30px_rgba(0,0,0,1)]">
@@ -268,7 +269,7 @@ function OrbitalViewport({ pet, isWarping, direction, onPrev, onNext }: { pet: P
           <ChevronLeft size={20} />
         </button>
         <div className="flex flex-col items-center">
-          <span className="text-[8px] tracking-[0.4em] text-[#00dbe9] mt-1 opacity-70">ONLINE</span>
+          <span className="text-[8px] tracking-[0.4em] mt-1 opacity-70" style={{ color: 'var(--color-profile-accent)' }}>ONLINE</span>
         </div>
         <button onClick={onNext} className="border border-white/10 bg-black/40 backdrop-blur-sm p-3 text-[#a88a7e] hover:text-white hover:border-white/30 hover:bg-white/5 transition-colors rounded-full">
           <ChevronRight size={20} />
@@ -287,21 +288,21 @@ function PetSelector({ pets, activeId, onSelect }: { pets: Pet[]; activeId: stri
           key={p.id}
           onClick={() => onSelect(p.id)}
           className={`relative flex-shrink-0 flex items-center gap-3 border px-4 py-3 transition-all font-mono text-[10px] uppercase tracking-[0.2em] ${p.id === activeId
-            ? 'border-[#ff7020] bg-[#ff7020]/10 text-white'
+            ? 'border-profile-accent bg-profile-accent/10 text-white'
             : 'border-white/10 bg-black/40 text-[#a88a7e] hover:border-white/20 hover:text-white'
             }`}
         >
-          <div className={`w-8 h-8 overflow-hidden border ${p.id === activeId ? 'border-[#ff7020]' : 'border-white/10'}`}>
+          <div className={`w-8 h-8 overflow-hidden border ${p.id === activeId ? 'border-profile-accent' : 'border-white/10'}`}>
             <img src={p.src} alt={p.name} className="w-full h-full object-cover" />
           </div>
           <div className="flex flex-col items-start">
             <span className="font-black">{p.name}</span>
             <span className="text-[8px] opacity-50">MOD_{String(i + 1).padStart(2, '0')}</span>
           </div>
-          {p.id === activeId && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#ff7020]" />}
+          {p.id === activeId && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-profile-accent" />}
         </button>
       ))}
-      <button className="flex-shrink-0 flex items-center justify-center w-14 border border-dashed border-[#ff7020]/30 text-[#ff7020]/60 hover:text-[#ff7020] hover:border-[#ff7020]/60 transition-colors">
+      <button className="flex-shrink-0 flex items-center justify-center w-14 border border-dashed border-profile-accent/30 text-profile-accent/60 hover:text-profile-accent hover:border-profile-accent/60 transition-colors">
         <Plus size={16} />
       </button>
     </div>
@@ -369,7 +370,7 @@ function HabitatModule({
           <h3 className="text-sm font-black uppercase tracking-[0.15em] text-white font-sans">HAB_MODULE_A</h3>
           <p className="text-[9px] uppercase tracking-[0.2em] text-[#a88a7e] font-mono mt-1">SUBJECT: {pet.name}</p>
         </div>
-        <span className="border border-[#00dbe9]/40 bg-[#00dbe9]/10 px-2 py-1 text-[8px] font-bold uppercase tracking-[0.2em] text-[#00dbe9]">
+        <span className="border border-profile-accent/40 bg-profile-accent/10 px-2 py-1 text-[8px] font-bold uppercase tracking-[0.2em] text-profile-accent">
           ● STABLE
         </span>
       </div>
@@ -424,18 +425,25 @@ function HabitatModule({
         {photos.length > 1 && (
           <>
             <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between px-2 opacity-0 group-hover:opacity-100 transition-opacity z-20">
-              <button onClick={onPrev} className="p-2 bg-black/60 border border-white/20 text-[#a88a7e] hover:text-white backdrop-blur-md rounded-sm transition-colors"><ChevronLeft size={18} /></button>
-              <button onClick={onNext} className="p-2 bg-black/60 border border-white/20 text-[#a88a7e] hover:text-white backdrop-blur-md rounded-sm transition-colors"><ChevronRight size={18} /></button>
+              <button onClick={onPrev} className="p-1.5 bg-[#050505] border border-white/20 text-stone-500 hover:text-white hover:border-profile-accent transition-colors">
+                <ChevronLeft size={16} />
+              </button>
+              <button onClick={onNext} className="p-1.5 bg-[#050505] border border-white/20 text-stone-500 hover:text-white hover:border-profile-accent transition-colors">
+                <ChevronRight size={16} />
+              </button>
             </div>
             {/* Indicators */}
-            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-20 bg-black/40 px-2 py-1 rounded-full backdrop-blur-sm border border-white/5">
-              {photos.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => onSelect(i)}
-                  className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${i === currentIndex ? "bg-[#00dbe9] scale-125" : "bg-white/30 hover:bg-white/50"}`}
-                />
-              ))}
+            <div className="absolute bottom-0 right-0 z-20 bg-[#050505] border-l border-t border-white/20 px-2 py-1.5 flex gap-1.5 items-center">
+              <span className="text-[6px] font-mono text-stone-500 uppercase tracking-widest">IMG</span>
+              <div className="flex gap-1">
+                {photos.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => onSelect(i)}
+                    className={`w-2 h-2 border transition-colors duration-300 ${i === currentIndex ? "bg-profile-accent border-profile-accent" : "border-stone-700 bg-transparent hover:border-stone-400"}`}
+                  />
+                ))}
+              </div>
             </div>
           </>
         )}
@@ -447,20 +455,20 @@ function HabitatModule({
           <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-[#a88a7e] font-mono">O2_LEVEL</span>
           <div className="flex items-baseline gap-1 mt-1">
             <span className="text-2xl font-black text-white font-sans">{pet.o2}</span>
-            <span className="text-xs text-[#00dbe9] font-mono">%</span>
+            <span className="text-xs font-mono" style={{ color: 'var(--color-profile-accent)' }}>%</span>
           </div>
           <div className="h-1 w-full bg-white/5 mt-2">
-            <div className="h-full bg-[#00dbe9]" style={{ width: `${pet.o2}%` }} />
+            <div className="h-full" style={{ width: `${pet.o2}%`, backgroundColor: 'var(--color-profile-accent)' }} />
           </div>
         </div>
         <div className="border border-white/10 bg-black/40 p-3">
           <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-[#a88a7e] font-mono">TEMP_CORE</span>
           <div className="flex items-baseline gap-1 mt-1">
             <span className="text-2xl font-black text-white font-sans">{pet.temp}</span>
-            <span className="text-xs text-[#ff7020] font-mono">°C</span>
+            <span className="text-xs font-mono" style={{ color: 'var(--color-profile-accent)' }}>°C</span>
           </div>
           <div className="h-1 w-full bg-white/5 mt-2">
-            <div className="h-full bg-[#ff7020]" style={{ width: `${(pet.temp / 40) * 100}%` }} />
+            <div className="h-full" style={{ width: `${(pet.temp / 40) * 100}%`, backgroundColor: 'var(--color-profile-accent)' }} />
           </div>
         </div>
       </div>
@@ -480,7 +488,7 @@ function HabitatModule({
             <span className="text-[7px] uppercase tracking-[0.2em] text-[#594137] font-mono block">DESIGNATION</span>
             <span className="text-[10px] font-bold text-white font-mono">{pet.designation}</span>
           </div>
-          <button className="ml-auto text-[#a88a7e] hover:text-[#ff7020] transition-colors"><Edit2 size={12} /></button>
+          <button className="ml-auto text-[#a88a7e] hover:text-profile-accent transition-colors" style={{ '--tw-hover-text-opacity': 1 } as any}><Edit2 size={12} /></button>
         </div>
       </div>
     </div>
@@ -532,7 +540,7 @@ function GalleryStrip({ pet, photos, currentIndex, onSelect, onUploadComplete }:
         <button 
           onClick={() => fileInputRef.current?.click()}
           disabled={isUploading}
-          className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-[0.2em] text-[#ff7020] hover:text-[#ffb595] transition-colors font-mono disabled:opacity-50"
+          className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-[0.2em] text-profile-accent hover:opacity-80 transition-colors font-mono disabled:opacity-50"
         >
           {isUploading ? 'SUBIENDO...' : 'AGREGAR'} <Plus size={10} />
         </button>
@@ -542,15 +550,15 @@ function GalleryStrip({ pet, photos, currentIndex, onSelect, onUploadComplete }:
           <div
             key={src}
             onClick={() => onSelect(i)}
-            className={`relative flex-shrink-0 w-20 h-20 border overflow-hidden bg-black transition-all duration-300 cursor-pointer ${i === currentIndex ? "border-[#ff7020] scale-105 z-10 shadow-[0_0_15px_rgba(255,112,32,0.3)]" : "border-white/10 hover:border-white/30"}`}
+            className={`relative flex-shrink-0 w-20 h-20 border overflow-hidden bg-black transition-all duration-300 cursor-pointer ${i === currentIndex ? "border-profile-accent scale-105 z-10 shadow-[0_0_15px_rgba(255,255,255,0.2)]" : "border-white/10 hover:border-white/30"}`}
           >
             <img src={src} alt="" className="w-full h-full object-cover" />
-            {i === currentIndex && <div className="absolute bottom-1 left-1 w-1.5 h-1.5 bg-[#ff7020]" />}
+            {i === currentIndex && <div className="absolute bottom-1 left-1 w-1.5 h-1.5 bg-profile-accent" />}
           </div>
         ))}
         <div 
           onClick={() => fileInputRef.current?.click()}
-          className={`flex-shrink-0 w-20 h-20 border border-dashed border-[#ff7020]/30 flex flex-col items-center justify-center text-[#ff7020]/40 hover:text-[#ff7020] hover:border-[#ff7020]/60 transition-colors cursor-pointer gap-1 ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}
+          className={`flex-shrink-0 w-20 h-20 border border-dashed border-profile-accent/30 flex flex-col items-center justify-center text-profile-accent/40 hover:text-profile-accent hover:border-profile-accent/60 transition-colors cursor-pointer gap-1 ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}
         >
           <Plus size={16} />
           <span className="text-[7px] font-bold uppercase tracking-wider font-mono">{isUploading ? '...' : 'AGREGAR'}</span>
@@ -577,9 +585,9 @@ function SystemLog({ pet }: { pet: Pet }) {
   return (
     <div className="geometric-card relative p-4 font-mono text-[9px] leading-relaxed text-[#594137] max-h-44 overflow-y-auto custom-scrollbar">
       <div className="mb-2 text-[8px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">SYS_LOG</div>
-      <div><span className="text-[#ff7020]">&gt;&gt;</span> HAB_MODULE_A</div>
+      <div><span className="text-profile-accent">&gt;&gt;</span> HAB_MODULE_A</div>
       <div className="ml-4 text-[#a88a7e]"><span className="text-[#594137]">14:02:45</span> routine check completed. Optimal conditions.</div>
-      <div className="mt-2"><span className="text-[#00dbe9]">&gt;&gt;</span> STASIS_CHAMBER_B</div>
+      <div className="mt-2"><span className="text-profile-accent">&gt;&gt;</span> STASIS_CHAMBER_B</div>
       <div className="ml-4 text-[#a88a7e]"><span className="text-[#594137]">12:15:00</span> auto-regulation engaged.</div>
       <div className="mt-2 text-[#594137]">&gt;&gt; Awaiting input{dots}</div>
     </div>
@@ -589,6 +597,10 @@ function SystemLog({ pet }: { pet: Pet }) {
 // --- Main Component ---
 
 export function PetSpaceHub() {
+  const { profile } = useProfile();
+  const accentClass = profile === 'ella' ? 'user-a' : 'user-b';
+  const accentColor = profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)';
+  
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [photoDirection, setPhotoDirection] = useState(0);
   const [activeId, setActiveId] = useState(PETS[0].id);
@@ -691,7 +703,7 @@ export function PetSpaceHub() {
         <span className="text-[#594137]">SYS_DIR // 04</span>
         <h2 className="text-2xl font-black uppercase tracking-[0.08em] text-white font-sans">BIO_MODULES</h2>
         <span className="ml-auto flex items-center gap-2">
-          STATUS: <span className="text-[#00dbe9]">ONLINE</span>
+          STATUS: <span style={{ color: accentColor }}>ONLINE</span>
         </span>
         <span className="text-[#594137]">UNITS: {String(PETS.length).padStart(2, '0')}</span>
       </div>

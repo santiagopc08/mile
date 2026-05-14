@@ -231,6 +231,9 @@ function generateSolvableBoard(rawCoords: { x: number; y: number; z: number }[],
 
 export function Mahjong() {
     const { profile } = useProfile();
+    const accentColor = profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)';
+    const accentClass = profile === 'ella' ? 'user-a' : 'user-b';
+    
     const [tiles, setTiles] = useState<TileState[]>([]);
     const [currentLayout, setCurrentLayout] = useState<LayoutType>('turtle');
     const [isLoaded, setIsLoaded] = useState(false);
@@ -535,7 +538,7 @@ export function Mahjong() {
             <div className="relative z-10 mb-5 grid w-full gap-4 border border-white/10 bg-black/60 p-4 lg:grid-cols-[1fr_auto_auto] lg:items-center">
                 <div className="flex flex-col items-start">
                     <div className="mb-2 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.24em] text-[#a88a7e]">
-                        <Layers3 className="h-4 w-4 text-[#00dbe9]" />
+                        <Layers3 className={`h-4 w-4 text-${accentClass}`} style={{ color: accentColor }} />
                         Tablero {currentLayout}
                     </div>
                     <h2 className="text-3xl font-black uppercase leading-none tracking-normal text-white md:text-5xl">Memorias</h2>
@@ -549,10 +552,10 @@ export function Mahjong() {
                     <div className="relative flex min-w-32 flex-1 flex-col items-center border border-white/10 bg-black/70 px-5 py-3 sm:flex-none">
                         <span className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Pares</span>
                         <div className="flex items-baseline gap-1 font-mono tracking-normal">
-                            <span className="text-3xl font-bold tabular-nums text-[#ff7020]">{matchedCount}</span>
+                            <span className={`text-3xl font-bold tabular-nums text-${accentClass}`} style={{ color: accentColor }}>{matchedCount}</span>
                             <span className="text-xs text-white/40">/ {tiles.length}</span>
                         </div>
-                        <div className="absolute bottom-0 right-0 h-2 w-2 border-b border-r border-[#00dbe9]/50" />
+                        <div className={`absolute bottom-0 right-0 h-2 w-2 border-b border-r border-${accentClass}/50`} style={{ borderColor: `${accentColor}80` }} />
                     </div>
                 </div>
 
@@ -560,21 +563,23 @@ export function Mahjong() {
                     <button
                         onClick={handleUndo}
                         disabled={undoStack.length === 0}
-                        className="flex min-h-12 items-center justify-center gap-2 border border-white/10 bg-[#0a0a0a] px-3 py-2 text-[10px] font-bold uppercase tracking-[0.16em] text-[#a88a7e] transition-colors hover:border-[#00dbe9] hover:text-white active:scale-95 disabled:opacity-35"
+                        className={`flex min-h-12 items-center justify-center gap-2 border border-white/10 bg-[#0a0a0a] px-3 py-2 text-[10px] font-bold uppercase tracking-[0.16em] text-[#a88a7e] transition-colors hover:border-${accentClass} hover:text-white active:scale-95 disabled:opacity-35`}
                         title="Deshacer"
                     >
                         <Undo2 className="h-4 w-4" /> <span className="hidden sm:inline">Deshacer</span>
                     </button>
                     <button
                         onClick={handleHint}
-                        className="flex min-h-12 items-center justify-center gap-2 border border-[#00dbe9]/50 bg-[#00dbe9]/10 px-3 py-2 text-[10px] font-bold uppercase tracking-[0.16em] text-[#7df4ff] transition-colors hover:bg-[#00dbe9] hover:text-black active:scale-95"
+                        className={`flex min-h-12 items-center justify-center gap-2 border border-${accentClass}/50 bg-${accentClass}/10 px-3 py-2 text-[10px] font-bold uppercase tracking-[0.16em] transition-colors hover:bg-${accentClass} hover:text-black active:scale-95`}
+                        style={{ borderColor: `${accentColor}80`, backgroundColor: `${accentColor}1a`, color: accentColor }}
                         title="Pista"
                     >
                         <Lightbulb className="h-4 w-4" /> <span className="hidden sm:inline">Pista</span>
                     </button>
                     <button
                         onClick={handleRestart}
-                        className="flex min-h-12 items-center justify-center gap-2 border border-[#ff7020] bg-[#ff7020] px-3 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-black transition-all hover:bg-[#a100f0] hover:border-[#a100f0] active:scale-95"
+                        className={`flex min-h-12 items-center justify-center gap-2 border border-${accentClass} bg-${accentClass} px-3 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-black transition-all hover:opacity-80 active:scale-95`}
+                        style={{ borderColor: accentColor, backgroundColor: accentColor }}
                         title="Reiniciar"
                     >
                         <RotateCcw className="h-4 w-4" /> <span className="hidden sm:inline">Reiniciar</span>
@@ -586,7 +591,7 @@ export function Mahjong() {
                 <div className="relative z-20 mb-6 w-full max-w-lg">
                     <div className="relative flex min-h-[5.5rem] items-center justify-center gap-3 border border-white/10 bg-black/70 p-3">
                         <div className="absolute left-3 top-2 flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.22em] text-[#a88a7e]">
-                            <Sparkles className="h-3 w-3 text-[#ff7020]" />
+                            <Sparkles className={`h-3 w-3 text-${accentClass}`} style={{ color: accentColor }} />
                             Dock
                         </div>
                         {[0, 1, 2, 3].map((idx) => {
@@ -672,12 +677,13 @@ export function Mahjong() {
                 <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="z-[1000] flex w-[90%] max-w-md flex-col items-center border border-[#00dbe9] bg-black/95 px-8 py-10 shadow-[0_0_44px_rgba(0,219,233,0.18)] backdrop-blur-xl md:px-12 md:py-12"
+                    className={`z-[1000] flex w-[90%] max-w-md flex-col items-center border border-${accentClass} bg-black/95 px-8 py-10 shadow-none backdrop-blur-xl md:px-12 md:py-12`}
+                    style={{ borderColor: accentColor, boxShadow: `0 0 44px ${accentColor}2e` }}
                 >
-                    <div className="mb-5 flex h-16 w-16 rotate-45 items-center justify-center border-2 border-[#00dbe9]">
-                        <Trophy className="h-8 w-8 -rotate-45 text-[#00dbe9]" />
+                    <div className="mb-5 flex h-16 w-16 rotate-45 items-center justify-center border-2 border-current" style={{ color: accentColor }}>
+                        <Trophy className="h-8 w-8 -rotate-45 text-current" />
                     </div>
-                    <h3 className="mb-2 text-3xl font-black uppercase tracking-normal text-[#00dbe9] md:text-4xl">¡Triunfo!</h3>
+                    <h3 className="mb-2 text-3xl font-black uppercase tracking-normal md:text-4xl" style={{ color: accentColor }}>¡Triunfo!</h3>
                     <p className="mb-6 text-center text-sm font-light tracking-normal text-[#a88a7e]">Has liberado todas nuestras memorias.</p>
 
                     {isNewRecord && (
@@ -685,7 +691,8 @@ export function Mahjong() {
                             initial={{ scale: 0.8, opacity: 0 }}
                             animate={{ scale: [1, 1.05, 1], opacity: 1 }}
                             transition={{ repeat: Infinity, duration: 1.5 }}
-                            className="mb-4 border border-[#ff7020] bg-[#ff7020]/10 px-6 py-2 text-xs font-bold uppercase tracking-[0.2em] text-[#ffb595] shadow-none"
+                            className={`mb-4 border border-${accentClass} bg-${accentClass}/10 px-6 py-2 text-xs font-bold uppercase tracking-[0.2em] shadow-none`}
+                            style={{ borderColor: accentColor, color: profile === 'ella' ? '#ffb595' : '#e1ff80' }}
                         >
                             NUEVO RÉCORD
                         </motion.div>
@@ -731,14 +738,14 @@ export function Mahjong() {
                         </div>
                     )}
 
-                    <button onClick={() => { setIsLoaded(false); }} className="w-full bg-[#00dbe9] py-3.5 text-xs font-black uppercase tracking-[0.18em] text-black transition-all hover:bg-[#ff7020]">Jugar de nuevo</button>
+                    <button onClick={() => { setIsLoaded(false); }} className={`w-full bg-${accentClass} py-3.5 text-xs font-black uppercase tracking-[0.18em] text-black transition-all hover:opacity-80`} style={{ backgroundColor: accentColor }}>Jugar de nuevo</button>
                 </motion.div>
             )}
 
-            <div className="relative flex min-h-[600px] w-full max-w-[880px] justify-center overflow-hidden border border-white/10 bg-[radial-gradient(circle_at_center,rgba(255,112,32,0.08),transparent_42%),linear-gradient(180deg,rgba(255,255,255,0.03),transparent)] md:min-h-[700px]">
+            <div className="relative flex min-h-[600px] w-full max-w-[880px] justify-center overflow-hidden border border-white/10 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.05),transparent_42%),linear-gradient(180deg,rgba(255,255,255,0.03),transparent)] md:min-h-[700px]">
                 <div className="pointer-events-none absolute inset-0 bg-dot-matrix opacity-70" />
-                <div className="pointer-events-none absolute left-0 top-0 h-3 w-3 border-l border-t border-[#00dbe9]" />
-                <div className="pointer-events-none absolute bottom-0 right-0 h-3 w-3 border-b border-r border-[#ff7020]" />
+                <div className="pointer-events-none absolute left-0 top-0 h-3 w-3 border-l border-t" style={{ borderColor: accentColor }} />
+                <div className="pointer-events-none absolute bottom-0 right-0 h-3 w-3 border-b border-r opacity-50" style={{ borderColor: accentColor }} />
                 <AnimatePresence>
                     {tiles.map(tile => {
                         if (tile.isMatched || dockIds.includes(tile.id)) return null;

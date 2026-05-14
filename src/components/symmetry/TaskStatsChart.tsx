@@ -10,7 +10,7 @@ import {
   ResponsiveContainer
 } from 'recharts';
 
-export const TaskStatsChart = ({ tasks }: { tasks: any[] }) => {
+export const TaskStatsChart = ({ tasks, objectives }: { tasks: any[], objectives: any[] }) => {
   const chartData = useMemo(() => {
     const days = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
     const today = new Date();
@@ -21,14 +21,20 @@ export const TaskStatsChart = ({ tasks }: { tasks: any[] }) => {
       const dayLabel = days[d.getDay()];
       const dateStr = d.toLocaleDateString();
 
-      const completedOnDay = tasks.filter(t => t.status === 'done' && t.updatedAt && new Date(t.updatedAt).toLocaleDateString() === dateStr).length;
+      const dayTasks = tasks.filter(t => t.status === 'done' && t.updated_at && new Date(t.updated_at).toLocaleDateString() === dateStr);
+      
+      const countByAuthor = (author: string) => dayTasks.filter(t => {
+        const obj = objectives.find(o => o.id === t.objective_id);
+        return obj?.author === author;
+      }).length;
 
       return {
         name: dayLabel,
-        Completadas: completedOnDay,
+        Ella: countByAuthor('ella'),
+        Yo: countByAuthor('el'),
       };
     });
-  }, [tasks]);
+  }, [tasks, objectives]);
 
   return (
     <div className="w-full h-full">
@@ -62,9 +68,15 @@ export const TaskStatsChart = ({ tasks }: { tasks: any[] }) => {
             }}
           />
           <Bar
-            dataKey="Completadas"
+            dataKey="Ella"
             fill="var(--color-user-a)"
-            barSize={16}
+            barSize={12}
+            isAnimationActive={false}
+          />
+          <Bar
+            dataKey="Yo"
+            fill="var(--color-user-b)"
+            barSize={12}
             isAnimationActive={false}
           />
         </BarChart>

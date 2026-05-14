@@ -13,11 +13,11 @@ type Category = 'plan' | 'antojo' | 'gusto';
 
 function GustoItem({ item }: { item: any }) {
     const isSantiago = item.owner === "el" || (!item.owner && item.author === "el");
-    const borderColorClass = isSantiago ? "border-user-a/35" : "border-user-b/35";
-    const Bullet = isSantiago ? () => <div className="w-1.5 h-1.5 bg-user-a shrink-0 mt-1" /> : () => <Diamond className="w-2 h-2 text-user-b fill-user-b shrink-0 mt-1" />;
+    const borderColorClass = isSantiago ? "border-user-b/35" : "border-user-a/35";
+    const Bullet = isSantiago ? () => <div className="w-1.5 h-1.5 bg-user-b shrink-0 mt-1" /> : () => <Diamond className="w-2 h-2 text-user-a fill-user-a shrink-0 mt-1" />;
     const initials = item.author === "el" ? "S" : "M";
-    const initialsBorder = item.author === "el" ? "border-user-a/40" : "border-user-b/40";
-    const initialsText = item.author === "el" ? "text-user-a" : "text-user-b";
+    const initialsBorder = item.author === "el" ? "border-user-b/40" : "border-user-a/40";
+    const initialsText = item.author === "el" ? "text-user-b" : "text-user-a";
 
     return (
         <div className={`group flex items-start gap-3 border ${borderColorClass} bg-black/65 p-3 transition-all hover:bg-white/[0.04]`}>
@@ -42,6 +42,8 @@ function GustoItem({ item }: { item: any }) {
 export function WishlistModule() {
     const { data, updateData } = useStore();
     const { profile } = useProfile();
+    const accentColor = profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)';
+    const accentClass = profile === 'ella' ? 'user-a' : 'user-b';
     const [activeCategory, setActiveCategory] = useState<Category>('plan');
     const [isAdding, setIsAdding] = useState(false);
     const [newTitle, setNewTitle] = useState('');
@@ -220,7 +222,7 @@ export function WishlistModule() {
                             key={cat.id}
                             onClick={() => { setActiveCategory(cat.id as Category); setIsAdding(false); }}
                             className={`group relative flex min-h-20 items-center justify-between border-b border-white/10 px-4 py-4 transition-all last:border-b-0 sm:border-b-0 sm:border-r sm:last:border-r-0 ${isActive
-                                ? 'bg-[#a100f0] text-black'
+                                ? `bg-${accentClass} text-black`
                                 : 'bg-[#0a0a0a] text-[#a88a7e] hover:bg-[#121212] hover:text-white'
                                 }`}
                         >
@@ -234,7 +236,7 @@ export function WishlistModule() {
                             {isActive && (
                                 <motion.div
                                     layoutId="activeTabPlanes"
-                                    className="absolute inset-x-0 bottom-0 h-1 bg-[#00dbe9]"
+                                    className="absolute inset-x-0 bottom-0 h-1 bg-white"
                                 />
                             )}
                         </button>
@@ -244,9 +246,9 @@ export function WishlistModule() {
 
             <div className="min-h-[560px] border border-white/10 bg-[#080808] p-4 sm:p-6 md:p-8">
                 {activeCategory === 'antojo' && (
-                    <div className="mb-8 flex items-center justify-between border border-[#ff7020]/50 bg-[#ff7020]/8 p-4">
+                    <div className={`mb-8 flex items-center justify-between border border-${accentClass}/50 bg-${accentClass}/8 p-4`}>
                          <span className="text-[10px] font-black uppercase tracking-[0.22em] text-[#a88a7e]">Dinero guardado para antojos</span>
-                         <span className="font-mono text-sm font-bold tracking-normal text-[#ffb595]">{formatCOP(totalSavings)}</span>
+                         <span className={`font-mono text-sm font-bold tracking-normal text-${accentClass}`}>{formatCOP(totalSavings)}</span>
                     </div>
                 )}
 
@@ -258,12 +260,12 @@ export function WishlistModule() {
 
                 <div className="mb-8 flex items-center justify-between border-b border-white/10 pb-4">
                     <h3 className="flex items-center gap-3 text-xs font-black uppercase tracking-[0.26em] text-[#a88a7e]">
-                        <div className="h-2 w-2 bg-[#00dbe9]" />
+                        <div className={`h-2 w-2 bg-${accentClass}`} />
                         Lista de {currentCategory.label}
                     </h3>
                     <button
                         onClick={() => setIsAdding(!isAdding)}
-                        className="flex h-11 w-11 items-center justify-center border border-[#a100f0] text-[#e5b5ff] transition-all hover:bg-[#a100f0] hover:text-black"
+                        className={`flex h-11 w-11 items-center justify-center border border-${accentClass} text-${accentClass} transition-all hover:bg-${accentClass} hover:text-black`}
                         aria-label={isAdding ? 'Cerrar formulario' : 'Agregar item'}
                     >
                         <Plus className={`h-4 w-4 transition-transform ${isAdding ? 'rotate-45' : ''}`} />
@@ -305,8 +307,8 @@ export function WishlistModule() {
                                     <div className="space-y-2">
                                         <label className="ml-1 text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Para quién es?</label>
                                         <div className="flex gap-2">
-                                            <button type="button" onClick={() => setNewOwner("el")} className={`flex-1 border py-2 text-[9px] font-bold uppercase tracking-[0.16em] ${newOwner === "el" ? "border-user-a bg-user-a/10 text-user-a" : "border-white/10 text-[#a88a7e]"}`}>Santiago</button>
-                                            <button type="button" onClick={() => setNewOwner("ella")} className={`flex-1 border py-2 text-[9px] font-bold uppercase tracking-[0.16em] ${newOwner === "ella" ? "border-user-b bg-user-b/10 text-user-b" : "border-white/10 text-[#a88a7e]"}`}>Milena</button>
+                                            <button type="button" onClick={() => setNewOwner("el")} className={`flex-1 border py-2 text-[9px] font-bold uppercase tracking-[0.16em] ${newOwner === "el" ? "border-user-b bg-user-b/10 text-user-b" : "border-white/10 text-[#a88a7e]"}`}>Santiago</button>
+                                            <button type="button" onClick={() => setNewOwner("ella")} className={`flex-1 border py-2 text-[9px] font-bold uppercase tracking-[0.16em] ${newOwner === "ella" ? "border-user-a bg-user-a/10 text-user-a" : "border-white/10 text-[#a88a7e]"}`}>Milena</button>
                                         </div>
                                     </div>
                                 )}
@@ -346,7 +348,7 @@ export function WishlistModule() {
 
                             <div className="flex gap-4 pt-2">
                                 <button type="button" onClick={() => setIsAdding(false)} className="flex-1 border border-white/10 py-3 text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e] transition-all hover:border-white/30 hover:text-white">Cancelar</button>
-                                <button type="submit" className="flex-1 bg-[#00dbe9] py-3 text-[9px] font-black uppercase tracking-[0.2em] text-black transition-all hover:bg-[#a100f0]">Guardar Item</button>
+                                <button type="submit" className={`flex-1 bg-${accentClass} py-3 text-[9px] font-black uppercase tracking-[0.2em] text-black transition-all hover:opacity-80`}>Guardar Item</button>
                             </div>
                         </motion.form>
                     ) : (
@@ -359,8 +361,8 @@ export function WishlistModule() {
                             {activeCategory === 'gusto' ? (
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                     <div className="space-y-4">
-                                        <h4 className="mb-4 flex items-center gap-2 border-b border-user-a/25 pb-2 text-[10px] font-black uppercase tracking-[0.2em] text-user-a">
-                                            <div className="w-1.5 h-1.5 bg-user-a" />
+                                        <h4 className="mb-4 flex items-center gap-2 border-b border-user-b/25 pb-2 text-[10px] font-black uppercase tracking-[0.2em] text-user-b">
+                                            <div className="w-1.5 h-1.5 bg-user-b" />
                                             Gustos de Santiago
                                         </h4>
                                         <div className="space-y-2 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
@@ -374,8 +376,8 @@ export function WishlistModule() {
                                     </div>
 
                                     <div className="space-y-4">
-                                        <h4 className="mb-4 flex items-center gap-2 border-b border-user-b/25 pb-2 text-[10px] font-black uppercase tracking-[0.2em] text-user-b">
-                                            <div className="w-1.5 h-1.5 bg-user-b rounded-full" />
+                                        <h4 className="mb-4 flex items-center gap-2 border-b border-user-a/25 pb-2 text-[10px] font-black uppercase tracking-[0.2em] text-user-a">
+                                            <div className="w-1.5 h-1.5 bg-user-a rounded-full" />
                                             Gustos de Milena
                                         </h4>
                                         <div className="space-y-2 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
@@ -399,7 +401,7 @@ export function WishlistModule() {
                                         filteredItems.map((item) => {
                                             const isVisited = item.status === 'visited';
                                             const canAfford = activeCategory === 'antojo' && !isVisited && (item.price || 0) <= totalSavings;
-                                            const accentColor = item.author === 'ella' ? 'var(--color-user-b)' : 'var(--color-user-a)';
+                                            const accentColorItem = item.author === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)';
 
                                             return (
                                                 <div
@@ -408,8 +410,8 @@ export function WishlistModule() {
                                                         isVisited
                                                             ? 'border-white/10 bg-white/[0.03] opacity-65'
                                                             : 'border-dashed bg-black/65'
-                                                    } ${canAfford ? 'animate-pulse-green !border-[#22C55E]' : ''} ${editingId === item.id ? '!border-[#00dbe9] ring-1 ring-[#00dbe9]/30' : ''}`}
-                                                    style={!isVisited && !canAfford && editingId !== item.id ? { borderColor: accentColor } : (canAfford ? { borderColor: '#22C55E' } : {})}
+                                                    } ${canAfford ? 'animate-pulse-green !border-[#22C55E]' : ''} ${editingId === item.id ? `!border-${accentClass} ring-1 ring-${accentClass}/30` : ''}`}
+                                                    style={!isVisited && !canAfford && editingId !== item.id ? { borderColor: accentColorItem } : (canAfford ? { borderColor: '#22C55E' } : {})}
                                                 >
                                                     {isVisited && (
                                                         <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 opacity-[0.08]">

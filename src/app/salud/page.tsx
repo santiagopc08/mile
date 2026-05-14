@@ -16,6 +16,10 @@ export default function SaludPage() {
     const [activeTab, setActiveTab] = useState<SaludTab>('vitals');
     const { data } = useStore();
     const { profile } = useProfile();
+    const accentColor = profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)';
+    const accentClass = profile === 'ella' ? 'user-a' : 'user-b';
+    const secondaryColor = profile === 'ella' ? 'var(--color-user-b)' : 'var(--color-user-a)';
+    const secondaryClass = profile === 'ella' ? 'user-b' : 'user-a';
     const [allocations, setAllocations] = useState<Allocation[]>([]);
 
     // Re-implementing allocation logic from SymmetryDashboard for FiscalAuditor
@@ -63,15 +67,15 @@ export default function SaludPage() {
         <PrivateRoute>
             <main className="relative z-10 min-h-screen w-full overflow-hidden bg-black px-4 pb-24 pt-6 text-[#e5e2e1] md:px-8 md:pt-8">
                 <div className="pointer-events-none fixed inset-0 -z-10 bg-mosaic opacity-60" />
-                <div className="pointer-events-none fixed inset-x-0 top-0 -z-10 h-64 bg-[linear-gradient(180deg,rgba(0,219,233,0.12),transparent)]" />
+                <div className="pointer-events-none fixed inset-x-0 top-0 -z-10 h-64 opacity-20" style={{ backgroundImage: `linear-gradient(180deg, ${accentColor}, transparent)` }} />
                 <div className="mx-auto w-full max-w-7xl border-x border-white/10">
                     <div className="grid border-y border-white/10 bg-[#0a0a0a]/95 md:grid-cols-[1fr_auto]">
                         <div className="relative p-5 sm:p-8 md:p-10">
-                            <div className="absolute left-0 top-0 h-full w-px bg-[#00dbe9]" />
+                            <div className={`absolute left-0 top-0 h-full w-px bg-${accentClass}`} style={{ backgroundColor: accentColor }} />
                             <div className="mb-8 flex flex-wrap items-center gap-3 text-[10px] font-black uppercase tracking-[0.28em] text-[#a88a7e]">
-                                <span className="border border-[#00dbe9]/50 px-2 py-1 text-[#7df4ff]">HEALTH // VITAL_CORE</span>
+                                <span className={`border border-${accentClass}/50 px-2 py-1 text-${accentClass}`} style={{ borderColor: `${accentColor}80`, color: accentColor }}>HEALTH // VITAL_CORE</span>
                                 <span className="flex items-center gap-2">
-                                    <span className="h-2 w-2 bg-[#ff7020]" />
+                                    <span className={`h-2 w-2 bg-${secondaryClass}`} style={{ backgroundColor: secondaryColor }} />
                                     MONITOR_ONLINE
                                 </span>
                             </div>
@@ -82,11 +86,11 @@ export default function SaludPage() {
                                 </p>
                                 <div className="grid grid-cols-2 border border-white/10 text-center">
                                     <div className="border-r border-white/10 px-4 py-3">
-                                        <div className="text-2xl font-black text-[#00dbe9]">{tabs.length}</div>
+                                        <div className={`text-2xl font-black text-${accentClass}`} style={{ color: accentColor }}>{tabs.length}</div>
                                         <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Módulos</div>
                                     </div>
                                     <div className="px-4 py-3">
-                                        <div className="text-2xl font-black text-[#ffb595]">{profile === 'ella' ? 'S' : 'A'}</div>
+                                        <div className={`text-2xl font-black text-${secondaryClass}`} style={{ color: secondaryColor }}>{profile === 'ella' ? 'S' : 'A'}</div>
                                         <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Modo</div>
                                     </div>
                                 </div>
@@ -96,7 +100,7 @@ export default function SaludPage() {
                             <div className="space-y-3 text-[10px] font-bold uppercase tracking-[0.24em] text-[#a88a7e]">
                                 <div className="flex items-center justify-between border-b border-white/10 pb-3">
                                     <span>Telemetry</span>
-                                    <Activity className="h-4 w-4 text-[#00dbe9]" />
+                                    <Activity className={`h-4 w-4 text-${accentClass}`} style={{ color: accentColor }} />
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <span>Channel</span>
@@ -104,18 +108,18 @@ export default function SaludPage() {
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <span>Signal</span>
-                                    <span className="text-[#ffb595]">ACTIVE</span>
+                                    <span className={`text-${secondaryClass}`} style={{ color: secondaryColor }}>ACTIVE</span>
                                 </div>
                             </div>
-                            <Radio className="h-16 w-16 text-[#00dbe9]" strokeWidth={1} />
+                            <Radio className={`h-16 w-16 text-${accentClass}`} style={{ color: accentColor }} strokeWidth={1} />
                         </aside>
                     </div>
 
                     {/* Section Video Header */}
                     <div className="flex justify-center mb-8">
                         <div className="relative p-1 border border-white/10 bg-black">
-                            <div className="absolute top-0 left-0 w-1.5 h-1.5 border-t border-l border-[#00dbe9]" />
-                            <div className="absolute bottom-0 right-0 w-1.5 h-1.5 border-b border-r border-[#00dbe9]" />
+                            <div className={`absolute top-0 left-0 w-1.5 h-1.5 border-t border-l border-${accentClass}`} style={{ borderColor: accentColor }} />
+                            <div className={`absolute bottom-0 right-0 w-1.5 h-1.5 border-b border-r border-${accentClass}`} style={{ borderColor: accentColor }} />
                             <video
                                 className="w-32 h-32 object-cover contrast-125 opacity-80 mix-blend-screen"
                                 src="vid/dogtor.mp4"
@@ -126,7 +130,7 @@ export default function SaludPage() {
                                 webkit-playsinline="true"
                             />
                             <div className="absolute top-2 right-2 flex gap-1">
-                                <div className="w-1 h-1 bg-[#ff7020] animate-pulse" />
+                                <div className={`w-1 h-1 bg-${secondaryClass} animate-pulse`} style={{ backgroundColor: secondaryColor }} />
                             </div>
                         </div>
                     </div>
@@ -137,21 +141,23 @@ export default function SaludPage() {
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
                                 className={`group relative flex min-h-20 items-center justify-between border-b border-white/10 px-4 py-4 transition-all last:border-b-0 sm:border-b-0 sm:border-r sm:last:border-r-0 ${activeTab === tab.id
-                                    ? 'bg-[#00dbe9] text-black'
+                                    ? 'text-black'
                                     : 'bg-[#0a0a0a] text-[#a88a7e] hover:bg-[#121212] hover:text-white'
                                     }`}
+                                style={activeTab === tab.id ? { backgroundColor: accentColor } : {}}
                             >
                                 <span className="flex flex-col items-start gap-2">
                                     <tab.icon className="h-4 w-4" />
                                     <span className="text-[10px] font-black uppercase tracking-[0.22em]">{tab.label}</span>
                                 </span>
-                                <span className={`text-[9px] font-bold uppercase tracking-[0.2em] ${activeTab === tab.id ? 'text-black/55' : 'text-white/20 group-hover:text-[#ff7020]'}`}>
+                                <span className={`text-[9px] font-bold uppercase tracking-[0.2em] ${activeTab === tab.id ? 'text-black/55' : `text-white/20 group-hover:text-${secondaryClass}`}`} style={activeTab !== tab.id ? { '--tw-hover-text-opacity': 1 } as any : {}}>
                                     0{tabs.findIndex(item => item.id === tab.id) + 1}
                                 </span>
                                 {activeTab === tab.id && (
                                     <motion.div
                                         layoutId="activeTabSalud"
-                                        className="absolute inset-x-0 bottom-0 h-1 bg-[#ff7020]"
+                                        className={`absolute inset-x-0 bottom-0 h-1 bg-${secondaryClass}`}
+                                        style={{ backgroundColor: secondaryColor }}
                                     />
                                 )}
                             </button>

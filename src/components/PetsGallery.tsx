@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useProfile } from '@/context/ProfileContext';
 
 const pets = [
   { name: 'Kiaro', src: '/img/pets/Kiaro.png' },
@@ -11,6 +12,8 @@ const pets = [
 ];
 
 export const PetsGallery = () => {
+  const { profile } = useProfile();
+  const accentColor = profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)';
   const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
@@ -25,7 +28,7 @@ export const PetsGallery = () => {
       <div className="pointer-events-none absolute inset-0 bg-mosaic opacity-60" />
       <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex justify-between border-b border-white/10 px-4 py-3 text-[9px] font-bold uppercase tracking-[0.24em] text-[#a88a7e]">
         <span>COMPANION_GALLERY</span>
-        <span className="text-[#00dbe9]">{String(activeIndex + 1).padStart(2, '0')} / {String(pets.length).padStart(2, '0')}</span>
+        <span style={{ color: accentColor }}>{String(activeIndex + 1).padStart(2, '0')} / {String(pets.length).padStart(2, '0')}</span>
       </div>
       
       {/* Background static arrangement or a subtle ambient effect */}
@@ -49,7 +52,7 @@ export const PetsGallery = () => {
           transition={{ duration: 1.5, ease: "easeInOut" }}
           className="relative z-10 flex flex-col items-center"
         >
-          <div className="relative h-64 w-64 overflow-hidden border border-[#ff7020]/70 bg-black p-2 md:h-80 md:w-80">
+          <div className="relative h-64 w-64 overflow-hidden border bg-black p-2 md:h-80 md:w-80" style={{ borderColor: `${accentColor}b3` }}>
             <div className="pointer-events-none absolute inset-0 z-10 border border-white/10" />
             <motion.img
               src={pets[activeIndex].src}
@@ -77,7 +80,8 @@ export const PetsGallery = () => {
           <button 
             key={i}
             onClick={() => setActiveIndex(i)}
-            className={`h-2 transition-all ${i === activeIndex ? 'w-8 bg-[#ff7020]' : 'w-2 bg-white/25 hover:bg-white/50'}`}
+            className={`h-2 transition-all ${i === activeIndex ? 'w-8' : 'w-2 bg-white/25 hover:bg-white/50'}`}
+            style={i === activeIndex ? { backgroundColor: accentColor } : {}}
           />
         ))}
       </div>

@@ -11,6 +11,10 @@ type AnimState = 'idle' | 'img1' | 'img2' | 'video' | 'popup' | 'reverse-video' 
 export function JarOfNotes() {
     const { data, updateData } = useStore();
     const { profile } = useProfile();
+    const accentColor = profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)';
+    const accentClass = profile === 'ella' ? 'user-a' : 'user-b';
+    const secondaryColor = profile === 'ella' ? 'var(--color-user-b)' : 'var(--color-user-a)';
+    const secondaryClass = profile === 'ella' ? 'user-b' : 'user-a';
 
     const [animState, setAnimState] = useState<AnimState>('idle');
     const [currentNote, setCurrentNote] = useState('');
@@ -119,7 +123,7 @@ export function JarOfNotes() {
         <div className="relative flex min-h-[70vh] w-full flex-col items-center justify-center overflow-hidden border border-white/10 bg-[#0a0a0a] bg-dot-matrix">
             <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex justify-between border-b border-white/10 px-4 py-3 text-[9px] font-bold uppercase tracking-[0.24em] text-[#a88a7e]">
                 <span>NOTE_VAULT</span>
-                <span className="text-[#00dbe9]">{notes.length.toString().padStart(2, '0')} ENTRIES</span>
+                <span className={`text-${accentClass}`} style={{ color: accentColor }}>{notes.length.toString().padStart(2, '0')} ENTRIES</span>
             </div>
             {/* Header info - fades out when animation starts */}
             <AnimatePresence>
@@ -133,7 +137,7 @@ export function JarOfNotes() {
                         <h2 className="mb-3 text-3xl font-black uppercase tracking-normal text-white md:text-4xl">
                             El Tarro de Notas
                         </h2>
-                        <div className="mx-auto mb-4 h-1 w-20 bg-[#ff7020]" />
+                        <div className={`mx-auto mb-4 h-1 w-20 bg-${accentClass}`} style={{ backgroundColor: accentColor }} />
                         <p className="mx-auto max-w-xs text-sm leading-6 tracking-normal text-[#e1bfb2]">
                             La nave de Kiaro, llena de pensamientos y amor.
                         </p>
@@ -199,39 +203,43 @@ export function JarOfNotes() {
                             onClick={(e) => e.stopPropagation()} // prevent clicking through
                         >
                             {/* Decorative Shapes */}
-                            <motion.div
-                                className="absolute left-1/4 top-1/4 text-[#ff7020] opacity-50"
+                             <motion.div
+                                className={`absolute left-1/4 top-1/4 text-${accentClass} opacity-50`}
+                                style={{ color: accentColor }}
                                 animate={{ rotate: 360, y: [0, -20, 0] }}
                                 transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
                             >
                                 <Circle className="w-16 h-16" strokeWidth={1} />
                             </motion.div>
                             <motion.div
-                                className="absolute bottom-1/4 right-1/4 text-[#e5b5ff] opacity-50"
+                                className={`absolute bottom-1/4 right-1/4 text-${secondaryClass} opacity-50`}
+                                style={{ color: secondaryColor }}
                                 animate={{ rotate: -360, x: [0, 20, 0] }}
                                 transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
                             >
                                 <Triangle className="w-20 h-20" strokeWidth={1} />
                             </motion.div>
                             <motion.div
-                                className="absolute right-1/3 top-1/3 text-[#00dbe9] opacity-50"
+                                className={`absolute right-1/3 top-1/3 text-${accentClass} opacity-50`}
+                                style={{ color: accentColor }}
                                 animate={{ rotate: 180, scale: [1, 1.2, 1] }}
                                 transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
                             >
                                 <Square className="w-12 h-12" strokeWidth={1} />
                             </motion.div>
 
-                            <div className="geometric-card relative mx-4 w-full max-w-lg border-[#ff7020]/70 bg-[#0a0a0a]/95 p-8 backdrop-blur-md md:p-12">
+                            <div className={`geometric-card relative mx-4 w-full max-w-lg border-${accentClass}/50 bg-[#0a0a0a]/95 p-8 backdrop-blur-md md:p-12`} style={{ borderColor: `${accentColor}80` }}>
                                 <div className="pointer-events-none absolute inset-0 bg-mosaic opacity-40" />
-
+ 
                                 <div className="relative z-10 mb-8 flex items-start justify-between border-b border-white/10 pb-4">
-                                    <span className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.3em] text-[#ffb595]">
-                                        <div className="h-2 w-2 bg-[#ff7020]" />
+                                    <span className={`flex items-center gap-2 text-xs font-black uppercase tracking-[0.3em] text-${accentClass}`}>
+                                        <div className={`h-2 w-2 bg-${accentClass}`} style={{ backgroundColor: accentColor }} />
                                         Nota Diaria
                                     </span>
                                     <button
                                         onClick={closeSequence}
-                                        className="-mr-4 -mt-4 p-2 text-[#a88a7e] transition-colors hover:text-[#ffb595]"
+                                        className={`-mr-4 -mt-4 p-2 text-[#a88a7e] transition-colors hover:text-${accentClass}`}
+                                        style={{ '--tw-hover-text-opacity': 1 } as any}
                                     >
                                         <X className="w-6 h-6" />
                                     </button>
@@ -240,7 +248,7 @@ export function JarOfNotes() {
                                     &quot;{currentNote}&quot;
                                 </p>
 
-                                <div className="absolute bottom-0 left-0 right-0 h-1 bg-[linear-gradient(90deg,#a100f0,#ff7020,#00dbe9)] opacity-80" />
+                                <div className={`absolute bottom-0 left-0 right-0 h-1 opacity-80`} style={{ background: `linear-gradient(90deg, ${secondaryColor}, ${accentColor}, ${secondaryColor})` }} />
                             </div>
                         </motion.div>
                     )}
@@ -257,23 +265,25 @@ export function JarOfNotes() {
                     {!isAddingMode ? (
                         <button
                             onClick={() => setIsAddingMode(true)}
-                            className="flex w-full items-center justify-center gap-2 border border-white/10 bg-black/80 py-4 text-[#a88a7e] backdrop-blur-sm transition-all hover:border-[#ff7020] hover:text-[#ffb595]"
+                            className={`flex w-full items-center justify-center gap-2 border border-white/10 bg-black/80 py-4 text-[#a88a7e] backdrop-blur-sm transition-all hover:border-${accentClass} hover:text-${accentClass}`}
+                            style={{ '--tw-hover-text-opacity': 1, '--tw-hover-border-opacity': 1 } as any}
                         >
                             <MessageCircleHeart className="w-5 h-5" />
                             <span className="uppercase text-xs font-bold tracking-widest">Añadir Nueva Nota</span>
                         </button>
                     ) : (
-                        <form onSubmit={handleAddNote} className="geometric-card border-[#ff7020]/50 bg-[#0a0a0a]/95 p-6 backdrop-blur-md">
+                        <form onSubmit={handleAddNote} className={`geometric-card border-${accentClass}/50 bg-[#0a0a0a]/95 p-6 backdrop-blur-md`} style={{ borderColor: `${accentColor}80` }}>
                             <textarea
                                 value={newNoteText}
                                 onChange={(e) => setNewNoteText(e.target.value)}
                                 placeholder="Escribe un pensamiento para el futuro..."
-                                className="mb-4 min-h-[100px] w-full resize-none border border-white/10 bg-black p-4 text-sm tracking-normal text-white outline-none transition-colors placeholder:text-[#594137] focus:border-[#ff7020]"
+                                className={`mb-4 min-h-[100px] w-full resize-none border border-white/10 bg-black p-4 text-sm tracking-normal text-white outline-none transition-colors placeholder:text-[#594137] focus:border-${accentClass}`}
+                                style={{ '--tw-ring-color': accentColor } as any}
                                 autoFocus
                             />
                             <div className="flex gap-3">
                                 <button type="button" onClick={() => setIsAddingMode(false)} className="flex-1 border border-white/10 py-3 text-[10px] font-bold uppercase tracking-widest text-[#a88a7e] transition-colors hover:border-white/30 hover:text-white">Cancelar</button>
-                                <button type="submit" disabled={!newNoteText.trim()} className="flex-1 bg-[#ff7020] py-3 text-[10px] font-bold uppercase tracking-widest text-black transition-colors hover:bg-[#ffb595] disabled:opacity-50">Guardar</button>
+                                <button type="submit" disabled={!newNoteText.trim()} className={`flex-1 bg-${accentClass} py-3 text-[10px] font-bold uppercase tracking-widest text-black transition-colors hover:opacity-80 disabled:opacity-50`} style={{ backgroundColor: accentColor }}>Guardar</button>
                             </div>
                         </form>
                     )}

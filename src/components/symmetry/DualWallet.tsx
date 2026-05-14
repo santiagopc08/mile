@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Trash2, Wallet, Tag, FileText } from 'lucide-react';
+import { useProfile } from '@/context/ProfileContext';
 
 interface Allocation {
   id: string;
@@ -22,6 +23,8 @@ const CATEGORIES = [
 ] as const;
 
 export const DualWallet = ({ allocations, onAllocationsChange }: { allocations: Allocation[], onAllocationsChange: (newAllocations: Allocation[]) => void }) => {
+  const { profile } = useProfile();
+  const accentColor = profile === 'ella' ? 'user-a' : 'user-b';
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState<Allocation['category']>('📦 OTROS');
@@ -61,7 +64,7 @@ export const DualWallet = ({ allocations, onAllocationsChange }: { allocations: 
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="0.00"
-              className="w-full border border-white/10 bg-black px-3 py-2 text-xs uppercase text-white outline-none transition-colors placeholder:text-[#594137] focus:border-user-a"
+              className={`w-full border border-white/10 bg-black px-3 py-2 text-xs uppercase text-white outline-none transition-colors placeholder:text-[#594137] focus:border-${accentColor}`}
             />
           </div>
           <div className="space-y-1">
@@ -73,7 +76,7 @@ export const DualWallet = ({ allocations, onAllocationsChange }: { allocations: 
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="DESCRIPCIÓN"
-              className="w-full border border-white/10 bg-black px-3 py-2 text-xs uppercase text-white outline-none transition-colors placeholder:text-[#594137] focus:border-user-a"
+              className={`w-full border border-white/10 bg-black px-3 py-2 text-xs uppercase text-white outline-none transition-colors placeholder:text-[#594137] focus:border-${accentColor}`}
             />
           </div>
         </div>
@@ -85,7 +88,7 @@ export const DualWallet = ({ allocations, onAllocationsChange }: { allocations: 
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value as Allocation['category'])}
-              className="w-full cursor-pointer appearance-none border border-white/10 bg-black px-3 py-2 text-xs text-[#e5e2e1] outline-none transition-colors focus:border-user-a"
+              className={`w-full cursor-pointer appearance-none border border-white/10 bg-black px-3 py-2 text-xs text-[#e5e2e1] outline-none transition-colors focus:border-${accentColor}`}
             >
               {CATEGORIES.map(cat => (
                 <option key={cat} value={cat} className="bg-[#0a0a0a]">{cat}</option>
@@ -96,8 +99,8 @@ export const DualWallet = ({ allocations, onAllocationsChange }: { allocations: 
             <motion.button
               whileTap={{ scale: 0.98 }}
               onClick={addAllocation}
-              className="flex w-full items-center justify-center gap-2 border border-user-a bg-user-a py-3 text-[10px] font-black uppercase tracking-[0.2em] text-black transition-colors hover:bg-[#ffb595]"
-              style={{ boxShadow: '0 0 15px rgba(255, 112, 32, 0.15)' }}
+              className={`flex w-full items-center justify-center gap-2 border border-${accentColor} bg-${accentColor} py-3 text-[10px] font-black uppercase tracking-[0.2em] text-black transition-colors hover:opacity-90`}
+              style={{ boxShadow: `0 0 15px var(--color-${accentColor}-alpha, rgba(255, 112, 32, 0.15))` }}
             >
               <Plus size={14} /> [ REGISTRAR_DATA ]
             </motion.button>
@@ -113,9 +116,9 @@ export const DualWallet = ({ allocations, onAllocationsChange }: { allocations: 
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="group relative flex items-center justify-between border border-white/10 bg-[#0a0a0a] p-3 transition-all hover:border-user-a/60"
+              className={`group relative flex items-center justify-between border border-white/10 bg-[#0a0a0a] p-3 transition-all hover:border-${accentColor}/60`}
             >
-              <div className="absolute left-0 top-0 h-1 w-1 border-l border-t border-user-a" />
+              <div className={`absolute left-0 top-0 h-1 w-1 border-l border-t border-${accentColor}`} />
               <div className="flex flex-col">
                 <span className="text-[10px] uppercase font-bold tracking-widest text-white">
                   {alloc.description}
@@ -130,7 +133,7 @@ export const DualWallet = ({ allocations, onAllocationsChange }: { allocations: 
                 </div>
               </div>
               <div className="flex items-center gap-4">
-                <span className="text-[11px] font-bold text-user-a tabular-nums">
+                <span className={`text-[11px] font-bold text-${accentColor} tabular-nums`}>
                   {formatCOP(alloc.amount)}
                 </span>
                 <button
