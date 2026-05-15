@@ -360,14 +360,14 @@ export const StoreService = {
                         await supabase.from('audio_track').update({
                             title: track.title,
                             artist: track.artist,
-                            spotify_url: track.spotify_url || null,
+                            spotify_url: track.spotifyUrl || track.spotify_url || null,
                             display_order: track.display_order || 0
                         }).eq('id', trackId);
                     } else {
                         const res = await supabase.from('audio_track').insert({
                             title: track.title,
                             artist: track.artist,
-                            spotify_url: track.spotify_url || null,
+                            spotify_url: track.spotifyUrl || track.spotify_url || null,
                             display_order: track.display_order || 0
                         }).select('id').single();
                         trackId = res.data?.id;
