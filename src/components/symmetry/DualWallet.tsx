@@ -1,152 +1,569 @@
 'use client';
 
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, Wallet, Tag, FileText } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  ArrowDownLeft,
+  ArrowLeftRight,
+  ArrowUpRight,
+  BadgeDollarSign,
+  CalendarDays,
+  CircleDollarSign,
+  FileText,
+  PiggyBank,
+  Plus,
+  Repeat2,
+  SlidersHorizontal,
+  Target,
+  Trash2,
+  Wallet,
+} from 'lucide-react';
 import { useProfile } from '@/context/ProfileContext';
 
-interface Allocation {
+type TransactionType = 'expense' | 'income' | 'transfer' | 'budget_adjustment';
+type BudgetCategory = 'Food' | 'Transport' | 'Health' | 'Entertainment' | 'Wishlist' | 'Savings';
+
+interface FinancialMovement {
   id: string;
   amount: number;
   description: string;
-  category: '🎓 ACADÉMICO' | '🐾 VETERINARIA' | '🏠 VIVIENDA' | '🏦 RESERVA' | '🍎 SUMINISTROS' | '📦 OTROS';
+  category: string;
   date: string;
+  type?: TransactionType;
+  account?: string;
+  related_budget?: BudgetCategory | '';
+  recurring?: boolean;
 }
 
-const CATEGORIES = [
-  '🎓 ACADÉMICO',
-  '🐾 VETERINARIA',
-  '🏠 VIVIENDA',
-  '🏦 RESERVA',
-  '🍎 SUMINISTROS',
-  '📦 OTROS'
-] as const;
+const BUDGETS: Record<BudgetCategory, number> = {
+  Food: 520000,
+  Transport: 260000,
+  Health: 320000,
+  Entertainment: 240000,
+  Wishlist: 420000,
+  Savings: 700000,
+};
 
-export const DualWallet = ({ allocations, onAllocationsChange }: { allocations: Allocation[], onAllocationsChange: (newAllocations: Allocation[]) => void }) => {
+const BUDGET_CATEGORIES = Object.keys(BUDGETS) as BudgetCategory[];
+const INCOME_TYPES = ['salary', 'freelance', 'gift', 'refund', 'shared_income'] as const;
+const ACCOUNTS = ['main_wallet', 'savings_vault', 'shared_pool', 'cash_node'] as const;
+
+const TYPE_META: Record<TransactionType, { label: string; tag: string; color: string; bg: string; Icon: React.ElementType }> = {
+  expense: {
+    label: 'ADD_EXPENSE',
+    tag: 'OUTFLOW',
+    color: '#ffb4ab',
+    bg: 'rgba(255, 180, 171, 0.08)',
+    Icon: ArrowUpRight,
+  },
+  income: {
+    label: 'REGISTER_INCOME',
+    tag: 'INFLOW',
+    color: '#c3f400',
+    bg: 'rgba(195, 244, 0, 0.08)',
+    Icon: ArrowDownLeft,
+  },
+  transfer: {
+    label: 'TRANSFER_FUNDS',
+    tag: 'SHIFT',
+    color: '#a178ff',
+    bg: 'rgba(161, 120, 255, 0.09)',
+    Icon: ArrowLeftRight,
+  },
+  budget_adjustment: {
+    label: 'BUDGET_ADJUST',
+    tag: 'LIMIT',
+    color: '#ff4b89',
+    bg: 'rgba(255, 75, 137, 0.08)',
+    Icon: SlidersHorizontal,
+  },
+};
+
+const normalizeCategory = (category: string): string => {
+  const lower = category.toLowerCase();
+  if (lower.includes('aliment') || lower.includes('food') || lower.includes('suministro')) return 'Food';
+  if (lower.includes('transport')) return 'Transport';
+  if (lower.includes('salud') || lower.includes('health') || lower.includes('veterin')) return 'Health';
+  if (lower.includes('wish')) return 'Wishlist';
+  if (lower.includes('reserva') || lower.includes('saving')) return 'Savings';
+  if (lower.includes('entreten')) return 'Entertainment';
+  return category.replace(/^[^\p{L}\p{N}]+/u, '').trim() || 'Other';
+};
+
+const inferType = (movement: FinancialMovement): TransactionType => {
+  if (movement.type) return movement.type;
+  return movement.amount < 0 ? 'income' : 'expense';
+};
+
+const signedAmount = (movement: FinancialMovement) => {
+  const amount = Math.abs(Number(movement.amount) || 0);
+  const type = inferType(movement);
+  if (type === 'income') return amount;
+  if (type === 'expense') return -amount;
+  return 0;
+};
+
+const isThisMonth = (date: string) => {
+  const parsed = new Date(date);
+  const now = new Date();
+  return parsed.getMonth() === now.getMonth() && parsed.getFullYear() === now.getFullYear();
+};
+
+const isWithinDays = (date: string, days: number) => {
+  const parsed = new Date(date).getTime();
+  return parsed >= Date.now() - days * 24 * 60 * 60 * 1000;
+};
+
+const formatCOP = (val: number) => {
+  return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(val);
+};
+
+const compactCOP = (val: number) => {
+  return new Intl.NumberFormat('es-CO', { notation: 'compact', maximumFractionDigits: 1 }).format(val);
+};
+
+const ChunkedProgress = ({ value, color }: { value: number; color: string }) => {
+  const activeSegments = Math.ceil(Math.min(Math.max(value, 0), 100) / 10);
+
+  return (
+    <div className="grid grid-cols-10 gap-1">
+      {Array.from({ length: 10 }).map((_, index) => (
+        <div
+          key={index}
+          className="h-2 border border-white/10 bg-black"
+          style={index < activeSegments ? { backgroundColor: color, borderColor: color, boxShadow: `0 0 8px ${color}55` } : undefined}
+        />
+      ))}
+    </div>
+  );
+};
+
+const MetricCell = ({ label, value, tone }: { label: string; value: string; tone?: string }) => (
+  <div className="border border-white/10 bg-black/45 p-3">
+    <div className="text-[8px] font-black uppercase tracking-[0.22em] text-[#a88a7e]">{label}</div>
+    <motion.div
+      key={value}
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="mt-2 text-lg font-black uppercase tracking-normal tabular-nums sm:text-2xl"
+      style={{ color: tone || '#ffffff' }}
+    >
+      {value}
+    </motion.div>
+  </div>
+);
+
+export const DualWallet = ({
+  allocations,
+  onAllocationsChange,
+}: {
+  allocations: FinancialMovement[];
+  onAllocationsChange: (newAllocations: FinancialMovement[]) => void;
+}) => {
   const { profile } = useProfile();
-  const accentColor = profile === 'ella' ? 'user-a' : 'user-b';
+  const accentColor = profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)';
+  const accentHex = profile === 'ella' ? '#ff4b89' : '#c3f400';
+  const [type, setType] = useState<TransactionType>('expense');
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
-  const [category, setCategory] = useState<Allocation['category']>('📦 OTROS');
+  const [category, setCategory] = useState<string>('Food');
+  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [account, setAccount] = useState<(typeof ACCOUNTS)[number]>('main_wallet');
+  const [relatedBudget, setRelatedBudget] = useState<BudgetCategory | ''>('Food');
+  const [recurring, setRecurring] = useState(false);
 
-  const addAllocation = () => {
-    if (!amount || !description) return;
-    const newAllocation: Allocation = {
+  const movements = useMemo(
+    () => allocations.map((movement) => ({ ...movement, type: inferType(movement), amount: Math.abs(Number(movement.amount) || 0) })),
+    [allocations]
+  );
+
+  const monthMovements = useMemo(() => movements.filter((movement) => isThisMonth(movement.date)), [movements]);
+  const incomeThisMonth = monthMovements.filter((m) => m.type === 'income').reduce((sum, m) => sum + m.amount, 0);
+  const expensesThisMonth = monthMovements.filter((m) => m.type === 'expense').reduce((sum, m) => sum + m.amount, 0);
+  const savingsTotal = movements
+    .filter((m) => m.type === 'income' || normalizeCategory(m.category) === 'Savings' || m.related_budget === 'Savings')
+    .reduce((sum, m) => sum + signedAmount(m), 0);
+  const totalAvailable = movements.reduce((sum, movement) => sum + signedAmount(movement), 0);
+  const totalBudget = Object.values(BUDGETS).reduce((sum, limit) => sum + limit, 0);
+  const spentAgainstBudget = monthMovements.filter((m) => m.type === 'expense').reduce((sum, m) => sum + m.amount, 0);
+  const budgetRemaining = totalBudget - spentAgainstBudget;
+  const savingsRate = incomeThisMonth > 0 ? ((incomeThisMonth - expensesThisMonth) / incomeThisMonth) * 100 : 0;
+  const weeklySpending = movements.filter((m) => m.type === 'expense' && isWithinDays(m.date, 7)).reduce((sum, m) => sum + m.amount, 0);
+  const averageDailySpending = weeklySpending / 7;
+
+  const budgetRows = BUDGET_CATEGORIES.map((budget) => {
+    const spent = monthMovements
+      .filter((m) => m.type === 'expense' && (m.related_budget === budget || normalizeCategory(m.category) === budget))
+      .reduce((sum, m) => sum + m.amount, 0);
+    const limit = BUDGETS[budget];
+    const percent = limit > 0 ? (spent / limit) * 100 : 0;
+    const status = percent >= 100 ? 'OVERLOAD' : percent >= 80 ? 'CAUTION' : 'STABLE';
+    const color = status === 'OVERLOAD' ? '#ffb4ab' : status === 'CAUTION' ? '#a178ff' : '#c3f400';
+    return { budget, spent, limit, remaining: limit - spent, percent, status, color };
+  });
+
+  const topCategories = [...budgetRows]
+    .sort((a, b) => b.spent - a.spent)
+    .slice(0, 3)
+    .filter((row) => row.spent > 0);
+
+  const recurringIncome = movements.filter((m) => m.type === 'income' && m.recurring).reduce((sum, m) => sum + m.amount, 0);
+  const projectedIncome = incomeThisMonth + recurringIncome;
+  const wishlistBudget = budgetRows.find((row) => row.budget === 'Wishlist');
+  const wishlistAffordability = Math.max(0, Math.min(wishlistBudget?.remaining || 0, Math.max(totalAvailable, 0) * 0.18));
+  const foodSpent = budgetRows.find((row) => row.budget === 'Food')?.spent || 0;
+  const foodBaseline = BUDGETS.Food * 0.32;
+  const foodDelta = foodBaseline > 0 ? ((foodSpent - foodBaseline) / foodBaseline) * 100 : 0;
+  const balanceTone = totalAvailable < 0 ? '#ffb4ab' : '#c3f400';
+
+  const addMovement = () => {
+    const parsedAmount = parseFloat(amount);
+    if (!parsedAmount || parsedAmount <= 0 || !description.trim()) return;
+
+    const movement: FinancialMovement = {
       id: Date.now().toString(),
-      amount: parseFloat(amount),
-      description,
+      amount: parsedAmount,
+      description: description.trim(),
       category,
-      date: new Date().toISOString(),
+      date: new Date(`${date}T12:00:00`).toISOString(),
+      type,
+      account,
+      related_budget: relatedBudget,
+      recurring,
     };
-    onAllocationsChange([newAllocation, ...allocations]);
+
+    onAllocationsChange([movement, ...allocations]);
     setAmount('');
     setDescription('');
   };
 
-  const deleteAllocation = (id: string) => {
-    onAllocationsChange(allocations.filter(e => e.id !== id));
+  const deleteMovement = (id: string) => {
+    onAllocationsChange(allocations.filter((movement) => movement.id !== id));
   };
 
-  const formatCOP = (val: number) => {
-    return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(val);
+  const setQuickAction = (nextType: TransactionType) => {
+    setType(nextType);
+    if (nextType === 'income') {
+      setCategory('salary');
+      setRelatedBudget('');
+    } else if (nextType === 'transfer') {
+      setCategory('internal_transfer');
+      setRelatedBudget('Savings');
+    } else if (nextType === 'expense') {
+      setCategory('Food');
+      setRelatedBudget('Food');
+    }
   };
 
   return (
-    <div className="space-y-6 border border-white/10 bg-black/40 p-4 font-mono">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-3">
-          <div className="space-y-1">
-            <label className="flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-[#a88a7e]">
-              <Wallet size={8} /> VALOR_TRANSACCIÓN (COP)
-            </label>
+    <div className="space-y-6 font-mono">
+      <section
+        className="relative overflow-hidden border bg-[#0a0a0a] bg-dot-matrix p-4"
+        style={{ borderColor: balanceTone, boxShadow: `0 0 18px ${balanceTone}22` }}
+      >
+        <div className="absolute left-0 top-0 h-3 w-3 border-l border-t" style={{ borderColor: balanceTone }} />
+        <div className="absolute bottom-0 right-0 h-3 w-3 border-b border-r" style={{ borderColor: balanceTone }} />
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-3">
+          <div>
+            <p className="text-[9px] font-black uppercase tracking-[0.26em] text-[#a88a7e]">BALANCE_CONSOLE</p>
+            <h3 className="mt-1 text-2xl font-black uppercase tracking-normal text-white">Estado financiero general</h3>
+          </div>
+          <span className="border px-2 py-1 text-[8px] font-black uppercase tracking-[0.2em]" style={{ borderColor: balanceTone, color: balanceTone }}>
+            {totalAvailable < 0 ? 'STATUS: DEFICIT' : 'STATUS: SOLVENT'}
+          </span>
+        </div>
+        <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-5">
+          <MetricCell label="Total Disponible" value={formatCOP(totalAvailable)} tone={balanceTone} />
+          <MetricCell label="Ingresos del Mes" value={formatCOP(incomeThisMonth)} tone="#c3f400" />
+          <MetricCell label="Gastos del Mes" value={formatCOP(expensesThisMonth)} tone="#ffb4ab" />
+          <MetricCell label="Ahorro Total" value={formatCOP(savingsTotal)} tone="#a178ff" />
+          <MetricCell label="Presupuesto Restante" value={formatCOP(budgetRemaining)} tone={budgetRemaining < 0 ? '#ffb4ab' : accentHex} />
+        </div>
+      </section>
+
+      <section className="border border-white/10 bg-black/40 p-4">
+        <div className="mb-4 grid gap-2 sm:grid-cols-3">
+          {(['expense', 'income', 'transfer'] as TransactionType[]).map((quickType) => {
+            const meta = TYPE_META[quickType];
+            const Icon = meta.Icon;
+            const active = type === quickType;
+            return (
+              <button
+                key={quickType}
+                type="button"
+                onClick={() => setQuickAction(quickType)}
+                className="flex items-center justify-center gap-2 border px-3 py-3 text-[9px] font-black uppercase tracking-[0.18em] transition-all hover:bg-white/5"
+                style={{
+                  borderColor: active ? meta.color : 'rgba(255,255,255,0.1)',
+                  color: active ? meta.color : '#a88a7e',
+                  backgroundColor: active ? meta.bg : 'transparent',
+                }}
+              >
+                <Icon size={14} /> + {meta.label}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-4">
+          <label className="space-y-1">
+            <span className="flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-[#a88a7e]">
+              <BadgeDollarSign size={8} /> amount
+            </span>
             <input
               type="number"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              placeholder="0.00"
-              className={`w-full border border-white/10 bg-black px-3 py-2 text-xs uppercase text-white outline-none transition-colors placeholder:text-[#594137] focus:border-${accentColor}`}
+              placeholder="0.00 COP"
+              className="w-full border border-white/10 bg-black px-3 py-2 text-xs uppercase text-white outline-none transition-colors placeholder:text-[#594137]"
+              style={{ '--tw-ring-color': accentColor } as React.CSSProperties}
             />
-          </div>
-          <div className="space-y-1">
-            <label className="flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-[#a88a7e]">
-              <FileText size={8} /> CONCEPTO_MOVIMIENTO
-            </label>
+          </label>
+          <label className="space-y-1 lg:col-span-2">
+            <span className="flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-[#a88a7e]">
+              <FileText size={8} /> description
+            </span>
             <input
               type="text"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="DESCRIPCIÓN"
-              className={`w-full border border-white/10 bg-black px-3 py-2 text-xs uppercase text-white outline-none transition-colors placeholder:text-[#594137] focus:border-${accentColor}`}
+              placeholder="CONCEPTO_MOVIMIENTO"
+              className="w-full border border-white/10 bg-black px-3 py-2 text-xs uppercase text-white outline-none transition-colors placeholder:text-[#594137] focus:border-[var(--color-profile-accent)]"
             />
-          </div>
-        </div>
-        <div className="space-y-3">
-          <div className="space-y-1">
-            <label className="flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-[#a88a7e]">
-              <Tag size={8} /> CATEGORÍA_LOG
-            </label>
+          </label>
+          <label className="space-y-1">
+            <span className="flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-[#a88a7e]">
+              <SlidersHorizontal size={8} /> type
+            </span>
             <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value as Allocation['category'])}
-              className={`w-full cursor-pointer appearance-none border border-white/10 bg-black px-3 py-2 text-xs text-[#e5e2e1] outline-none transition-colors focus:border-${accentColor}`}
+              value={type}
+              onChange={(e) => setQuickAction(e.target.value as TransactionType)}
+              className="w-full cursor-pointer appearance-none border border-white/10 bg-black px-3 py-2 text-xs text-[#e5e2e1] outline-none"
             >
-              {CATEGORIES.map(cat => (
-                <option key={cat} value={cat} className="bg-[#0a0a0a]">{cat}</option>
+              {Object.keys(TYPE_META).map((key) => (
+                <option key={key} value={key} className="bg-[#0a0a0a]">
+                  {key}
+                </option>
               ))}
             </select>
-          </div>
-          <div className="pt-4">
+          </label>
+          <label className="space-y-1">
+            <span className="flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-[#a88a7e]">
+              <Target size={8} /> category
+            </span>
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="w-full cursor-pointer appearance-none border border-white/10 bg-black px-3 py-2 text-xs text-[#e5e2e1] outline-none"
+            >
+              {(type === 'income' ? INCOME_TYPES : BUDGET_CATEGORIES).map((cat) => (
+                <option key={cat} value={cat} className="bg-[#0a0a0a]">
+                  {cat}
+                </option>
+              ))}
+              <option value="Other" className="bg-[#0a0a0a]">Other</option>
+            </select>
+          </label>
+          <label className="space-y-1">
+            <span className="flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-[#a88a7e]">
+              <CalendarDays size={8} /> date
+            </span>
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="w-full border border-white/10 bg-black px-3 py-2 text-xs uppercase text-white outline-none"
+            />
+          </label>
+          <label className="space-y-1">
+            <span className="flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-[#a88a7e]">
+              <Wallet size={8} /> account
+            </span>
+            <select
+              value={account}
+              onChange={(e) => setAccount(e.target.value as (typeof ACCOUNTS)[number])}
+              className="w-full cursor-pointer appearance-none border border-white/10 bg-black px-3 py-2 text-xs text-[#e5e2e1] outline-none"
+            >
+              {ACCOUNTS.map((acc) => (
+                <option key={acc} value={acc} className="bg-[#0a0a0a]">
+                  {acc}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="space-y-1">
+            <span className="flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-[#a88a7e]">
+              <PiggyBank size={8} /> related_budget
+            </span>
+            <select
+              value={relatedBudget}
+              onChange={(e) => setRelatedBudget(e.target.value as BudgetCategory | '')}
+              className="w-full cursor-pointer appearance-none border border-white/10 bg-black px-3 py-2 text-xs text-[#e5e2e1] outline-none"
+            >
+              <option value="" className="bg-[#0a0a0a]">none</option>
+              {BUDGET_CATEGORIES.map((budget) => (
+                <option key={budget} value={budget} className="bg-[#0a0a0a]">
+                  {budget}
+                </option>
+              ))}
+            </select>
+          </label>
+          <div className="grid grid-cols-[1fr_auto] gap-2 lg:col-span-4">
+            <button
+              type="button"
+              onClick={() => setRecurring(!recurring)}
+              className="flex items-center justify-center gap-2 border px-3 py-3 text-[9px] font-black uppercase tracking-[0.18em] transition-colors hover:bg-white/5"
+              style={{ borderColor: recurring ? accentHex : 'rgba(255,255,255,0.1)', color: recurring ? accentHex : '#a88a7e' }}
+            >
+              <Repeat2 size={14} /> recurring: {recurring ? 'on' : 'off'}
+            </button>
             <motion.button
               whileTap={{ scale: 0.98 }}
-              onClick={addAllocation}
-              className={`flex w-full items-center justify-center gap-2 border border-${accentColor} bg-${accentColor} py-3 text-[10px] font-black uppercase tracking-[0.2em] text-black transition-colors hover:opacity-90`}
-              style={{ boxShadow: `0 0 15px var(--color-${accentColor}-alpha, rgba(255, 112, 32, 0.15))` }}
+              onClick={addMovement}
+              className="flex items-center justify-center gap-2 border px-5 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-black transition-opacity hover:opacity-90"
+              style={{ borderColor: TYPE_META[type].color, backgroundColor: TYPE_META[type].color, boxShadow: `0 0 15px ${TYPE_META[type].color}33` }}
             >
-              <Plus size={14} /> [ REGISTRAR_DATA ]
+              <Plus size={14} /> [ REGISTRAR ]
             </motion.button>
           </div>
         </div>
-      </div>
+      </section>
 
-      <div className="max-h-80 space-y-2 overflow-y-auto border-t border-white/10 pt-4 pr-2 custom-scrollbar">
-        <AnimatePresence mode="popLayout">
-          {allocations.map((alloc) => (
-            <motion.div
-              key={alloc.id}
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className={`group relative flex items-center justify-between border border-white/10 bg-[#0a0a0a] p-3 transition-all hover:border-${accentColor}/60`}
-            >
-              <div className={`absolute left-0 top-0 h-1 w-1 border-l border-t border-${accentColor}`} />
-              <div className="flex flex-col">
-                <span className="text-[10px] uppercase font-bold tracking-widest text-white">
-                  {alloc.description}
-                </span>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="border border-white/10 bg-black px-1.5 py-0.5 text-[7px] font-bold uppercase text-[#a88a7e]">
-                    {alloc.category}
-                  </span>
-                  <span className="text-[7px] uppercase tracking-widest text-[#594137]">
-                    {new Date(alloc.date).toLocaleDateString()}
+      <section className="grid gap-4 xl:grid-cols-[1.25fr_0.75fr]">
+        <div className="border border-white/10 bg-[#0a0a0a] p-4">
+          <h3 className="mb-4 flex items-center justify-between border-b border-white/10 pb-3 text-[10px] font-black uppercase tracking-[0.22em] text-[#a88a7e]">
+            <span>[ BUDGET_SYSTEM ]</span>
+            <span>80_PERCENT_WARNING / BUDGET_EXCEEDED</span>
+          </h3>
+          <div className="grid gap-2 md:grid-cols-2">
+            {budgetRows.map((row) => (
+              <div key={row.budget} className="border border-white/10 bg-black/40 p-3">
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white">{row.budget}</span>
+                  <span className="border px-1.5 py-1 text-[7px] font-black uppercase tracking-[0.14em]" style={{ borderColor: row.color, color: row.color }}>
+                    STATUS: {row.status}
                   </span>
                 </div>
+                <ChunkedProgress value={row.percent} color={row.color} />
+                <div className="mt-2 flex items-center justify-between text-[8px] font-bold uppercase tracking-[0.16em] text-[#a88a7e]">
+                  <span>{compactCOP(row.spent)} / {compactCOP(row.limit)}</span>
+                  <span>{formatCOP(row.remaining)}</span>
+                </div>
               </div>
-              <div className="flex items-center gap-4">
-                <span className={`text-[11px] font-bold text-${accentColor} tabular-nums`}>
-                  {formatCOP(alloc.amount)}
-                </span>
-                <button
-                  onClick={() => deleteAllocation(alloc.id)}
-                  className="p-1.5 text-[#594137] opacity-40 transition-all hover:bg-red-500/10 hover:text-red-500 group-hover:opacity-100"
+            ))}
+          </div>
+        </div>
+
+        <div className="border border-white/10 bg-[#0a0a0a] p-4">
+          <h3 className="mb-4 flex items-center gap-2 border-b border-white/10 pb-3 text-[10px] font-black uppercase tracking-[0.22em] text-[#a88a7e]">
+            <CircleDollarSign className="h-4 w-4 text-user-b" />
+            [ INCOME_TRACKING ]
+          </h3>
+          <div className="grid gap-2">
+            <MetricCell label="Recurring Income" value={formatCOP(recurringIncome)} tone="#c3f400" />
+            <MetricCell label="Income Projection" value={formatCOP(projectedIncome)} tone="#a178ff" />
+            <MetricCell label="Monthly Comparison" value={`${savingsRate.toFixed(1)}% savings_rate`} tone={savingsRate >= 0 ? '#c3f400' : '#ffb4ab'} />
+          </div>
+        </div>
+      </section>
+
+      <section className="grid gap-4 xl:grid-cols-[0.82fr_1.18fr]">
+        <div className="border border-white/10 bg-[#0a0a0a] p-4">
+          <h3 className="mb-4 border-b border-white/10 pb-3 text-[10px] font-black uppercase tracking-[0.22em] text-[#a88a7e]">
+            [ FINANCIAL_ANALYTICS ]
+          </h3>
+          <div className="grid gap-2 sm:grid-cols-2">
+            <MetricCell label="weekly_spending" value={formatCOP(weeklySpending)} tone="#ffb4ab" />
+            <MetricCell label="avg_daily_spending" value={formatCOP(averageDailySpending)} tone="#ffffff" />
+            <MetricCell label="savings_rate" value={`${savingsRate.toFixed(1)}%`} tone={savingsRate >= 0 ? '#c3f400' : '#ffb4ab'} />
+            <MetricCell label="wishlist_affordability" value={formatCOP(wishlistAffordability)} tone="#a178ff" />
+          </div>
+          <div className="mt-4 border-t border-white/10 pt-3">
+            <p className="mb-2 text-[8px] font-black uppercase tracking-[0.2em] text-[#a88a7e]">top_categories</p>
+            <div className="space-y-2">
+              {(topCategories.length ? topCategories : budgetRows.slice(0, 3)).map((row) => (
+                <div key={row.budget} className="flex items-center justify-between border border-white/10 bg-black/40 px-3 py-2 text-[9px] font-bold uppercase tracking-[0.14em]">
+                  <span>{row.budget}</span>
+                  <span style={{ color: row.color }}>{formatCOP(row.spent)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="border border-white/10 bg-[#0a0a0a] p-4">
+          <h3 className="mb-4 border-b border-white/10 pb-3 text-[10px] font-black uppercase tracking-[0.22em] text-[#a88a7e]">
+            [ INSIGHT_FEED ]
+          </h3>
+          <div className="space-y-2">
+            <div className="border border-user-b/30 bg-user-b/5 p-3 text-[10px] font-bold uppercase leading-5 tracking-[0.14em] text-user-b">
+              You can safely allocate {formatCOP(wishlistAffordability)} to wishlist goals this week.
+            </div>
+            <div className="border border-white/10 bg-black/40 p-3 text-[10px] font-bold uppercase leading-5 tracking-[0.14em] text-[#e1bfb2]">
+              Food expenses {foodDelta >= 0 ? 'increased' : 'decreased'} {Math.abs(foodDelta).toFixed(0)}% against this month&apos;s tactical baseline.
+            </div>
+            <div className="border border-user-c/30 bg-user-c/5 p-3 text-[10px] font-bold uppercase leading-5 tracking-[0.14em] text-[#d1bcff]">
+              Budget runway is {budgetRemaining < 0 ? 'overloaded' : `${Math.max(0, Math.floor(budgetRemaining / Math.max(averageDailySpending, 1)))} days`} at current spend velocity.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="border border-white/10 bg-black/40 p-4">
+        <h3 className="mb-4 flex items-center justify-between border-b border-white/10 pb-3 text-[10px] font-black uppercase tracking-[0.22em] text-[#a88a7e]">
+          <span>[ MOVEMENT_LEDGER ]</span>
+          <span>{movements.length.toString().padStart(2, '0')} records</span>
+        </h3>
+        <div className="max-h-96 space-y-2 overflow-y-auto pr-2 custom-scrollbar">
+          <AnimatePresence mode="popLayout">
+            {movements.map((movement) => {
+              const meta = TYPE_META[movement.type || 'expense'];
+              const Icon = meta.Icon;
+              return (
+                <motion.div
+                  key={movement.id}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  className="group relative grid gap-3 border border-white/10 bg-[#0a0a0a] p-3 transition-all hover:border-white/30 md:grid-cols-[auto_1fr_auto]"
                 >
-                  <Trash2 size={12} />
-                </button>
-              </div>
-            </motion.div>
-          ))}
-        </AnimatePresence>
-      </div>
+                  <div className="flex h-10 w-10 items-center justify-center border" style={{ borderColor: meta.color, color: meta.color, backgroundColor: meta.bg }}>
+                    <Icon size={16} />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-white">{movement.description}</span>
+                      <span className="border px-1.5 py-0.5 text-[7px] font-black uppercase tracking-[0.14em]" style={{ borderColor: meta.color, color: meta.color }}>
+                        {meta.tag}
+                      </span>
+                      {movement.recurring && <span className="border border-user-c/30 px-1.5 py-0.5 text-[7px] font-black uppercase tracking-[0.14em] text-user-c">recurring</span>}
+                    </div>
+                    <div className="mt-1 flex flex-wrap items-center gap-2 text-[7px] font-bold uppercase tracking-widest text-[#594137]">
+                      <span>{normalizeCategory(movement.category)}</span>
+                      <span>{movement.account || 'main_wallet'}</span>
+                      <span>{movement.related_budget || 'no_budget'}</span>
+                      <span>{new Date(movement.date).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between gap-4 md:justify-end">
+                    <span className="text-[11px] font-black tabular-nums" style={{ color: meta.color }}>
+                      {movement.type === 'expense' ? '-' : movement.type === 'income' ? '+' : ''}
+                      {formatCOP(movement.amount)}
+                    </span>
+                    <button
+                      onClick={() => deleteMovement(movement.id)}
+                      className="p-1.5 text-[#594137] opacity-60 transition-all hover:bg-red-500/10 hover:text-red-500 group-hover:opacity-100"
+                      aria-label="Eliminar movimiento"
+                    >
+                      <Trash2 size={12} />
+                    </button>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
+        </div>
+      </section>
     </div>
   );
 };

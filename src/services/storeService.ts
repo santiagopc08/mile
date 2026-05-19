@@ -43,6 +43,68 @@ export interface Allocation {
     date: string;
 }
 
+export type WishlistState = 'DISCOVERED' | 'SAVING' | 'READY_TO_DEPLOY' | 'COMPLETED' | 'ARCHIVED';
+export type GoalCategory = 'Food' | 'Travel' | 'Gaming' | 'Tech' | 'Experiences' | 'Home';
+export type ReactionType = 'LIKE' | 'PRIORITY' | 'WANT_THIS_WITH_YOU';
+
+export interface WishlistContribution {
+    id: string;
+    wishlistItemId: string;
+    contributor: string;
+    amount: number;
+    note?: string;
+    createdAt: string;
+}
+
+export interface WishlistReaction {
+    id: string;
+    wishlistItemId: string;
+    reactor: string;
+    type: ReactionType;
+}
+
+export interface WishlistActivity {
+    id: string;
+    wishlistItemId?: string;
+    actor: string;
+    action: string;
+    detail?: string;
+    createdAt: string;
+}
+
+export interface WishlistItem {
+    id: string;
+    category: string;
+    title: string;
+    description: string;
+    price: number;
+    savedAmount: number;
+    isPriority: boolean;
+    state: WishlistState;
+    goalCategory: GoalCategory;
+    imageUrl?: string;
+    externalLink?: string;
+    locationUrl?: string;
+    shared: boolean;
+    owner?: string;
+    author: string;
+    reactions: WishlistReaction[];
+    contributions: WishlistContribution[];
+}
+
+export type HealthHabitType = 'junk_food' | 'snacks' | 'delivery' | 'impulse_spending';
+
+export interface HealthHabit {
+    id: string;
+    profile: string;
+    date: string;
+    habitType: HealthHabitType;
+    cost: number;
+    severity: 'low' | 'medium' | 'high';
+    note?: string;
+    createdAt: string;
+}
+
 export interface AppData {
     events: {
         id: string;
@@ -79,18 +141,9 @@ export interface AppData {
     };
     tasks: Task[];
     objectives: Objective[];
-    wishlist: {
-        id: string;
-        category: 'plan' | 'antojo' | 'gusto';
-        title: string;
-        price: number;
-        isPriority: boolean;
-        description: string;
-        status: "to-visit" | "visited";
-        locationUrl?: string;
-        owner?: string;
-        author: string;
-    }[];
+    wishlist: WishlistItem[];
+    wishlistActivity: WishlistActivity[];
+    healthHabits: HealthHabit[];
     persistentListening: {
         id: string;
         topic: string;
@@ -104,7 +157,7 @@ export interface AppData {
 export const StoreService = {
     async getStore(supabase: SupabaseClient = defaultSupabase): Promise<AppData> {
         try {
-            const [eventsRes, notesRes, commitmentsRes, victoriesRes, settingsRes, playlistRes, commentsRes, listeningRes, tasksRes, wishlistRes, objectivesRes] = await Promise.all([
+            const [eventsRes, notesRes, commitmentsRes, victoriesRes, settingsRes, playlistRes, commentsRes, listeningRes, tasksRes, wishlistRes, objectivesRes, contribRes, reactionsRes, activityRes, habitsRes] = await Promise.all([
                 supabase.from('events').select('*').order('date', { ascending: false }),
                 supabase.from('notes').select('*').order('created_at', { ascending: false }),
                 supabase.from('commitments').select('*').order('created_at', { ascending: true }),
@@ -115,7 +168,11 @@ export const StoreService = {
                 supabase.from('persistent_listening').select('*').order('date', { ascending: false }),
                 supabase.from('tasks').select('*').order('created_at', { ascending: false }),
                 supabase.from('wishlist').select('*').order('created_at', { ascending: false }),
-                supabase.from('objectives').select('*').order('created_at', { ascending: true })
+                supabase.from('objectives').select('*').order('created_at', { ascending: true }),
+                supabase.from('wishlist_contributions').select('*').order('created_at', { ascending: false }),
+                supabase.from('wishlist_reactions').select('*'),
+                supabase.from('wishlist_activity').select('*').order('created_at', { ascending: false }).limit(50),
+                supabase.from('health_habits').select('*').order('created_at', { ascending: false })
             ]);
 
             const settings = settingsRes.data || { connection_date: new Date().toISOString(), last_update: new Date().toISOString() };
@@ -148,8 +205,44 @@ export const StoreService = {
 
             const allVictories = victoriesRes.data || [];
 
+            const allContributions = (contribRes.data || []) as any[];
+            const allReactions = (reactionsRes.data || []) as any[];
+
             return {
-                wishlist: (wishlistRes.data || []).map(w => ({ id: w.id, category: w.category, title: w.title, description: w.description, status: w.status, author: w.author || "el", owner: w.owner || undefined, locationUrl: w.location_url, price: w.price || 0, isPriority: w.is_priority || false })),
+                wishlist: (wishlistRes.data || []).map(w => {
+                    const itemContribs = allContributions.filter(c => c.wishlist_item_id === w.id);
+                    const itemReactions = allReactions.filter(r => r.wishlist_item_id === w.id);
+                    return {
+                        id: w.id,
+                        category: w.category || 'antojo',
+                        title: w.title,
+                        description: w.description || '',
+                        state: w.state || 'DISCOVERED',
+                        author: w.author || 'el',
+                        owner: w.owner || undefined,
+                        locationUrl: w.location_url || w.external_link,
+                        externalLink: w.external_link || w.location_url,
+                        imageUrl: w.image_url || undefined,
+                        price: w.price || 0,
+                        savedAmount: w.saved_amount || 0,
+                        isPriority: w.is_priority || false,
+                        goalCategory: w.goal_category || 'Experiences',
+                        shared: w.shared || false,
+                        reactions: itemReactions.map((r: any) => ({ id: r.id, wishlistItemId: r.wishlist_item_id, reactor: r.reactor, type: r.type })),
+                        contributions: itemContribs.map((c: any) => ({ id: c.id, wishlistItemId: c.wishlist_item_id, contributor: c.contributor, amount: c.amount, note: c.note, createdAt: c.created_at })),
+                    } as WishlistItem;
+                }),
+                wishlistActivity: (activityRes.data || []).map((a: any) => ({ id: a.id, wishlistItemId: a.wishlist_item_id, actor: a.actor, action: a.action, detail: a.detail, createdAt: a.created_at })),
+                healthHabits: (habitsRes.data || []).map((h: any) => ({
+                    id: h.id,
+                    profile: h.profile,
+                    date: h.date,
+                    habitType: h.habit_type as HealthHabitType,
+                    cost: h.cost,
+                    severity: h.severity,
+                    note: h.note,
+                    createdAt: h.created_at
+                })),
                 tasks: (tasksRes.data || []).map((t) => ({
                     id: t.id,
                     text: t.text || t.title,
@@ -259,9 +352,18 @@ export const StoreService = {
                     category: w.category,
                     title: w.title,
                     description: w.description,
-                    status: w.status,
-                    location_url: w.locationUrl, price: w.price, is_priority: w.isPriority,
-                    author: w.author || "el", owner: w.owner || undefined
+                    state: w.state || 'DISCOVERED',
+                    status: w.state === 'COMPLETED' ? 'visited' : 'to-visit',
+                    location_url: w.locationUrl || w.externalLink,
+                    external_link: w.externalLink || w.locationUrl,
+                    image_url: w.imageUrl || null,
+                    price: w.price,
+                    saved_amount: w.savedAmount || 0,
+                    is_priority: w.isPriority,
+                    goal_category: w.goalCategory || 'Experiences',
+                    shared: w.shared || false,
+                    author: w.author || 'el',
+                    owner: w.owner || undefined
                 })));
             }
 
@@ -560,5 +662,134 @@ export const StoreService = {
             console.error('Failed fetching mahjong images:', e);
             return [];
         }
+    },
+
+    // === PLANES MODULE: Direct DB methods ===
+
+    async addContribution(
+        itemId: string,
+        contributor: string,
+        amount: number,
+        note: string = '',
+        supabase: SupabaseClient = defaultSupabase
+    ): Promise<void> {
+        await supabase.from('wishlist_contributions').insert({
+            wishlist_item_id: itemId,
+            contributor,
+            amount,
+            note: note || null
+        });
+        // Update saved_amount on the wishlist item
+        const { data: item } = await supabase.from('wishlist').select('saved_amount').eq('id', itemId).single();
+        if (item) {
+            await supabase.from('wishlist').update({
+                saved_amount: (item.saved_amount || 0) + amount
+            }).eq('id', itemId);
+        }
+        // Log activity
+        const formatCOP = (v: number) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(v);
+        await supabase.from('wishlist_activity').insert({
+            wishlist_item_id: itemId,
+            actor: contributor,
+            action: 'contributed',
+            detail: `+${formatCOP(amount)}`
+        });
+    },
+
+    async toggleReaction(
+        itemId: string,
+        reactor: string,
+        type: string,
+        supabase: SupabaseClient = defaultSupabase
+    ): Promise<boolean> {
+        const { data: existing } = await supabase
+            .from('wishlist_reactions')
+            .select('id')
+            .eq('wishlist_item_id', itemId)
+            .eq('reactor', reactor)
+            .eq('type', type)
+            .maybeSingle();
+
+        if (existing) {
+            await supabase.from('wishlist_reactions').delete().eq('id', existing.id);
+            return false; // removed
+        } else {
+            await supabase.from('wishlist_reactions').insert({
+                wishlist_item_id: itemId,
+                reactor,
+                type
+            });
+            // Log activity
+            await supabase.from('wishlist_activity').insert({
+                wishlist_item_id: itemId,
+                actor: reactor,
+                action: 'reacted',
+                detail: type
+            });
+            return true; // added
+        }
+    },
+
+    async logWishlistActivity(
+        itemId: string | null,
+        actor: string,
+        action: string,
+        detail: string = '',
+        supabase: SupabaseClient = defaultSupabase
+    ): Promise<void> {
+        await supabase.from('wishlist_activity').insert({
+            wishlist_item_id: itemId,
+            actor,
+            action,
+            detail: detail || null
+        });
+    },
+
+    async updateWishlistState(
+        itemId: string,
+        newState: string,
+        actor: string,
+        supabase: SupabaseClient = defaultSupabase
+    ): Promise<void> {
+        const { data: item } = await supabase.from('wishlist').select('state').eq('id', itemId).single();
+        const oldState = item?.state || 'DISCOVERED';
+        await supabase.from('wishlist').update({
+            state: newState,
+            status: newState === 'COMPLETED' ? 'visited' : 'to-visit'
+        }).eq('id', itemId);
+        await supabase.from('wishlist_activity').insert({
+            wishlist_item_id: itemId,
+            actor,
+            action: 'state_changed',
+            detail: `${oldState} → ${newState}`
+        });
+    },
+
+    // === HEALTH HABITS ===
+
+    async logHealthHabit(
+        profile: string,
+        habitType: HealthHabitType,
+        cost: number,
+        severity: 'low' | 'medium' | 'high',
+        note?: string,
+        supabase: SupabaseClient = defaultSupabase
+    ): Promise<void> {
+        const timeZoneOffset = (new Date()).getTimezoneOffset() * 60000;
+        const localDate = new Date(Date.now() - timeZoneOffset);
+        const todayStr = localDate.toISOString().split('T')[0];
+
+        await supabase.from('health_habits').insert({
+            profile,
+            date: todayStr,
+            habit_type: habitType,
+            cost,
+            severity,
+            note: note || null
+        });
+    },
+
+    async deleteHealthHabit(id: string, supabase: SupabaseClient = defaultSupabase): Promise<void> {
+        await supabase.from('health_habits').delete().eq('id', id);
     }
 };

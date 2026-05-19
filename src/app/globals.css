@@ -170,3 +170,210 @@ button, input, select {
   0%, 100% { filter: brightness(1) drop-shadow(0 0 8px var(--color-profile-accent-alpha)); }
   50% { filter: brightness(1.1) drop-shadow(0 0 16px var(--color-profile-accent-alpha)); }
 }
+
+/* ============================================================
+   PLANES MODULE — Wishlist / Savings / Emotional Board Styles
+   ============================================================ */
+
+/* Chunked Savings Progress Bar */
+.savings-track {
+  display: flex;
+  gap: 2px;
+  height: 8px;
+  width: 100%;
+}
+
+.savings-chunk {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.06);
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.savings-chunk-filled {
+  background: var(--color-user-b);
+}
+
+.savings-chunk-filled.overflow {
+  background: var(--color-user-a);
+}
+
+@keyframes savings-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(195, 244, 0, 0); }
+  50% { box-shadow: 0 0 8px 1px rgba(195, 244, 0, 0.35); }
+}
+
+.savings-chunk-latest {
+  animation: savings-pulse 2s infinite;
+}
+
+/* Reaction Buttons */
+.reaction-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 4px 8px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.35);
+  background: transparent;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.reaction-btn:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.reaction-btn-active {
+  border-color: var(--color-user-a);
+  color: var(--color-user-a);
+  background: rgba(255, 75, 137, 0.08);
+}
+
+.reaction-btn-active:hover {
+  background: rgba(255, 75, 137, 0.14);
+}
+
+/* Activity Feed */
+@keyframes activity-slide-in {
+  from { opacity: 0; transform: translateX(-12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.activity-line {
+  animation: activity-slide-in 0.3s ease forwards;
+}
+
+/* Warm Gradient Glow for Planes Module */
+.planes-warm-glow {
+  background-image: linear-gradient(
+    135deg,
+    rgba(255, 181, 149, 0.06) 0%,
+    rgba(217, 193, 232, 0.04) 50%,
+    rgba(161, 120, 255, 0.03) 100%
+  );
+}
+
+/* State Badges */
+.state-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  font-size: 8px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  border: 1px solid;
+}
+
+.state-discovered { border-color: rgba(255, 181, 149, 0.4); color: #ffb595; }
+.state-saving { border-color: rgba(195, 244, 0, 0.4); color: #c3f400; }
+.state-ready { border-color: rgba(0, 219, 233, 0.4); color: #00dbe9; }
+.state-completed { border-color: rgba(161, 120, 255, 0.4); color: #a178ff; }
+.state-archived { border-color: rgba(255, 255, 255, 0.15); color: rgba(255, 255, 255, 0.3); }
+
+/* Category pills */
+.category-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+  color: #a88a7e;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.category-pill:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.category-pill-active {
+  border-color: var(--color-user-a);
+  color: var(--color-user-a);
+  background: rgba(255, 75, 137, 0.08);
+}
+
+/* Contribution quick buttons */
+.contrib-quick-btn {
+  padding: 6px 12px;
+  border: 1px solid rgba(195, 244, 0, 0.2);
+  background: transparent;
+  color: #c3f400;
+  font-size: 10px;
+  font-weight: 800;
+  font-family: var(--font-mono);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.contrib-quick-btn:hover {
+  background: rgba(195, 244, 0, 0.08);
+  border-color: rgba(195, 244, 0, 0.4);
+}
+
+/* Wishlist card image hover */
+.wishlist-card-img {
+  filter: grayscale(0.6) contrast(1.1);
+  transition: filter 0.4s ease;
+}
+
+.wishlist-card-img:hover {
+  filter: grayscale(0) contrast(1);
+}
+
+/* ============================================================
+   HEALTH HABITS MODULE — Aggressive Alerts
+   ============================================================ */
+
+.health-status-stable {
+  color: #c3f400;
+  text-shadow: 0 0 10px rgba(195, 244, 0, 0.4);
+}
+
+.health-status-warning {
+  color: #ffb595;
+  text-shadow: 0 0 10px rgba(255, 181, 149, 0.4);
+}
+
+.health-status-critical {
+  color: #ff003c;
+  text-shadow: 0 0 15px rgba(255, 0, 60, 0.8), 0 0 30px rgba(255, 0, 60, 0.4);
+  animation: critical-glitch 0.2s infinite;
+}
+
+@keyframes critical-glitch {
+  0% { transform: translate(0) }
+  20% { transform: translate(-1px, 1px) }
+  40% { transform: translate(-1px, -1px) }
+  60% { transform: translate(1px, 1px) }
+  80% { transform: translate(1px, -1px) }
+  100% { transform: translate(0) }
+}
+
+.habit-btn {
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(0,0,0,0.4);
+  transition: all 0.2s;
+}
+
+.habit-btn:hover {
+  border-color: rgba(255,255,255,0.3);
+  background: rgba(255,255,255,0.05);
+}
+
+.habit-btn:active {
+  transform: scale(0.98);
+}

@@ -5,6 +5,7 @@ import { PrivateRoute } from "@/components/PrivateRoute";
 import { BiometricVault } from "@/components/symmetry/BiometricVault";
 import { FiscalAuditor } from "@/components/symmetry/FiscalAuditor";
 import { BloodPressureTracker } from "@/components/health/BloodPressureTracker";
+import { HabitTracker } from "@/components/health/HabitTracker";
 import { useStore } from "@/context/StoreContext";
 import { useProfile } from "@/context/ProfileContext";
 import { Activity, HeartPulse, Utensils, Shield, Radio } from 'lucide-react';
@@ -12,7 +13,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Allocation, StoreService } from "@/services/storeService";
 
 export default function SaludPage() {
-    type SaludTab = 'vitals' | 'biometric' | 'fiscal';
+    type SaludTab = 'vitals' | 'biometric' | 'fiscal' | 'habits';
     const [activeTab, setActiveTab] = useState<SaludTab>('vitals');
     const { data } = useStore();
     const { profile } = useProfile();
@@ -61,6 +62,7 @@ export default function SaludPage() {
         { id: 'vitals', label: 'Signos Vitales', icon: HeartPulse },
         { id: 'biometric', label: 'Bóveda Biométrica', icon: Shield },
         { id: 'fiscal', label: 'Salud Fiscal', icon: Utensils },
+        { id: 'habits', label: 'Hábitos', icon: Activity },
     ];
 
     return (
@@ -135,7 +137,7 @@ export default function SaludPage() {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 border-b border-white/10 bg-black sm:grid-cols-3">
+                    <div className="grid grid-cols-1 border-b border-white/10 bg-black sm:grid-cols-4">
                         {tabs.map((tab) => (
                             <button
                                 key={tab.id}
@@ -185,6 +187,7 @@ export default function SaludPage() {
                                         profile={profile || 'el'}
                                     />
                                 )}
+                                {activeTab === 'habits' && <HabitTracker />}
                             </motion.div>
                         </AnimatePresence>
                     </div>

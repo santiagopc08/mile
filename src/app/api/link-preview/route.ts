@@ -25,6 +25,34 @@ export async function GET(request: Request) {
         const descriptionMatch = html.match(/<meta property="og:description" content="([^"]+)"/i);
         const siteNameMatch = html.match(/<meta property="og:site_name" content="([^"]+)"/i);
 
+        // Extract Price from meta tags or common patterns
+        let estimatedPrice: number | null = null;
+        const priceMetaMatch =
+            html.match(/<meta property="og:price:amount" content="([^"]+)"/i) ||
+            html.match(/<meta property="product:price:amount" content="([^"]+)"/i) ||
+            html.match(/<meta property="product:price" content="([^"]+)"/i) ||
+            html.match(/<meta itemprop="price" content="([^"]+)"/i);
+
+        if (priceMetaMatch) {
+            const parsed = parseFloat(priceMetaMatch[1].replace(/[^0-9.]/g, ''));
+            if (!isNaN(parsed)) estimatedPrice = parsed;
+        }
+
+        // Fallback: try common price patterns in HTML (COP format: $XX.XXX or $X.XXX.XXX)
+        if (!estimatedPrice) {
+            const priceCOPMatch = html.match(/\$\s?([\d]{1,3}(?:\.[\d]{3})+)/);
+            if (priceCOPMatch) {
+                const parsed = parseFloat(priceCOPMatch[1].replace(/\./g, ''));
+                if (!isNaN(parsed) && parsed > 100) estimatedPrice = parsed;
+            }
+        }
+
+        // Extract domain cleanly
+        let domain: string | null = null;
+        try {
+            domain = new URL(finalUrl).hostname.replace('www.', '');
+        } catch {}
+
         // Extract Coordinates from Google Maps URL
         let coords = null;
         const mapsCoordsRegex = /@(-?\d+\.\d+),(-?\d+\.\d+)/;
@@ -52,6 +80,8 @@ export async function GET(request: Request) {
             description: descriptionMatch ? descriptionMatch[1] : null,
             siteName: siteNameMatch ? siteNameMatch[1] : null,
             url: finalUrl,
+            domain,
+            estimatedPrice,
             coords
         });
 

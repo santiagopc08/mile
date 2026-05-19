@@ -14,11 +14,25 @@ import {
 import { useVisibility } from '@/context/VisibilityContext';
 import { useProfile } from '@/context/ProfileContext';
 
+type TransactionType = 'expense' | 'income' | 'transfer' | 'budget_adjustment';
+interface FinancialMovement {
+  amount?: number;
+  date: string;
+  type?: TransactionType;
+}
+
 const formatCOP = (val: number) => {
   return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(val);
 };
 
-export const FinanceChart = ({ allocationsElla, allocationsEl }: { allocationsElla: any[], allocationsEl: any[] }) => {
+const getType = (movement: FinancialMovement): TransactionType => {
+  if (movement?.type) return movement.type;
+  return Number(movement?.amount) < 0 ? 'income' : 'expense';
+};
+
+const getAmount = (movement: FinancialMovement) => Math.abs(Number(movement?.amount) || 0);
+
+export const FinanceChart = ({ allocationsElla, allocationsEl }: { allocationsElla: FinancialMovement[], allocationsEl: FinancialMovement[] }) => {
   const { mode } = useVisibility();
   const { profile } = useProfile();
 
@@ -32,18 +46,20 @@ export const FinanceChart = ({ allocationsElla, allocationsEl }: { allocationsEl
       const dayLabel = days[d.getDay()];
       const dateStr = d.toLocaleDateString();
 
-      const sumElla = (allocationsElla || [])
-        .filter(e => new Date(e.date).toLocaleDateString() === dateStr)
-        .reduce((sum, e) => sum + e.amount, 0);
+      const dayElla = (allocationsElla || []).filter(e => new Date(e.date).toLocaleDateString() === dateStr);
+      const dayEl = (allocationsEl || []).filter(e => new Date(e.date).toLocaleDateString() === dateStr);
 
-      const sumEl = (allocationsEl || [])
-        .filter(e => new Date(e.date).toLocaleDateString() === dateStr)
-        .reduce((sum, e) => sum + e.amount, 0);
+      const incomeElla = dayElla.filter(e => getType(e) === 'income').reduce((sum, e) => sum + getAmount(e), 0);
+      const expenseElla = dayElla.filter(e => getType(e) === 'expense').reduce((sum, e) => sum + getAmount(e), 0);
+      const incomeEl = dayEl.filter(e => getType(e) === 'income').reduce((sum, e) => sum + getAmount(e), 0);
+      const expenseEl = dayEl.filter(e => getType(e) === 'expense').reduce((sum, e) => sum + getAmount(e), 0);
 
       return {
         name: dayLabel,
-        USER_A: sumElla,
-        USER_B: sumEl,
+        USER_A: incomeElla - expenseElla,
+        USER_B: incomeEl - expenseEl,
+        INCOME: incomeElla + incomeEl,
+        EXPENSE: expenseElla + expenseEl,
       };
     });
   }, [allocationsElla, allocationsEl]);
@@ -81,7 +97,7 @@ export const FinanceChart = ({ allocationsElla, allocationsEl }: { allocationsEl
               boxShadow: '0 10px 20px rgba(0,0,0,0.5)'
             }}
             itemStyle={{ padding: '2px 0' }}
-            formatter={(value: any, name: any) => [formatCOP(Number(value)), `[ ${name} ]`]}
+            formatter={(value: unknown, name: unknown) => [formatCOP(Number(value || 0)), `[ ${String(name)} ]`]}
           />
           {mode === 'us' && (
             <Legend 
@@ -100,17 +116,22 @@ export const FinanceChart = ({ allocationsElla, allocationsEl }: { allocationsEl
           )}
 
           {mode === 'me' ? (
-            <Bar
-              dataKey={profile === 'ella' ? 'USER_A' : 'USER_B'}
-              fill={profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)'}
-              barSize={12}
-              isAnimationActive={true}
-              name={profile === 'ella' ? 'MILENA' : 'SANTIAGO'}
-            />
+            <>
+              <Bar
+                dataKey={profile === 'ella' ? 'USER_A' : 'USER_B'}
+                fill={profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)'}
+                barSize={12}
+                isAnimationActive={true}
+                name={profile === 'ella' ? 'NET_MILENA' : 'NET_SANTIAGO'}
+              />
+              <Bar dataKey="EXPENSE" fill="var(--color-system-alert)" barSize={6} isAnimationActive={true} name="OUTFLOW" />
+            </>
           ) : (
             <>
-              <Bar dataKey="USER_A" fill="var(--color-user-a)" barSize={8} isAnimationActive={true} name="MILENA" />
-              <Bar dataKey="USER_B" fill="var(--color-user-b)" barSize={8} isAnimationActive={true} name="SANTIAGO" />
+              <Bar dataKey="INCOME" fill="var(--color-user-b)" barSize={8} isAnimationActive={true} name="INFLOW" />
+              <Bar dataKey="EXPENSE" fill="var(--color-system-alert)" barSize={8} isAnimationActive={true} name="OUTFLOW" />
+              <Bar dataKey="USER_A" fill="var(--color-user-a)" barSize={6} isAnimationActive={true} name="NET_MILENA" />
+              <Bar dataKey="USER_B" fill="var(--color-user-c)" barSize={6} isAnimationActive={true} name="NET_SANTIAGO" />
             </>
           )}
         </BarChart>
