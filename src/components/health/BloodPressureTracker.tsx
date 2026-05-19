@@ -265,7 +265,7 @@ export const BloodPressureTracker = () => {
                                 </h3>
                                 <span className="text-[6px] text-stone-600">mmHg</span>
                             </div>
-                            <div className="grid grid-cols-3 gap-2 text-center">
+                            <div className="grid grid-cols-3 gap-4 text-center">
                                 <div className="flex flex-col">
                                     <span className="text-[6px] text-stone-600 uppercase">MAX</span>
                                     <span className="text-sm font-bold text-white">{stats.systolic.max.systolic}</span>
@@ -288,7 +288,7 @@ export const BloodPressureTracker = () => {
                                 </h3>
                                 <span className="text-[6px] text-stone-600">mmHg</span>
                             </div>
-                            <div className="grid grid-cols-3 gap-2 text-center">
+                            <div className="grid grid-cols-3 gap-4 text-center">
                                 <div className="flex flex-col">
                                     <span className="text-[6px] text-stone-600 uppercase">MAX</span>
                                     <span className="text-sm font-bold text-white">{stats.diastolic.max.diastolic}</span>
@@ -311,7 +311,7 @@ export const BloodPressureTracker = () => {
                                 </h3>
                                 <span className="text-[6px] text-stone-600">BPM</span>
                             </div>
-                            <div className="grid grid-cols-3 gap-2 text-center">
+                            <div className="grid grid-cols-3 gap-4 text-center">
                                 <div className="flex flex-col">
                                     <span className="text-[6px] text-stone-600 uppercase">MAX</span>
                                     <span className="text-sm font-bold text-white">{stats.heartRate.max.heart_rate}</span>
@@ -402,7 +402,7 @@ export const BloodPressureTracker = () => {
                                 className={`flex items-center justify-between p-4 border border-white/5 bg-[#0a0a0a] group hover:border-${accentClass}/30 transition-all relative`}
                             >
                                 <div className={`absolute top-0 left-0 w-1 h-1 bg-${accentClass} opacity-20 group-hover:opacity-100 transition-opacity`} style={{ backgroundColor: accentColor }} />
-                                <div className="flex items-center gap-8">
+                                <div className="flex items-center gap-12">
                                     <div className="flex flex-col min-w-[100px]">
                                         <div className="flex items-center gap-1.5 text-stone-500 mb-1">
                                             <Clock size={8} />
@@ -416,7 +416,7 @@ export const BloodPressureTracker = () => {
                                         </div>
                                     </div>
                                     
-                                    <div className="grid grid-cols-3 gap-6">
+                                    <div className="grid grid-cols-3 gap-10">
                                         <div className="flex flex-col">
                                             <span className="text-[6px] uppercase font-bold text-stone-600 mb-0.5">PRES_ART (mm)</span>
                                             <span className="text-xs font-black tabular-nums text-white">
