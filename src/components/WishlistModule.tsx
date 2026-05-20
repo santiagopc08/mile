@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useStore } from '@/context/StoreContext';
 import { useProfile } from '@/context/ProfileContext';
 import { Plus, X, Rss } from 'lucide-react';
@@ -48,6 +48,113 @@ export function WishlistModule() {
 
     const items = useMemo(() => (data?.wishlist || []) as WishlistItem[], [data?.wishlist]);
     const activity = useMemo(() => data?.wishlistActivity || [], [data?.wishlistActivity]);
+
+    const syncGoogleMapsLocation = async (title: string, url: string, state: string, author: string) => {
+        if (!url) return;
+        const isGoogleMaps = url.includes('google.com/maps') || url.includes('maps.app.goo.gl') || url.includes('goo.gl/maps');
+        if (!isGoogleMaps) return;
+
+        try {
+            const res = await fetch(`/api/link-preview?url=${encodeURIComponent(url)}`);
+            if (!res.ok) return;
+
+            const data = await res.json();
+            if (data.coords && typeof data.coords.lat === 'number' && typeof data.coords.lng === 'number') {
+                const status = (state === 'COMPLETED' || state === 'ARCHIVED') ? 'visited' : 'to-visit';
+                const createdBy = author || 'el';
+
+                const { data: existing, error: checkError } = await supabase
+                    .from('ubicaciones')
+                    .select('id')
+                    .eq('nombre', title)
+                    .eq('created_by', createdBy);
+
+                if (!checkError && existing && existing.length > 0) {
+                    await supabase
+                        .from('ubicaciones')
+                        .update({
+                            latitud: data.coords.lat,
+                            longitud: data.coords.lng,
+                            status: status
+                        })
+                        .eq('id', existing[0].id);
+                } else {
+                    await supabase
+                        .from('ubicaciones')
+                        .insert({
+                            nombre: title,
+                            latitud: data.coords.lat,
+                            longitud: data.coords.lng,
+                            created_by: createdBy,
+                            status: status
+                        });
+                }
+
+                window.dispatchEvent(new CustomEvent('custom:map-refresh'));
+            }
+        } catch (e) {
+            console.error('Error syncing location:', e);
+        }
+    };
+
+    // Auto-backfill and sync routine for Google Maps items
+    useEffect(() => {
+        if (items.length === 0) return;
+
+        const performBackfill = async () => {
+            try {
+                const { data: currentLocations, error } = await supabase.from('ubicaciones').select('*');
+                if (error || !currentLocations) return;
+
+                const locationMap = new Map(currentLocations.map(l => [`${l.nombre.toLowerCase()}||${l.created_by}`, l]));
+                let mutated = false;
+
+                for (const item of items) {
+                    const url = item.externalLink || item.locationUrl;
+                    if (!url) continue;
+
+                    const isGoogleMaps = url.includes('google.com/maps') || url.includes('maps.app.goo.gl') || url.includes('goo.gl/maps');
+                    if (!isGoogleMaps) continue;
+
+                    const key = `${item.title.toLowerCase()}||${item.author}`;
+                    const existingPin = locationMap.get(key);
+                    const expectedStatus = (item.state === 'COMPLETED' || item.state === 'ARCHIVED') ? 'visited' : 'to-visit';
+
+                    if (!existingPin) {
+                        const res = await fetch(`/api/link-preview?url=${encodeURIComponent(url)}`);
+                        if (res.ok) {
+                            const resData = await res.json();
+                            if (resData.coords && typeof resData.coords.lat === 'number' && typeof resData.coords.lng === 'number') {
+                                await supabase.from('ubicaciones').insert({
+                                    nombre: item.title,
+                                    latitud: resData.coords.lat,
+                                    longitud: resData.coords.lng,
+                                    created_by: item.author || 'el',
+                                    status: expectedStatus
+                                });
+                                mutated = true;
+                            }
+                        }
+                    } else if (existingPin.status !== expectedStatus) {
+                        await supabase
+                            .from('ubicaciones')
+                            .update({ status: expectedStatus })
+                            .eq('id', existingPin.id);
+                        mutated = true;
+                    }
+                }
+
+                if (mutated) {
+                    window.dispatchEvent(new CustomEvent('custom:map-refresh'));
+                }
+            } catch (err) {
+                console.error("Error in auto-backfill:", err);
+            }
+        };
+
+        const timer = setTimeout(performBackfill, 2000);
+        return () => clearTimeout(timer);
+    }, [items]);
 
     const filteredItems = useMemo(() => {
         return items
@@ -106,10 +213,29 @@ export function WishlistModule() {
             }
         }
 
+        if (fLink.trim()) {
+            const state = editingItem ? editingItem.state : 'DISCOVERED';
+            const author = editingItem ? editingItem.author : (profile || 'el');
+            syncGoogleMapsLocation(fTitle.trim(), fLink.trim(), state, author);
+        }
+
         resetForm(); setIsAdding(false); setEditingItem(null);
     };
 
     const handleDelete = async (id: string) => {
+        const itemToDelete = items.find(i => i.id === id);
+        if (itemToDelete) {
+            try {
+                await supabase
+                    .from('ubicaciones')
+                    .delete()
+                    .eq('nombre', itemToDelete.title)
+                    .eq('created_by', itemToDelete.author);
+                window.dispatchEvent(new CustomEvent('custom:map-refresh'));
+            } catch (e) {
+                console.error('Error deleting map location:', e);
+            }
+        }
         await updateData({ wishlist: items.filter(i => i.id !== id) as any });
     };
 

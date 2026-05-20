@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   ArrowDownLeft,
@@ -35,7 +35,7 @@ interface FinancialMovement {
   recurring?: boolean;
 }
 
-const BUDGETS: Record<BudgetCategory, number> = {
+const DEFAULT_BUDGETS: Record<BudgetCategory, number> = {
   Food: 520000,
   Transport: 260000,
   Health: 320000,
@@ -44,35 +44,61 @@ const BUDGETS: Record<BudgetCategory, number> = {
   Savings: 700000,
 };
 
-const BUDGET_CATEGORIES = Object.keys(BUDGETS) as BudgetCategory[];
+const BUDGET_CATEGORIES = Object.keys(DEFAULT_BUDGETS) as BudgetCategory[];
 const INCOME_TYPES = ['salary', 'freelance', 'gift', 'refund', 'shared_income'] as const;
 const ACCOUNTS = ['main_wallet', 'savings_vault', 'shared_pool', 'cash_node'] as const;
 
+const TRANSLATIONS: Record<string, string> = {
+  Food: 'Comida',
+  Transport: 'Transporte',
+  Health: 'Salud',
+  Entertainment: 'Entretenimiento',
+  Wishlist: 'Antojos',
+  Savings: 'Ahorro',
+  salary: 'Salario',
+  freelance: 'Freelance',
+  gift: 'Regalo',
+  refund: 'Reembolso',
+  shared_income: 'Ingreso Compartido',
+  main_wallet: 'Billetera Principal',
+  savings_vault: 'Bóveda de Ahorro',
+  shared_pool: 'Fondo Compartido',
+  cash_node: 'Efectivo',
+  expense: 'Gasto',
+  income: 'Ingreso',
+  transfer: 'Transferencia',
+  budget_adjustment: 'Ajuste',
+  Other: 'Otro',
+  none: 'Ninguno',
+  no_budget: 'Sin Presupuesto'
+};
+const t = (key: string) => TRANSLATIONS[key] || key;
+
 const TYPE_META: Record<TransactionType, { label: string; tag: string; color: string; bg: string; Icon: React.ElementType }> = {
   expense: {
-    label: 'ADD_EXPENSE',
-    tag: 'OUTFLOW',
+    label: 'Añadir Gasto',
+    tag: 'Salió',
     color: '#ffb4ab',
     bg: 'rgba(255, 180, 171, 0.08)',
     Icon: ArrowUpRight,
   },
   income: {
-    label: 'REGISTER_INCOME',
-    tag: 'INFLOW',
+    label: 'Registrar Ingreso',
+    tag: 'Entró',
     color: '#c3f400',
     bg: 'rgba(195, 244, 0, 0.08)',
     Icon: ArrowDownLeft,
   },
   transfer: {
-    label: 'TRANSFER_FUNDS',
-    tag: 'SHIFT',
+    label: 'Mover Dinero',
+    tag: 'Movimiento',
     color: '#a178ff',
     bg: 'rgba(161, 120, 255, 0.09)',
     Icon: ArrowLeftRight,
   },
   budget_adjustment: {
-    label: 'BUDGET_ADJUST',
-    tag: 'LIMIT',
+    label: 'Ajustar Límite',
+    tag: 'Ajuste',
     color: '#ff4b89',
     bg: 'rgba(255, 75, 137, 0.08)',
     Icon: SlidersHorizontal,
@@ -164,6 +190,33 @@ export const DualWallet = ({
   const accentColor = profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)';
   const accentHex = profile === 'ella' ? '#ff4b89' : '#c3f400';
   const [type, setType] = useState<TransactionType>('expense');
+
+  // Budgets State
+  const [budgets, setBudgets] = useState<Record<BudgetCategory, number>>(DEFAULT_BUDGETS);
+  const [isEditingBudgets, setIsEditingBudgets] = useState(false);
+
+  // Sync budgets per profile
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem(`symmetry_budgets_${profile}`);
+      if (saved) {
+        try {
+          setBudgets(JSON.parse(saved));
+        } catch (e) {
+          console.error("Error loading budgets:", e);
+          setBudgets(DEFAULT_BUDGETS);
+        }
+      } else {
+        setBudgets(DEFAULT_BUDGETS);
+      }
+    }
+  }, [profile]);
+
+  const handleUpdateBudget = (categoryName: BudgetCategory, value: number) => {
+    const next = { ...budgets, [categoryName]: value };
+    setBudgets(next);
+    localStorage.setItem(`symmetry_budgets_${profile}`, JSON.stringify(next));
+  };
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState<string>('Food');
@@ -184,7 +237,7 @@ export const DualWallet = ({
     .filter((m) => m.type === 'income' || normalizeCategory(m.category) === 'Savings' || m.related_budget === 'Savings')
     .reduce((sum, m) => sum + signedAmount(m), 0);
   const totalAvailable = movements.reduce((sum, movement) => sum + signedAmount(movement), 0);
-  const totalBudget = Object.values(BUDGETS).reduce((sum, limit) => sum + limit, 0);
+  const totalBudget = Object.values(budgets).reduce((sum, limit) => sum + limit, 0);
   const spentAgainstBudget = monthMovements.filter((m) => m.type === 'expense').reduce((sum, m) => sum + m.amount, 0);
   const budgetRemaining = totalBudget - spentAgainstBudget;
   const savingsRate = incomeThisMonth > 0 ? ((incomeThisMonth - expensesThisMonth) / incomeThisMonth) * 100 : 0;
@@ -195,7 +248,7 @@ export const DualWallet = ({
     const spent = monthMovements
       .filter((m) => m.type === 'expense' && (m.related_budget === budget || normalizeCategory(m.category) === budget))
       .reduce((sum, m) => sum + m.amount, 0);
-    const limit = BUDGETS[budget];
+    const limit = budgets[budget];
     const percent = limit > 0 ? (spent / limit) * 100 : 0;
     const status = percent >= 100 ? 'OVERLOAD' : percent >= 80 ? 'CAUTION' : 'STABLE';
     const color = status === 'OVERLOAD' ? '#ffb4ab' : status === 'CAUTION' ? '#a178ff' : '#c3f400';
@@ -212,7 +265,7 @@ export const DualWallet = ({
   const wishlistBudget = budgetRows.find((row) => row.budget === 'Wishlist');
   const wishlistAffordability = Math.max(0, Math.min(wishlistBudget?.remaining || 0, Math.max(totalAvailable, 0) * 0.18));
   const foodSpent = budgetRows.find((row) => row.budget === 'Food')?.spent || 0;
-  const foodBaseline = BUDGETS.Food * 0.32;
+  const foodBaseline = budgets.Food * 0.32;
   const foodDelta = foodBaseline > 0 ? ((foodSpent - foodBaseline) / foodBaseline) * 100 : 0;
   const balanceTone = totalAvailable < 0 ? '#ffb4ab' : '#c3f400';
 
@@ -265,11 +318,11 @@ export const DualWallet = ({
         <div className="absolute bottom-0 right-0 h-3 w-3 border-b border-r" style={{ borderColor: balanceTone }} />
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-3">
           <div>
-            <p className="text-[9px] font-black uppercase tracking-[0.26em] text-[#a88a7e]">BALANCE_CONSOLE</p>
+            <p className="text-[9px] font-black uppercase tracking-[0.26em] text-[#a88a7e]">Resumen General</p>
             <h3 className="mt-1 text-2xl font-black uppercase tracking-normal text-white">Estado financiero general</h3>
           </div>
           <span className="border px-2 py-1 text-[8px] font-black uppercase tracking-[0.2em]" style={{ borderColor: balanceTone, color: balanceTone }}>
-            {totalAvailable < 0 ? 'STATUS: DEFICIT' : 'STATUS: SOLVENT'}
+            {totalAvailable < 0 ? 'Estado: En Rojo' : 'Estado: Todo Bien'}
           </span>
         </div>
         <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-5">
@@ -308,7 +361,7 @@ export const DualWallet = ({
         <div className="grid grid-cols-1 gap-3 lg:grid-cols-4">
           <label className="space-y-1">
             <span className="flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-[#a88a7e]">
-              <BadgeDollarSign size={8} /> amount
+              <BadgeDollarSign size={8} /> Monto
             </span>
             <input
               type="number"
@@ -321,19 +374,19 @@ export const DualWallet = ({
           </label>
           <label className="space-y-1 lg:col-span-2">
             <span className="flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-[#a88a7e]">
-              <FileText size={8} /> description
+              <FileText size={8} /> Descripción
             </span>
             <input
               type="text"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="CONCEPTO_MOVIMIENTO"
+              placeholder="Concepto del movimiento"
               className="w-full border border-white/10 bg-black px-3 py-2 text-xs uppercase text-white outline-none transition-colors placeholder:text-[#594137] focus:border-[var(--color-profile-accent)]"
             />
           </label>
           <label className="space-y-1">
             <span className="flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-[#a88a7e]">
-              <SlidersHorizontal size={8} /> type
+              <SlidersHorizontal size={8} /> Tipo
             </span>
             <select
               value={type}
@@ -342,14 +395,14 @@ export const DualWallet = ({
             >
               {Object.keys(TYPE_META).map((key) => (
                 <option key={key} value={key} className="bg-[#0a0a0a]">
-                  {key}
+                  {t(key)}
                 </option>
               ))}
             </select>
           </label>
           <label className="space-y-1">
             <span className="flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-[#a88a7e]">
-              <Target size={8} /> category
+              <Target size={8} /> Categoría
             </span>
             <select
               value={category}
@@ -358,15 +411,15 @@ export const DualWallet = ({
             >
               {(type === 'income' ? INCOME_TYPES : BUDGET_CATEGORIES).map((cat) => (
                 <option key={cat} value={cat} className="bg-[#0a0a0a]">
-                  {cat}
+                  {t(cat)}
                 </option>
               ))}
-              <option value="Other" className="bg-[#0a0a0a]">Other</option>
+              <option value="Other" className="bg-[#0a0a0a]">Otro</option>
             </select>
           </label>
           <label className="space-y-1">
             <span className="flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-[#a88a7e]">
-              <CalendarDays size={8} /> date
+              <CalendarDays size={8} /> Fecha
             </span>
             <input
               type="date"
@@ -377,7 +430,7 @@ export const DualWallet = ({
           </label>
           <label className="space-y-1">
             <span className="flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-[#a88a7e]">
-              <Wallet size={8} /> account
+              <Wallet size={8} /> Cuenta
             </span>
             <select
               value={account}
@@ -386,24 +439,24 @@ export const DualWallet = ({
             >
               {ACCOUNTS.map((acc) => (
                 <option key={acc} value={acc} className="bg-[#0a0a0a]">
-                  {acc}
+                  {t(acc)}
                 </option>
               ))}
             </select>
           </label>
           <label className="space-y-1">
             <span className="flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-[#a88a7e]">
-              <PiggyBank size={8} /> related_budget
+              <PiggyBank size={8} /> Presupuesto
             </span>
             <select
               value={relatedBudget}
               onChange={(e) => setRelatedBudget(e.target.value as BudgetCategory | '')}
               className="w-full cursor-pointer appearance-none border border-white/10 bg-black px-3 py-2 text-xs text-[#e5e2e1] outline-none"
             >
-              <option value="" className="bg-[#0a0a0a]">none</option>
+              <option value="" className="bg-[#0a0a0a]">ninguno</option>
               {BUDGET_CATEGORIES.map((budget) => (
                 <option key={budget} value={budget} className="bg-[#0a0a0a]">
-                  {budget}
+                  {t(budget)}
                 </option>
               ))}
             </select>
@@ -415,7 +468,7 @@ export const DualWallet = ({
               className="flex items-center justify-center gap-2 border px-3 py-3 text-[9px] font-black uppercase tracking-[0.18em] transition-colors hover:bg-white/5"
               style={{ borderColor: recurring ? accentHex : 'rgba(255,255,255,0.1)', color: recurring ? accentHex : '#a88a7e' }}
             >
-              <Repeat2 size={14} /> recurring: {recurring ? 'on' : 'off'}
+              <Repeat2 size={14} /> recurrente: {recurring ? 'si' : 'no'}
             </button>
             <motion.button
               whileTap={{ scale: 0.98 }}
@@ -423,7 +476,7 @@ export const DualWallet = ({
               className="flex items-center justify-center gap-2 border px-5 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-black transition-opacity hover:opacity-90"
               style={{ borderColor: TYPE_META[type].color, backgroundColor: TYPE_META[type].color, boxShadow: `0 0 15px ${TYPE_META[type].color}33` }}
             >
-              <Plus size={14} /> [ REGISTRAR ]
+              <Plus size={14} /> Registrar
             </motion.button>
           </div>
         </div>
@@ -432,21 +485,44 @@ export const DualWallet = ({
       <section className="grid gap-4 xl:grid-cols-[1.25fr_0.75fr]">
         <div className="border border-white/10 bg-[#0a0a0a] p-4">
           <h3 className="mb-4 flex items-center justify-between border-b border-white/10 pb-3 text-[10px] font-black uppercase tracking-[0.22em] text-[#a88a7e]">
-            <span>[ BUDGET_SYSTEM ]</span>
-            <span>80_PERCENT_WARNING / BUDGET_EXCEEDED</span>
+            <span className="flex items-center gap-2">
+              Control de Gastos Fijos
+              <button
+                type="button"
+                onClick={() => setIsEditingBudgets(!isEditingBudgets)}
+                className="ml-2 border border-white/10 bg-black px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-widest text-[#a88a7e] hover:border-white/30 hover:text-white"
+                style={isEditingBudgets ? { borderColor: accentHex, color: accentHex } : undefined}
+              >
+                {isEditingBudgets ? 'Listo' : 'Editar Presupuestos'}
+              </button>
+            </span>
+            <span>Avisos automáticos de gasto</span>
           </h3>
           <div className="grid gap-2 md:grid-cols-2">
             {budgetRows.map((row) => (
               <div key={row.budget} className="border border-white/10 bg-black/40 p-3">
                 <div className="mb-2 flex items-center justify-between gap-2">
-                  <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white">{row.budget}</span>
+                  <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white">{t(row.budget)}</span>
                   <span className="border px-1.5 py-1 text-[7px] font-black uppercase tracking-[0.14em]" style={{ borderColor: row.color, color: row.color }}>
-                    STATUS: {row.status}
+                    Estado: {row.status === 'OVERLOAD' ? 'ALERTA ROJA' : row.status === 'CAUTION' ? 'CUIDADO' : 'BIEN'}
                   </span>
                 </div>
                 <ChunkedProgress value={row.percent} color={row.color} />
                 <div className="mt-2 flex items-center justify-between text-[8px] font-bold uppercase tracking-[0.16em] text-[#a88a7e]">
-                  <span>{compactCOP(row.spent)} / {compactCOP(row.limit)}</span>
+                  <span className="flex items-center gap-1">
+                    {compactCOP(row.spent)} /{' '}
+                    {isEditingBudgets ? (
+                      <input
+                        type="number"
+                        value={budgets[row.budget] ?? row.limit}
+                        onChange={(e) => handleUpdateBudget(row.budget, parseFloat(e.target.value) || 0)}
+                        className="w-16 bg-black border border-white/20 px-1 py-0.5 text-[8px] font-bold text-white outline-none focus:border-white/50"
+                        min="0"
+                      />
+                    ) : (
+                      <span>{compactCOP(row.limit)}</span>
+                    )}
+                  </span>
                   <span>{formatCOP(row.remaining)}</span>
                 </div>
               </div>
@@ -457,12 +533,12 @@ export const DualWallet = ({
         <div className="border border-white/10 bg-[#0a0a0a] p-4">
           <h3 className="mb-4 flex items-center gap-2 border-b border-white/10 pb-3 text-[10px] font-black uppercase tracking-[0.22em] text-[#a88a7e]">
             <CircleDollarSign className="h-4 w-4 text-user-b" />
-            [ INCOME_TRACKING ]
+            Control de Entradas
           </h3>
           <div className="grid gap-2">
-            <MetricCell label="Recurring Income" value={formatCOP(recurringIncome)} tone="#c3f400" />
-            <MetricCell label="Income Projection" value={formatCOP(projectedIncome)} tone="#a178ff" />
-            <MetricCell label="Monthly Comparison" value={`${savingsRate.toFixed(1)}% savings_rate`} tone={savingsRate >= 0 ? '#c3f400' : '#ffb4ab'} />
+            <MetricCell label="Ingreso Recurrente" value={formatCOP(recurringIncome)} tone="#c3f400" />
+            <MetricCell label="Proyección de Ingresos" value={formatCOP(projectedIncome)} tone="#a178ff" />
+            <MetricCell label="Comparación Mensual" value={`${savingsRate.toFixed(1)}% tasa_ahorro`} tone={savingsRate >= 0 ? '#c3f400' : '#ffb4ab'} />
           </div>
         </div>
       </section>
@@ -470,20 +546,20 @@ export const DualWallet = ({
       <section className="grid gap-4 xl:grid-cols-[0.82fr_1.18fr]">
         <div className="border border-white/10 bg-[#0a0a0a] p-4">
           <h3 className="mb-4 border-b border-white/10 pb-3 text-[10px] font-black uppercase tracking-[0.22em] text-[#a88a7e]">
-            [ FINANCIAL_ANALYTICS ]
+            Resumen de Hábitos
           </h3>
           <div className="grid gap-2 sm:grid-cols-2">
-            <MetricCell label="weekly_spending" value={formatCOP(weeklySpending)} tone="#ffb4ab" />
-            <MetricCell label="avg_daily_spending" value={formatCOP(averageDailySpending)} tone="#ffffff" />
-            <MetricCell label="savings_rate" value={`${savingsRate.toFixed(1)}%`} tone={savingsRate >= 0 ? '#c3f400' : '#ffb4ab'} />
-            <MetricCell label="wishlist_affordability" value={formatCOP(wishlistAffordability)} tone="#a178ff" />
+            <MetricCell label="Gasto de esta semana" value={formatCOP(weeklySpending)} tone="#ffb4ab" />
+            <MetricCell label="Gasto promedio diario" value={formatCOP(averageDailySpending)} tone="#ffffff" />
+            <MetricCell label="Capacidad de ahorro" value={`${savingsRate.toFixed(1)}%`} tone={savingsRate >= 0 ? '#c3f400' : '#ffb4ab'} />
+            <MetricCell label="Disponible para antojos" value={formatCOP(wishlistAffordability)} tone="#a178ff" />
           </div>
           <div className="mt-4 border-t border-white/10 pt-3">
-            <p className="mb-2 text-[8px] font-black uppercase tracking-[0.2em] text-[#a88a7e]">top_categories</p>
+            <p className="mb-2 text-[8px] font-black uppercase tracking-[0.2em] text-[#a88a7e]">En qué gastamos más</p>
             <div className="space-y-2">
               {(topCategories.length ? topCategories : budgetRows.slice(0, 3)).map((row) => (
                 <div key={row.budget} className="flex items-center justify-between border border-white/10 bg-black/40 px-3 py-2 text-[9px] font-bold uppercase tracking-[0.14em]">
-                  <span>{row.budget}</span>
+                  <span>{t(row.budget)}</span>
                   <span style={{ color: row.color }}>{formatCOP(row.spent)}</span>
                 </div>
               ))}
@@ -493,17 +569,17 @@ export const DualWallet = ({
 
         <div className="border border-white/10 bg-[#0a0a0a] p-4">
           <h3 className="mb-4 border-b border-white/10 pb-3 text-[10px] font-black uppercase tracking-[0.22em] text-[#a88a7e]">
-            [ INSIGHT_FEED ]
+            Sugerencias y Alertas
           </h3>
           <div className="space-y-2">
             <div className="border border-user-b/30 bg-user-b/5 p-3 text-[10px] font-bold uppercase leading-5 tracking-[0.14em] text-user-b">
-              You can safely allocate {formatCOP(wishlistAffordability)} to wishlist goals this week.
+              Puedes destinar de forma segura {formatCOP(wishlistAffordability)} a tus antojos esta semana.
             </div>
             <div className="border border-white/10 bg-black/40 p-3 text-[10px] font-bold uppercase leading-5 tracking-[0.14em] text-[#e1bfb2]">
-              Food expenses {foodDelta >= 0 ? 'increased' : 'decreased'} {Math.abs(foodDelta).toFixed(0)}% against this month&apos;s tactical baseline.
+              Los gastos en comida han {foodDelta >= 0 ? 'aumentado' : 'disminuido'} un {Math.abs(foodDelta).toFixed(0)}% frente a la base táctica de este mes.
             </div>
             <div className="border border-user-c/30 bg-user-c/5 p-3 text-[10px] font-bold uppercase leading-5 tracking-[0.14em] text-[#d1bcff]">
-              Budget runway is {budgetRemaining < 0 ? 'overloaded' : `${Math.max(0, Math.floor(budgetRemaining / Math.max(averageDailySpending, 1)))} days`} at current spend velocity.
+              El margen de presupuesto está {budgetRemaining < 0 ? 'sobrecargado' : `garantizado por ${Math.max(0, Math.floor(budgetRemaining / Math.max(averageDailySpending, 1)))} días`} al ritmo de gasto actual.
             </div>
           </div>
         </div>
@@ -511,8 +587,8 @@ export const DualWallet = ({
 
       <section className="border border-white/10 bg-black/40 p-4">
         <h3 className="mb-4 flex items-center justify-between border-b border-white/10 pb-3 text-[10px] font-black uppercase tracking-[0.22em] text-[#a88a7e]">
-          <span>[ MOVEMENT_LEDGER ]</span>
-          <span>{movements.length.toString().padStart(2, '0')} records</span>
+          <span>Historial de Movimientos</span>
+          <span>{movements.length.toString().padStart(2, '0')} registros</span>
         </h3>
         <div className="max-h-96 space-y-2 overflow-y-auto pr-2 custom-scrollbar">
           <AnimatePresence mode="popLayout">
@@ -536,12 +612,12 @@ export const DualWallet = ({
                       <span className="border px-1.5 py-0.5 text-[7px] font-black uppercase tracking-[0.14em]" style={{ borderColor: meta.color, color: meta.color }}>
                         {meta.tag}
                       </span>
-                      {movement.recurring && <span className="border border-user-c/30 px-1.5 py-0.5 text-[7px] font-black uppercase tracking-[0.14em] text-user-c">recurring</span>}
+                      {movement.recurring && <span className="border border-user-c/30 px-1.5 py-0.5 text-[7px] font-black uppercase tracking-[0.14em] text-user-c">recurrente</span>}
                     </div>
                     <div className="mt-1 flex flex-wrap items-center gap-2 text-[7px] font-bold uppercase tracking-widest text-[#594137]">
-                      <span>{normalizeCategory(movement.category)}</span>
-                      <span>{movement.account || 'main_wallet'}</span>
-                      <span>{movement.related_budget || 'no_budget'}</span>
+                      <span>{t(normalizeCategory(movement.category))}</span>
+                      <span>{t(movement.account || 'main_wallet')}</span>
+                      <span>{t(movement.related_budget || 'no_budget')}</span>
                       <span>{new Date(movement.date).toLocaleDateString()}</span>
                     </div>
                   </div>

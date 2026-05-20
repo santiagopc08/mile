@@ -47,17 +47,25 @@ export function HabitTracker() {
 
         // Streak: consecutive days without any habit logged
         let streak = 0;
-        const todayStr = now.toISOString().split('T')[0];
-        let checkDate = new Date(now);
-        
-        while (true) {
-            const dateStr = checkDate.toISOString().split('T')[0];
-            const hasHabit = habits.some(h => h.profile === profile && h.date === dateStr);
-            if (!hasHabit) {
-                if (dateStr !== todayStr || streak > 0) streak++; // don't count today if it's the only one
-                checkDate.setDate(checkDate.getDate() - 1);
-            } else {
-                break;
+        const profileHabits = habits.filter(h => h.profile === profile);
+        if (profileHabits.length > 0) {
+            const todayStr = now.toISOString().split('T')[0];
+            let checkDate = new Date(now);
+            
+            // Find oldest habit date to avoid looping indefinitely
+            const oldestHabitTime = Math.min(...profileHabits.map(h => new Date(h.date || h.createdAt).getTime()));
+            const oldestHabitDate = new Date(oldestHabitTime);
+            oldestHabitDate.setHours(0, 0, 0, 0);
+
+            while (checkDate >= oldestHabitDate) {
+                const dateStr = checkDate.toISOString().split('T')[0];
+                const hasHabit = habits.some(h => h.profile === profile && h.date === dateStr);
+                if (!hasHabit) {
+                    if (dateStr !== todayStr || streak > 0) streak++; // don't count today if it's the only one
+                    checkDate.setDate(checkDate.getDate() - 1);
+                } else {
+                    break;
+                }
             }
         }
 

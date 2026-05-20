@@ -2,6 +2,7 @@
 
 import { PrivateRoute } from "@/components/PrivateRoute";
 import { WishlistModule } from "@/components/WishlistModule";
+import { GeospatialPlanTracker } from "@/components/GeospatialPlanTracker";
 import { useProfile } from "@/context/ProfileContext";
 import { useStore } from "@/context/StoreContext";
 import { Activity, Compass, Radio } from "lucide-react";
@@ -87,7 +88,9 @@ export default function PlanesPage() {
             </aside>
           </div>
 
-          <section className="bg-[#050505] p-3 sm:p-5 md:p-8">
+          <section className="bg-[#050505] p-3 sm:p-5 md:p-8 space-y-8">
+            <GeospatialPlanTracker />
+            <div className="border-t border-white/10 pt-4" />
             <WishlistModule />
           </section>
         </div>
