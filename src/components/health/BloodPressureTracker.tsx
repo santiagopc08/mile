@@ -67,7 +67,7 @@ export const BloodPressureTracker = () => {
     const handleAddEntry = async (e: React.FormEvent) => {
         e.preventDefault();
         if (systolic === '' || diastolic === '' || heartRate === '') return;
-        
+
         setLoading(true);
 
         // Simple duplicate prevention: check if last entry is identical and within 30 seconds
@@ -75,9 +75,9 @@ export const BloodPressureTracker = () => {
         if (lastEntry) {
             const timeDiff = Date.now() - new Date(lastEntry.created_at).getTime();
             if (
-                timeDiff < 30000 && 
-                lastEntry.systolic === Number(systolic) && 
-                lastEntry.diastolic === Number(diastolic) && 
+                timeDiff < 30000 &&
+                lastEntry.systolic === Number(systolic) &&
+                lastEntry.diastolic === Number(diastolic) &&
                 lastEntry.heart_rate === Number(heartRate) &&
                 lastEntry.position === position
             ) {
@@ -178,7 +178,7 @@ export const BloodPressureTracker = () => {
                 <div className="absolute top-0 right-0 p-4 opacity-5">
                     <Activity size={120} />
                 </div>
-                
+
                 <h2 className="text-[10px] uppercase font-black tracking-[0.3em] mb-8 border-b border-white/5 pb-4 flex justify-between items-center text-user-a">
                     <span className="flex items-center gap-2">
                         <Clipboard size={12} /> [ MONITOR_PRESIÓN_ARTERIAL ]
@@ -235,11 +235,10 @@ export const BloodPressureTracker = () => {
                     <button
                         type="submit"
                         disabled={loading}
-                        className={`md:col-span-4 py-4 text-[10px] uppercase font-black tracking-[0.3em] transition-all flex items-center justify-center gap-2 border mt-2 ${
-                            loading 
-                            ? 'bg-stone-800 text-stone-500 border-stone-800 cursor-not-allowed' 
-                            : `bg-${accentClass} text-black border-${accentClass}`
-                        }`}
+                        className={`md:col-span-4 py-4 text-[10px] uppercase font-black tracking-[0.3em] transition-all flex items-center justify-center gap-2 border mt-2 ${loading
+                                ? 'bg-stone-800 text-stone-500 border-stone-800 cursor-not-allowed'
+                                : `bg-${accentClass} text-black border-${accentClass}`
+                            }`}
                         style={!loading ? { backgroundColor: accentColor, borderColor: accentColor } : {}}
                     >
                         {loading ? (
@@ -402,35 +401,36 @@ export const BloodPressureTracker = () => {
                                 className={`flex items-center justify-between p-4 border border-white/5 bg-[#0a0a0a] group hover:border-${accentClass}/30 transition-all relative`}
                             >
                                 <div className={`absolute top-0 left-0 w-1 h-1 bg-${accentClass} opacity-20 group-hover:opacity-100 transition-opacity`} style={{ backgroundColor: accentColor }} />
-                                <div className="flex items-center gap-12">
-                                    <div className="flex flex-col min-w-[100px]">
-                                        <div className="flex items-center gap-1.5 text-stone-500 mb-1">
-                                            <Clock size={8} />
-                                            <span className="text-[7px] font-bold tracking-widest">
-                                                {new Date(entry.created_at).toLocaleDateString()}
-                                            </span>
-                                        </div>
-                                        <div className={`flex items-center gap-1.5 text-${accentClass}`} style={{ color: accentColor }}>
-                                            <User size={8} />
-                                            <span className="text-[7px] uppercase font-black tracking-[0.2em]">{entry.author}</span>
-                                        </div>
+                                <div className="grid grid-cols-5 gap-4 items-center flex-1 mr-4">
+                                    <div className="flex items-center gap-1.5 text-stone-500">
+                                        <Clock size={8} />
+                                        <span className="text-[7px] font-bold tracking-widest">
+                                            {new Date(entry.created_at).toLocaleDateString()}
+                                        </span>
                                     </div>
-                                    
-                                    <div className="grid grid-cols-3 gap-10">
-                                        <div className="flex flex-col">
-                                            <span className="text-[6px] uppercase font-bold text-stone-600 mb-0.5">PRES_ART (mm)</span>
-                                            <span className="text-xs font-black tabular-nums text-white">
-                                                {entry.systolic}/{entry.diastolic}
-                                            </span>
-                                        </div>
-                                        <div className="flex flex-col">
-                                            <span className="text-[6px] uppercase font-bold text-stone-600 mb-0.5">FC (BPM)</span>
-                                            <span className="text-xs font-black tabular-nums text-white">{entry.heart_rate}</span>
-                                        </div>
-                                        <div className="flex flex-col">
-                                            <span className="text-[6px] uppercase font-bold text-stone-600 mb-0.5">POSTURA</span>
-                                            <span className="text-[8px] font-bold text-stone-400 uppercase tracking-tighter">{POSITION_LABELS[entry.position as keyof typeof POSITION_LABELS] || entry.position}</span>
-                                        </div>
+
+                                    <div className={`flex items-center gap-1.5 text-${accentClass}`} style={{ color: accentColor }}>
+                                        <User size={8} />
+                                        <span className="text-[7px] uppercase font-black tracking-[0.2em]">
+                                            {entry.author === 'ella' ? 'Ella' : entry.author === 'el' ? 'Él' : entry.author}
+                                        </span>
+                                    </div>
+
+                                    <div className="flex flex-col">
+                                        <span className="text-[6px] uppercase font-bold text-stone-600 mb-0.5">PRES_ART (mmHg)</span>
+                                        <span className="text-xs font-black tabular-nums text-white">
+                                            {entry.systolic}/{entry.diastolic}
+                                        </span>
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <span className="text-[6px] uppercase font-bold text-stone-600 mb-0.5">FC (BPM)</span>
+                                        <span className="text-xs font-black tabular-nums text-white">{entry.heart_rate}</span>
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <span className="text-[6px] uppercase font-bold text-stone-600 mb-0.5">POSTURA</span>
+                                        <span className="text-[8px] font-bold text-stone-400 uppercase tracking-tighter">
+                                            {POSITION_LABELS[entry.position as keyof typeof POSITION_LABELS] || entry.position}
+                                        </span>
                                     </div>
                                 </div>
                                 <button

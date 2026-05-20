@@ -463,14 +463,16 @@ export const StoreService = {
                             title: track.title,
                             artist: track.artist,
                             spotify_url: track.spotifyUrl || track.spotify_url || null,
-                            display_order: track.display_order || 0
+                            display_order: track.display_order || 0,
+                            added_by: track.added_by || 'el'
                         }).eq('id', trackId);
                     } else {
                         const res = await supabase.from('audio_track').insert({
                             title: track.title,
                             artist: track.artist,
                             spotify_url: track.spotifyUrl || track.spotify_url || null,
-                            display_order: track.display_order || 0
+                            display_order: track.display_order || 0,
+                            added_by: track.added_by || 'el'
                         }).select('id').single();
                         trackId = res.data?.id;
 

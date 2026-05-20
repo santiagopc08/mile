@@ -1,7 +1,8 @@
 'use client';
 
-import { Music, MessageSquare, Plus, X } from 'lucide-react';
-import { useState } from 'react';
+import { ExternalLink, Loader2, Music, MessageSquare, Plus, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import type { CSSProperties, FormEvent } from 'react';
 import { useStore } from '@/context/StoreContext';
 import { useProfile } from '@/context/ProfileContext';
 
@@ -10,6 +11,146 @@ interface TrackComment {
     author: string;
     text: string;
     track_id: string;
+}
+
+interface AudioTrack {
+    id: string;
+    title?: string;
+    artist?: string;
+    spotifyUrl?: string | null;
+    spotify_url?: string | null;
+    display_order?: number;
+    added_by?: string;
+    comments?: TrackComment[];
+}
+
+const SPOTIFY_TYPES = ['track', 'playlist', 'album', 'artist', 'show', 'episode'] as const;
+
+const normalizeUrlInput = (url: string) => {
+    const trimmed = url.trim();
+    if (!trimmed) return '';
+    if (trimmed.startsWith('spotify:')) return trimmed;
+    if (/^https?:\/\//i.test(trimmed)) return trimmed;
+    return `https://${trimmed}`;
+};
+
+const getSpotifyEmbedUrl = (url: string): string | null => {
+    const normalized = normalizeUrlInput(url);
+    if (!normalized) return null;
+
+    const uriMatch = normalized.match(/^spotify:(track|playlist|album|artist|show|episode):([a-zA-Z0-9]+)$/);
+    if (uriMatch) {
+        return `https://open.spotify.com/embed/${uriMatch[1]}/${uriMatch[2]}`;
+    }
+
+    try {
+        const parsed = new URL(normalized);
+        const hostname = parsed.hostname.replace(/^www\./, '');
+
+        if (hostname !== 'open.spotify.com' && hostname !== 'play.spotify.com') {
+            return null;
+        }
+
+        const parts = parsed.pathname.split('/').filter(Boolean);
+        const embedIndex = parts.indexOf('embed');
+        const searchStart = embedIndex >= 0 ? embedIndex + 1 : 0;
+        const typeIndex = parts.findIndex((part, index) => index >= searchStart && SPOTIFY_TYPES.includes(part as typeof SPOTIFY_TYPES[number]));
+
+        if (typeIndex >= 0 && parts[typeIndex + 1]) {
+            return `https://open.spotify.com/embed/${parts[typeIndex]}/${parts[typeIndex + 1]}`;
+        }
+    } catch {
+        return null;
+    }
+
+    return null;
+};
+
+const getSpotifyUrl = (track: AudioTrack | undefined) => track?.spotifyUrl || track?.spotify_url || '';
+const accentRingStyle = (accentColor: string) => ({ '--tw-ring-color': accentColor }) as CSSProperties;
+
+function SpotifyEmbed({ url }: { url: string }) {
+    const [resolvedUrl, setResolvedUrl] = useState<string | null>(() => getSpotifyEmbedUrl(url));
+    const [isResolving, setIsResolving] = useState(false);
+    const [failed, setFailed] = useState(false);
+
+    useEffect(() => {
+        let cancelled = false;
+        const directEmbed = getSpotifyEmbedUrl(url);
+
+        if (directEmbed) {
+            setResolvedUrl(directEmbed);
+            setFailed(false);
+            return;
+        }
+
+        const resolveShortLink = async () => {
+            setIsResolving(true);
+            setFailed(false);
+            try {
+                const res = await fetch(`/api/link-preview?url=${encodeURIComponent(url)}`);
+                if (!res.ok) throw new Error('Preview resolver failed');
+
+                const data = await res.json();
+                const embed = getSpotifyEmbedUrl(data.url || '');
+                if (!cancelled) {
+                    setResolvedUrl(embed);
+                    setFailed(!embed);
+                }
+            } catch {
+                if (!cancelled) {
+                    setResolvedUrl(null);
+                    setFailed(true);
+                }
+            } finally {
+                if (!cancelled) setIsResolving(false);
+            }
+        };
+
+        resolveShortLink();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [url]);
+
+    if (isResolving) {
+        return (
+            <div className="flex h-[152px] w-full items-center justify-center border border-white/10 bg-black text-[#a88a7e]">
+                <Loader2 className="h-5 w-5 animate-spin" />
+            </div>
+        );
+    }
+
+    if (!resolvedUrl || failed) {
+        return (
+            <a
+                href={normalizeUrlInput(url)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex h-[152px] w-full flex-col items-center justify-center gap-3 border border-white/10 bg-black p-8 text-center text-[#a88a7e] transition-colors hover:border-user-b hover:text-user-b"
+            >
+                <ExternalLink className="h-5 w-5" />
+                <span className="text-[10px] font-black uppercase tracking-[0.2em]">Abrir en Spotify</span>
+            </a>
+        );
+    }
+
+    return (
+        <iframe
+            key={resolvedUrl}
+            style={{ borderRadius: '0px' }}
+            src={resolvedUrl}
+            width="100%"
+            height="152"
+            frameBorder="0"
+            allowFullScreen={false}
+            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+            loading="lazy"
+            referrerPolicy="strict-origin-when-cross-origin"
+            title="Spotify preview"
+        />
+    );
 }
 
 export function AudioSection() {
@@ -29,7 +170,7 @@ export function AudioSection() {
 
     if (!data || !data.audioPlaylist) return null;
 
-    const playlist = data.audioPlaylist;
+    const playlist = data.audioPlaylist as AudioTrack[];
 
     // Default to first track if none active
     const currentTrackId = activeTrackId || (playlist.length > 0 ? playlist[0].id : null);
@@ -57,7 +198,7 @@ export function AudioSection() {
         }
     };
 
-    const handleAddTrack = async (e: React.FormEvent) => {
+    const handleAddTrack = async (e: FormEvent) => {
         e.preventDefault();
         if (newTitle && newUrl && profile) {
             const newTrack = {
@@ -106,9 +247,9 @@ export function AudioSection() {
 
                     {isAddingTrack && (
                         <form onSubmit={handleAddTrack} className="geometric-card mb-4 animate-in space-y-3 border-white/10 bg-[#0a0a0a] p-4 fade-in slide-in-from-top-2">
-                            <input value={newTitle} onChange={e => setNewTitle(e.target.value)} required placeholder="Título" className={`w-full border border-white/10 bg-black px-3 py-2 text-sm tracking-normal text-white outline-none transition-colors placeholder:text-[#594137] focus:border-${accentClass}`} style={{ '--tw-ring-color': accentColor } as any} />
-                            <input value={newArtist} onChange={e => setNewArtist(e.target.value)} placeholder="Artista" className={`w-full border border-white/10 bg-black px-3 py-2 text-sm tracking-normal text-white outline-none transition-colors placeholder:text-[#594137] focus:border-${accentClass}`} style={{ '--tw-ring-color': accentColor } as any} />
-                            <input value={newUrl} onChange={e => setNewUrl(e.target.value)} required placeholder="URL Spotify" className={`w-full border border-white/10 bg-black px-3 py-2 text-sm tracking-normal text-white outline-none transition-colors placeholder:text-[#594137] focus:border-${accentClass}`} style={{ '--tw-ring-color': accentColor } as any} />
+                            <input value={newTitle} onChange={e => setNewTitle(e.target.value)} required placeholder="Título" className={`w-full border border-white/10 bg-black px-3 py-2 text-sm tracking-normal text-white outline-none transition-colors placeholder:text-[#594137] focus:border-${accentClass}`} style={accentRingStyle(accentColor)} />
+                            <input value={newArtist} onChange={e => setNewArtist(e.target.value)} placeholder="Artista" className={`w-full border border-white/10 bg-black px-3 py-2 text-sm tracking-normal text-white outline-none transition-colors placeholder:text-[#594137] focus:border-${accentClass}`} style={accentRingStyle(accentColor)} />
+                            <input value={newUrl} onChange={e => setNewUrl(e.target.value)} required placeholder="URL Spotify" className={`w-full border border-white/10 bg-black px-3 py-2 text-sm tracking-normal text-white outline-none transition-colors placeholder:text-[#594137] focus:border-${accentClass}`} style={accentRingStyle(accentColor)} />
                             <button type="submit" disabled={!newTitle || !newUrl} className={`w-full bg-${accentClass} py-2 text-xs font-bold uppercase tracking-widest text-black transition-colors hover:opacity-80 disabled:opacity-50`} style={{ backgroundColor: accentColor }}>Guardar</button>
                         </form>
                     )}
@@ -154,18 +295,9 @@ export function AudioSection() {
                         {currentTrack ? (
                             <>
                                 <div className="mb-6 z-10">
-                                    {currentTrack.spotifyUrl ? (
+                                    {getSpotifyUrl(currentTrack) ? (
                                         <div className="border border-white/10 bg-black p-1">
-                                            <iframe
-                                                style={{ borderRadius: '0px' }}
-                                                src={currentTrack.spotifyUrl.replace('open.spotify.com/', 'open.spotify.com/embed/').split('?')[0]}
-                                                width="100%"
-                                                height="152"
-                                                frameBorder="0"
-                                                allowFullScreen={false}
-                                                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                                                loading="lazy"
-                                            ></iframe>
+                                            <SpotifyEmbed url={getSpotifyUrl(currentTrack)} />
                                         </div>
                                     ) : (
                                         <div className="w-full border border-white/10 bg-black p-8 text-center text-[#a88a7e]">
@@ -210,7 +342,7 @@ export function AudioSection() {
                                                 onChange={(e) => setNewComment(e.target.value)}
                                                 onKeyDown={(e) => e.key === 'Enter' && handleAddComment()}
                                                 placeholder={`Añadir nota como ${profile === 'ella' ? 'ella' : 'él'}...`}
-                                                className={`flex-1 border border-white/10 bg-black px-4 py-3 text-sm tracking-normal text-white outline-none transition-colors placeholder:text-[#594137] focus:border-${accentClass}`} style={{ '--tw-ring-color': accentColor } as any}
+                                                className={`flex-1 border border-white/10 bg-black px-4 py-3 text-sm tracking-normal text-white outline-none transition-colors placeholder:text-[#594137] focus:border-${accentClass}`} style={accentRingStyle(accentColor)}
                                             />
                                             <button
                                                 onClick={handleAddComment}
