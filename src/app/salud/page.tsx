@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { PrivateRoute } from "@/components/PrivateRoute";
 import { BiometricVault } from "@/components/symmetry/BiometricVault";
-import { FiscalAuditor } from "@/components/symmetry/FiscalAuditor";
 import { BloodPressureTracker } from "@/components/health/BloodPressureTracker";
 import { HabitTracker } from "@/components/health/HabitTracker";
 import { useStore } from "@/context/StoreContext";
@@ -179,14 +178,6 @@ export default function SaludPage() {
                             >
                                 {activeTab === 'vitals' && <BloodPressureTracker />}
                                 {activeTab === 'biometric' && <BiometricVault />}
-                                {activeTab === 'fiscal' && (
-                                    <FiscalAuditor
-                                        allocations={profile === 'el' ? allocationsA : allocationsB}
-                                        onAddAllocation={handleAddAllocation}
-                                        onRemoveAllocation={handleRemoveAllocation}
-                                        profile={profile || 'el'}
-                                    />
-                                )}
                                 {activeTab === 'habits' && <HabitTracker />}
                             </motion.div>
                         </AnimatePresence>
