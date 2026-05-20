@@ -3,12 +3,12 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useStore } from '@/context/StoreContext';
 import { useProfile } from '@/context/ProfileContext';
-import { Plus, X, Rss } from 'lucide-react';
+import { Link2, MapPin, Plus, X, Rss } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
 import { StoreService } from '@/services/storeService';
 import type { WishlistItem, WishlistState, GoalCategory } from '@/services/storeService';
-import { GOAL_CATEGORIES, STATE_CONFIG, formatCOP } from './planes/constants';
+import { GOAL_CATEGORIES } from './planes/constants';
 import { SavingsOverview } from './planes/SavingsOverview';
 import { WishlistCard } from './planes/WishlistCard';
 import { ActivityFeed } from './planes/ActivityFeed';
@@ -40,7 +40,8 @@ export function WishlistModule() {
     const [fDesc, setFDesc] = useState('');
     const [fPrice, setFPrice] = useState('0');
     const [fCategory, setFCategory] = useState<GoalCategory>('Experiences');
-    const [fLink, setFLink] = useState('');
+    const [fLocationUrl, setFLocationUrl] = useState('');
+    const [fDetailLink, setFDetailLink] = useState('');
     const [fImage, setFImage] = useState('');
     const [fOwner, setFOwner] = useState<'el' | 'ella'>('el');
     const [fShared, setFShared] = useState(false);
@@ -110,7 +111,7 @@ export function WishlistModule() {
                 let mutated = false;
 
                 for (const item of items) {
-                    const url = item.externalLink || item.locationUrl;
+                    const url = item.locationUrl;
                     if (!url) continue;
 
                     const isGoogleMaps = url.includes('google.com/maps') || url.includes('maps.app.goo.gl') || url.includes('goo.gl/maps');
@@ -170,13 +171,13 @@ export function WishlistModule() {
 
     const resetForm = useCallback(() => {
         setFTitle(''); setFDesc(''); setFPrice('0'); setFCategory('Experiences');
-        setFLink(''); setFImage(''); setFOwner('el'); setFShared(false); setFPriority(false);
+        setFLocationUrl(''); setFDetailLink(''); setFImage(''); setFOwner('el'); setFShared(false); setFPriority(false);
     }, []);
 
     const openEdit = useCallback((item: WishlistItem) => {
         setEditingItem(item);
         setFTitle(item.title); setFDesc(item.description); setFPrice(String(item.price || 0));
-        setFCategory(item.goalCategory); setFLink(item.externalLink || item.locationUrl || '');
+        setFCategory(item.goalCategory); setFLocationUrl(item.locationUrl || ''); setFDetailLink(item.externalLink || '');
         setFImage(item.imageUrl || ''); setFOwner((item.owner as 'el' | 'ella') || 'el');
         setFShared(item.shared); setFPriority(item.isPriority);
         setIsAdding(true);
@@ -189,19 +190,19 @@ export function WishlistModule() {
         if (editingItem) {
             const updated = items.map(i => i.id === editingItem.id ? {
                 ...i, title: fTitle.trim(), description: fDesc.trim(), price: parseFloat(fPrice) || 0,
-                goalCategory: fCategory, externalLink: fLink.trim(), locationUrl: fLink.trim(),
+                goalCategory: fCategory, externalLink: fDetailLink.trim() || undefined, locationUrl: fLocationUrl.trim() || undefined,
                 imageUrl: fImage.trim() || undefined, owner: fOwner, shared: fShared, isPriority: fPriority,
             } : i);
-            await updateData({ wishlist: updated as any });
+            await updateData({ wishlist: updated });
         } else {
             const newItem: WishlistItem = {
                 id: crypto.randomUUID(), category: 'antojo', title: fTitle.trim(), description: fDesc.trim(),
                 price: parseFloat(fPrice) || 0, savedAmount: 0, isPriority: fPriority, state: 'DISCOVERED',
-                goalCategory: fCategory, externalLink: fLink.trim() || undefined, locationUrl: fLink.trim() || undefined,
+                goalCategory: fCategory, externalLink: fDetailLink.trim() || undefined, locationUrl: fLocationUrl.trim() || undefined,
                 imageUrl: fImage.trim() || undefined, shared: fShared, owner: fOwner,
                 author: profile || 'el', reactions: [], contributions: [],
             };
-            await updateData({ wishlist: [newItem, ...items] as any });
+            await updateData({ wishlist: [newItem, ...items] });
             // Log activity
             try {
                 await StoreService.logWishlistActivity(null, profile || 'el', 'added', fTitle.trim(), supabase);
@@ -213,10 +214,10 @@ export function WishlistModule() {
             }
         }
 
-        if (fLink.trim()) {
+        if (fLocationUrl.trim()) {
             const state = editingItem ? editingItem.state : 'DISCOVERED';
             const author = editingItem ? editingItem.author : (profile || 'el');
-            syncGoogleMapsLocation(fTitle.trim(), fLink.trim(), state, author);
+            syncGoogleMapsLocation(fTitle.trim(), fLocationUrl.trim(), state, author);
         }
 
         resetForm(); setIsAdding(false); setEditingItem(null);
@@ -236,7 +237,7 @@ export function WishlistModule() {
                 console.error('Error deleting map location:', e);
             }
         }
-        await updateData({ wishlist: items.filter(i => i.id !== id) as any });
+        await updateData({ wishlist: items.filter(i => i.id !== id) });
     };
 
     return (
@@ -244,23 +245,46 @@ export function WishlistModule() {
             {/* Savings Overview */}
             <SavingsOverview items={items} />
 
-            {/* Category filter bar */}
-            <div className="flex flex-wrap gap-1.5 overflow-x-auto pb-1">
-                <button onClick={() => setCatFilter('ALL')}
-                    className={`category-pill ${catFilter === 'ALL' ? 'category-pill-active' : ''}`}>Todos</button>
-                {GOAL_CATEGORIES.map(cat => (
-                    <button key={cat.id} onClick={() => setCatFilter(cat.id as GoalCategory)}
-                        className={`category-pill ${catFilter === cat.id ? 'category-pill-active' : ''}`}>
-                        <span>{cat.emoji}</span> {cat.label}
-                    </button>
-                ))}
-            </div>
+            {/* Category + State filters — compact strip */}
+            <div className="flex flex-wrap items-center gap-1.5">
+                <button
+                    onClick={() => setCatFilter('ALL')}
+                    className={`group flex h-8 items-center gap-1.5 border px-2.5 transition-all ${
+                        catFilter === 'ALL'
+                            ? 'border-user-c bg-user-c/10 text-white'
+                            : 'border-white/10 bg-[#050505] text-[#a88a7e] hover:border-white/25 hover:text-white'
+                    }`}
+                >
+                    <Rss className={`h-3.5 w-3.5 ${catFilter === 'ALL' ? 'text-user-c' : 'text-white/25'}`} strokeWidth={1.5} />
+                    <span className="hidden text-[7px] font-black uppercase tracking-[0.12em] sm:inline">Todos</span>
+                </button>
+                {GOAL_CATEGORIES.map(cat => {
+                    const Icon = cat.icon;
+                    const isActive = catFilter === cat.id;
+                    return (
+                        <button
+                            key={cat.id}
+                            onClick={() => setCatFilter(cat.id as GoalCategory)}
+                            className={`group flex h-8 items-center gap-1.5 border px-2.5 transition-all ${
+                                isActive
+                                    ? 'border-user-c bg-user-c/10 text-white'
+                                    : 'border-white/10 bg-[#050505] text-[#a88a7e] hover:border-white/25 hover:text-white'
+                            }`}
+                            title={cat.label}
+                        >
+                            <Icon className={`h-3.5 w-3.5 ${isActive ? 'text-user-c' : 'text-white/25'}`} strokeWidth={1.5} />
+                            <span className="hidden text-[7px] font-black uppercase tracking-[0.12em] sm:inline">{cat.label}</span>
+                        </button>
+                    );
+                })}
 
-            {/* State filter chips */}
-            <div className="flex flex-wrap gap-1">
+                {/* Divider */}
+                <div className="mx-1 hidden h-5 w-px bg-white/10 sm:block" />
+
+                {/* State filter chips — same row */}
                 {STATE_FILTERS.map(sf => (
                     <button key={sf.id} onClick={() => setStateFilter(sf.id)}
-                        className={`px-3 py-1.5 text-[8px] font-bold uppercase tracking-[0.18em] border transition-all ${
+                        className={`h-8 px-2.5 text-[7px] font-bold uppercase tracking-[0.14em] border transition-all ${
                             stateFilter === sf.id
                                 ? `border-${accentClass} text-${accentClass} bg-${accentClass}/10`
                                 : 'border-white/[0.06] text-white/25 hover:text-white/50'
@@ -328,25 +352,50 @@ export function WishlistModule() {
                                 <div className="space-y-2">
                                     <label className="ml-1 text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Categoría</label>
                                     <div className="flex flex-wrap gap-1.5">
-                                        {GOAL_CATEGORIES.map(cat => (
+                                        {GOAL_CATEGORIES.map(cat => {
+                                            const Icon = cat.icon;
+                                            const isActive = fCategory === cat.id;
+                                            return (
                                             <button key={cat.id} type="button" onClick={() => setFCategory(cat.id as GoalCategory)}
-                                                className={`category-pill ${fCategory === cat.id ? 'category-pill-active' : ''}`}>
-                                                {cat.emoji} {cat.label}
+                                                className={`flex h-8 items-center gap-1.5 border px-2.5 transition-all ${
+                                                    isActive
+                                                        ? 'border-user-c bg-user-c/10 text-white'
+                                                        : 'border-white/10 bg-[#050505] text-[#a88a7e] hover:border-white/25 hover:text-white'
+                                                }`}>
+                                                <Icon className={`h-3.5 w-3.5 ${isActive ? 'text-user-c' : 'text-white/25'}`} strokeWidth={1.5} />
+                                                <span className="text-[7px] font-black uppercase tracking-[0.12em]">{cat.label}</span>
                                             </button>
-                                        ))}
+                                        )})}
                                     </div>
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-2">
-                                        <label className="ml-1 text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">URL Externa</label>
-                                        <input value={fLink} onChange={e => setFLink(e.target.value)} placeholder="https://..."
+                                        <label className="ml-1 flex items-center gap-2 text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">
+                                            <MapPin className="h-3 w-3" /> URL ubicación
+                                        </label>
+                                        <input value={fLocationUrl} onChange={e => setFLocationUrl(e.target.value)} placeholder="Google Maps / ubicación..."
                                             className="w-full border border-white/10 bg-[#050505] px-4 py-3 text-xs tracking-normal text-white outline-none placeholder:text-white/20 focus:border-[#00dbe9]" />
                                     </div>
+                                    <div className="space-y-2">
+                                        <label className="ml-1 flex items-center gap-2 text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">
+                                            <Link2 className="h-3 w-3" /> URL detalle
+                                        </label>
+                                        <input value={fDetailLink} onChange={e => setFDetailLink(e.target.value)} placeholder="Mercado Libre, Instagram, carta, producto..."
+                                            className="w-full border border-white/10 bg-[#050505] px-4 py-3 text-xs tracking-normal text-white outline-none placeholder:text-white/20 focus:border-[#00dbe9]" />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                         <label className="ml-1 text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Imagen URL</label>
                                         <input value={fImage} onChange={e => setFImage(e.target.value)} placeholder="https://...imagen.jpg"
                                             className="w-full border border-white/10 bg-[#050505] px-4 py-3 text-xs tracking-normal text-white outline-none placeholder:text-white/20 focus:border-[#00dbe9]" />
+                                    </div>
+                                    <div className="flex items-end">
+                                        <div className="w-full border border-white/10 bg-[#050505] p-3 text-[8px] font-bold uppercase leading-5 tracking-[0.18em] text-white/35">
+                                            La ubicación alimenta el mapa. El detalle aparece como preview en la tarjeta.
+                                        </div>
                                     </div>
                                 </div>
 

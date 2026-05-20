@@ -6,6 +6,7 @@ import { ExternalLink, Loader2, Image as ImageIcon } from 'lucide-react';
 interface LinkPreviewProps {
     url: string;
     category: 'plan' | 'antojo' | 'gusto';
+    variant?: 'default' | 'square';
 }
 
 interface PreviewData {
@@ -16,7 +17,7 @@ interface PreviewData {
     url: string;
 }
 
-export function LinkPreview({ url, category }: LinkPreviewProps) {
+export function LinkPreview({ url, category, variant = 'default' }: LinkPreviewProps) {
     const [data, setData] = useState<PreviewData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
@@ -32,7 +33,7 @@ export function LinkPreview({ url, category }: LinkPreviewProps) {
                 } else {
                     setError(true);
                 }
-            } catch (e) {
+            } catch {
                 setError(true);
             } finally {
                 setLoading(false);
@@ -43,6 +44,14 @@ export function LinkPreview({ url, category }: LinkPreviewProps) {
     }, [url]);
 
     if (loading) {
+        if (variant === 'square') {
+            return (
+                <div className="flex aspect-square w-full items-center justify-center border border-white/10 bg-black">
+                    <Loader2 className="h-4 w-4 animate-spin text-[#a88a7e]" />
+                </div>
+            );
+        }
+
         return (
             <div className="w-full md:w-48 h-24 border border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-950 flex items-center justify-center">
                 <Loader2 className="w-4 h-4 text-stone-300 animate-spin" />
@@ -51,6 +60,20 @@ export function LinkPreview({ url, category }: LinkPreviewProps) {
     }
 
     if (error || !data) {
+        if (variant === 'square') {
+            return (
+                <a
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex aspect-square w-full flex-col items-center justify-center gap-2 border border-white/10 bg-black p-3 text-center text-[8px] font-black uppercase tracking-[0.16em] text-[#00dbe9]"
+                >
+                    <ExternalLink className="h-4 w-4" />
+                    Abrir Link
+                </a>
+            );
+        }
+
         return (
             <a
                 href={url}
@@ -66,8 +89,44 @@ export function LinkPreview({ url, category }: LinkPreviewProps) {
 
     const domain = new URL(data.url).hostname.replace('www.', '').toUpperCase();
 
+    if (variant === 'square') {
+        return (
+            <a
+                href={data.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                data-preview-category={category}
+                className="group relative block aspect-square w-full overflow-hidden border border-white/10 bg-black"
+            >
+                {data.image ? (
+                    <img
+                        src={data.image}
+                        alt={data.title || 'Preview'}
+                        className="h-full w-full object-cover grayscale transition-all duration-500 group-hover:grayscale-0"
+                    />
+                ) : (
+                    <div className="flex h-full w-full items-center justify-center text-white/15">
+                        <ImageIcon className="h-8 w-8" />
+                    </div>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/35 to-transparent" />
+                <div className="absolute inset-x-0 bottom-0 p-3">
+                    <span className="mb-1 block text-[7px] font-black uppercase tracking-[0.18em] text-[#00dbe9]">
+                        {data.siteName || domain}
+                    </span>
+                    <h5 className="line-clamp-2 text-[9px] font-black uppercase leading-tight tracking-[0.06em] text-white">
+                        {data.title || 'Sin Título'}
+                    </h5>
+                </div>
+                <div className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center border border-white/20 bg-black/70 text-white opacity-0 transition-opacity group-hover:opacity-100">
+                    <ExternalLink className="h-3.5 w-3.5" />
+                </div>
+            </a>
+        );
+    }
+
     return (
-        <div className="flex flex-col md:flex-row gap-3">
+        <div className="flex flex-col md:flex-row gap-3" data-preview-category={category}>
             <a
                 href={data.url}
                 target="_blank"

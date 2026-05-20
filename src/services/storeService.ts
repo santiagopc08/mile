@@ -47,6 +47,9 @@ export type WishlistState = 'DISCOVERED' | 'SAVING' | 'READY_TO_DEPLOY' | 'COMPL
 export type GoalCategory = 'Food' | 'Travel' | 'Gaming' | 'Tech' | 'Experiences' | 'Home';
 export type ReactionType = 'LIKE' | 'PRIORITY' | 'WANT_THIS_WITH_YOU';
 
+const isMapLink = (url?: string | null) =>
+    Boolean(url && (url.includes('google.com/maps') || url.includes('maps.app.goo.gl') || url.includes('goo.gl/maps')));
+
 export interface WishlistContribution {
     id: string;
     wishlistItemId: string;
@@ -220,8 +223,8 @@ export const StoreService = {
                         state: w.state || 'DISCOVERED',
                         author: w.author || 'el',
                         owner: w.owner || undefined,
-                        locationUrl: w.location_url || w.external_link,
-                        externalLink: w.external_link || w.location_url,
+                        locationUrl: w.location_url || (isMapLink(w.external_link) ? w.external_link : undefined),
+                        externalLink: isMapLink(w.external_link) && !w.location_url ? undefined : (w.external_link || undefined),
                         imageUrl: w.image_url || undefined,
                         price: w.price || 0,
                         savedAmount: w.saved_amount || 0,
@@ -354,8 +357,8 @@ export const StoreService = {
                     description: w.description,
                     state: w.state || 'DISCOVERED',
                     status: w.state === 'COMPLETED' ? 'visited' : 'to-visit',
-                    location_url: w.locationUrl || w.externalLink,
-                    external_link: w.externalLink || w.locationUrl,
+                    location_url: w.locationUrl || null,
+                    external_link: w.externalLink || null,
                     image_url: w.imageUrl || null,
                     price: w.price,
                     saved_amount: w.savedAmount || 0,

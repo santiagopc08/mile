@@ -1,12 +1,12 @@
 import { Utensils, Plane, Gamepad2, Cpu, Sparkles, Home } from 'lucide-react';
 
 export const GOAL_CATEGORIES = [
-    { id: 'Food', label: 'Food', icon: Utensils, emoji: '🍕' },
-    { id: 'Travel', label: 'Travel', icon: Plane, emoji: '✈️' },
-    { id: 'Gaming', label: 'Gaming', icon: Gamepad2, emoji: '🎮' },
-    { id: 'Tech', label: 'Tech', icon: Cpu, emoji: '💻' },
-    { id: 'Experiences', label: 'Experiences', icon: Sparkles, emoji: '🎭' },
-    { id: 'Home', label: 'Home', icon: Home, emoji: '🏠' },
+    { id: 'Food', label: 'Comida', icon: Utensils, emoji: '🍕' },
+    { id: 'Travel', label: 'Viajes', icon: Plane, emoji: '✈️' },
+    { id: 'Gaming', label: 'Juegos', icon: Gamepad2, emoji: '🎮' },
+    { id: 'Tech', label: 'Tecnología', icon: Cpu, emoji: '💻' },
+    { id: 'Experiences', label: 'Experiencias', icon: Sparkles, emoji: '🎭' },
+    { id: 'Home', label: 'Hogar', icon: Home, emoji: '🏠' },
 ] as const;
 
 export const STATE_CONFIG = {
