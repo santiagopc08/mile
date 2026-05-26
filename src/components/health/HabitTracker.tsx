@@ -87,6 +87,11 @@ export function HabitTracker() {
         
         try {
             await StoreService.logHealthHabit(profile, selectedHabit, cost, severity, '', supabase);
+            
+            // Disparar notificación discreta a la pareja
+            const target = profile === 'el' ? 'ella' : 'el';
+            await StoreService.addNotification(target, 'habits', 'Se registró una nueva incidencia en el panel de hábitos.', supabase);
+
             setSelectedHabit(null);
             setCostInput('');
             setSeverity('medium');

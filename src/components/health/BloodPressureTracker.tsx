@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Activity, Heart, Trash2, Plus, TrendingUp, TrendingDown, Clipboard, User, Clock } from 'lucide-react';
 import { useProfile } from '@/context/ProfileContext';
+import { StoreService } from '@/services/storeService';
 import {
     LineChart,
     Line,
@@ -98,6 +99,16 @@ export const BloodPressureTracker = () => {
         if (error) {
             console.error('Error saving blood pressure entry:', error);
         } else {
+            const sys = Number(systolic);
+            const dia = Number(diastolic);
+            const hr = Number(heartRate);
+            const isAtypical = sys >= 140 || sys <= 90 || dia >= 90 || dia <= 60 || hr >= 100 || hr <= 55;
+            
+            if (isAtypical) {
+                const target = profile === 'el' ? 'ella' : 'el';
+                StoreService.addNotification(target, 'health_alert', 'Se registró una lectura atípica de signos vitales en el sistema.').catch(err => console.error(err));
+            }
+
             // Clear form
             setSystolic('');
             setDiastolic('');

@@ -46,6 +46,15 @@ export function WishlistCard({ item, profile, onRefresh, onEdit, onDelete }: Wis
             if (item.savedAmount + amount >= item.price && item.price > 0 && item.state === 'SAVING') {
                 await StoreService.updateWishlistState(item.id, 'READY_TO_DEPLOY', profile || 'el', supabase);
             }
+
+            // Notificar a la pareja si el plan es compartido
+            if (item.shared) {
+                const target = profile === 'el' ? 'ella' : 'el';
+                const authorName = profile === 'el' ? 'Santiago' : 'Milena';
+                const amountFormatted = formatCOP(amount);
+                await StoreService.addNotification(target, 'wishlist', `¡${authorName} aportó ${amountFormatted} al plan: "${item.title}"! 💰`, supabase);
+            }
+
             setContribAmount('');
             setContribNote('');
             setShowContrib(false);
@@ -66,6 +75,19 @@ export function WishlistCard({ item, profile, onRefresh, onEdit, onDelete }: Wis
         if (stateConfig.next === 'READY_TO_DEPLOY' && item.savedAmount < item.price && item.price > 0) return;
         try {
             await StoreService.updateWishlistState(item.id, stateConfig.next, profile || 'el', supabase);
+            
+            // Notificar a la pareja si el plan es compartido
+            if (item.shared) {
+                const target = profile === 'el' ? 'ella' : 'el';
+                const authorName = profile === 'el' ? 'Santiago' : 'Milena';
+                if (stateConfig.next === 'COMPLETED') {
+                    await StoreService.addNotification(target, 'wishlist', `¡Objetivo Cumplido! Completamos el plan: "${item.title}" 🎉`, supabase);
+                } else {
+                    const stateLabel = STATE_CONFIG[stateConfig.next]?.label || stateConfig.next;
+                    await StoreService.addNotification(target, 'wishlist', `¡${authorName} actualizó el plan "${item.title}" a estado: ${stateLabel}!`, supabase);
+                }
+            }
+            
             onRefresh();
         } catch (e) { console.error(e); }
     };

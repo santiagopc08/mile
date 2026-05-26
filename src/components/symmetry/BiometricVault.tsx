@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useProfile } from '@/context/ProfileContext';
 import { ShieldAlert, Database, Lock, Fingerprint, Activity, AlertTriangle } from 'lucide-react';
 import { format, differenceInDays, addDays, parseISO } from 'date-fns';
+import { StoreService } from '@/services/storeService';
 
 type CycleEntry = {
     id: string;
@@ -173,6 +174,16 @@ export const BiometricVault = () => {
             ...state,
             cycles: [...state.cycles, newEntry]
         });
+
+        // Enviar notificación muy discreta a la pareja si es Milena
+        if (profile === 'ella') {
+            const hasMoodSymptoms = selectedSymptoms.includes('Cambios de Humor') || selectedSymptoms.includes('Ansiedad');
+            const target = 'el';
+            const bioMsg = hasMoodSymptoms 
+                ? '¡Sincronía Biológica!: Se registró una actualización de estado de ánimo en la Bóveda Biométrica.'
+                : '¡Sincronía Biológica!: Se ha registrado una actualización en la Bóveda Biométrica.';
+            StoreService.addNotification(target, 'biometrics', bioMsg).catch(err => console.error(err));
+        }
 
         setSelectedSymptoms([]);
         setNotes('');

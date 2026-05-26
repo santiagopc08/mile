@@ -21,6 +21,7 @@ interface Task {
   actions?: ChecklistItem[];
   validations?: ChecklistItem[];
   detail?: string;
+  assignee?: 'el' | 'ella';
 }
 
 interface Objective {
@@ -38,6 +39,7 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
 
   const tasks = useMemo(() => (data?.tasks as Task[]) || [], [data?.tasks]);
   const objectives = useMemo(() => (data?.objectives as Objective[]) || [], [data?.objectives]);
+  const visibleObjectives = useMemo(() => objectives.filter(o => o.author === profile), [objectives, profile]);
 
   const [newTask, setNewTask] = useState('');
   const [category, setCategory] = useState<'work' | 'home' | 'personal'>('work');
@@ -47,6 +49,7 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
   const [selectedObjectiveId, setSelectedObjectiveId] = useState<string>('');
   const [newEstimatedTime, setNewEstimatedTime] = useState<number>(30);
   const [newDueDate, setNewDueDate] = useState('');
+  const [newTaskAssignee, setNewTaskAssignee] = useState<'el' | 'ella'>(profile || 'el');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [newDetail, setNewDetail] = useState('');
   const [newActions, setNewActions] = useState<ChecklistItem[]>([]);
@@ -80,6 +83,7 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
   const [editActions, setEditActions] = useState<ChecklistItem[]>([]);
   const [editValidations, setEditValidations] = useState<ChecklistItem[]>([]);
   const [editDetail, setEditDetail] = useState('');
+  const [editTaskAssignee, setEditTaskAssignee] = useState<'el' | 'ella'>(profile || 'el');
 
   useEffect(() => {
     if (tasks.length > 0) {
@@ -90,6 +94,29 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
       onTasksUpdate(0);
     }
   }, [tasks, onTasksUpdate]);
+
+  useEffect(() => {
+    if (!profile || !tasks || typeof window === 'undefined') return;
+    const now = new Date();
+    tasks.forEach(t => {
+      if (t.status !== 'done' && t.status !== 'skipped' && t.due_date && (!t.assignee || t.assignee === profile)) {
+        const due = new Date(t.due_date);
+        const diffHours = (due.getTime() - now.getTime()) / (1000 * 60 * 60);
+        if (diffHours > 0 && diffHours <= 24) {
+          const key = `notified_due_${t.id}`;
+          if (!localStorage.getItem(key)) {
+            localStorage.setItem(key, 'true');
+            if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+              new Notification('Sincronía de Operaciones', {
+                body: `Se aproxima la fecha límite para tu tarea: "${t.text}"`,
+                icon: '/icon-192.png'
+              });
+            }
+          }
+        }
+      }
+    });
+  }, [tasks, profile]);
 
   const addTask = () => {
     if (!newTask.trim()) return;
@@ -106,11 +133,13 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
       actions: newActions.length > 0 ? newActions : undefined,
       validations: newValidations.length > 0 ? newValidations : undefined,
       detail: newDetail.trim() || undefined,
+      assignee: newTaskAssignee,
       updated_at: new Date().toISOString(),
     };
     updateData({ tasks: [task, ...tasks] as any });
     setNewTask('');
     setNewDueDate('');
+    setNewTaskAssignee(profile || 'el');
     setNewDetail('');
     setNewActions([]);
     setNewValidations([]);
@@ -171,6 +200,7 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
     setEditActions(task.actions || []);
     setEditValidations(task.validations || []);
     setEditDetail(task.detail || '');
+    setEditTaskAssignee(task.assignee || profile || 'el');
   };
 
   const handleEditSave = () => {
@@ -187,6 +217,7 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
         actions: editActions,
         validations: editValidations,
         detail: editDetail.trim() || undefined,
+        assignee: editTaskAssignee,
         updated_at: new Date().toISOString()
       } : t) as any
     });
@@ -200,7 +231,16 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
   const toggleObjectiveComplete = (id: string) => {
     const hasPending = tasks.some(t => t.objective_id === id && t.status !== 'done' && t.status !== 'skipped');
     if (hasPending) return;
-    updateData({ objectives: objectives.map(o => o.id === id ? { ...o, is_complete: !o.is_complete } : o) as any });
+    const obj = objectives.find(o => o.id === id);
+    if (!obj) return;
+    const nextComplete = !obj.is_complete;
+    updateData({ objectives: objectives.map(o => o.id === id ? { ...o, is_complete: nextComplete } : o) as any });
+
+    if (nextComplete) {
+      const partner = profile === 'ella' ? 'el' : 'ella';
+      const authorName = profile === 'el' ? 'Santiago' : 'Milena';
+      StoreService.addNotification(partner, 'objective', `¡${authorName} completó el objetivo: "${obj.title}"! 🎯`).catch(err => console.error(err));
+    }
   };
 
   const fetchAiSuggestions = async (field: 'actions' | 'validations') => {
@@ -265,7 +305,7 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
-            {objectives.map(obj => {
+            {visibleObjectives.map(obj => {
               const objTasks = tasks.filter(t => t.objective_id === obj.id);
               const pendingCount = objTasks.filter(t => t.status !== 'done' && t.status !== 'skipped').length;
               const completedCount = objTasks.length - pendingCount;
@@ -328,7 +368,7 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
                   <Plus size={16} />
                 </button>
               </div>
-              <div className="grid grid-cols-1 gap-2 md:grid-cols-5">
+              <div className="grid grid-cols-1 gap-2 md:grid-cols-6">
                 <div className="flex flex-col gap-1">
                   <label className="text-[7px] uppercase font-bold text-stone-400">Objetivo</label>
                   <select
@@ -337,7 +377,18 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
                     className="h-[32px] border border-white/10 bg-black px-2 text-[8px] uppercase text-[#e5e2e1] outline-none"
                   >
                     <option value="">Sin Objetivo</option>
-                    {objectives.map(o => <option key={o.id} value={o.id}>{o.title}</option>)}
+                    {visibleObjectives.map(o => <option key={o.id} value={o.id}>{o.title}</option>)}
+                  </select>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[7px] uppercase font-bold text-stone-400">Responsable</label>
+                  <select
+                    value={newTaskAssignee}
+                    onChange={e => setNewTaskAssignee(e.target.value as any)}
+                    className="h-[32px] border border-white/10 bg-black px-2 text-[8px] uppercase text-[#e5e2e1] outline-none"
+                  >
+                    <option value="ella">Milena</option>
+                    <option value="el">Santiago</option>
                   </select>
                 </div>
                 <div className="flex flex-col gap-1">
@@ -542,6 +593,7 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
                           <div className="flex gap-1 flex-wrap">
                             <select value={editTaskCategory} onChange={e => setEditTaskCategory(e.target.value as any)} className="flex-1 min-w-0 bg-black border border-white/20 px-1 py-1 text-[9px] uppercase text-stone-300 outline-none"><option value="work">WORK</option><option value="home">HOME</option><option value="personal">PERSONAL</option></select>
                             <select value={editPriority} onChange={e => setEditPriority(e.target.value as any)} className="flex-1 min-w-0 bg-black border border-white/20 px-1 py-1 text-[9px] uppercase text-stone-300 outline-none"><option value="low">LOW</option><option value="medium">MED</option><option value="high">HIGH</option></select>
+                            <select value={editTaskAssignee} onChange={e => setEditTaskAssignee(e.target.value as any)} className="flex-1 min-w-0 bg-black border border-white/20 px-1 py-1 text-[9px] uppercase text-stone-300 outline-none"><option value="ella">Mile</option><option value="el">Santi</option></select>
                           </div>
                           <div className="grid grid-cols-2 gap-1">
                             <div><label className="text-[7px] uppercase font-bold text-stone-500 block">Est</label><input type="number" value={editEstimatedTime} onChange={e => setEditEstimatedTime(Number(e.target.value))} className="w-full bg-black border border-white/20 px-1 py-1 text-[10px] text-white outline-none" /></div>

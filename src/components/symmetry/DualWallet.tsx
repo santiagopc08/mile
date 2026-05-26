@@ -19,6 +19,7 @@ import {
   Wallet,
 } from 'lucide-react';
 import { useProfile } from '@/context/ProfileContext';
+import { StoreService } from '@/services/storeService';
 
 type TransactionType = 'expense' | 'income' | 'transfer' | 'budget_adjustment';
 type BudgetCategory = 'Food' | 'Transport' | 'Health' | 'Entertainment' | 'Wishlist' | 'Savings';
@@ -286,6 +287,19 @@ export const DualWallet = ({
     };
 
     onAllocationsChange([movement, ...allocations]);
+
+    // Enviar notificación a la pareja si es un ahorro (discreto)
+    const isSavings = category === 'Savings' || relatedBudget === 'Savings' || account === 'savings_vault';
+    if (isSavings) {
+      const target = profile === 'el' ? 'ella' : 'el';
+      const authorName = profile === 'el' ? 'Santiago' : 'Milena';
+      const amountFormatted = formatCOP(parsedAmount);
+      const alertMsg = `¡${authorName} registró un nuevo ahorro de ${amountFormatted}! 💰`;
+      StoreService.addNotification(target, 'wallet', alertMsg).catch(err => {
+        console.error('Failed to trigger wallet notification:', err);
+      });
+    }
+
     setAmount('');
     setDescription('');
   };
@@ -487,16 +501,15 @@ export const DualWallet = ({
           <h3 className="mb-4 flex items-center justify-between border-b border-white/10 pb-3 text-[10px] font-black uppercase tracking-[0.22em] text-[#a88a7e]">
             <span className="flex items-center gap-2">
               Control de Gastos Fijos
-              <button
-                type="button"
-                onClick={() => setIsEditingBudgets(!isEditingBudgets)}
-                className="ml-2 border border-white/10 bg-black px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-widest text-[#a88a7e] hover:border-white/30 hover:text-white"
-                style={isEditingBudgets ? { borderColor: accentHex, color: accentHex } : undefined}
-              >
-                {isEditingBudgets ? 'Listo' : 'Editar Presupuestos'}
-              </button>
             </span>
-            <span>Avisos automáticos de gasto</span>
+            <button
+              type="button"
+              onClick={() => setIsEditingBudgets(!isEditingBudgets)}
+              className="ml-2 border border-white/10 bg-black px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-widest text-[#a88a7e] hover:border-white/30 hover:text-white"
+              style={isEditingBudgets ? { borderColor: accentHex, color: accentHex } : undefined}
+            >
+              {isEditingBudgets ? 'Listo' : 'Editar Presupuestos'}
+            </button>
           </h3>
           <div className="grid gap-2 md:grid-cols-2">
             {budgetRows.map((row) => (

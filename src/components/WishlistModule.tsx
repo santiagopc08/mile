@@ -194,6 +194,13 @@ export function WishlistModule() {
                 imageUrl: fImage.trim() || undefined, owner: fOwner, shared: fShared, isPriority: fPriority,
             } : i);
             await updateData({ wishlist: updated });
+            
+            // Notify other profile if shared
+            if (fShared) {
+                const target = profile === 'el' ? 'ella' : 'el';
+                const authorName = profile === 'el' ? 'Santiago' : 'Milena';
+                try { await StoreService.addNotification(target, 'wishlist', `¡${authorName} editó el plan!: "${fTitle.trim()}"`, supabase); } catch {}
+            }
         } else {
             const newItem: WishlistItem = {
                 id: crypto.randomUUID(), category: 'antojo', title: fTitle.trim(), description: fDesc.trim(),
@@ -210,7 +217,8 @@ export function WishlistModule() {
             // Notify other profile if shared
             if (fShared) {
                 const target = profile === 'el' ? 'ella' : 'el';
-                try { await StoreService.addNotification(target, 'wishlist', `${profile === 'el' ? 'Santiago' : 'Milena'} agregó: "${fTitle.trim()}"`, supabase); } catch {}
+                const authorName = profile === 'el' ? 'Santiago' : 'Milena';
+                try { await StoreService.addNotification(target, 'wishlist', `¡${authorName} agregó un nuevo plan!: "${fTitle.trim()}"`, supabase); } catch {}
             }
         }
 
@@ -235,6 +243,12 @@ export function WishlistModule() {
                 window.dispatchEvent(new CustomEvent('custom:map-refresh'));
             } catch (e) {
                 console.error('Error deleting map location:', e);
+            }
+            // Disparar notificación discreta a la pareja si es compartido
+            if (itemToDelete.shared) {
+                const target = profile === 'el' ? 'ella' : 'el';
+                const authorName = profile === 'el' ? 'Santiago' : 'Milena';
+                try { await StoreService.addNotification(target, 'wishlist', `${authorName} eliminó un plan de la lista.`, supabase); } catch {}
             }
         }
         await updateData({ wishlist: items.filter(i => i.id !== id) });

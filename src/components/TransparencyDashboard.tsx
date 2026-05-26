@@ -8,6 +8,7 @@ import { CalendarDays, Clock, Check, Heart, Trophy, Zap } from 'lucide-react';
 import { PomodoroTimer } from './symmetry/PomodoroTimer';
 import { PendingTasks } from './PendingTasks';
 import { QuickLinks } from './QuickLinks';
+import { StoreService } from '@/services/storeService';
 
 export function TransparencyDashboard() {
     const { data, isLoading, updateData } = useStore();
@@ -44,6 +45,14 @@ export function TransparencyDashboard() {
         } else {
             await updateData({ victoriesElla: [victory, ...victoriesElla] });
         }
+
+        // Enviar notificación a la pareja
+        const target = profile === 'el' ? 'ella' : 'el';
+        const name = profile === 'el' ? 'Santiago' : 'Milena';
+        StoreService.addNotification(target, 'victory', `¡${name} fijó una nueva victoria!: "${newText.trim()}"`).catch(err => {
+            console.error('Failed to trigger victory notification:', err);
+        });
+
         setNewText('');
     };
 

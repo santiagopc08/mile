@@ -7,12 +7,13 @@ import { BloodPressureTracker } from "@/components/health/BloodPressureTracker";
 import { HabitTracker } from "@/components/health/HabitTracker";
 import { useStore } from "@/context/StoreContext";
 import { useProfile } from "@/context/ProfileContext";
-import { Activity, HeartPulse, Utensils, Shield, Radio } from 'lucide-react';
+import { Activity, HeartPulse, Utensils, Shield, Radio, Flame } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Allocation, StoreService } from "@/services/storeService";
+import { MovementTracker } from "@/components/health/MovementTracker";
 
 export default function SaludPage() {
-    type SaludTab = 'vitals' | 'biometric' | 'fiscal' | 'habits';
+    type SaludTab = 'vitals' | 'biometric' | 'fiscal' | 'habits' | 'movement';
     const [activeTab, setActiveTab] = useState<SaludTab>('vitals');
     const { data } = useStore();
     const { profile } = useProfile();
@@ -60,8 +61,8 @@ export default function SaludPage() {
     const tabs: Array<{ id: SaludTab; label: string; icon: typeof Activity }> = [
         { id: 'vitals', label: 'Signos Vitales', icon: HeartPulse },
         { id: 'biometric', label: 'Bóveda Biométrica', icon: Shield },
-        { id: 'fiscal', label: 'Salud Fiscal', icon: Utensils },
         { id: 'habits', label: 'Hábitos', icon: Activity },
+        { id: 'movement', label: 'Movimiento', icon: Flame },
     ];
 
     return (
@@ -179,6 +180,7 @@ export default function SaludPage() {
                                 {activeTab === 'vitals' && <BloodPressureTracker />}
                                 {activeTab === 'biometric' && <BiometricVault />}
                                 {activeTab === 'habits' && <HabitTracker />}
+                                {activeTab === 'movement' && <MovementTracker />}
                             </motion.div>
                         </AnimatePresence>
                     </div>

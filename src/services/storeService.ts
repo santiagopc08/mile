@@ -24,6 +24,7 @@ export interface Task {
     actions?: ChecklistItem[];
     validations?: ChecklistItem[];
     detail?: string;
+    assignee?: 'el' | 'ella';
 }
 
 export interface Objective {
@@ -260,6 +261,7 @@ export const StoreService = {
                     actions: t.actions || [],
                     validations: t.validations || [],
                     detail: t.detail || undefined,
+                    assignee: t.assignee || undefined,
                 })),
                 objectives: (objectivesRes.data || []).map(o => ({
                     id: o.id,
@@ -386,6 +388,7 @@ export const StoreService = {
                     actions: t.actions || [],
                     validations: t.validations || [],
                     detail: t.detail || null,
+                    assignee: t.assignee || null,
                     updated_at: new Date().toISOString()
                 })));
             }

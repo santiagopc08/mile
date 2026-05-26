@@ -288,6 +288,13 @@ export function Mahjong() {
                     tiles.length
                 ).then(() => {
                     StoreService.getMahjongLeaderboard().then(setLeaderboard).catch(() => { });
+                    
+                    // Notificar a la pareja si es récord
+                    if (isRecord) {
+                        const target = profile === 'el' ? 'ella' : 'el';
+                        const authorName = profile === 'el' ? 'Santiago' : 'Milena';
+                        StoreService.addNotification(target, 'mahjong_record', `¡Récord Superado!: ${authorName} batió el récord en el juego con un tiempo de ${formatTime(time)}! 🏆`).catch(e => console.error(e));
+                    }
                 });
             }
         }

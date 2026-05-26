@@ -65,6 +65,12 @@ export function Timeline({ events }: TimelineProps) {
                 author: profile || 'el'
             };
             await updateData({ events: [newEvent, ...events] });
+            
+            // Enviar notificación a la pareja (discreta)
+            const target = profile === 'el' ? 'ella' : 'el';
+            const authorName = profile === 'el' ? 'Santiago' : 'Milena';
+            StoreService.addNotification(target, 'history', `¡${authorName} agregó un nuevo recuerdo a nuestra Historia! ✨`).catch(e => console.error(e));
+
             setIsUploading(false);
             setIsAdding(false);
         }
