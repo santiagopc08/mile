@@ -1,22 +1,23 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Bell } from 'lucide-react';
+import { Bell, CheckSquare, Trash2, ShieldAlert } from 'lucide-react';
 import { StoreService } from '@/services/storeService';
 import { useProfile } from '@/context/ProfileContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '@/lib/supabase';
 
 export function NotificationBell() {
     const { profile } = useProfile();
     const [notifications, setNotifications] = useState<any[]>([]);
     const [isOpen, setIsOpen] = useState(false);
     
-    // Refs for push notifications tracking
     const isInitialLoadRef = useRef(true);
     const notifiedIdsRef = useRef<Set<string>>(new Set());
 
     const unreadCount = notifications.filter(n => !n.read).length;
     const accentColor = profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)';
+    const profileLabel = profile === 'ella' ? 'Milena' : 'Santiago';
 
     // Request permissions for desktop notifications
     const requestPermission = async () => {
@@ -37,36 +38,28 @@ export function NotificationBell() {
             const data = await StoreService.getNotifications(profile);
             setNotifications(data);
 
-            // Handle browser push notifications for newly fetched alerts
-            if (data && data.length > 0) {
-                if (isInitialLoadRef.current) {
-                    // Populate initial list of IDs to avoid notifying historical alerts
-                    data.forEach((n: any) => notifiedIdsRef.current.add(n.id));
-                    isInitialLoadRef.current = false;
-                } else {
-                    // Detect and trigger notification for new unread alerts
-                    data.forEach((n: any) => {
-                        if (!n.read && !notifiedIdsRef.current.has(n.id)) {
-                            notifiedIdsRef.current.add(n.id);
-                            
-                            // Trigger native HTML5 push notification
-                            if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
-                                try {
-                                    new Notification('Symmetry Link', {
-                                        body: n.message,
-                                        icon: '/icon-192.png',
-                                        tag: n.id // Prevent duplicate windows/alerts
-                                    });
-                                } catch (e) {
-                                    console.error('Failed to trigger native desktop notification:', e);
-                                }
-                            }
-                        }
-                    });
-                }
+            // Populate notified IDs list initially to avoid spamming historical push notifications
+            if (data && data.length > 0 && isInitialLoadRef.current) {
+                data.forEach((n: any) => notifiedIdsRef.current.add(n.id));
+                isInitialLoadRef.current = false;
             }
         } catch (err) {
             console.error('Failed to fetch notifications:', err);
+        }
+    };
+
+    // Trigger local push notification on browser
+    const triggerDesktopNotification = (n: any) => {
+        if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+            try {
+                new Notification('Nuestro Espacio', {
+                    body: n.message,
+                    icon: '/icon-192.png',
+                    tag: n.id // Prevent duplicates
+                });
+            } catch (e) {
+                console.error('Failed to trigger native desktop notification:', e);
+            }
         }
     };
 
@@ -76,92 +69,218 @@ export function NotificationBell() {
         requestPermission();
         fetchNotifications();
         
-        // Poll every 30 seconds for new events (more responsive than 60s)
-        const interval = setInterval(fetchNotifications, 30000);
-        return () => clearInterval(interval);
+        // --- SUPABASE REAL-TIME SUBSCRIPTION ---
+        // Instantly catches all new notification records matching this user's profile
+        const channel = supabase
+            .channel(`realtime-notifications-${profile}`)
+            .on(
+                'postgres_changes',
+                {
+                    event: '*', // Listen to INSERTs, UPDATEs and DELETEs
+                    schema: 'public',
+                    table: 'notifications',
+                    filter: `target_profile=eq.${profile}`
+                },
+                (payload) => {
+                    if (payload.eventType === 'INSERT') {
+                        const newNotif = payload.new;
+                        setNotifications((prev) => [newNotif, ...prev]);
+                        
+                        // Fire desktop push notifications instantly
+                        if (!notifiedIdsRef.current.has(newNotif.id)) {
+                            notifiedIdsRef.current.add(newNotif.id);
+                            triggerDesktopNotification(newNotif);
+                        }
+                    } else if (payload.eventType === 'UPDATE') {
+                        setNotifications((prev) =>
+                            prev.map((n) => (n.id === payload.new.id ? payload.new : n))
+                        );
+                    } else if (payload.eventType === 'DELETE') {
+                        setNotifications((prev) => prev.filter((n) => n.id !== payload.old.id));
+                    }
+                }
+            )
+            .subscribe();
+
+        // Fallback polling at a highly energy-efficient 90-second interval to protect mobile batteries
+        const fallbackInterval = setInterval(fetchNotifications, 90000);
+
+        return () => {
+            supabase.removeChannel(channel);
+            clearInterval(fallbackInterval);
+        };
     }, [profile]);
 
     const handleRead = async (id: string) => {
-        await StoreService.markNotificationRead(id);
-        setNotifications(notifications.map(n => n.id === id ? { ...n, read: true } : n));
+        try {
+            await StoreService.markNotificationRead(id);
+            setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+        } catch (err) {
+            console.error('Failed to mark read:', err);
+        }
     };
 
-    if (!profile) return null; // Render for both el and ella!
+    const handleMarkAllRead = async () => {
+        if (!profile) return;
+        try {
+            await supabase
+                .from('notifications')
+                .update({ read: true })
+                .eq('target_profile', profile)
+                .eq('read', false);
+            setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+        } catch (err) {
+            console.error('Failed to mark all read:', err);
+        }
+    };
+
+    const handleClearAll = async () => {
+        if (!profile) return;
+        try {
+            await supabase
+                .from('notifications')
+                .delete()
+                .eq('target_profile', profile);
+            setNotifications([]);
+        } catch (err) {
+            console.error('Failed to clear notifications:', err);
+        }
+    };
+
+    if (!profile) return null;
 
     return (
         <div className="relative">
+            {/* Bell Toggle Button */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="p-2 rounded-full hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors relative"
+                className="group relative flex h-9 w-9 items-center justify-center border border-white/10 bg-[#0a0a0a]/90 text-[#a88a7e] transition-all hover:border-white/20 hover:text-white"
+                style={{
+                    borderColor: unreadCount > 0 ? `${accentColor}50` : undefined,
+                    boxShadow: unreadCount > 0 ? `0 0 10px ${accentColor}15` : undefined
+                }}
+                title="Bandeja de alertas"
             >
                 <Bell 
-                    className="w-5 h-5 transition-colors"
-                    style={{ color: unreadCount > 0 ? accentColor : 'var(--color-[#a88a7e])' }} 
+                    className="h-4 w-4 transition-transform duration-300 group-hover:rotate-12"
+                    style={{ color: unreadCount > 0 ? accentColor : undefined }} 
                 />
+                
+                {/* Glowing notification badge */}
                 {unreadCount > 0 && (
+                  <span className="absolute -right-0.5 -top-0.5 flex h-2 w-2">
                     <span 
-                        className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full animate-pulse"
-                        style={{ backgroundColor: accentColor, boxShadow: `0 0 8px ${accentColor}` }}
+                      className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75"
+                      style={{ backgroundColor: accentColor }}
                     />
+                    <span 
+                      className="relative inline-flex h-2 w-2 rounded-full"
+                      style={{ 
+                        backgroundColor: accentColor,
+                        boxShadow: `0 0 6px ${accentColor}` 
+                      }}
+                    />
+                  </span>
                 )}
             </button>
 
+            {/* Dropdown Panel */}
             <AnimatePresence>
                 {isOpen && (
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.95, y: 10 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                        className="absolute right-0 mt-3 w-80 bg-white dark:bg-[#0c0c0c] border border-stone-200 dark:border-white/10 rounded-none shadow-xl z-50 overflow-hidden font-mono"
-                    >
-                        <div className="p-4 border-b border-stone-100 dark:border-white/10 flex justify-between items-center bg-black/40">
-                            <h3 className="text-xs font-black uppercase tracking-wider text-white">Notificaciones</h3>
-                            {unreadCount > 0 && (
-                                <span 
-                                    className="text-[8px] font-black uppercase px-2 py-0.5 border"
-                                    style={{ borderColor: accentColor, color: accentColor, backgroundColor: `${accentColor}11` }}
-                                >
-                                    {unreadCount} nuevas
-                                </span>
-                            )}
-                        </div>
-                        <div className="max-h-96 overflow-y-auto custom-scrollbar">
-                            {notifications.length > 0 ? (
-                                notifications.map((n) => (
-                                    <div
-                                        key={n.id}
-                                        onClick={() => handleRead(n.id)}
-                                        className={`p-4 border-b border-stone-100 dark:border-white/5 last:border-0 cursor-pointer transition-colors ${
-                                            !n.read 
-                                                ? 'bg-stone-50 dark:bg-white/[0.02] hover:bg-stone-100 dark:hover:bg-white/[0.04]' 
-                                                : 'hover:bg-stone-50 dark:hover:bg-white/[0.01]'
-                                        }`}
+                    <>
+                        {/* Overlay backdrop to close */}
+                        <div 
+                            className="fixed inset-0 z-40" 
+                            onClick={() => setIsOpen(false)} 
+                        />
+                        
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 8 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 8 }}
+                            transition={{ duration: 0.15, ease: "easeOut" }}
+                            className="absolute right-0 mt-3 w-80 border border-white/10 bg-[#0a0a0a]/98 backdrop-blur-xl shadow-[0_15px_40px_rgba(0,0,0,0.6)] z-50 overflow-hidden font-mono"
+                        >
+                            {/* Header */}
+                            <div className="flex items-center justify-between border-b border-white/10 bg-black/40 p-4">
+                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white">Alertas</span>
+                                {unreadCount > 0 && (
+                                    <span 
+                                        className="text-[8px] font-black uppercase px-2 py-0.5 border select-none"
+                                        style={{ borderColor: accentColor, color: accentColor, backgroundColor: `${accentColor}11` }}
                                     >
-                                        <p className={`text-xs leading-relaxed ${!n.read ? 'text-stone-900 dark:text-white font-bold' : 'text-stone-500 dark:text-white/40'}`}>
-                                            {n.message}
-                                        </p>
-                                        <div className="flex items-center justify-between mt-2 text-[8px] font-bold text-stone-400 dark:text-white/20 uppercase tracking-tighter">
-                                            <span>
-                                                {new Date(n.created_at).toLocaleString('es-CO', { 
-                                                    hour: 'numeric', 
-                                                    minute: 'numeric', 
-                                                    day: 'numeric', 
-                                                    month: 'short' 
-                                                })}
-                                            </span>
+                                        {unreadCount} nuevas
+                                    </span>
+                                )}
+                            </div>
+
+                            {/* Alert Items List */}
+                            <div className="max-h-72 overflow-y-auto custom-scrollbar divide-y divide-white/5">
+                                {notifications.length > 0 ? (
+                                    notifications.map((n) => (
+                                        <div
+                                            key={n.id}
+                                            onClick={() => handleRead(n.id)}
+                                            className={`p-4 cursor-pointer transition-colors relative group ${
+                                                !n.read 
+                                                    ? 'bg-white/[0.03] hover:bg-white/[0.06]' 
+                                                    : 'bg-transparent hover:bg-white/[0.01]'
+                                            }`}
+                                        >
+                                            {/* Unread indicator left bar */}
                                             {!n.read && (
-                                                <span className="text-[6px] tracking-widest" style={{ color: accentColor }}>[ MARCAR_LEÍDO ]</span>
+                                                <div 
+                                                    className="absolute left-0 top-0 bottom-0 w-[2px]"
+                                                    style={{ backgroundColor: accentColor }}
+                                                />
                                             )}
+                                            
+                                            <p className={`text-[11px] leading-relaxed tracking-normal ${!n.read ? 'text-white font-bold' : 'text-white/40 font-light'}`}>
+                                                {n.message}
+                                            </p>
+                                            
+                                            <div className="mt-2 flex items-center justify-between text-[8px] font-bold tracking-widest text-[#a88a7e] opacity-40 group-hover:opacity-80 transition-opacity uppercase">
+                                                <span>{n.type || 'Sincronía'}</span>
+                                                <span>
+                                                    {new Date(n.created_at).toLocaleString('es-CO', { 
+                                                        hour: 'numeric', 
+                                                        minute: 'numeric',
+                                                        day: 'numeric',
+                                                        month: 'short'
+                                                    })}
+                                                </span>
+                                            </div>
                                         </div>
+                                    ))
+                                ) : (
+                                    <div className="flex flex-col items-center justify-center py-10 text-[#a88a7e] opacity-45">
+                                        <ShieldAlert className="w-8 h-8 mb-2 stroke-[1.2]" />
+                                        <p className="text-[9px] uppercase tracking-widest">Sin alertas nuevas</p>
                                     </div>
-                                ))
-                             ) : (
-                                <div className="p-10 text-center">
-                                    <p className="text-stone-400 dark:text-white/20 text-xs italic tracking-wide">No tienes notificaciones</p>
+                                )}
+                            </div>
+
+                            {/* Action Footer */}
+                            {notifications.length > 0 && (
+                                <div className="grid grid-cols-2 divide-x divide-white/10 border-t border-white/10 bg-black/60 text-center">
+                                    <button
+                                        onClick={handleMarkAllRead}
+                                        className="flex items-center justify-center gap-1.5 py-3 text-[9px] font-bold uppercase tracking-widest text-[#a88a7e] hover:text-white transition-colors"
+                                    >
+                                        <CheckSquare className="w-3.5 h-3.5" />
+                                        Leído
+                                    </button>
+                                    <button
+                                        onClick={handleClearAll}
+                                        className="flex items-center justify-center gap-1.5 py-3 text-[9px] font-bold uppercase tracking-widest text-red-400 hover:text-red-300 transition-colors"
+                                    >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                        Vaciar
+                                    </button>
                                 </div>
                             )}
-                        </div>
-                    </motion.div>
+                        </motion.div>
+                    </>
                 )}
             </AnimatePresence>
         </div>

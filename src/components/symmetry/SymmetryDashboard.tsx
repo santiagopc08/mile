@@ -14,6 +14,8 @@ import { StoreService } from '@/services/storeService';
 import { useMemo } from 'react';
 import { Activity, BarChart3, CircuitBoard, Eye, ShieldCheck, WalletCards, Clock } from 'lucide-react';
 import { AnimatedBrutalistCorners } from '@/components/ui/AnimatedBrutalistCorners';
+import { NotificationBell } from '@/components/NotificationBell';
+import { NotificationsFeed } from '@/components/NotificationsFeed';
 
 interface Task {
   id: string;
@@ -133,12 +135,15 @@ export const SymmetryDashboard = () => {
         <div className="border-y border-white/10 bg-[#0a0a0a]/95">
           <div className="relative p-5 sm:p-8 lg:p-10">
             <div className="absolute left-0 top-0 h-full w-px" style={{ backgroundColor: activeAccent }} />
-            <div className="mb-8 flex flex-wrap items-center gap-3 text-[10px] font-black uppercase tracking-[0.22em] text-[#a88a7e]">
-              <span className={`border px-2 py-1 ${profile === 'ella' ? 'border-user-a/50 text-user-a' : 'border-user-b/50 text-user-b'}`}>ENFOQUE</span>
-              <span className="flex items-center gap-2">
-                <span className="h-2 w-2 bg-user-c" />
-                CONECTADOS
-              </span>
+            <div className="mb-8 flex items-center justify-between gap-3 border-b border-white/5 pb-4">
+              <div className="flex flex-wrap items-center gap-3 text-[10px] font-black uppercase tracking-[0.22em] text-[#a88a7e]">
+                <span className={`border px-2 py-1 ${profile === 'ella' ? 'border-user-a/50 text-user-a' : 'border-user-b/50 text-user-b'}`}>ENFOQUE</span>
+                <span className="flex items-center gap-2">
+                  <span className="h-2 w-2 bg-user-c" />
+                  CONECTADOS
+                </span>
+              </div>
+              <NotificationBell />
             </div>
             <h1 className="text-5xl font-black uppercase leading-[0.92] tracking-normal text-white sm:text-7xl lg:text-8xl">
               Eficiencia
@@ -260,6 +265,19 @@ export const SymmetryDashboard = () => {
                 [ / ] RESUMEN DE NUESTRO PROGRESO
               </h2>
               <TaskAnalytics tasks={tasks} objectives={objectives} />
+            </div>
+
+            {/* Row 3: Bitácora de Alertas en Tiempo Real */}
+            <div className="geometric-card relative border-white/10 bg-[#0a0a0a] p-6 sm:p-8 overflow-hidden">
+              <AnimatedBrutalistCorners color={accentColorValue} />
+              <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                <Activity size={120} style={{ color: accentColorValue }} />
+              </div>
+              <h2 className="mb-8 flex items-center gap-2 border-b border-white/5 pb-4 text-[10px] font-black uppercase tracking-[0.22em] relative z-10" style={{ color: accentColorValue }}>
+                <div className="w-1.5 h-1.5 bg-user-c animate-pulse" style={{ boxShadow: `0 0 5px ${accentColorValue}` }} />
+                [ LIVE ] BITÁCORA DE ACTIVIDAD COMPARTIDA
+              </h2>
+              <NotificationsFeed />
             </div>
           </motion.div>
         ) : (
