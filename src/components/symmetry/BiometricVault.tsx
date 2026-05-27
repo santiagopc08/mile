@@ -3,6 +3,7 @@ import { useProfile } from '@/context/ProfileContext';
 import { ShieldAlert, Database, Lock, Fingerprint, Activity, AlertTriangle } from 'lucide-react';
 import { format, differenceInDays, addDays, parseISO } from 'date-fns';
 import { StoreService } from '@/services/storeService';
+import { AnimatedBrutalistCorners } from '@/components/ui/AnimatedBrutalistCorners';
 
 type CycleEntry = {
     id: string;
@@ -149,7 +150,7 @@ export const BiometricVault = () => {
         e.preventDefault();
         
         if (!flowLevel) {
-            alert('[ERROR BIO-01]: El campo flujo es obligatorio.');
+            alert('Por favor, selecciona un nivel de flujo para continuar.');
             return;
         }
 
@@ -157,7 +158,7 @@ export const BiometricVault = () => {
         const hasCollision = state.cycles.some(c => Math.abs(differenceInDays(parseISO(c.date), newDateParsed)) < 14);
 
         if (hasCollision && !isAtypical) {
-            alert('[ADVERTENCIA]: Sangrado inusual detectado en Fase Lútea o muy temprano. Sugerimos fuertemente marcar este registro como "Ciclo Atípico".');
+            alert('Sangrado inusual detectado fuera de tu ciclo menstrual habitual. ¿Deseas marcar este registro como atípico?');
             return;
         }
 
@@ -180,8 +181,8 @@ export const BiometricVault = () => {
             const hasMoodSymptoms = selectedSymptoms.includes('Cambios de Humor') || selectedSymptoms.includes('Ansiedad');
             const target = 'el';
             const bioMsg = hasMoodSymptoms 
-                ? '¡Sincronía Biológica!: Se registró una actualización de estado de ánimo en la Bóveda Biométrica.'
-                : '¡Sincronía Biológica!: Se ha registrado una actualización en la Bóveda Biométrica.';
+                ? '¡Diario de Bienestar!: Se registró un cambio de ánimo hoy.'
+                : '¡Diario de Bienestar!: Hay un nuevo registro en el diario.';
             StoreService.addNotification(target, 'biometrics', bioMsg).catch(err => console.error(err));
         }
 
@@ -237,10 +238,15 @@ export const BiometricVault = () => {
     return (
         <div className="relative overflow-hidden border border-white/10 bg-[#0a0a0a] p-6 sm:p-8">
             <div className="pointer-events-none absolute inset-0 bg-mosaic opacity-35" />
+            <AnimatedBrutalistCorners color="#ff4b89" size={12} thickness={1.5} />
             
-            <h2 className="relative z-10 mb-8 flex items-center justify-between border-b border-white/10 pb-3 text-[10px] font-black uppercase tracking-[0.22em] text-[#a88a7e]">
-                <span className="flex items-center gap-2"><Fingerprint className={`h-4 w-4 text-${accentClass}`} style={{ color: accentColor }} /> Controlador de Bóveda Biométrica</span>
-                <span className="hidden font-mono text-[8px] text-[#594137] sm:inline">ZERO-KNOWLEDGE PROTOCOL</span>
+            <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                <Fingerprint size={120} className="text-[#ff4b89]" />
+            </div>
+            
+            <h2 className="relative z-10 mb-8 flex items-center justify-between border-b border-white/5 pb-4 text-[10px] font-black uppercase tracking-[0.22em] text-[#ff4b89]">
+                <span className="flex items-center gap-2"><Fingerprint className="h-4 w-4 text-[#ff4b89]" /> Mi Diario de Bienestar</span>
+                <span className="hidden font-mono text-[8px] text-[#594137] sm:inline">DATOS ENCRIPTADOS Y PRIVADOS</span>
             </h2>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 relative z-10">
@@ -274,8 +280,8 @@ export const BiometricVault = () => {
 
                     <div className="border border-white/10 bg-black p-6">
                         <div className="flex items-center justify-between mb-4">
-                            <span className="text-[9px] uppercase tracking-widest text-[#a88a7e]">Horizonte Biológico</span>
-                            <span className="font-mono text-[9px] text-[#594137]">Constante Lútea: {state.luteal_constant}D</span>
+                            <span className="text-[9px] uppercase tracking-widest text-[#a88a7e]">Mis Fases y Calendario</span>
+                            <span className="font-mono text-[9px] text-[#594137]">Duración de fase: {state.luteal_constant} días</span>
                         </div>
                         
                         {engineStats ? (
@@ -300,7 +306,7 @@ export const BiometricVault = () => {
                                     <div className="mt-6 border border-white/10 bg-[#0a0a0a] p-4">
                                         <div className="flex items-center gap-2 mb-2">
                                             <ShieldAlert className={`h-4 w-4 text-${accentClass}`} style={{ color: accentColor }} />
-                                            <span className="text-[9px] font-bold uppercase tracking-widest text-[#a88a7e]">Directiva Estratégica</span>
+                                            <span className="text-[9px] font-bold uppercase tracking-widest text-[#a88a7e]">Consejos de Cuidado Mutuo</span>
                                         </div>
                                         <p className="text-sm font-light tracking-normal text-[#e1bfb2]">
                                             &quot;{getPartnerTranslation()}&quot;
@@ -317,7 +323,7 @@ export const BiometricVault = () => {
                             </div>
                         ) : (
                             <div className="text-center py-8 text-stone-600 text-xs uppercase tracking-widest">
-                                Datos Insuficientes para Proyecciones
+                                ¡Aún no hay registros este mes!
                             </div>
                         )}
                     </div>
@@ -327,7 +333,7 @@ export const BiometricVault = () => {
                     {isSovereign ? (
                         <div className="border border-white/10 bg-black p-6">
                             <h3 className={`text-[9px] uppercase tracking-widest text-${accentClass} font-bold mb-4 flex items-center gap-2`} style={{ color: accentColor }}>
-                                <Database className="w-3 h-3" /> Acceso Soberana de Datos
+                                <Database className="w-3 h-3" /> Mis Datos Privados
                             </h3>
                             <form onSubmit={handleLogCycle} className="space-y-4">
                                 <div className="grid grid-cols-2 gap-4">
@@ -360,7 +366,7 @@ export const BiometricVault = () => {
                                 
                                 <div>
                                     <label className="block text-[8px] uppercase tracking-widest text-stone-500 mb-2 flex justify-between">
-                                        <span>Síntomas Flo-Style (Cifrados)</span>
+                                        <span>Registro de Síntomas (Privado)</span>
                                         <Lock className="w-3 h-3 text-stone-600" />
                                     </label>
                                     <div className="grid grid-cols-2 gap-2">
@@ -380,7 +386,7 @@ export const BiometricVault = () => {
 
                                 <div>
                                     <label className="block text-[8px] uppercase tracking-widest text-stone-500 mb-1 flex justify-between">
-                                        <span>Notas Adicionales (Cifradas)</span>
+                                        <span>Notas del día (Privadas)</span>
                                         <Lock className="w-3 h-3 text-stone-600" />
                                     </label>
                                     <textarea 
@@ -399,12 +405,12 @@ export const BiometricVault = () => {
                                         className={`accent-${accentClass} rounded-none`}
                                     />
                                     <label htmlFor="atypical" className="text-[9px] uppercase tracking-widest text-stone-400 cursor-pointer">
-                                        Marcar como Atípico (Excluir del modelo WMA)
+                                        Marcar como atípico (no incluir en las fases)
                                     </label>
                                 </div>
 
                                 <button type="submit" className={`w-full border border-${accentClass} bg-${accentClass}/20 py-3 text-[10px] font-bold uppercase tracking-widest text-${accentClass} transition-colors hover:bg-${accentClass}/40`} style={{ borderColor: `${accentColor}80`, color: accentColor }}>
-                                    Comprometer Registro
+                                    Guardar de Forma Segura
                                 </button>
                             </form>
                         </div>
@@ -412,10 +418,10 @@ export const BiometricVault = () => {
                         <div className="flex h-full min-h-[200px] flex-col items-center justify-center border border-white/10 bg-black p-6 text-center">
                             <Lock className="w-8 h-8 text-stone-700 mb-4" />
                             <h3 className="text-[10px] uppercase tracking-widest text-stone-500 font-bold mb-2">
-                                Barrera Criptográfica Activa
+                                Datos Protegidos (Privados)
                             </h3>
                             <p className="text-xs text-stone-600 font-mono">
-                                Acceso a datos soberanos restringido. Operando en modo de Estratega de Apoyo.
+                                Acceso reservado por privacidad. Modo de lectura: Consejos de cuidado.
                             </p>
                         </div>
                     )}
@@ -425,7 +431,7 @@ export const BiometricVault = () => {
             {state.cycles.length > 0 && (
                 <div className="relative z-10 mt-8 border-t border-white/10 pt-6">
                     <h3 className="mb-4 flex justify-between text-[9px] uppercase tracking-widest text-[#a88a7e]">
-                        <span>Registro de Bóveda</span>
+                        <span>Historial de Bienestar</span>
                     </h3>
                     <div className="space-y-2 max-h-40 overflow-y-auto custom-scrollbar pr-2">
                         {[...state.cycles].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map(cycle => (
@@ -441,7 +447,7 @@ export const BiometricVault = () => {
                                         <div className="text-[9px] text-stone-500 hidden md:block max-w-[200px] truncate">
                                             S: {decrypt(cycle.symptoms_enc) || 'Ninguno'} | N: {decrypt(cycle.notes_enc) || 'N/A'}
                                         </div>
-                                        <button onClick={() => handleDelete(cycle.id)} className={`text-stone-600 hover:text-${accentClass} text-[10px] uppercase`}>Purgar</button>
+                                        <button onClick={() => handleDelete(cycle.id)} className={`text-stone-600 hover:text-${accentClass} text-[10px] uppercase`}>Eliminar</button>
                                     </div>
                                 ) : (
                                     <div className="flex items-center gap-2 text-[9px] font-mono text-stone-700">

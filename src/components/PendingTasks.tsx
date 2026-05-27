@@ -81,7 +81,7 @@ export function PendingTasks() {
                 <div className="flex items-center gap-3">
                     <div className="w-2 h-2 bg-geometric-accent" />
                     <h3 className="text-sm uppercase font-bold tracking-[0.3em] text-white">
-                        Log de Operaciones
+                        Nuestros Pendientes
                     </h3>
                 </div>
                 <button 
@@ -107,7 +107,7 @@ export function PendingTasks() {
                             autoFocus
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
-                            placeholder="ESPECIFICAR NUEVA TAREA..."
+                            placeholder="¿QUÉ TENEMOS PENDIENTE?..."
                             className={`w-full bg-black/40 border border-stone-800 rounded-none px-4 py-3 text-xs uppercase tracking-widest text-white placeholder-stone-700 outline-none focus:border-${accentColor}`}
                         />
                         <div className="flex gap-4 mt-4">
@@ -125,7 +125,7 @@ export function PendingTasks() {
                                 disabled={!title.trim()}
                                 className={`flex-1 bg-white text-black text-[10px] font-bold uppercase tracking-[0.2em] transition-all disabled:opacity-30 hover:bg-${accentColor} hover:text-white`}
                             >
-                                INSERTAR TAREA
+                                AGREGAR TAREA
                             </button>
                         </div>
                     </motion.form>
@@ -135,7 +135,7 @@ export function PendingTasks() {
             <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-4">
                 {tasks.length === 0 ? (
                     <div className="py-20 flex flex-col items-center justify-center text-stone-700 uppercase font-bold text-[10px] tracking-[0.4em] border border-stone-800 border-dashed">
-                        SISTEMA SIN TAREAS (LOG)
+                        ¡TODO AL DÍA! SIN PENDIENTES
                     </div>
                 ) : (
                     tasks.map((task: Task) => (
@@ -194,7 +194,7 @@ export function PendingTasks() {
                                                 task.priority === 'medium' ? 'bg-amber-500' : 'bg-stone-600'
                                             }`} />
                                             <span className="text-[9px] uppercase font-bold tracking-[0.2em] text-stone-500">
-                                                P{task.priority === 'high' ? '01' : task.priority === 'medium' ? '02' : '03'} // {task.priority}
+                                                P{task.priority === 'high' ? '01' : task.priority === 'medium' ? '02' : '03'} // {task.priority === 'high' ? 'ALTA' : task.priority === 'medium' ? 'MEDIA' : 'BAJA'}
                                             </span>
                                         </div>
                                     </>

@@ -312,7 +312,7 @@ export function WishlistModule() {
             <div className="flex items-center justify-between border-b border-white/10 pb-4">
                 <h3 className="flex items-center gap-3 text-xs font-black uppercase tracking-[0.22em] text-[#a88a7e]">
                     <div className={`h-2 w-2 bg-${accentClass}`} style={{ backgroundColor: profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)' }} />
-                    {filteredItems.length} Items
+                    {filteredItems.length} planes
                 </h3>
                 <div className="flex gap-2">
                     <button onClick={() => setShowFeed(!showFeed)}
@@ -336,7 +336,7 @@ export function WishlistModule() {
                                 onSubmit={handleSubmit} className="mb-4 space-y-4 border border-white/10 bg-black/60 p-4 sm:p-6">
                                 <div className="flex items-center justify-between mb-2">
                                     <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#a88a7e]">
-                                        {editingItem ? 'Editar Item' : 'Nuevo Antojo'}
+                                        {editingItem ? 'Editar deseo' : 'Nuevo deseo'}
                                     </span>
                                     <button type="button" onClick={() => { setIsAdding(false); setEditingItem(null); }} className="text-white/30 hover:text-white">
                                         <X className="w-4 h-4" />
@@ -346,11 +346,11 @@ export function WishlistModule() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                         <label className="ml-1 text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Título</label>
-                                        <input required autoFocus value={fTitle} onChange={e => setFTitle(e.target.value)} placeholder="¿QUÉ QUEREMOS?..."
+                                        <input required autoFocus value={fTitle} onChange={e => setFTitle(e.target.value)} placeholder="¿Qué queremos?..."
                                             className="w-full border border-white/10 bg-[#050505] px-4 py-3 text-xs uppercase tracking-[0.16em] text-white outline-none placeholder:text-white/20 focus:border-[#00dbe9]" />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="ml-1 text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Costo Estimado (COP)</label>
+                                        <label className="ml-1 text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Precio o costo estimado (COP)</label>
                                         <input type="number" value={fPrice} onChange={e => setFPrice(e.target.value)}
                                             className="w-full border border-white/10 bg-[#050505] px-4 py-3 text-xs text-white outline-none focus:border-[#00dbe9]" />
                                     </div>
@@ -386,16 +386,16 @@ export function WishlistModule() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                         <label className="ml-1 flex items-center gap-2 text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">
-                                            <MapPin className="h-3 w-3" /> URL ubicación
+                                            <MapPin className="h-3 w-3" /> Lugar en el mapa (Enlace)
                                         </label>
-                                        <input value={fLocationUrl} onChange={e => setFLocationUrl(e.target.value)} placeholder="Google Maps / ubicación..."
+                                        <input value={fLocationUrl} onChange={e => setFLocationUrl(e.target.value)} placeholder="Enlace de Google Maps..."
                                             className="w-full border border-white/10 bg-[#050505] px-4 py-3 text-xs tracking-normal text-white outline-none placeholder:text-white/20 focus:border-[#00dbe9]" />
                                     </div>
                                     <div className="space-y-2">
                                         <label className="ml-1 flex items-center gap-2 text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">
-                                            <Link2 className="h-3 w-3" /> URL detalle
+                                            <Link2 className="h-3 w-3" /> Enlace o página web
                                         </label>
-                                        <input value={fDetailLink} onChange={e => setFDetailLink(e.target.value)} placeholder="Mercado Libre, Instagram, carta, producto..."
+                                        <input value={fDetailLink} onChange={e => setFDetailLink(e.target.value)} placeholder="Enlace de tienda, página web, etc..."
                                             className="w-full border border-white/10 bg-[#050505] px-4 py-3 text-xs tracking-normal text-white outline-none placeholder:text-white/20 focus:border-[#00dbe9]" />
                                     </div>
                                 </div>
@@ -408,7 +408,7 @@ export function WishlistModule() {
                                     </div>
                                     <div className="flex items-end">
                                         <div className="w-full border border-white/10 bg-[#050505] p-3 text-[8px] font-bold uppercase leading-5 tracking-[0.18em] text-white/35">
-                                            La ubicación alimenta el mapa. El detalle aparece como preview en la tarjeta.
+                                            La ubicación alimenta nuestro mapa de planes. El enlace web muestra una vista previa.
                                         </div>
                                     </div>
                                 </div>
@@ -423,11 +423,11 @@ export function WishlistModule() {
                                     </div>
                                     <button type="button" onClick={() => setFShared(!fShared)}
                                         className={`border px-3 py-2 text-[9px] font-bold uppercase ${fShared ? 'border-user-c bg-user-c/10 text-user-c' : 'border-white/10 text-[#a88a7e]'}`}>
-                                        {fShared ? '✓ Compartido' : 'Compartir'}
+                                        {fShared ? '✓ Plan para los dos' : 'Plan para los dos'}
                                     </button>
                                     <button type="button" onClick={() => setFPriority(!fPriority)}
                                         className={`border px-3 py-2 text-[9px] font-bold uppercase ${fPriority ? 'border-[#a100f0] bg-[#a100f0]/10 text-[#e5b5ff]' : 'border-white/10 text-[#a88a7e]'}`}>
-                                        {fPriority ? '⚡ Prioridad' : 'Prioridad'}
+                                        {fPriority ? '⚡ Destacar plan' : 'Destacar plan'}
                                     </button>
                                 </div>
 
@@ -437,7 +437,7 @@ export function WishlistModule() {
                                     <button type="submit"
                                         className="flex-1 py-3 text-[9px] font-black uppercase tracking-[0.2em] text-black transition-all hover:opacity-80"
                                         style={{ backgroundColor: profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)' }}>
-                                        {editingItem ? 'Guardar' : 'Crear Item'}
+                                        {editingItem ? 'Guardar' : 'Añadir a la lista'}
                                     </button>
                                 </div>
                             </motion.form>
@@ -448,8 +448,8 @@ export function WishlistModule() {
                     {filteredItems.length === 0 ? (
                         <div className="flex min-h-52 flex-col items-center justify-center border border-dashed border-white/10 py-16 text-[#a88a7e] opacity-60">
                             <Rss className="mb-4 h-10 w-10" strokeWidth={1} />
-                            <p className="text-[10px] font-black uppercase tracking-[0.3em]">Sin Items</p>
-                            <p className="mt-1 text-[8px] uppercase tracking-[0.2em] text-white/25">Agrega tu primer antojo</p>
+                            <p className="text-[10px] font-black uppercase tracking-[0.3em]">Sin planes</p>
+                            <p className="mt-1 text-[8px] uppercase tracking-[0.2em] text-white/25">Nuestra lista de planes está vacía. ¡Añade tu primer deseo juntos! ✨</p>
                         </div>
                     ) : (
                         <div className="grid gap-3 sm:grid-cols-2">

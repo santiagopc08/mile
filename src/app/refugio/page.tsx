@@ -39,14 +39,14 @@ export default function RefugioPage() {
         <div className="pointer-events-none fixed inset-x-0 top-0 -z-10 h-64 opacity-20" style={{ backgroundImage: `linear-gradient(180deg, ${accentColor}, transparent)` }} />
 
         <div className="mx-auto w-full max-w-7xl border-x border-white/10">
-          <div className="grid border-y border-white/10 bg-[#0a0a0a]/92 md:grid-cols-[1fr_auto]">
+          <div className="border-y border-white/10 bg-[#0a0a0a]/92">
             <div className="relative p-5 sm:p-8 md:p-10">
               <div className={`absolute left-0 top-0 h-full w-px bg-${accentClass}`} style={{ backgroundColor: accentColor }} />
               <div className="mb-8 flex flex-wrap items-center gap-3 text-[10px] font-bold uppercase tracking-[0.28em] text-[#a88a7e]">
-                <span className={`border border-${accentClass}/50 px-2 py-1 text-${accentClass}`} style={{ borderColor: `${accentColor}80`, color: accentColor }}>REFUGIO // V2.0</span>
+                <span className={`border border-${accentClass}/50 px-2 py-1 text-${accentClass}`} style={{ borderColor: `${accentColor}80`, color: accentColor }}>NUESTRO REFUGIO // MEMORIA</span>
                 <span className="flex items-center gap-2">
                   <span className={`h-2 w-2 bg-${secondaryClass}`} style={{ backgroundColor: secondaryColor }} />
-                  SYS_READY
+                  CONECTADOS
                 </span>
               </div>
               <h1 className="max-w-4xl text-5xl font-black uppercase leading-[0.92] tracking-normal text-white sm:text-7xl lg:text-8xl">
@@ -54,28 +54,10 @@ export default function RefugioPage() {
               </h1>
               <div className="mt-6 grid max-w-3xl gap-4 border-t border-white/10 pt-5 md:grid-cols-[1fr_auto] md:items-end">
                 <p className="max-w-2xl text-sm leading-6 tracking-normal text-[#e1bfb2] md:text-base">
-                  Espacio de preservación emocional y conexión activa, presentado como una consola privada de memoria, audio y cuidado.
+                  Espacio de preservación emocional y conexión activa, presentado como un diario privado de recuerdos, música, bebés y cuidado.
                 </p>
               </div>
             </div>
-
-            <aside className="hidden min-w-56 border-l border-white/10 bg-black/60 p-5 md:flex md:flex-col md:justify-between">
-              <div className="space-y-3 text-[10px] font-bold uppercase tracking-[0.24em] text-[#a88a7e]">
-                <div className="flex items-center justify-between border-b border-white/10 pb-3">
-                  <span>Telemetry</span>
-                  <Activity className={`h-4 w-4 text-${accentClass}`} style={{ color: accentColor }} />
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>Signal</span>
-                  <span className={`text-${secondaryClass}`} style={{ color: secondaryColor }}>ACTIVE</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>Channel</span>
-                  <span className="text-[#e5b5ff]">{activeTab}</span>
-                </div>
-              </div>
-              <Radio className={`h-16 w-16 text-${accentClass}`} style={{ color: accentColor }} strokeWidth={1} />
-            </aside>
           </div>
 
           <div className="grid grid-cols-2 border-b border-white/10 bg-black sm:grid-cols-5">

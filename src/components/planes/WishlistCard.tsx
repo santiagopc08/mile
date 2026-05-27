@@ -144,7 +144,7 @@ export function WishlistCard({ item, profile, onRefresh, onEdit, onDelete }: Wis
 
                     {/* Author + shared */}
                     <span className={`text-[7px] font-black uppercase ${authorColor}`}>{item.author === 'el' ? 'S' : 'M'}</span>
-                    {item.shared && <span className="text-[6px] font-bold text-white/20 border border-white/10 px-1 leading-none py-0.5">SH</span>}
+                    {item.shared && <span className="text-[6px] font-bold text-white/20 border border-white/10 px-1 leading-none py-0.5">Para los dos</span>}
                 </div>
             </div>
 

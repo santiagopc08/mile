@@ -311,7 +311,7 @@ export function MovementTracker() {
             // Si la pareja también completó sesión hoy, enviar notificación de Sincronía
             const partnerLogs = sessions.filter(s => s.profile === partner && s.date === todayStr && s.completion_status === 'completed');
             if (partnerLogs.length > 0 && completionStatus === 'completed') {
-                const syncMsg = `¡Sincronía de Movimiento Completada! Ambos sistemas están activos hoy.`;
+                const syncMsg = `¡Sincronía de Movimiento Completada! Ambos están activos hoy.`;
                 StoreService.addNotification(partner, 'movement_sync', syncMsg).catch(err => {
                     console.error('Failed to trigger sync notification', err);
                 });
@@ -675,7 +675,7 @@ export function MovementTracker() {
                         <div className="p-5 flex flex-col justify-between min-h-[170px] relative">
                             <div className="absolute top-2 right-2 flex items-center gap-1.5 text-[8px] font-bold text-[#c3f400] uppercase tracking-wider bg-[#c3f400]/5 px-2 py-0.5 border border-[#c3f400]/20">
                                 <span className="h-1.5 w-1.5 rounded-full bg-[#c3f400]" />
-                                ÉL / FISIOTERAPIA
+                                ÉL / TERAPIA Y RECUPERACIÓN
                             </div>
                             <div>
                                 <h3 className="text-xs font-black tracking-wide text-white uppercase mt-4 mb-1">
@@ -686,7 +686,7 @@ export function MovementTracker() {
                                 </p>
                             </div>
                             <div className="border-t border-white/5 pt-3 flex justify-between items-center text-[9px] font-bold uppercase tracking-wider text-[#a88a7e]">
-                                <span>SESIONES (7D)</span>
+                                <span>Sesiones (7 días)</span>
                                 <span className="text-[#c3f400] font-black text-xs font-mono">{weeklyStats.elSessions}</span>
                             </div>
                         </div>
@@ -695,7 +695,7 @@ export function MovementTracker() {
                         <div className="p-5 flex flex-col justify-between min-h-[170px] relative">
                             <div className="absolute top-2 right-2 flex items-center gap-1.5 text-[8px] font-bold text-[#ff4b89] uppercase tracking-wider bg-[#ff4b89]/5 px-2 py-0.5 border border-[#ff4b89]/20">
                                 <span className="h-1.5 w-1.5 rounded-full bg-[#ff4b89]" />
-                                ELLA / FUERZA
+                                ELLA / FUERZA Y RESISTENCIA
                             </div>
                             <div>
                                 <h3 className="text-xs font-black tracking-wide text-white uppercase mt-4 mb-1">
@@ -706,7 +706,7 @@ export function MovementTracker() {
                                 </p>
                             </div>
                             <div className="border-t border-white/5 pt-3 flex justify-between items-center text-[9px] font-bold uppercase tracking-wider text-[#a88a7e]">
-                                <span>SESIONES (7D)</span>
+                                <span>Sesiones (7 días)</span>
                                 <span className="text-[#ff4b89] font-black text-xs font-mono">{weeklyStats.ellaSessions}</span>
                             </div>
                         </div>
@@ -718,14 +718,14 @@ export function MovementTracker() {
                         <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-white/30" />
 
                         <h3 className="text-[10px] uppercase font-black tracking-[0.25em] text-[#a88a7e] mb-5 border-b border-white/5 pb-3 flex items-center justify-between">
-                            <span>[ REGISTRAR_SESIÓN_MOVIMIENTO ]</span>
-                            <span className="text-[8px] opacity-40">MV-PROMPT_v1.0</span>
+                            <span>[ Registrar mi Actividad Física ]</span>
+                            <span className="text-[8px] opacity-40">Registro Diario</span>
                         </h3>
 
                         {/* Presets / Quick Logging Buttons */}
                         <div className="mb-6 space-y-2.5">
                             <label className="text-[8px] font-bold uppercase tracking-[0.2em] text-white/40 block">
-                                Cargar Ajustes Rápidos (Preajustes de {isElla ? 'Ella' : 'Él'}):
+                                Cargar ejercicio frecuente (Preajustes de {isElla ? 'Ella' : 'Él'}):
                             </label>
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                                 {currentPresets.map((preset, index) => {
@@ -753,7 +753,7 @@ export function MovementTracker() {
                                 
                                 {/* Session Type */}
                                 <div className="space-y-1.5">
-                                    <label className="text-[8px] font-black uppercase tracking-[0.2em] text-[#a88a7e]">Categoría de Sesión</label>
+                                    <label className="text-[8px] font-black uppercase tracking-[0.2em] text-[#a88a7e]">Tipo de Actividad</label>
                                     <select
                                         value={sessionType}
                                         onChange={e => setSessionType(e.target.value as SessionCategory)}
@@ -803,7 +803,7 @@ export function MovementTracker() {
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                 {/* Difficulty */}
                                 <div className="space-y-1.5">
-                                    <label className="text-[8px] font-black uppercase tracking-[0.2em] text-[#a88a7e]">Dificultad Técnica</label>
+                                    <label className="text-[8px] font-black uppercase tracking-[0.2em] text-[#a88a7e]">Nivel de Esfuerzo</label>
                                     <div className="flex border border-white/10">
                                         {(['low', 'medium', 'high'] as const).map(lvl => (
                                             <button
@@ -824,7 +824,7 @@ export function MovementTracker() {
 
                                 {/* Energy Level */}
                                 <div className="space-y-1.5">
-                                    <label className="text-[8px] font-black uppercase tracking-[0.2em] text-[#a88a7e]">Nivel de Energía</label>
+                                    <label className="text-[8px] font-black uppercase tracking-[0.2em] text-[#a88a7e]">Energía al iniciar</label>
                                     <div className="flex border border-white/10">
                                         {(['low', 'medium', 'high'] as const).map(lvl => (
                                             <button
@@ -845,15 +845,15 @@ export function MovementTracker() {
 
                                 {/* Daily Status Mode */}
                                 <div className="space-y-1.5">
-                                    <label className="text-[8px] font-black uppercase tracking-[0.2em] text-[#a88a7e]">Estado Diario</label>
+                                    <label className="text-[8px] font-black uppercase tracking-[0.2em] text-[#a88a7e]">Estado de la actividad</label>
                                     <select
                                         value={completionStatus}
                                         onChange={e => setCompletionStatus(e.target.value as CompletionStatus)}
                                         className="w-full bg-black border border-white/10 p-2.5 text-xs font-bold outline-none focus:border-white/30 text-white cursor-pointer"
                                     >
-                                        <option value="completed">Sesión Completada (ACTIVE)</option>
-                                        <option value="recovery">Día de Recuperación (RECOVERY)</option>
-                                        <option value="rest_day">Día de Descanso (REST_DAY)</option>
+                                        <option value="completed">Sesión Completada</option>
+                                        <option value="recovery">Día de Recuperación</option>
+                                        <option value="rest_day">Día de Descanso</option>
                                     </select>
                                 </div>
                             </div>
@@ -872,7 +872,7 @@ export function MovementTracker() {
                                         </h4>
                                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                             <div className="space-y-1">
-                                                <label className="text-[8px] font-black uppercase tracking-wider text-[#a88a7e]">Escala Dolor Antes (0-10)</label>
+                                                <label className="text-[8px] font-black uppercase tracking-wider text-[#a88a7e]">Dolor inicial (0 al 10)</label>
                                                 <input
                                                     type="number"
                                                     min="0"
@@ -884,7 +884,7 @@ export function MovementTracker() {
                                                 />
                                             </div>
                                             <div className="space-y-1">
-                                                <label className="text-[8px] font-black uppercase tracking-wider text-[#a88a7e]">Escala Dolor Después (0-10)</label>
+                                                <label className="text-[8px] font-black uppercase tracking-wider text-[#a88a7e]">Dolor al finalizar (0 al 10)</label>
                                                 <input
                                                     type="number"
                                                     min="0"
@@ -896,22 +896,22 @@ export function MovementTracker() {
                                                 />
                                             </div>
                                             <div className="space-y-1">
-                                                <label className="text-[8px] font-black uppercase tracking-wider text-[#a88a7e]">Rango Movilidad</label>
+                                                <label className="text-[8px] font-black uppercase tracking-wider text-[#a88a7e]">Estado de movilidad</label>
                                                 <select
                                                     value={mobilityStatus}
                                                     onChange={e => setMobilityStatus(e.target.value as MobilityStatus)}
                                                     className="w-full bg-black border border-white/10 p-2 text-xs font-bold outline-none focus:border-white/30 text-white cursor-pointer"
                                                 >
-                                                    <option value="good">Adecuado (GOOD)</option>
-                                                    <option value="normal">Esperado (NORMAL)</option>
-                                                    <option value="limited">Restringido (LIMITED)</option>
+                                                    <option value="good">Adecuado</option>
+                                                    <option value="normal">Esperado</option>
+                                                    <option value="limited">Restringido</option>
                                                 </select>
                                             </div>
                                         </div>
 
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                             <div className="space-y-1">
-                                                <label className="text-[8px] font-black uppercase tracking-wider text-[#a88a7e]">Fatiga Neuromuscular (1-5)</label>
+                                                <label className="text-[8px] font-black uppercase tracking-wider text-[#a88a7e]">Nivel de fatiga (1 al 5)</label>
                                                 <input
                                                     type="number"
                                                     min="1"
@@ -923,7 +923,7 @@ export function MovementTracker() {
                                                 />
                                             </div>
                                             <div className="space-y-1">
-                                                <label className="text-[8px] font-black uppercase tracking-wider text-[#a88a7e]">Instrucciones / Notas Terapeuta</label>
+                                                <label className="text-[8px] font-black uppercase tracking-wider text-[#a88a7e]">Notas del terapeuta / Indicaciones</label>
                                                 <input
                                                     type="text"
                                                     value={therapistNotes}
@@ -938,7 +938,7 @@ export function MovementTracker() {
                             </AnimatePresence>
 
                             <div className="space-y-1.5">
-                                <label className="text-[8px] font-black uppercase tracking-[0.2em] text-[#a88a7e]">Notas de Rendimiento y Consistencia</label>
+                                <label className="text-[8px] font-black uppercase tracking-[0.2em] text-[#a88a7e]">Notas u observaciones personales</label>
                                 <textarea
                                     value={notes}
                                     onChange={e => setNotes(e.target.value)}
@@ -958,7 +958,7 @@ export function MovementTracker() {
                                     color: 'black' 
                                 }}
                             >
-                                {isSubmitting ? 'PROCESANDO_REGISTRO...' : 'EJECUTAR_REGISTRO_MOVIMIENTO'}
+                                {isSubmitting ? 'GUARDANDO...' : 'REGISTRAR ACTIVIDAD'}
                             </button>
                         </form>
                     </div>
@@ -973,31 +973,31 @@ export function MovementTracker() {
                         <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-white/30" />
 
                         <h3 className="text-[10px] uppercase font-black tracking-[0.25em] text-[#a88a7e] mb-4 border-b border-white/5 pb-3">
-                            [ OPERATIVE_ANALYTICS ]
+                            [ Resumen de Progreso ]
                         </h3>
 
                         {/* Therapy specific analytics displayed if logs are available */}
                         {painAnalytics && (
                             <div className="border border-emerald-900/30 bg-emerald-950/5 p-4 mb-5 space-y-3">
                                 <h4 className="text-[8px] font-black text-emerald-500 uppercase tracking-widest flex items-center gap-1.5">
-                                    <Activity className="w-3.5 h-3.5" /> Métricas de Terapia e Impacto Clínico
+                                    <Activity className="w-3.5 h-3.5" /> Tu evolución y recuperación
                                 </h4>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="border-r border-white/5 pr-2">
-                                        <span className="text-[7px] text-[#a88a7e] block uppercase">DOLOR PROMEDIO (PRE/POST)</span>
+                                        <span className="text-[7px] text-[#a88a7e] block uppercase">Nivel de dolor (Antes / Después)</span>
                                         <span className="text-sm font-black tabular-nums text-white">
                                             {painAnalytics.averageBefore} → <span className="text-emerald-400">{painAnalytics.averageAfter}</span>
                                         </span>
                                     </div>
                                     <div>
-                                        <span className="text-[7px] text-[#a88a7e] block uppercase">MEJORA ACUMULADA</span>
+                                        <span className="text-[7px] text-[#a88a7e] block uppercase">Disminución del dolor</span>
                                         <span className="text-sm font-black tabular-nums text-emerald-400">
-                                            -{painAnalytics.totalReduction} Pts Dolor
+                                            -{painAnalytics.totalReduction} Puntos
                                         </span>
                                     </div>
                                 </div>
                                 <p className="text-[7px] text-[#a88a7e] uppercase">
-                                    ANÁLISIS GENERADO SOBRE {painAnalytics.sessionsCount} SESIONES DE REHABILITACIÓN.
+                                    Análisis generado sobre {painAnalytics.sessionsCount} sesiones de terapia.
                                 </p>
                             </div>
                         )}
@@ -1005,7 +1005,7 @@ export function MovementTracker() {
                         {/* Heatmap Matrix for Weekly consistency */}
                         <div className="space-y-2">
                             <label className="text-[8px] font-black uppercase tracking-[0.2em] text-[#a88a7e] block">
-                                Matriz de Consistencia de 7 Días (Él / Ella):
+                                Consistencia de la semana (Él / Ella):
                             </label>
                             
                             <div className="grid grid-cols-7 gap-1.5 text-center">
@@ -1084,7 +1084,7 @@ export function MovementTracker() {
                         <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-white/30" />
 
                         <h3 className="text-[10px] uppercase font-black tracking-[0.25em] text-[#a88a7e] mb-4 pb-2 border-b border-white/5">
-                            [ ACTIVITY_FEED ]
+                            [ Historial de Actividad ]
                         </h3>
 
                         {loading ? (

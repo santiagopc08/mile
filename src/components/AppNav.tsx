@@ -11,11 +11,11 @@ export function AppNav() {
   const profileAccent = profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)';
 
   const navItems = [
-    { name: 'Ops', detail: 'Tareas', path: '/', icon: LayoutDashboard, accent: profileAccent },
-    { name: 'Refugio', detail: 'Vínculo', path: '/refugio', icon: ShieldCheck, accent: profileAccent },
-    { name: 'Planes', detail: 'Deseos', path: '/planes', icon: MapPin, accent: profileAccent },
-    { name: 'Salud', detail: 'Vital', path: '/salud', icon: Heart, accent: profileAccent },
-    { name: 'Juego', detail: 'Mahjong', path: '/juego', icon: Gamepad2, accent: profileAccent },
+    { name: 'Día a Día', detail: 'Tareas', path: '/', icon: LayoutDashboard, accent: profileAccent },
+    { name: 'Refugio', detail: 'Nosotros', path: '/refugio', icon: ShieldCheck, accent: profileAccent },
+    { name: 'Antojos', detail: 'Deseos', path: '/planes', icon: MapPin, accent: profileAccent },
+    { name: 'Salud', detail: 'Bienestar', path: '/salud', icon: Heart, accent: profileAccent },
+    { name: 'Juego', detail: 'Memoria', path: '/juego', icon: Gamepad2, accent: profileAccent },
   ];
 
   return (

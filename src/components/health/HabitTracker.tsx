@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Pizza, Coffee, Bike, CreditCard, Activity, TrendingDown, Flame, DollarSign } from 'lucide-react';
+import { Pizza, Coffee, Bike, CreditCard, Activity, TrendingDown, Flame, DollarSign, CircleDollarSign } from 'lucide-react';
 import { useStore } from '@/context/StoreContext';
 import { useProfile } from '@/context/ProfileContext';
 import { StoreService } from '@/services/storeService';
@@ -90,7 +90,7 @@ export function HabitTracker() {
             
             // Disparar notificación discreta a la pareja
             const target = profile === 'el' ? 'ella' : 'el';
-            await StoreService.addNotification(target, 'habits', 'Se registró una nueva incidencia en el panel de hábitos.', supabase);
+            await StoreService.addNotification(target, 'habits', 'Se guardó un registro en la lista de hábitos.', supabase);
 
             setSelectedHabit(null);
             setCostInput('');
@@ -116,32 +116,36 @@ export function HabitTracker() {
     return (
         <div className="space-y-6">
             {/* Header / Score */}
-            <div className="border border-white/10 bg-black/60 p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                <div>
-                    <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#a88a7e] mb-2 flex items-center gap-2">
-                        <Activity className="w-3 h-3" /> Índice de Consumo
+            <div className="border border-white/10 bg-black/60 p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                    <Flame size={120} className="text-[#00dbe9]" />
+                </div>
+                
+                <div className="relative z-10">
+                    <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#00dbe9] mb-2 flex items-center gap-2">
+                        <Activity className="w-3 h-3 text-[#00dbe9]" /> Control de Hábitos
                     </h2>
                     <div className={`text-4xl font-black tracking-widest uppercase ${
                         stats.score === 'STABLE' ? 'health-status-stable' :
                         stats.score === 'UNBALANCED' ? 'health-status-warning' :
                         'health-status-critical'
                     }`}>
-                        {stats.score}
+                        {stats.score === 'STABLE' ? 'ESTABLE' : stats.score === 'UNBALANCED' ? 'DESEQUILIBRADO' : 'LÍMITE EXCEDIDO'}
                     </div>
                     <p className="text-xs text-white/40 mt-2 max-w-md">
-                        Evaluación basada en el volumen y severidad de hábitos de consumo y gastos impulsivos en los últimos 30 días.
+                        Evaluación basada en la frecuencia y el impacto de los hábitos y gastos en los últimos 30 días.
                     </p>
                 </div>
                 <div className="flex gap-4">
                     <div className="border border-white/10 p-4 text-center min-w-[100px] bg-[#050505]">
                         <Flame className="w-6 h-6 mx-auto mb-2 text-[#ffb595]" />
                         <div className="text-2xl font-black font-mono">{stats.streak}</div>
-                        <div className="text-[8px] font-bold uppercase tracking-[0.2em] text-white/30">Racha (Días)</div>
+                        <div className="text-[8px] font-bold uppercase tracking-[0.2em] text-white/30">Días en Equilibrio</div>
                     </div>
                     <div className="border border-white/10 p-4 text-center min-w-[120px] bg-[#050505]">
-                        <DollarSign className="w-6 h-6 mx-auto mb-2 text-user-c" />
+                        <CircleDollarSign className="w-6 h-6 mx-auto mb-2 text-user-c" />
                         <div className="text-xl font-black font-mono text-user-c">{formatCOP(stats.totalSpent)}</div>
-                        <div className="text-[8px] font-bold uppercase tracking-[0.2em] text-white/30">Gastado (30d)</div>
+                        <div className="text-[8px] font-bold uppercase tracking-[0.2em] text-white/30">Gastado (30 días)</div>
                     </div>
                 </div>
             </div>
@@ -153,7 +157,7 @@ export function HabitTracker() {
                     <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-white/30" />
                     
                     <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#a88a7e] mb-4">
-                        Registrar Incidencia
+                        Registrar hábito
                     </h3>
 
                     <div className="grid grid-cols-2 gap-3 mb-6">
@@ -183,7 +187,7 @@ export function HabitTracker() {
                             >
                                 <div className="space-y-4 pt-4 border-t border-white/10">
                                     <div className="space-y-2">
-                                        <label className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Costo del Consumo (COP)</label>
+                                        <label className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Monto gastado (COP)</label>
                                         <input 
                                             type="number" 
                                             required
@@ -195,7 +199,7 @@ export function HabitTracker() {
                                     </div>
                                     
                                     <div className="space-y-2">
-                                        <label className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Severidad (Impacto en salud/finanzas)</label>
+                                        <label className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Impacto (Salud y finanzas)</label>
                                         <div className="flex gap-2">
                                             <button type="button" onClick={() => setSeverity('low')} className={`flex-1 py-2 text-[9px] uppercase font-bold border transition-colors ${severity === 'low' ? 'border-[#c3f400] text-[#c3f400] bg-[#c3f400]/10' : 'border-white/10 text-white/30'}`}>Baja</button>
                                             <button type="button" onClick={() => setSeverity('medium')} className={`flex-1 py-2 text-[9px] uppercase font-bold border transition-colors ${severity === 'medium' ? 'border-[#ffb595] text-[#ffb595] bg-[#ffb595]/10' : 'border-white/10 text-white/30'}`}>Media</button>
@@ -208,7 +212,7 @@ export function HabitTracker() {
                                         disabled={isSubmitting}
                                         className="w-full py-3 bg-white/10 border border-white/20 text-white text-[10px] font-black uppercase tracking-[0.2em] hover:bg-white/20 transition-colors disabled:opacity-50"
                                     >
-                                        Confirmar Registro
+                                        Guardar de Forma Segura
                                     </button>
                                 </div>
                             </motion.form>
@@ -246,7 +250,7 @@ export function HabitTracker() {
 
                         {stats.potentialSavings > 0 && (
                             <div className="mt-6 p-3 border border-[#c3f400]/30 bg-[#c3f400]/5 text-sm text-[#c3f400] leading-relaxed">
-                                Si redujeras estos gastos impulsivos en un 20%, liberarías <span className="font-bold font-mono">{formatCOP(stats.potentialSavings)}</span> mensuales.
+                                Si redujeras estos gastos en un 20%, ahorrarías <span className="font-bold font-mono">{formatCOP(stats.potentialSavings)}</span> al mes.
                             </div>
                         )}
                     </div>

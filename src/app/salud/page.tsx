@@ -71,50 +71,33 @@ export default function SaludPage() {
                 <div className="pointer-events-none fixed inset-0 -z-10 bg-mosaic opacity-60" />
                 <div className="pointer-events-none fixed inset-x-0 top-0 -z-10 h-64 opacity-20" style={{ backgroundImage: `linear-gradient(180deg, ${accentColor}, transparent)` }} />
                 <div className="mx-auto w-full max-w-7xl border-x border-white/10">
-                    <div className="grid border-y border-white/10 bg-[#0a0a0a]/95 md:grid-cols-[1fr_auto]">
+                    <div className="border-y border-white/10 bg-[#0a0a0a]/95">
                         <div className="relative p-5 sm:p-8 md:p-10">
                             <div className={`absolute left-0 top-0 h-full w-px bg-${accentClass}`} style={{ backgroundColor: accentColor }} />
                             <div className="mb-8 flex flex-wrap items-center gap-3 text-[10px] font-black uppercase tracking-[0.28em] text-[#a88a7e]">
-                                <span className={`border border-${accentClass}/50 px-2 py-1 text-${accentClass}`} style={{ borderColor: `${accentColor}80`, color: accentColor }}>HEALTH // VITAL_CORE</span>
+                                <span className={`border border-${accentClass}/50 px-2 py-1 text-${accentClass}`} style={{ borderColor: `${accentColor}80`, color: accentColor }}>BIENESTAR // REGISTRO</span>
                                 <span className="flex items-center gap-2">
                                     <span className={`h-2 w-2 bg-${secondaryClass}`} style={{ backgroundColor: secondaryColor }} />
-                                    MONITOR_ONLINE
+                                    EN LÍNEA
                                 </span>
                             </div>
                             <h1 className="text-5xl font-black uppercase leading-[0.92] tracking-normal text-white sm:text-7xl lg:text-8xl">Salud</h1>
                             <div className="mt-6 grid max-w-4xl gap-5 border-t border-white/10 pt-5 md:grid-cols-[1fr_auto] md:items-end">
                                 <p className="max-w-2xl text-sm leading-6 tracking-normal text-[#e1bfb2] md:text-base">
-                                    Monitoreo de parámetros vitales, privacidad biométrica y hábitos fiscales asociados al bienestar.
+                                    Monitoreo de parámetros vitales, privacidad biométrica y hábitos personales asociados al bienestar.
                                 </p>
                                 <div className="grid grid-cols-2 border border-white/10 text-center">
                                     <div className="border-r border-white/10 px-4 py-3">
                                         <div className={`text-2xl font-black text-${accentClass}`} style={{ color: accentColor }}>{tabs.length}</div>
-                                        <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Módulos</div>
+                                        <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Secciones</div>
                                     </div>
                                     <div className="px-4 py-3">
-                                        <div className={`text-2xl font-black text-${secondaryClass}`} style={{ color: secondaryColor }}>{profile === 'ella' ? 'S' : 'A'}</div>
-                                        <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Modo</div>
+                                        <div className={`text-2xl font-black text-${secondaryClass}`} style={{ color: secondaryColor }}>{profile === 'ella' ? 'Milena' : 'Santiago'}</div>
+                                        <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Perfil</div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <aside className="hidden min-w-56 border-l border-white/10 bg-black/60 p-5 md:flex md:flex-col md:justify-between">
-                            <div className="space-y-3 text-[10px] font-bold uppercase tracking-[0.24em] text-[#a88a7e]">
-                                <div className="flex items-center justify-between border-b border-white/10 pb-3">
-                                    <span>Telemetry</span>
-                                    <Activity className={`h-4 w-4 text-${accentClass}`} style={{ color: accentColor }} />
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <span>Channel</span>
-                                    <span className="text-[#e5b5ff]">{activeTab}</span>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <span>Signal</span>
-                                    <span className={`text-${secondaryClass}`} style={{ color: secondaryColor }}>ACTIVE</span>
-                                </div>
-                            </div>
-                            <Radio className={`h-16 w-16 text-${accentClass}`} style={{ color: accentColor }} strokeWidth={1} />
-                        </aside>
                     </div>
 
                     {/* Section Video Header */}

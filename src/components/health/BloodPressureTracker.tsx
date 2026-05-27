@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Activity, Heart, Trash2, Plus, TrendingUp, TrendingDown, Clipboard, User, Clock } from 'lucide-react';
 import { useProfile } from '@/context/ProfileContext';
 import { StoreService } from '@/services/storeService';
+import { AnimatedBrutalistCorners } from '@/components/ui/AnimatedBrutalistCorners';
 import {
     LineChart,
     Line,
@@ -106,7 +107,7 @@ export const BloodPressureTracker = () => {
             
             if (isAtypical) {
                 const target = profile === 'el' ? 'ella' : 'el';
-                StoreService.addNotification(target, 'health_alert', 'Se registró una lectura atípica de signos vitales en el sistema.').catch(err => console.error(err));
+                StoreService.addNotification(target, 'health_alert', 'Se registró una lectura atípica de signos vitales.').catch(err => console.error(err));
             }
 
             // Clear form
@@ -189,17 +190,18 @@ export const BloodPressureTracker = () => {
                 <div className="absolute top-0 right-0 p-4 opacity-5">
                     <Activity size={120} />
                 </div>
+                <AnimatedBrutalistCorners color="var(--color-user-a)" size={12} thickness={1.5} />
 
                 <h2 className="text-[10px] uppercase font-black tracking-[0.3em] mb-8 border-b border-white/5 pb-4 flex justify-between items-center text-user-a">
                     <span className="flex items-center gap-2">
-                        <Clipboard size={12} /> [ MONITOR_PRESIÓN_ARTERIAL ]
+                        <Clipboard size={12} /> [ Registro de Presión Arterial ]
                     </span>
-                    <span className="text-[8px] opacity-40">ESTADO: OPERATIVO</span>
+                    <span className="text-[8px] opacity-40">ESTADO: ACTIVO</span>
                 </h2>
 
                 <form onSubmit={handleAddEntry} className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-10 items-end relative z-10">
                     <div className="space-y-2">
-                        <label className="text-[7px] uppercase font-bold text-stone-500 tracking-widest">SISTÓLICA (mmHg)</label>
+                        <label className="text-[7px] uppercase font-bold text-stone-500 tracking-widest">PRESIÓN MÁXIMA (Sistólica)</label>
                         <input
                             type="number"
                             value={systolic}
@@ -210,7 +212,7 @@ export const BloodPressureTracker = () => {
                         />
                     </div>
                     <div className="space-y-2">
-                        <label className="text-[7px] uppercase font-bold text-stone-500 tracking-widest">DIASTÓLICA (mmHg)</label>
+                        <label className="text-[7px] uppercase font-bold text-stone-500 tracking-widest">PRESIÓN MÍNIMA (Diastólica)</label>
                         <input
                             type="number"
                             value={diastolic}
@@ -221,7 +223,7 @@ export const BloodPressureTracker = () => {
                         />
                     </div>
                     <div className="space-y-2">
-                        <label className="text-[7px] uppercase font-bold text-stone-500 tracking-widest">F. CARDÍACA (BPM)</label>
+                        <label className="text-[7px] uppercase font-bold text-stone-500 tracking-widest">PULSO / RITMO CARDÍACO</label>
                         <input
                             type="number"
                             value={heartRate}
@@ -232,7 +234,7 @@ export const BloodPressureTracker = () => {
                         />
                     </div>
                     <div className="space-y-2">
-                        <label className="text-[7px] uppercase font-bold text-stone-500 tracking-widest">POSTURA DE TOMA</label>
+                        <label className="text-[7px] uppercase font-bold text-stone-500 tracking-widest">Posición al medir</label>
                         <select
                             value={position}
                             onChange={e => setPosition(e.target.value as any)}
@@ -271,7 +273,7 @@ export const BloodPressureTracker = () => {
                         <div className="p-4 border border-white/5 bg-stone-900/20 space-y-4">
                             <div className="flex justify-between items-center border-b border-white/5 pb-2">
                                 <h3 className="text-[8px] uppercase font-black text-stone-500 tracking-widest flex items-center gap-1">
-                                    <Activity size={10} /> SISTÓLICA
+                                    <Activity size={10} /> MÁXIMA (Sistólica)
                                 </h3>
                                 <span className="text-[6px] text-stone-600">mmHg</span>
                             </div>
@@ -294,7 +296,7 @@ export const BloodPressureTracker = () => {
                         <div className="p-4 border border-white/5 bg-stone-900/20 space-y-4">
                             <div className="flex justify-between items-center border-b border-white/5 pb-2">
                                 <h3 className="text-[8px] uppercase font-black text-stone-500 tracking-widest flex items-center gap-1">
-                                    <Activity size={10} /> DIASTÓLICA
+                                    <Activity size={10} /> MÍNIMA (Diastólica)
                                 </h3>
                                 <span className="text-[6px] text-stone-600">mmHg</span>
                             </div>
@@ -317,7 +319,7 @@ export const BloodPressureTracker = () => {
                         <div className="p-4 border border-white/5 bg-stone-900/20 space-y-4">
                             <div className="flex justify-between items-center border-b border-white/5 pb-2">
                                 <h3 className="text-[8px] uppercase font-black text-stone-500 tracking-widest flex items-center gap-1">
-                                    <Heart size={10} /> F_CARDÍACA
+                                    <Heart size={10} /> RITMO CARDÍACO
                                 </h3>
                                 <span className="text-[6px] text-stone-600">BPM</span>
                             </div>
@@ -341,7 +343,7 @@ export const BloodPressureTracker = () => {
 
                 {entries.length > 0 && (
                     <div className="h-72 w-full mb-10 border border-white/5 bg-black/40 p-2 sm:p-6 relative">
-                        <div className={`absolute top-0 left-0 w-2 h-2 border-t border-l border-${accentClass}`} style={{ borderColor: accentColor }} />
+                        <AnimatedBrutalistCorners color={accentColor} />
                         <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={chartData} margin={{ left: 0, right: 10, top: 10, bottom: 0 }}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.05)" vertical={false} />
@@ -376,7 +378,7 @@ export const BloodPressureTracker = () => {
                                     strokeWidth={2}
                                     dot={{ r: 2, fill: 'var(--color-user-a)' }}
                                     activeDot={{ r: 4 }}
-                                    name="SISTÓLICA"
+                                    name="Presión Máxima (Sistólica)"
                                 />
                                 <Line
                                     type="monotone"
@@ -385,7 +387,7 @@ export const BloodPressureTracker = () => {
                                     strokeWidth={2}
                                     dot={{ r: 2, fill: 'var(--color-user-b)' }}
                                     activeDot={{ r: 4 }}
-                                    name="DIASTÓLICA"
+                                    name="Presión Mínima (Diastólica)"
                                 />
                                 <Line
                                     type="monotone"
@@ -394,7 +396,7 @@ export const BloodPressureTracker = () => {
                                     strokeWidth={1}
                                     strokeDasharray="4 4"
                                     dot={false}
-                                    name="F_CARDÍACA"
+                                    name="Ritmo Cardíaco"
                                 />
                             </LineChart>
                         </ResponsiveContainer>
@@ -428,17 +430,17 @@ export const BloodPressureTracker = () => {
                                     </div>
 
                                     <div className="flex flex-col">
-                                        <span className="text-[6px] uppercase font-bold text-stone-600 mb-0.5">PRES_ART (mmHg)</span>
+                                        <span className="text-[6px] uppercase font-bold text-stone-600 mb-0.5">PRESIÓN (mmHg)</span>
                                         <span className="text-xs font-black tabular-nums text-white">
                                             {entry.systolic}/{entry.diastolic}
                                         </span>
                                     </div>
                                     <div className="flex flex-col">
-                                        <span className="text-[6px] uppercase font-bold text-stone-600 mb-0.5">FC (BPM)</span>
+                                        <span className="text-[6px] uppercase font-bold text-stone-600 mb-0.5">PULSO (BPM)</span>
                                         <span className="text-xs font-black tabular-nums text-white">{entry.heart_rate}</span>
                                     </div>
                                     <div className="flex flex-col">
-                                        <span className="text-[6px] uppercase font-bold text-stone-600 mb-0.5">POSTURA</span>
+                                        <span className="text-[6px] uppercase font-bold text-stone-600 mb-0.5">POSICIÓN</span>
                                         <span className="text-[8px] font-bold text-stone-400 uppercase tracking-tighter">
                                             {POSITION_LABELS[entry.position as keyof typeof POSITION_LABELS] || entry.position}
                                         </span>

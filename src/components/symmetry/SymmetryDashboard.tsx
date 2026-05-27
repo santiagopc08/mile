@@ -12,7 +12,8 @@ import { DualWallet } from './DualWallet';
 import { FinanceChart } from './FinanceChart';
 import { StoreService } from '@/services/storeService';
 import { useMemo } from 'react';
-import { Activity, BarChart3, CircuitBoard, Eye, ShieldCheck, WalletCards } from 'lucide-react';
+import { Activity, BarChart3, CircuitBoard, Eye, ShieldCheck, WalletCards, Clock } from 'lucide-react';
+import { AnimatedBrutalistCorners } from '@/components/ui/AnimatedBrutalistCorners';
 
 interface Task {
   id: string;
@@ -129,14 +130,14 @@ export const SymmetryDashboard = () => {
       <div className="pointer-events-none fixed inset-0 -z-10 bg-mosaic opacity-50" />
 
       <div className="border-x border-white/10">
-        <div className="grid border-y border-white/10 bg-[#0a0a0a]/95 lg:grid-cols-[1fr_340px]">
+        <div className="border-y border-white/10 bg-[#0a0a0a]/95">
           <div className="relative p-5 sm:p-8 lg:p-10">
             <div className="absolute left-0 top-0 h-full w-px" style={{ backgroundColor: activeAccent }} />
             <div className="mb-8 flex flex-wrap items-center gap-3 text-[10px] font-black uppercase tracking-[0.22em] text-[#a88a7e]">
-              <span className={`border px-2 py-1 ${profile === 'ella' ? 'border-user-a/50 text-user-a' : 'border-user-b/50 text-user-b'}`}>OPS_CORE</span>
+              <span className={`border px-2 py-1 ${profile === 'ella' ? 'border-user-a/50 text-user-a' : 'border-user-b/50 text-user-b'}`}>ENFOQUE</span>
               <span className="flex items-center gap-2">
                 <span className="h-2 w-2 bg-user-c" />
-                STORE_LINKED
+                CONECTADOS
               </span>
             </div>
             <h1 className="text-5xl font-black uppercase leading-[0.92] tracking-normal text-white sm:text-7xl lg:text-8xl">
@@ -149,54 +150,19 @@ export const SymmetryDashboard = () => {
               <div className="grid grid-cols-3 border border-white/10 text-center">
                 <div className="border-r border-white/10 px-4 py-3">
                   <div className={`text-2xl font-black ${profile === 'ella' ? 'text-user-a' : 'text-user-b'}`}>{tasks.length}</div>
-                  <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Tasks</div>
+                  <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Tareas</div>
                 </div>
                 <div className="border-r border-white/10 px-4 py-3">
                   <div className="text-2xl font-black text-user-c">{activeTasks}</div>
-                  <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Active</div>
+                  <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Activas</div>
                 </div>
                 <div className="px-4 py-3">
                   <div className={`text-2xl font-black ${profile === 'ella' ? 'text-user-b' : 'text-user-a'}`}>{Math.round(focusScore)}%</div>
-                  <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Focus</div>
+                  <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Enfoque</div>
                 </div>
               </div>
             </div>
           </div>
-
-          <aside className="border-t border-white/10 bg-black/60 p-5 lg:border-l lg:border-t-0">
-            <div className="mb-6 flex items-center justify-between border-b border-white/10 pb-3 text-[10px] font-bold uppercase tracking-[0.24em] text-[#a88a7e]">
-              <span>Telemetry</span>
-              <Activity className="h-4 w-4 text-user-c" />
-            </div>
-            <div className="space-y-3 text-[10px] font-bold uppercase tracking-[0.18em] text-[#a88a7e]">
-              <div className="flex items-center justify-between">
-                <span>Profile</span>
-                <span className={profile === 'ella' ? 'text-user-a' : 'text-user-b'}>{profile || 'none'}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span>Mode</span>
-                <span className="text-[#e5b5ff]">{mode === 'me' ? 'personal' : 'shared'}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span>Complete</span>
-                <span className="text-user-c">{completedTasks.toString().padStart(2, '0')}</span>
-              </div>
-            </div>
-            <motion.button
-              whileTap={{ scale: 0.98 }}
-              onClick={toggleMode}
-              className="mt-8 flex w-full items-center justify-center gap-2 border px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] transition-colors hover:bg-white/5"
-              style={{
-                borderColor: activeAccent,
-                color: activeAccent,
-                boxShadow: `0 0 16px ${mode === 'us' ? 'rgba(161,0,240,0.16)' : 'rgba(255,112,32,0.16)'}`
-              }}
-            >
-              <Eye className="h-4 w-4" />
-              {mode === 'me' ? 'Personal View' : 'Shared View'}
-            </motion.button>
-            <CircuitBoard className="mt-12 h-20 w-20 text-user-a" strokeWidth={1} />
-          </aside>
         </div>
 
         <div className="grid grid-cols-2 border-b border-white/10 bg-black">
@@ -242,8 +208,7 @@ export const SymmetryDashboard = () => {
             {/* Task Video Header */}
             <div className="grid gap-4 border border-white/10 bg-[#0a0a0a] p-4 md:grid-cols-[auto_1fr_auto] md:items-center">
               <div className="relative h-28 w-28 border border-white/10 bg-black p-1">
-                <div className="absolute left-0 top-0 h-2 w-2 border-l border-t border-user-a" />
-                <div className="absolute bottom-0 right-0 h-2 w-2 border-b border-r border-user-a" />
+                <AnimatedBrutalistCorners color="var(--color-user-a)" />
                 <video
                   className="h-full w-full object-cover opacity-80 mix-blend-screen contrast-125"
                   src="vid/planningCat.mp4"
@@ -261,30 +226,38 @@ export const SymmetryDashboard = () => {
               <BarChart3 className="hidden h-10 w-10 text-user-a md:block" strokeWidth={1} />
             </div>
 
-            {/* Row 0: Pomodoro */}
-            <div className="geometric-card relative border-white/10 bg-[#0a0a0a] p-6 sm:p-8">
-              <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-user-a" />
-              <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-user-a" />
-              <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-user-a" />
-              <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-user-a" />
+             {/* Row 0: Pomodoro */}
+            <div className="geometric-card relative border-white/10 bg-[#0a0a0a] p-6 sm:p-8 overflow-hidden">
+              <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                <Clock size={120} style={{ color: accentColorValue }} />
+              </div>
+              <AnimatedBrutalistCorners color={accentColorValue} />
 
               <PomodoroTimer />
             </div>
 
             {/* Row 1: Kanban Board */}
-            <div className="geometric-card relative border-white/10 bg-[#0a0a0a] p-6 sm:p-8">
-              <h2 className="mb-8 flex items-center justify-between border-b border-white/10 pb-3 text-[10px] font-black uppercase tracking-[0.22em] text-[#a88a7e]">
-                <span>{'>'} _ MATRIZ DE OPERACIONES</span>
-                <span className="hidden text-[8px] opacity-50 sm:inline">[ DB_SYNC ] ONLINE</span>
+            <div className="geometric-card relative border-white/10 bg-[#0a0a0a] p-6 sm:p-8 overflow-hidden">
+              <AnimatedBrutalistCorners color={accentColorValue} />
+              <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                <ShieldCheck size={120} style={{ color: accentColorValue }} />
+              </div>
+              <h2 className="mb-8 flex items-center justify-between border-b border-white/5 pb-4 text-[10px] font-black uppercase tracking-[0.22em] relative z-10" style={{ color: accentColorValue }}>
+                <span>{'>'} NUESTRAS TAREAS Y OBJETIVOS</span>
+                <span className="hidden text-[8px] opacity-50 sm:inline">[ CONECTADO ] EN LÍNEA</span>
               </h2>
               <TaskModule onTasksUpdate={handleTasksUpdate} />
             </div>
 
             {/* Row 2: Analytics */}
-            <div className="geometric-card relative border-white/10 bg-[#0a0a0a] p-6 sm:p-8">
-              <h2 className="mb-8 flex items-center gap-2 border-b border-white/10 pb-3 text-[10px] font-black uppercase tracking-[0.22em] text-[#a88a7e]">
+            <div className="geometric-card relative border-white/10 bg-[#0a0a0a] p-6 sm:p-8 overflow-hidden">
+              <AnimatedBrutalistCorners color="#00dbe9" />
+              <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                <BarChart3 size={120} className="text-[#00dbe9]" />
+              </div>
+              <h2 className="mb-8 flex items-center gap-2 border-b border-white/5 pb-4 text-[10px] font-black uppercase tracking-[0.22em] text-[#00dbe9] relative z-10">
                 <div className="w-1.5 h-1.5 bg-user-c" style={{ boxShadow: '0 0 5px var(--color-user-c)' }} />
-                [ / ] DIAGNÓSTICO DE RENDIMIENTO
+                [ / ] RESUMEN DE NUESTRO PROGRESO
               </h2>
               <TaskAnalytics tasks={tasks} objectives={objectives} />
             </div>
@@ -300,8 +273,7 @@ export const SymmetryDashboard = () => {
             {/* Finance Video Header */}
             <div className="grid gap-4 border border-white/10 bg-[#0a0a0a] p-4 md:grid-cols-[auto_1fr_auto] md:items-center">
               <div className="relative h-28 w-28 border border-white/10 bg-black p-1">
-                <div className="absolute left-0 top-0 h-2 w-2 border-l border-t border-user-a" />
-                <div className="absolute bottom-0 right-0 h-2 w-2 border-b border-r border-user-a" />
+                <AnimatedBrutalistCorners color="var(--color-user-a)" />
                 <video
                   className="h-full w-full object-cover opacity-80 mix-blend-screen contrast-125"
                   src="vid/financesCat.mp4"
@@ -313,27 +285,32 @@ export const SymmetryDashboard = () => {
                 />
               </div>
               <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-user-c">Financial Feed</p>
-                <h2 className="mt-2 text-2xl font-black uppercase tracking-normal text-white">Balance Console</h2>
+                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-user-c">Actividad Financiera</p>
+                <h2 className="mt-2 text-2xl font-black uppercase tracking-normal text-white">Nuestro Balance</h2>
               </div>
               <WalletCards className="hidden h-10 w-10 text-user-a md:block" strokeWidth={1} />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <div className="geometric-card relative border-white/10 bg-[#0a0a0a] p-6">
-                <h2 className="mb-6 flex items-center justify-between border-b border-white/10 pb-2 text-[10px] font-black uppercase tracking-[0.22em] text-[#a88a7e]">
-                  <span>[ / ] GESTIÓN FINANCIERA</span>
-                  <span className="text-[8px] opacity-50">BITÁCORA DE FLUJO</span>
+              <div className="geometric-card relative border-white/10 bg-[#0a0a0a] p-6 overflow-hidden">
+                <AnimatedBrutalistCorners color={accentColorValue} />
+                <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                  <WalletCards size={120} style={{ color: accentColorValue }} />
+                </div>
+                <h2 className="mb-6 flex items-center justify-between border-b border-white/5 pb-3 text-[10px] font-black uppercase tracking-[0.22em] relative z-10" style={{ color: accentColorValue }}>
+                  <span>[ / ] NUESTRAS FINANZAS</span>
+                  <span className="text-[8px] opacity-50">HISTORIAL DE MOVIMIENTOS</span>
                 </h2>
                 <DualWallet
                   allocations={profile === 'el' ? allocationsA : allocationsB}
                   onAllocationsChange={profile === 'el' ? setAllocationsA : setAllocationsB}
                 />
               </div>
-              <div className="geometric-card relative border-white/10 bg-[#0a0a0a] p-6 sm:p-8">
+              <div className="geometric-card relative border-white/10 bg-[#0a0a0a] p-6 sm:p-8 overflow-hidden">
+                <AnimatedBrutalistCorners color="var(--color-user-a)" />
                 <h2 className="mb-8 flex items-center gap-2 border-b border-white/10 pb-3 text-[10px] font-black uppercase tracking-[0.22em] text-[#a88a7e]">
                   <div className="w-1.5 h-1.5 bg-user-a" style={{ boxShadow: '0 0 5px var(--color-user-a)' }} />
-                  {'>'} ANÁLISIS DE BALANCE
+                  {'>'} DISTRIBUCIÓN DE NUESTRO GASTO
                 </h2>
                 <div className="h-64">
                   <FinanceChart

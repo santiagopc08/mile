@@ -10,16 +10,16 @@ export const GOAL_CATEGORIES = [
 ] as const;
 
 export const STATE_CONFIG = {
-    DISCOVERED: { label: 'Descubierto', css: 'state-discovered', next: 'SAVING', nextLabel: 'Empezar a Ahorrar' },
-    SAVING: { label: 'Ahorrando', css: 'state-saving', next: 'READY_TO_DEPLOY', nextLabel: '¡Listo!' },
-    READY_TO_DEPLOY: { label: 'Listo', css: 'state-ready', next: 'COMPLETED', nextLabel: '¡Conseguido!' },
-    COMPLETED: { label: 'Completado', css: 'state-completed', next: 'ARCHIVED', nextLabel: 'Archivar' },
+    DISCOVERED: { label: 'Idea', css: 'state-discovered', next: 'SAVING', nextLabel: 'Empezar a Ahorrar' },
+    SAVING: { label: 'Ahorrando', css: 'state-saving', next: 'READY_TO_DEPLOY', nextLabel: '¡Completar ahorro!' },
+    READY_TO_DEPLOY: { label: '¡Listos para realizar!', css: 'state-ready', next: 'COMPLETED', nextLabel: '¡Marcar Logrado!' },
+    COMPLETED: { label: '¡Logrado!', css: 'state-completed', next: 'ARCHIVED', nextLabel: 'Archivar' },
     ARCHIVED: { label: 'Archivado', css: 'state-archived', next: null, nextLabel: null },
 } as const;
 
 export const REACTION_CONFIG = [
-    { type: 'LIKE', emoji: '❤️', label: 'Like' },
-    { type: 'PRIORITY', emoji: '⚡', label: 'Priority' },
+    { type: 'LIKE', emoji: '❤️', label: 'Me gusta' },
+    { type: 'PRIORITY', emoji: '⚡', label: 'Destacado' },
     { type: 'WANT_THIS_WITH_YOU', emoji: '💫', label: 'Contigo' },
 ] as const;
 

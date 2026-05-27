@@ -31,7 +31,7 @@ export function SavingsOverview({ items }: { items: WishlistItem[] }) {
             const available = totalIncome - totalExpenses;
             if (available > 10000) {
                 const safe = Math.floor(available * 0.15 / 1000) * 1000;
-                return `Tu balance permite asignar ${formatCOP(safe)} sin afectar presupuestos esenciales.`;
+                return `Según tus ingresos y gastos, puedes destinar ${formatCOP(safe)} a tus deseos sin afectar el presupuesto básico.`;
             }
         } catch {}
         return null;
@@ -50,22 +50,26 @@ export function SavingsOverview({ items }: { items: WishlistItem[] }) {
                 </div>
                 <div className="bg-[#080808] p-4 text-center">
                     <div className="text-lg font-black text-[#ffb595] font-mono">{stats.active}</div>
-                    <div className="text-[8px] font-bold uppercase tracking-[0.2em] text-[#a88a7e] mt-1">Activos</div>
+                    <div className="text-[8px] font-bold uppercase tracking-[0.2em] text-[#a88a7e] mt-1">En curso</div>
                 </div>
                 <div className="bg-[#080808] p-4 text-center">
                     <div className="text-lg font-black text-[#00dbe9] font-mono">{stats.ready}</div>
-                    <div className="text-[8px] font-bold uppercase tracking-[0.2em] text-[#a88a7e] mt-1">Listos</div>
+                    <div className="text-[8px] font-bold uppercase tracking-[0.2em] text-[#a88a7e] mt-1">¡Listos!</div>
                 </div>
                 <div className="bg-[#080808] p-4 text-center">
                     <div className="text-lg font-black text-user-c font-mono">{stats.completed}</div>
-                    <div className="text-[8px] font-bold uppercase tracking-[0.2em] text-[#a88a7e] mt-1">Logrados</div>
+                    <div className="text-[8px] font-bold uppercase tracking-[0.2em] text-[#a88a7e] mt-1">¡Logrados!</div>
                 </div>
             </div>
 
             {/* Global savings bar */}
-            <div className="border border-white/10 bg-black/40 p-4">
-                <div className="flex items-center justify-between mb-2">
-                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#a88a7e]">Progreso Global</span>
+            <div className="border border-white/10 bg-black/40 p-4 relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-3 opacity-5 pointer-events-none">
+                    <TrendingUp size={100} className="text-[#ffb595]" />
+                </div>
+                
+                <div className="flex items-center justify-between mb-2 relative z-10">
+                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#ffb595]">Progreso General</span>
                     <span className="text-[10px] font-mono font-bold text-user-b">{Math.round(progress)}%</span>
                 </div>
                 <div className="savings-track">
@@ -76,7 +80,7 @@ export function SavingsOverview({ items }: { items: WishlistItem[] }) {
                 {stats.totalGoal > 0 && (
                     <div className="flex justify-between mt-2 text-[8px] font-mono text-white/25">
                         <span>{formatCOP(stats.totalSaved)}</span>
-                        <span>Meta: {formatCOP(stats.totalGoal)}</span>
+                        <span>Meta Total: {formatCOP(stats.totalGoal)}</span>
                     </div>
                 )}
             </div>

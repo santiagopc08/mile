@@ -139,16 +139,16 @@ export function LoginOverlay({ onLoginSuccess }: LoginOverlayProps) {
 
                 {/* HUD technical tags */}
                 <div className="absolute top-2 left-3 font-mono text-[7px] text-white/20 uppercase tracking-[0.3em]">
-                    SECURE_SYS_NODE // ON_AIR
+                    CONEXIÓN SEGURA // EN LÍNEA
                 </div>
                 <div className="absolute top-2 right-3 font-mono text-[7px] text-white/20 tracking-widest">
                     COORD: 04°35&apos;56&quot;N 74°04&apos;51&quot;W
                 </div>
                 <div className="absolute bottom-2 left-3 font-mono text-[7px] text-white/20 tracking-wider">
-                    REVEAL_RADIAL_MAPPED: TRUE
+                    MODO SEGURO ACTIVO: SÍ
                 </div>
                 <div className="absolute bottom-2 right-3 font-mono text-[7px] text-white/20 uppercase tracking-[0.2em]">
-                    Symmetry OS v1.0.4
+                    Sincronía Enlace v1.0.4
                 </div>
             </div>
 
@@ -162,7 +162,7 @@ export function LoginOverlay({ onLoginSuccess }: LoginOverlayProps) {
                     }}>
                     {/* Corner Accent Box */}
                     <div className="absolute top-0 right-0 p-1 font-mono text-[6px] text-white/30 border-b border-l border-white/10 uppercase bg-[#1e1e1e]">
-                        AUTH_01
+                        ACCESO 01
                     </div>
 
                     <div className="text-center mb-8">
@@ -180,7 +180,7 @@ export function LoginOverlay({ onLoginSuccess }: LoginOverlayProps) {
                         </div>
 
                         <div className="mb-2 text-[8px] font-bold uppercase tracking-[0.25em] text-white/40">
-                            [ IDENTITY_ROUTER_NODE ]
+                            [ SELECCIÓN DE IDENTIDAD ]
                         </div>
                         <h1
                             className="mb-1 text-2xl font-black uppercase leading-none tracking-tight text-white transition-colors duration-700"
@@ -238,7 +238,7 @@ export function LoginOverlay({ onLoginSuccess }: LoginOverlayProps) {
                                             type="password"
                                             value={keyword}
                                             onChange={(e) => setKeyword(e.target.value)}
-                                            placeholder="ACCESS_KEY"
+                                            placeholder="CONTRASEÑA"
                                             className="w-full border bg-black py-4 pl-4 pr-14 text-center text-sm font-bold tracking-[0.25em] text-white outline-none transition-all placeholder:text-white/20 placeholder:tracking-normal focus:bg-black/50"
                                             style={{
                                                 borderColor: error ? '#FF4F9A' : accentColor,
@@ -264,7 +264,7 @@ export function LoginOverlay({ onLoginSuccess }: LoginOverlayProps) {
                                     className="flex w-full items-center justify-center py-2 text-[8px] font-bold uppercase tracking-[0.2em] text-white/30 transition-colors hover:text-white"
                                 >
                                     <ChevronLeft className="w-3.5 h-3.5 mr-1" />
-                                    [ Cambiar Perfil ]
+                                    [ Elegir otro perfil ]
                                 </button>
                             </div>
                         )}
@@ -280,7 +280,7 @@ export function LoginOverlay({ onLoginSuccess }: LoginOverlayProps) {
                             exit={{ opacity: 0, y: -10 }}
                             className="mt-4 border border-[#FF4F9A] bg-[#FF4F9A]/5 p-3 text-center text-[9px] font-black uppercase tracking-[0.25em] text-[#FF4F9A]"
                         >
-                            SYSTEM_ALERT // ACCESO_DENEGADO
+                            CLAVE INCORRECTA // INTENTA DE NUEVO
                         </motion.div>
                     )}
                 </AnimatePresence>

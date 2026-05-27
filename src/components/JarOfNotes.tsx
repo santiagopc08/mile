@@ -122,8 +122,8 @@ export function JarOfNotes() {
     return (
         <div className="relative flex min-h-[70vh] w-full flex-col items-center justify-center overflow-hidden border border-white/10 bg-[#0a0a0a] bg-dot-matrix">
             <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex justify-between border-b border-white/10 px-4 py-3 text-[9px] font-bold uppercase tracking-[0.24em] text-[#a88a7e]">
-                <span>NOTE_VAULT</span>
-                <span className={`text-${accentClass}`} style={{ color: accentColor }}>{notes.length.toString().padStart(2, '0')} ENTRIES</span>
+                <span>BAÚL DE RECUERDOS</span>
+                <span className={`text-${accentClass}`} style={{ color: accentColor }}>{notes.length.toString().padStart(2, '0')} RECUERDOS</span>
             </div>
             {/* Header info - fades out when animation starts */}
             <AnimatePresence>

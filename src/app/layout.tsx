@@ -16,12 +16,12 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "A Safe Space",
-  description: "A private journal and track record.",
+  title: "Nuestro Espacio Seguro",
+  description: "Un diario y registro privado para nosotros.",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "A Safe Space",
+    title: "Nuestro Espacio Seguro",
   },
   formatDetection: {
     telephone: false,

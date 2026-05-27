@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { useProfile } from '@/context/ProfileContext';
 import { StoreService } from '@/services/storeService';
+import { AnimatedBrutalistCorners } from '@/components/ui/AnimatedBrutalistCorners';
 
 type TransactionType = 'expense' | 'income' | 'transfer' | 'budget_adjustment';
 type BudgetCategory = 'Food' | 'Transport' | 'Health' | 'Entertainment' | 'Wishlist' | 'Savings';
@@ -62,13 +63,13 @@ const TRANSLATIONS: Record<string, string> = {
   refund: 'Reembolso',
   shared_income: 'Ingreso Compartido',
   main_wallet: 'Billetera Principal',
-  savings_vault: 'Bóveda de Ahorro',
+  savings_vault: 'Nuestra Alcancía',
   shared_pool: 'Fondo Compartido',
   cash_node: 'Efectivo',
   expense: 'Gasto',
   income: 'Ingreso',
   transfer: 'Transferencia',
-  budget_adjustment: 'Ajuste',
+  budget_adjustment: 'Ajuste de Límite',
   Other: 'Otro',
   none: 'Ninguno',
   no_budget: 'Sin Presupuesto'
@@ -328,11 +329,15 @@ export const DualWallet = ({
         className="relative overflow-hidden border bg-[#0a0a0a] bg-dot-matrix p-4"
         style={{ borderColor: balanceTone, boxShadow: `0 0 18px ${balanceTone}22` }}
       >
-        <div className="absolute left-0 top-0 h-3 w-3 border-l border-t" style={{ borderColor: balanceTone }} />
-        <div className="absolute bottom-0 right-0 h-3 w-3 border-b border-r" style={{ borderColor: balanceTone }} />
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-3">
+        <AnimatedBrutalistCorners color={balanceTone} size={12} thickness={1.5} />
+        
+        <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+          <Wallet size={120} className="text-white" />
+        </div>
+
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-white/5 pb-4 relative z-10">
           <div>
-            <p className="text-[9px] font-black uppercase tracking-[0.26em] text-[#a88a7e]">Resumen General</p>
+            <p className="text-[9px] font-black uppercase tracking-[0.26em]" style={{ color: balanceTone }}>Resumen General</p>
             <h3 className="mt-1 text-2xl font-black uppercase tracking-normal text-white">Estado financiero general</h3>
           </div>
           <span className="border px-2 py-1 text-[8px] font-black uppercase tracking-[0.2em]" style={{ borderColor: balanceTone, color: balanceTone }}>
@@ -500,7 +505,7 @@ export const DualWallet = ({
         <div className="border border-white/10 bg-[#0a0a0a] p-4">
           <h3 className="mb-4 flex items-center justify-between border-b border-white/10 pb-3 text-[10px] font-black uppercase tracking-[0.22em] text-[#a88a7e]">
             <span className="flex items-center gap-2">
-              Control de Gastos Fijos
+              Presupuestos de Gastos
             </span>
             <button
               type="button"
@@ -517,7 +522,7 @@ export const DualWallet = ({
                 <div className="mb-2 flex items-center justify-between gap-2">
                   <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white">{t(row.budget)}</span>
                   <span className="border px-1.5 py-1 text-[7px] font-black uppercase tracking-[0.14em]" style={{ borderColor: row.color, color: row.color }}>
-                    Estado: {row.status === 'OVERLOAD' ? 'ALERTA ROJA' : row.status === 'CAUTION' ? 'CUIDADO' : 'BIEN'}
+                    Estado: {row.status === 'OVERLOAD' ? 'LÍMITE EXCEDIDO' : row.status === 'CAUTION' ? 'ATENCIÓN' : 'ESTABLE'}
                   </span>
                 </div>
                 <ChunkedProgress value={row.percent} color={row.color} />
@@ -546,12 +551,12 @@ export const DualWallet = ({
         <div className="border border-white/10 bg-[#0a0a0a] p-4">
           <h3 className="mb-4 flex items-center gap-2 border-b border-white/10 pb-3 text-[10px] font-black uppercase tracking-[0.22em] text-[#a88a7e]">
             <CircleDollarSign className="h-4 w-4 text-user-b" />
-            Control de Entradas
+            Ingresos
           </h3>
           <div className="grid gap-2">
             <MetricCell label="Ingreso Recurrente" value={formatCOP(recurringIncome)} tone="#c3f400" />
             <MetricCell label="Proyección de Ingresos" value={formatCOP(projectedIncome)} tone="#a178ff" />
-            <MetricCell label="Comparación Mensual" value={`${savingsRate.toFixed(1)}% tasa_ahorro`} tone={savingsRate >= 0 ? '#c3f400' : '#ffb4ab'} />
+            <MetricCell label="Comparación Mensual" value={`${savingsRate.toFixed(1)}% tasa de ahorro`} tone={savingsRate >= 0 ? '#c3f400' : '#ffb4ab'} />
           </div>
         </div>
       </section>
@@ -589,10 +594,10 @@ export const DualWallet = ({
               Puedes destinar de forma segura {formatCOP(wishlistAffordability)} a tus antojos esta semana.
             </div>
             <div className="border border-white/10 bg-black/40 p-3 text-[10px] font-bold uppercase leading-5 tracking-[0.14em] text-[#e1bfb2]">
-              Los gastos en comida han {foodDelta >= 0 ? 'aumentado' : 'disminuido'} un {Math.abs(foodDelta).toFixed(0)}% frente a la base táctica de este mes.
+              Los gastos en comida han {foodDelta >= 0 ? 'aumentado' : 'disminuido'} un {Math.abs(foodDelta).toFixed(0)}% frente al presupuesto básico de este mes.
             </div>
             <div className="border border-user-c/30 bg-user-c/5 p-3 text-[10px] font-bold uppercase leading-5 tracking-[0.14em] text-[#d1bcff]">
-              El margen de presupuesto está {budgetRemaining < 0 ? 'sobrecargado' : `garantizado por ${Math.max(0, Math.floor(budgetRemaining / Math.max(averageDailySpending, 1)))} días`} al ritmo de gasto actual.
+              Al ritmo de gasto actual, el dinero restante alcanzará para {budgetRemaining < 0 ? '0' : Math.max(0, Math.floor(budgetRemaining / Math.max(averageDailySpending, 1)))} días de gastos.
             </div>
           </div>
         </div>

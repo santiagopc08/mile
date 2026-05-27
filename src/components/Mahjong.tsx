@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { StoreService } from '@/services/storeService';
 import { useProfile } from '@/context/ProfileContext';
 import { Undo2, Trophy, RotateCcw, Lightbulb, Layers3, Sparkles } from 'lucide-react';
+import { AnimatedBrutalistCorners } from '@/components/ui/AnimatedBrutalistCorners';
 import MahjongTimer, { MahjongTimerHandle } from './MahjongTimer';
 import MahjongTile, { TileState, TileContent, TileVisual } from './MahjongTile';
 
@@ -751,8 +752,7 @@ export function Mahjong() {
 
             <div className="relative flex min-h-[600px] w-full max-w-[880px] justify-center overflow-hidden border border-white/10 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.05),transparent_42%),linear-gradient(180deg,rgba(255,255,255,0.03),transparent)] md:min-h-[700px]">
                 <div className="pointer-events-none absolute inset-0 bg-dot-matrix opacity-70" />
-                <div className="pointer-events-none absolute left-0 top-0 h-3 w-3 border-l border-t" style={{ borderColor: accentColor }} />
-                <div className="pointer-events-none absolute bottom-0 right-0 h-3 w-3 border-b border-r opacity-50" style={{ borderColor: accentColor }} />
+                <AnimatedBrutalistCorners color={accentColor} size={12} thickness={1.5} />
                 <AnimatePresence>
                     {tiles.map(tile => {
                         if (tile.isMatched || dockIds.includes(tile.id)) return null;

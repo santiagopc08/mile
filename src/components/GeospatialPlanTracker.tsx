@@ -12,6 +12,7 @@ import { supabase } from '@/lib/supabase';
 import { useProfile } from '@/context/ProfileContext';
 import { useVisibility } from '@/context/VisibilityContext';
 import { Navigation, Trash2, CheckCircle, Circle, AlertTriangle } from 'lucide-react';
+import { AnimatedBrutalistCorners } from '@/components/ui/AnimatedBrutalistCorners';
 
 interface Ubicacion {
   id: string;
@@ -126,8 +127,7 @@ export function GeospatialPlanTracker() {
   return (
     <div className="w-full space-y-6">
       <div className="relative border border-white/10 bg-black p-2">
-        <div className="absolute left-0 top-0 h-2 w-2 border-l border-t border-[#00dbe9]" />
-        <div className="absolute bottom-0 right-0 h-2 w-2 border-b border-r border-[#a100f0]" />
+        <AnimatedBrutalistCorners color="#00dbe9" />
         <div className="h-[400px] w-full overflow-hidden border border-white/10 bg-[#111] md:h-[500px]">
           <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
             <Map
