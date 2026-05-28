@@ -43,42 +43,43 @@ export function SavingsOverview({ items }: { items: WishlistItem[] }) {
 
     return (
         <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-px border border-white/10 bg-white/5 sm:grid-cols-4">
-                <div className="bg-[#080808] p-4 text-center">
-                    <div className="text-lg font-black text-user-b font-mono">{formatCOP(stats.totalSaved)}</div>
-                    <div className="text-[8px] font-bold uppercase tracking-[0.2em] text-[#a88a7e] mt-1">Ahorrado</div>
+            {/* Stats Grid */}
+            <div className="grid grid-cols-2 gap-1 lg:grid-cols-4">
+                <div className="flex flex-col items-center justify-center border border-white/10 bg-[#120d0e] p-4 text-center">
+                    <div className="font-mono text-xl font-bold text-user-b">{formatCOP(stats.totalSaved)}</div>
+                    <div className="mt-1 font-mono text-[9px] uppercase tracking-widest text-[#a88a7e]">Ahorrado</div>
                 </div>
-                <div className="bg-[#080808] p-4 text-center">
-                    <div className="text-lg font-black text-[#ffb595] font-mono">{stats.active}</div>
-                    <div className="text-[8px] font-bold uppercase tracking-[0.2em] text-[#a88a7e] mt-1">En curso</div>
+                <div className="flex flex-col items-center justify-center border border-white/10 bg-[#120d0e] p-4 text-center">
+                    <div className="font-mono text-xl font-bold text-[#ffb595]">{stats.active}</div>
+                    <div className="mt-1 font-mono text-[9px] uppercase tracking-widest text-[#a88a7e]">En curso</div>
                 </div>
-                <div className="bg-[#080808] p-4 text-center">
-                    <div className="text-lg font-black text-[#00dbe9] font-mono">{stats.ready}</div>
-                    <div className="text-[8px] font-bold uppercase tracking-[0.2em] text-[#a88a7e] mt-1">¡Listos!</div>
+                <div className="flex flex-col items-center justify-center border border-white/10 bg-[#120d0e] p-4 text-center">
+                    <div className="font-mono text-xl font-bold text-[#00dbe9]">{stats.ready}</div>
+                    <div className="mt-1 font-mono text-[9px] uppercase tracking-widest text-[#a88a7e]">¡Listos!</div>
                 </div>
-                <div className="bg-[#080808] p-4 text-center">
-                    <div className="text-lg font-black text-user-c font-mono">{stats.completed}</div>
-                    <div className="text-[8px] font-bold uppercase tracking-[0.2em] text-[#a88a7e] mt-1">¡Logrados!</div>
+                <div className="flex flex-col items-center justify-center border border-white/10 bg-[#120d0e] p-4 text-center">
+                    <div className="font-mono text-xl font-bold text-user-c">{stats.completed}</div>
+                    <div className="mt-1 font-mono text-[9px] uppercase tracking-widest text-[#a88a7e]">¡Logrados!</div>
                 </div>
             </div>
 
-            {/* Global savings bar */}
-            <div className="border border-white/10 bg-black/40 p-4 relative overflow-hidden">
+            {/* General Progress */}
+            <div className="border border-white/10 bg-[#120d0e] p-5 relative overflow-hidden">
                 <div className="absolute top-0 right-0 p-3 opacity-5 pointer-events-none">
                     <TrendingUp size={100} className="text-[#ffb595]" />
                 </div>
                 
-                <div className="flex items-center justify-between mb-2 relative z-10">
-                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#ffb595]">Progreso General</span>
-                    <span className="text-[10px] font-mono font-bold text-user-b">{Math.round(progress)}%</span>
+                <div className="flex items-center justify-between mb-3 relative z-10">
+                    <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-[#ffb595]">Progreso General</span>
+                    <span className="font-mono text-[12px] font-bold text-user-b">{Math.round(progress)}%</span>
                 </div>
-                <div className="savings-track">
+                <div className="chunked-progress">
                     {Array.from({ length: chunks }).map((_, i) => (
-                        <div key={i} className={`savings-chunk ${i < filledChunks ? 'savings-chunk-filled' : ''} ${i === filledChunks - 1 && filledChunks > 0 ? 'savings-chunk-latest' : ''}`} />
+                        <div key={i} className={`chunk ${i < filledChunks ? 'filled' : ''}`} />
                     ))}
                 </div>
                 {stats.totalGoal > 0 && (
-                    <div className="flex justify-between mt-2 text-[8px] font-mono text-white/25">
+                    <div className="flex justify-between mt-3 font-mono text-[9px] uppercase tracking-widest text-white/35">
                         <span>{formatCOP(stats.totalSaved)}</span>
                         <span>Meta Total: {formatCOP(stats.totalGoal)}</span>
                     </div>
@@ -89,10 +90,10 @@ export function SavingsOverview({ items }: { items: WishlistItem[] }) {
             {Object.keys(stats.byCategory).length > 0 && (
                 <div className="flex flex-wrap gap-2">
                     {GOAL_CATEGORIES.filter(c => stats.byCategory[c.id]).map(cat => (
-                        <div key={cat.id} className="flex items-center gap-1.5 border border-white/[0.06] bg-black/40 px-2.5 py-1.5">
+                        <div key={cat.id} className="flex items-center gap-2 border border-white/10 bg-[#120d0e] px-3 py-2">
                             <span className="text-xs">{cat.emoji}</span>
-                            <span className="text-[8px] font-bold uppercase tracking-[0.1em] text-white/40">{cat.label}</span>
-                            <span className="text-[9px] font-mono font-bold text-user-b">{formatCOP(stats.byCategory[cat.id])}</span>
+                            <span className="font-mono text-[9px] uppercase tracking-widest text-white/40">{cat.label}</span>
+                            <span className="font-mono text-[10px] font-bold text-user-b">{formatCOP(stats.byCategory[cat.id])}</span>
                         </div>
                     ))}
                 </div>

@@ -41,27 +41,13 @@ export default function PlanesPage() {
                   MAPA LISTO
                 </span>
               </div>
-              <h1 className="max-w-4xl text-5xl font-black uppercase leading-[0.92] tracking-normal text-white sm:text-7xl lg:text-8xl">
+              <h1 className="max-w-4xl text-5xl font-mono font-black uppercase leading-[0.92] tracking-tighter text-white sm:text-7xl lg:text-8xl">
                 Planes
               </h1>
-              <div className="mt-6 grid max-w-4xl gap-5 border-t border-white/10 pt-5 md:grid-cols-[1fr_auto] md:items-end">
-                <p className="max-w-2xl text-sm leading-6 tracking-normal text-[#d9c1e8] md:text-base">
+              <div className="mt-6 max-w-4xl border-t border-white/10 pt-5">
+                <p className="max-w-2xl text-sm leading-6 tracking-normal text-[#d9c1e8] md:text-base font-mono uppercase tracking-wider text-xs">
                   Antojos, metas de ahorro y experiencias organizadas como una bitácora compartida de intención y deseo.
                 </p>
-                <div className="grid grid-cols-3 border border-white/10 text-center">
-                  <div className="border-r border-white/10 px-4 py-3">
-                    <div className={`text-2xl font-black text-${accentClass}`} style={{ color: accentColor }}>{String(stats.active).padStart(2, '0')}</div>
-                    <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">En curso</div>
-                  </div>
-                  <div className="border-r border-white/10 px-4 py-3">
-                    <div className="text-2xl font-black text-user-c">{String(stats.completed).padStart(2, '0')}</div>
-                    <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Logrados</div>
-                  </div>
-                  <div className="px-4 py-3">
-                    <Compass className={`mx-auto h-7 w-7 text-${secondaryClass}`} style={{ color: secondaryColor }} strokeWidth={1.5} />
-                    <div className="mt-1 text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Mapa</div>
-                  </div>
-                </div>
               </div>
             </div>
           </div>

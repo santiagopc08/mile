@@ -260,18 +260,17 @@ export function WishlistModule() {
             {/* Savings Overview */}
             <SavingsOverview items={items} />
 
-            {/* Category + State filters — compact strip */}
-            <div className="flex flex-wrap items-center gap-1.5">
+            <div className="flex flex-wrap items-center gap-2 font-mono text-[9px]">
                 <button
                     onClick={() => setCatFilter('ALL')}
-                    className={`group flex h-8 items-center gap-1.5 border px-2.5 transition-all ${
+                    className={`group w-9 h-9 flex items-center justify-center border transition-all ${
                         catFilter === 'ALL'
                             ? 'border-user-c bg-user-c/10 text-white'
                             : 'border-white/10 bg-[#050505] text-[#a88a7e] hover:border-white/25 hover:text-white'
                     }`}
+                    title="Todos los antojos"
                 >
-                    <Rss className={`h-3.5 w-3.5 ${catFilter === 'ALL' ? 'text-user-c' : 'text-white/25'}`} strokeWidth={1.5} />
-                    <span className="hidden text-[7px] font-black uppercase tracking-[0.12em] sm:inline">Todos</span>
+                    <Rss className={`h-4.5 w-4.5 ${catFilter === 'ALL' ? 'text-user-c' : 'text-white/25'}`} strokeWidth={1.5} />
                 </button>
                 {GOAL_CATEGORIES.map(cat => {
                     const Icon = cat.icon;
@@ -280,15 +279,14 @@ export function WishlistModule() {
                         <button
                             key={cat.id}
                             onClick={() => setCatFilter(cat.id as GoalCategory)}
-                            className={`group flex h-8 items-center gap-1.5 border px-2.5 transition-all ${
+                            className={`group w-9 h-9 flex items-center justify-center border transition-all ${
                                 isActive
                                     ? 'border-user-c bg-user-c/10 text-white'
                                     : 'border-white/10 bg-[#050505] text-[#a88a7e] hover:border-white/25 hover:text-white'
                             }`}
                             title={cat.label}
                         >
-                            <Icon className={`h-3.5 w-3.5 ${isActive ? 'text-user-c' : 'text-white/25'}`} strokeWidth={1.5} />
-                            <span className="hidden text-[7px] font-black uppercase tracking-[0.12em] sm:inline">{cat.label}</span>
+                            <Icon className={`h-4.5 w-4.5 ${isActive ? 'text-user-c' : 'text-white/25'}`} strokeWidth={1.5} />
                         </button>
                     );
                 })}
@@ -299,10 +297,10 @@ export function WishlistModule() {
                 {/* State filter chips — same row */}
                 {STATE_FILTERS.map(sf => (
                     <button key={sf.id} onClick={() => setStateFilter(sf.id)}
-                        className={`h-8 px-2.5 text-[7px] font-bold uppercase tracking-[0.14em] border transition-all ${
+                        className={`h-9 px-4 text-[9px] font-mono font-black uppercase tracking-[0.16em] border transition-all ${
                             stateFilter === sf.id
                                 ? `border-${accentClass} text-${accentClass} bg-${accentClass}/10`
-                                : 'border-white/[0.06] text-white/25 hover:text-white/50'
+                                : 'border-white/[0.06] text-white/25 hover:text-white/50 bg-[#050505]'
                         }`}
                         style={stateFilter === sf.id ? { borderColor: profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)', color: profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)' } : {}}
                     >{sf.label}</button>
@@ -310,20 +308,20 @@ export function WishlistModule() {
             </div>
 
             {/* Toolbar: Add + Activity toggle */}
-            <div className="flex items-center justify-between border-b border-white/10 pb-4">
-                <h3 className="flex items-center gap-3 text-xs font-black uppercase tracking-[0.22em] text-[#a88a7e]">
-                    <div className={`h-2 w-2 bg-${accentClass}`} style={{ backgroundColor: profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)' }} />
-                    {filteredItems.length} planes
+            <div className="flex items-center justify-between border-b border-white/10 pb-4 mt-6">
+                <h3 className="flex items-center gap-3 text-sm font-mono font-bold uppercase tracking-widest text-white">
+                    <div className={`h-3 w-3 border border-white/20 bg-${accentClass}`} style={{ backgroundColor: profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)' }} />
+                    {filteredItems.length} PLANES
                 </h3>
                 <div className="flex gap-2">
                     <button onClick={() => setShowFeed(!showFeed)}
-                        className={`flex h-11 w-11 items-center justify-center border transition-all ${showFeed ? 'border-user-c text-user-c bg-user-c/10' : 'border-white/10 text-[#a88a7e] hover:text-white'}`}>
-                        <Rss className="h-4 w-4" />
+                        className={`flex h-11 w-11 items-center justify-center border transition-all ${showFeed ? 'border-user-c text-user-c bg-user-c/10' : 'border-white/10 text-[#a88a7e] hover:text-white bg-[#080808]'}`}>
+                        <Rss className="h-5 w-5" />
                     </button>
                     <button onClick={() => { setIsAdding(!isAdding); setEditingItem(null); if (!isAdding) resetForm(); }}
-                        className="flex h-11 w-11 items-center justify-center border transition-all"
+                        className="flex h-11 w-11 items-center justify-center border transition-all bg-[#080808]"
                         style={{ borderColor: profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)', color: profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)' }}>
-                        <Plus className={`h-4 w-4 transition-transform ${isAdding ? 'rotate-45' : ''}`} />
+                        <Plus className={`h-5 w-5 transition-transform ${isAdding ? 'rotate-45' : ''}`} />
                     </button>
                 </div>
             </div>

@@ -27,8 +27,8 @@
   --color-border-subtle: rgba(172, 135, 143, 0.1);
 
   --spacing: 0.25rem;
-  --font-sans: "Space Grotesk", sans-serif;
-  --font-mono: "Space Grotesk", monospace;
+  --font-sans: var(--font-space-grotesk), "Space Grotesk", sans-serif;
+  --font-mono: var(--font-space-grotesk), "Space Grotesk", monospace;
 
   /* High-Tech Brutalism Signature */
   --color-geometric-accent: var(--color-user-a);
@@ -58,6 +58,11 @@ body {
   overflow-x: hidden;
 }
 
+/* High-tech Brutalism Global Override */
+* {
+  border-radius: 0px !important;
+}
+
 /* Geometric UI Signature Classes */
 .geometric-card {
   background: var(--color-surface-dim);
@@ -68,9 +73,10 @@ body {
 }
 
 .bg-mosaic {
-  background-size: 32px 32px;
-  background-image: linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-image: linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 20px 20px;
+  background-attachment: fixed;
 }
 
 .bg-dot-matrix {
@@ -191,10 +197,42 @@ button, input, select {
 
 .savings-chunk-filled {
   background: var(--color-user-b);
+  border-color: var(--color-user-b);
+  box-shadow: 0 0 4px var(--color-user-b);
 }
 
 .savings-chunk-filled.overflow {
   background: var(--color-user-a);
+  border-color: var(--color-user-a);
+  box-shadow: 0 0 4px var(--color-user-a);
+}
+
+/* Brutalist Utilities */
+.brutal-border {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.brutal-border-active {
+  border: 1px solid var(--color-user-b);
+}
+
+.chunked-progress {
+  display: flex;
+  gap: 2px;
+  width: 100%;
+  height: 12px;
+}
+
+.chunk {
+  flex: 1;
+  background-color: var(--color-surface-container);
+  border: 1px solid var(--color-surface-bright);
+}
+
+.chunk.filled {
+  background-color: var(--color-user-b);
+  border-color: var(--color-user-b);
+  box-shadow: 0 0 4px var(--color-user-b);
 }
 
 @keyframes savings-pulse {
@@ -277,6 +315,13 @@ button, input, select {
 .state-ready { border-color: rgba(0, 219, 233, 0.4); color: #00dbe9; }
 .state-completed { border-color: rgba(161, 120, 255, 0.4); color: #a178ff; }
 .state-archived { border-color: rgba(255, 255, 255, 0.15); color: rgba(255, 255, 255, 0.3); }
+
+/* State Background Utilities (Lateral Indicators) */
+.state-discovered-bg { background-color: #ffb595 !important; }
+.state-saving-bg { background-color: var(--color-user-b) !important; }
+.state-ready-bg { background-color: #00dbe9 !important; }
+.state-completed-bg { background-color: var(--color-user-c) !important; }
+.state-archived-bg { background-color: rgba(255, 255, 255, 0.3) !important; }
 
 /* Category pills */
 .category-pill {

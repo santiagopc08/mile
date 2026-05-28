@@ -213,23 +213,28 @@ function LocationLists({ locations, onSelect, onDelete, onToggle }: {
   onDelete: (id: string) => void,
   onToggle: (id: string, status: string) => void
 }) {
+  const toVisitList = locations.filter(l => l.status === 'to-visit');
+  const visitedList = locations.filter(l => l.status === 'visited');
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
       <div className="space-y-4">
         <h4 className="mb-2 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.24em] text-[#a88a7e]">
           <Circle className="h-3 w-3 text-[#00dbe9]" /> Próximos Destinos
         </h4>
-        <div className="space-y-2 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
-          {locations.filter(l => l.status === 'to-visit').map(loc => (
-            <LocationListItem
-              key={loc.id}
-              loc={loc}
-              onSelect={() => onSelect(loc.id)}
-              onDelete={() => onDelete(loc.id)}
-              onToggle={() => onToggle(loc.id, loc.status)}
-            />
-          ))}
-          {locations.filter(l => l.status === 'to-visit').length === 0 && (
+        <div className="max-h-[450px] overflow-y-auto custom-scrollbar pr-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {toVisitList.map(loc => (
+              <LocationListItem
+                key={loc.id}
+                loc={loc}
+                onSelect={() => onSelect(loc.id)}
+                onDelete={() => onDelete(loc.id)}
+                onToggle={() => onToggle(loc.id, loc.status)}
+              />
+            ))}
+          </div>
+          {toVisitList.length === 0 && (
             <p className="border border-dashed border-white/10 p-4 text-center text-[8px] uppercase italic tracking-[0.2em] text-white/25">No hay planes pendientes</p>
           )}
         </div>
@@ -239,17 +244,19 @@ function LocationLists({ locations, onSelect, onDelete, onToggle }: {
         <h4 className="mb-2 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.24em] text-[#a88a7e]">
           <CheckCircle className="h-3 w-3 text-[#a100f0]" /> Memorias Visitadas
         </h4>
-        <div className="space-y-2 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
-          {locations.filter(l => l.status === 'visited').map(loc => (
-            <LocationListItem
-              key={loc.id}
-              loc={loc}
-              onSelect={() => onSelect(loc.id)}
-              onDelete={() => onDelete(loc.id)}
-              onToggle={() => onToggle(loc.id, loc.status)}
-            />
-          ))}
-          {locations.filter(l => l.status === 'visited').length === 0 && (
+        <div className="max-h-[450px] overflow-y-auto custom-scrollbar pr-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {visitedList.map(loc => (
+              <LocationListItem
+                key={loc.id}
+                loc={loc}
+                onSelect={() => onSelect(loc.id)}
+                onDelete={() => onDelete(loc.id)}
+                onToggle={() => onToggle(loc.id, loc.status)}
+              />
+            ))}
+          </div>
+          {visitedList.length === 0 && (
             <p className="border border-dashed border-white/10 p-4 text-center text-[8px] uppercase italic tracking-[0.2em] text-white/25">Aún no hay memorias</p>
           )}
         </div>
