@@ -297,7 +297,7 @@ function PetSelector({ pets, activeId, onSelect }: { pets: Pet[]; activeId: stri
           </div>
           <div className="flex flex-col items-start">
             <span className="font-black">{p.name}</span>
-            <span className="text-[8px] opacity-50">MOD_{String(i + 1).padStart(2, '0')}</span>
+            <span className="text-[8px] opacity-50">BEBÉ_{String(i + 1).padStart(2, '0')}</span>
           </div>
           {p.id === activeId && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-profile-accent" />}
         </button>
@@ -367,8 +367,8 @@ function HabitatModule({
       {/* Header */}
       <div className="flex items-center justify-between mb-5 pb-3 border-b border-white/10">
         <div>
-          <h3 className="text-sm font-black uppercase tracking-[0.15em] text-white font-sans">HAB_MODULE_A</h3>
-          <p className="text-[9px] uppercase tracking-[0.2em] text-[#a88a7e] font-mono mt-1">SUBJECT: {pet.name}</p>
+          <h3 className="text-sm font-black uppercase tracking-[0.15em] text-white font-sans">Espacio de Vida</h3>
+          <p className="text-[9px] uppercase tracking-[0.2em] text-[#a88a7e] font-mono mt-1">BEBÉ: {pet.name}</p>
         </div>
         <span className="border border-profile-accent/40 bg-profile-accent/10 px-2 py-1 text-[8px] font-bold uppercase tracking-[0.2em] text-profile-accent">
           ● STABLE
@@ -452,7 +452,7 @@ function HabitatModule({
       {/* Vitals */}
       <div className="grid grid-cols-2 gap-4 mb-5">
         <div className="border border-white/10 bg-black/40 p-3">
-          <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-[#a88a7e] font-mono">O2_LEVEL</span>
+          <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-[#a88a7e] font-mono">Nivel de Alegría</span>
           <div className="flex items-baseline gap-1 mt-1">
             <span className="text-2xl font-black text-white font-sans">{pet.o2}</span>
             <span className="text-xs font-mono" style={{ color: 'var(--color-profile-accent)' }}>%</span>
@@ -462,7 +462,7 @@ function HabitatModule({
           </div>
         </div>
         <div className="border border-white/10 bg-black/40 p-3">
-          <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-[#a88a7e] font-mono">TEMP_CORE</span>
+          <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-[#a88a7e] font-mono">Calor de Hogar</span>
           <div className="flex items-baseline gap-1 mt-1">
             <span className="text-2xl font-black text-white font-sans">{pet.temp}</span>
             <span className="text-xs font-mono" style={{ color: 'var(--color-profile-accent)' }}>°C</span>
@@ -478,14 +478,14 @@ function HabitatModule({
         <div className="flex items-center gap-2 border border-white/10 px-3 py-2 flex-1">
           <Calendar size={12} className="text-[#a88a7e]" />
           <div>
-            <span className="text-[7px] uppercase tracking-[0.2em] text-[#594137] font-mono block">LOG_ENTRY_DATE</span>
+            <span className="text-[7px] uppercase tracking-[0.2em] text-[#594137] font-mono block">Fecha Especial</span>
             <span className="text-[10px] font-bold text-white font-mono">{pet.birthDate}</span>
           </div>
         </div>
         <div className="flex items-center gap-2 border border-white/10 px-3 py-2 flex-1">
           <span className="text-sm">{pet.gender}</span>
           <div>
-            <span className="text-[7px] uppercase tracking-[0.2em] text-[#594137] font-mono block">DESIGNATION</span>
+            <span className="text-[7px] uppercase tracking-[0.2em] text-[#594137] font-mono block">Identidad</span>
             <span className="text-[10px] font-bold text-white font-mono">{pet.designation}</span>
           </div>
           <button className="ml-auto text-[#a88a7e] hover:text-profile-accent transition-colors" style={{ '--tw-hover-text-opacity': 1 } as any}><Edit2 size={12} /></button>
@@ -584,12 +584,12 @@ function SystemLog({ pet }: { pet: Pet }) {
 
   return (
     <div className="geometric-card relative p-4 font-mono text-[9px] leading-relaxed text-[#594137] max-h-44 overflow-y-auto custom-scrollbar">
-      <div className="mb-2 text-[8px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">SYS_LOG</div>
-      <div><span className="text-profile-accent">&gt;&gt;</span> HAB_MODULE_A</div>
-      <div className="ml-4 text-[#a88a7e]"><span className="text-[#594137]">14:02:45</span> routine check completed. Optimal conditions.</div>
-      <div className="mt-2"><span className="text-profile-accent">&gt;&gt;</span> STASIS_CHAMBER_B</div>
-      <div className="ml-4 text-[#a88a7e]"><span className="text-[#594137]">12:15:00</span> auto-regulation engaged.</div>
-      <div className="mt-2 text-[#594137]">&gt;&gt; Awaiting input{dots}</div>
+      <div className="mb-2 text-[8px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Diario de Cuidados</div>
+      <div><span className="text-profile-accent">●</span> Espacio de Vida</div>
+      <div className="ml-4 text-[#a88a7e]"><span className="text-[#594137]">14:02:45</span> Dosis de mimos completada. ¡Mucha felicidad!</div>
+      <div className="mt-2"><span className="text-profile-accent">●</span> Cama de Descanso</div>
+      <div className="ml-4 text-[#a88a7e]"><span className="text-[#594137]">12:15:00</span> Descansando plácidamente.</div>
+      <div className="mt-2 text-[#594137]">Esperando la hora de jugar{dots}</div>
     </div>
   );
 }
@@ -700,12 +700,12 @@ export function PetSpaceHub() {
     <div className="space-y-6 font-mono">
       {/* Header */}
       <div className="flex flex-wrap items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">
-        <span className="text-[#594137]">SYS_DIR // 04</span>
-        <h2 className="text-2xl font-black uppercase tracking-[0.08em] text-white font-sans">BIO_MODULES</h2>
+        <span className="text-[#594137]">Nuestro Refugio</span>
+        <h2 className="text-2xl font-black uppercase tracking-[0.08em] text-white font-sans">Los Consentidos</h2>
         <span className="ml-auto flex items-center gap-2">
           STATUS: <span style={{ color: accentColor }}>ONLINE</span>
         </span>
-        <span className="text-[#594137]">UNITS: {String(PETS.length).padStart(2, '0')}</span>
+        <span className="text-[#594137]">Bebés: {String(PETS.length).padStart(2, '0')}</span>
       </div>
 
       {/* Pet Selector */}

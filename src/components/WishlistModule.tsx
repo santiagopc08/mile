@@ -12,6 +12,7 @@ import { GOAL_CATEGORIES } from './planes/constants';
 import { SavingsOverview } from './planes/SavingsOverview';
 import { WishlistCard } from './planes/WishlistCard';
 import { ActivityFeed } from './planes/ActivityFeed';
+import { LiveLinkPreview } from './LiveLinkPreview';
 
 type StateFilter = WishlistState | 'ALL';
 
@@ -390,6 +391,7 @@ export function WishlistModule() {
                                         </label>
                                         <input value={fLocationUrl} onChange={e => setFLocationUrl(e.target.value)} placeholder="Enlace de Google Maps..."
                                             className="w-full border border-white/10 bg-[#050505] px-4 py-3 text-xs tracking-normal text-white outline-none placeholder:text-white/20 focus:border-[#00dbe9]" />
+                                        <LiveLinkPreview url={fLocationUrl} label="Mapa Detectado" />
                                     </div>
                                     <div className="space-y-2">
                                         <label className="ml-1 flex items-center gap-2 text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">
@@ -397,6 +399,7 @@ export function WishlistModule() {
                                         </label>
                                         <input value={fDetailLink} onChange={e => setFDetailLink(e.target.value)} placeholder="Enlace de tienda, página web, etc..."
                                             className="w-full border border-white/10 bg-[#050505] px-4 py-3 text-xs tracking-normal text-white outline-none placeholder:text-white/20 focus:border-[#00dbe9]" />
+                                        <LiveLinkPreview url={fDetailLink} label="Enlace Detectado" />
                                     </div>
                                 </div>
 

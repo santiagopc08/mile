@@ -1,7 +1,8 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
 import type { AppData } from '@/services/storeService';
+import { supabase } from '@/lib/supabase';
 
 interface StoreContextType {
     data: AppData | null;
@@ -15,6 +16,7 @@ const StoreContext = createContext<StoreContextType | undefined>(undefined);
 export function StoreProvider({ children }: { children: ReactNode }) {
     const [data, setData] = useState<AppData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const fetchData = async () => {
         try {
@@ -65,6 +67,27 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         fetchData();
+        
+        const handleDbChange = () => {
+            if (fetchTimeoutRef.current) clearTimeout(fetchTimeoutRef.current);
+            fetchTimeoutRef.current = setTimeout(() => {
+                fetchData();
+            }, 600);
+        };
+
+        const channel = supabase.channel('global-store-changes')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, handleDbChange)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'wishlist' }, handleDbChange)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'wishlist_contributions' }, handleDbChange)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'wishlist_reactions' }, handleDbChange)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'objectives' }, handleDbChange)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'allocations' }, handleDbChange)
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+            if (fetchTimeoutRef.current) clearTimeout(fetchTimeoutRef.current);
+        };
     }, []);
 
     return (

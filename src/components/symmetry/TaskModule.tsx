@@ -6,6 +6,7 @@ import { Plus, Trash2, Check, Pencil, X, ChevronDown, Sparkles, Clock, Target } 
 import { useStore } from '@/context/StoreContext';
 import { useProfile } from '@/context/ProfileContext';
 import { StoreService, type ChecklistItem } from '@/services/storeService';
+import { LiveLinkPreview } from '@/components/LiveLinkPreview';
 
 interface Task {
   id: string;
@@ -351,7 +352,7 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
               className="space-y-4 overflow-hidden border-t border-white/10 pt-4"
             >
               <div className="flex items-center justify-between">
-                <span className={`text-[10px] font-mono text-${accentClass} tracking-[0.2em]`}>[ NEW_OPERATION_SHEET ]</span>
+                <span className={`text-[10px] font-mono text-${accentClass} tracking-[0.2em]`}>NUEVA TAREA</span>
                 <button onClick={() => setIsTaskFormOpen(false)} className="text-stone-500 hover:text-white transition-colors">
                   <X size={14} />
                 </button>
@@ -461,6 +462,11 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
                         placeholder="Información adicional o contexto..."
                         className="min-h-[60px] resize-none border border-white/10 bg-black px-3 py-2 text-[10px] text-white outline-none placeholder:text-[#594137]"
                       />
+                      {newDetail.match(/https?:\/\/[^\s]+/) && (
+                        <div className="pt-2">
+                          <LiveLinkPreview url={newDetail.match(/https?:\/\/[^\s]+/)![0]} label="ENLACE DETECTADO" />
+                        </div>
+                      )}
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -591,15 +597,23 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
                         <div className="space-y-2">
                           <input value={editTaskText} onChange={e => setEditTaskText(e.target.value)} className={`w-full bg-black border border-white/20 px-2 py-1.5 text-[11px] text-white outline-none focus:border-${accentClass}`} />
                           <div className="flex gap-1 flex-wrap">
-                            <select value={editTaskCategory} onChange={e => setEditTaskCategory(e.target.value as any)} className="flex-1 min-w-0 bg-black border border-white/20 px-1 py-1 text-[9px] uppercase text-stone-300 outline-none"><option value="work">WORK</option><option value="home">HOME</option><option value="personal">PERSONAL</option></select>
-                            <select value={editPriority} onChange={e => setEditPriority(e.target.value as any)} className="flex-1 min-w-0 bg-black border border-white/20 px-1 py-1 text-[9px] uppercase text-stone-300 outline-none"><option value="low">LOW</option><option value="medium">MED</option><option value="high">HIGH</option></select>
+                            <select value={editTaskCategory} onChange={e => setEditTaskCategory(e.target.value as any)} className="flex-1 min-w-0 bg-black border border-white/20 px-1 py-1 text-[9px] uppercase text-stone-300 outline-none"><option value="work">TRABAJO</option><option value="home">HOGAR</option><option value="personal">PERSONAL</option></select>
+                            <select value={editPriority} onChange={e => setEditPriority(e.target.value as any)} className="flex-1 min-w-0 bg-black border border-white/20 px-1 py-1 text-[9px] uppercase text-stone-300 outline-none"><option value="low">BAJA</option><option value="medium">MEDIA</option><option value="high">ALTA</option></select>
                             <select value={editTaskAssignee} onChange={e => setEditTaskAssignee(e.target.value as any)} className="flex-1 min-w-0 bg-black border border-white/20 px-1 py-1 text-[9px] uppercase text-stone-300 outline-none"><option value="ella">Mile</option><option value="el">Santi</option></select>
                           </div>
                           <div className="grid grid-cols-2 gap-1">
                             <div><label className="text-[7px] uppercase font-bold text-stone-500 block">Est</label><input type="number" value={editEstimatedTime} onChange={e => setEditEstimatedTime(Number(e.target.value))} className="w-full bg-black border border-white/20 px-1 py-1 text-[10px] text-white outline-none" /></div>
                             <div><label className="text-[7px] uppercase font-bold text-stone-500 block">Act</label><input type="number" value={editActualTime} onChange={e => setEditActualTime(Number(e.target.value))} className="w-full bg-black border border-white/20 px-1 py-1 text-[10px] text-white outline-none" /></div>
                           </div>
-                          <div><label className="text-[7px] uppercase font-bold text-stone-500 block">Detalle</label><textarea value={editDetail} onChange={e => setEditDetail(e.target.value)} className="w-full bg-black border border-white/20 px-1 py-1 text-[9px] text-stone-300 outline-none min-h-[32px] resize-none" /></div>
+                          <div>
+                            <label className="text-[7px] uppercase font-bold text-stone-500 block">Detalle</label>
+                            <textarea value={editDetail} onChange={e => setEditDetail(e.target.value)} className="w-full bg-black border border-white/20 px-1 py-1 text-[9px] text-stone-300 outline-none min-h-[32px] resize-none" />
+                            {editDetail.match(/https?:\/\/[^\s]+/) && (
+                              <div className="pt-1">
+                                <LiveLinkPreview url={editDetail.match(/https?:\/\/[^\s]+/)![0]} label="ENLACE DETECTADO" />
+                              </div>
+                            )}
+                          </div>
                           <div className="flex gap-1 pt-1">
                             <button onClick={() => setEditingTaskId(null)} className="flex-1 py-1 border border-white/20 text-[8px] text-stone-400 hover:text-red-500 hover:border-red-500 transition-colors">✕</button>
                             <button onClick={handleEditSave} className={`flex-1 py-1 border border-${accentClass} bg-${accentClass}/10 text-${accentClass} text-[8px] hover:bg-${accentClass} hover:text-black transition-colors`}>✓</button>

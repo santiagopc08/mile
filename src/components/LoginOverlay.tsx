@@ -180,7 +180,7 @@ export function LoginOverlay({ onLoginSuccess }: LoginOverlayProps) {
                         </div>
 
                         <div className="mb-2 text-[8px] font-bold uppercase tracking-[0.25em] text-white/40">
-                            [ SELECCIÓN DE IDENTIDAD ]
+                            SELECCIÓN DE IDENTIDAD
                         </div>
                         <h1
                             className="mb-1 text-2xl font-black uppercase leading-none tracking-tight text-white transition-colors duration-700"
@@ -264,7 +264,7 @@ export function LoginOverlay({ onLoginSuccess }: LoginOverlayProps) {
                                     className="flex w-full items-center justify-center py-2 text-[8px] font-bold uppercase tracking-[0.2em] text-white/30 transition-colors hover:text-white"
                                 >
                                     <ChevronLeft className="w-3.5 h-3.5 mr-1" />
-                                    [ Elegir otro perfil ]
+                                    Elegir otro perfil
                                 </button>
                             </div>
                         )}

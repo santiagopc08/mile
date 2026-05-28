@@ -5,6 +5,8 @@ import { useEffect, useState } from 'react';
 import type { CSSProperties, FormEvent } from 'react';
 import { useStore } from '@/context/StoreContext';
 import { useProfile } from '@/context/ProfileContext';
+import { LiveLinkPreview } from './LiveLinkPreview';
+import { AnimatedBrutalistCorners } from '@/components/ui/AnimatedBrutalistCorners';
 
 interface TrackComment {
     id: string;
@@ -69,7 +71,7 @@ const getSpotifyEmbedUrl = (url: string): string | null => {
 const getSpotifyUrl = (track: AudioTrack | undefined) => track?.spotifyUrl || track?.spotify_url || '';
 const accentRingStyle = (accentColor: string) => ({ '--tw-ring-color': accentColor }) as CSSProperties;
 
-function SpotifyEmbed({ url }: { url: string }) {
+function SpotifyEmbed({ url, track }: { url: string, track?: AudioTrack }) {
     const [resolvedUrl, setResolvedUrl] = useState<string | null>(() => getSpotifyEmbedUrl(url));
     const [isResolving, setIsResolving] = useState(false);
     const [failed, setFailed] = useState(false);
@@ -124,15 +126,32 @@ function SpotifyEmbed({ url }: { url: string }) {
 
     if (!resolvedUrl || failed) {
         return (
-            <a
-                href={normalizeUrlInput(url)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex h-[152px] w-full flex-col items-center justify-center gap-3 border border-white/10 bg-black p-8 text-center text-[#a88a7e] transition-colors hover:border-user-b hover:text-user-b"
-            >
-                <ExternalLink className="h-5 w-5" />
-                <span className="text-[10px] font-black uppercase tracking-[0.2em]">Abrir en Spotify</span>
-            </a>
+            <div className="flex flex-col justify-center border border-white/10 bg-black p-6 w-full h-[152px]">
+                <div className="flex items-center gap-4">
+                    <div className="flex h-12 w-12 items-center justify-center bg-white/5 text-[#a88a7e] border border-white/10">
+                        <Music className="w-6 h-6" />
+                    </div>
+                    <div className="flex-1 min-w-0 text-left">
+                        <p className="truncate text-sm font-bold uppercase tracking-normal text-white">
+                            {track?.title || 'Sin Título'}
+                        </p>
+                        <p className="truncate font-mono text-[10px] uppercase text-[#a88a7e]">
+                            {track?.artist || 'Artista Desconocido'}
+                        </p>
+                    </div>
+                    {url && (
+                        <a
+                            href={normalizeUrlInput(url)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 border border-white/10 bg-white/5 px-4 py-2 text-[#a88a7e] transition-colors hover:border-white/40 hover:text-white"
+                        >
+                            <span className="text-[9px] font-bold uppercase tracking-[0.2em]">Escuchar</span>
+                            <ExternalLink className="h-3 w-3" />
+                        </a>
+                    )}
+                </div>
+            </div>
         );
     }
 
@@ -250,6 +269,7 @@ export function AudioSection() {
                             <input value={newTitle} onChange={e => setNewTitle(e.target.value)} required placeholder="Título" className={`w-full border border-white/10 bg-black px-3 py-2 text-sm tracking-normal text-white outline-none transition-colors placeholder:text-[#594137] focus:border-${accentClass}`} style={accentRingStyle(accentColor)} />
                             <input value={newArtist} onChange={e => setNewArtist(e.target.value)} placeholder="Artista" className={`w-full border border-white/10 bg-black px-3 py-2 text-sm tracking-normal text-white outline-none transition-colors placeholder:text-[#594137] focus:border-${accentClass}`} style={accentRingStyle(accentColor)} />
                             <input value={newUrl} onChange={e => setNewUrl(e.target.value)} required placeholder="URL Spotify" className={`w-full border border-white/10 bg-black px-3 py-2 text-sm tracking-normal text-white outline-none transition-colors placeholder:text-[#594137] focus:border-${accentClass}`} style={accentRingStyle(accentColor)} />
+                            <LiveLinkPreview url={newUrl} label="Canción detectada" />
                             <button type="submit" disabled={!newTitle || !newUrl} className={`w-full bg-${accentClass} py-2 text-xs font-bold uppercase tracking-widest text-black transition-colors hover:opacity-80 disabled:opacity-50`} style={{ backgroundColor: accentColor }}>Guardar</button>
                         </form>
                     )}
@@ -288,16 +308,15 @@ export function AudioSection() {
 
                 {/* Player & Comments Area */}
                 <div className="lg:col-span-3">
-                    <div className="geometric-card relative flex min-h-[550px] flex-col border-white/10 bg-[#0a0a0a] p-6">
-                        {/* Background Decoration */}
-                        <div className={`pointer-events-none absolute right-0 top-0 h-16 w-16 border-b border-l border-${secondaryClass}/30 bg-dot-matrix opacity-50`} style={{ borderColor: `${secondaryColor}4d` }} />
+                    <div className="geometric-card relative flex min-h-[550px] flex-col border-white/10 bg-[#0a0a0a] p-6 overflow-hidden">
+                        <AnimatedBrutalistCorners color={secondaryColor} />
 
                         {currentTrack ? (
                             <>
                                 <div className="mb-6 z-10">
                                     {getSpotifyUrl(currentTrack) ? (
                                         <div className="border border-white/10 bg-black p-1">
-                                            <SpotifyEmbed url={getSpotifyUrl(currentTrack)} />
+                                            <SpotifyEmbed url={getSpotifyUrl(currentTrack)} track={currentTrack} />
                                         </div>
                                     ) : (
                                         <div className="w-full border border-white/10 bg-black p-8 text-center text-[#a88a7e]">
@@ -309,7 +328,7 @@ export function AudioSection() {
                                 <div className="flex-1 flex flex-col z-10">
                                     <h4 className="mb-6 flex items-center gap-2 border-b border-white/10 pb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">
                                         <MessageSquare className={`h-3 w-3 text-${secondaryClass}`} style={{ color: secondaryColor }} />
-                                        Contexto
+                                        Lo que me hace sentir esta canción
                                     </h4>
 
                                     <div className="flex-1 space-y-4 mb-6 max-h-[250px] overflow-y-auto pr-2 custom-scrollbar">

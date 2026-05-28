@@ -194,7 +194,7 @@ export const BloodPressureTracker = () => {
 
                 <h2 className="text-[10px] uppercase font-black tracking-[0.3em] mb-8 border-b border-white/5 pb-4 flex justify-between items-center text-user-a">
                     <span className="flex items-center gap-2">
-                        <Clipboard size={12} /> [ Registro de Presión Arterial ]
+                        <Clipboard size={12} /> Registro de Presión Arterial
                     </span>
                     <span className="text-[8px] opacity-40">ESTADO: ACTIVO</span>
                 </h2>

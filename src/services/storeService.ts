@@ -155,13 +155,14 @@ export interface AppData {
         date: string;
         author: string;
     }[];
+    allocations: Allocation[];
 }
 
 // Data Access Abstraction - Now using Supabase
 export const StoreService = {
     async getStore(supabase: SupabaseClient = defaultSupabase): Promise<AppData> {
         try {
-            const [eventsRes, notesRes, commitmentsRes, victoriesRes, settingsRes, playlistRes, commentsRes, listeningRes, tasksRes, wishlistRes, objectivesRes, contribRes, reactionsRes, activityRes, habitsRes] = await Promise.all([
+            const [eventsRes, notesRes, commitmentsRes, victoriesRes, settingsRes, playlistRes, commentsRes, listeningRes, tasksRes, wishlistRes, objectivesRes, contribRes, reactionsRes, activityRes, habitsRes, allocationsRes] = await Promise.all([
                 supabase.from('events').select('*').order('date', { ascending: false }),
                 supabase.from('notes').select('*').order('created_at', { ascending: false }),
                 supabase.from('commitments').select('*').order('created_at', { ascending: true }),
@@ -176,7 +177,8 @@ export const StoreService = {
                 supabase.from('wishlist_contributions').select('*').order('created_at', { ascending: false }),
                 supabase.from('wishlist_reactions').select('*'),
                 supabase.from('wishlist_activity').select('*').order('created_at', { ascending: false }).limit(50),
-                supabase.from('health_habits').select('*').order('created_at', { ascending: false })
+                supabase.from('health_habits').select('*').order('created_at', { ascending: false }),
+                supabase.from('allocations').select('*').order('created_at', { ascending: false })
             ]);
 
             const settings = settingsRes.data || { connection_date: new Date().toISOString(), last_update: new Date().toISOString() };
@@ -309,6 +311,14 @@ export const StoreService = {
                     reflection: l.reflection,
                     date: l.date,
                     author: l.author || 'el'
+                })),
+                allocations: (allocationsRes.data || []).map((a: any) => ({
+                    id: a.id,
+                    amount: a.amount,
+                    description: a.description,
+                    category: a.category,
+                    date: a.date,
+                    profile: a.profile
                 }))
             };
         } catch (error) {
@@ -402,6 +412,19 @@ export const StoreService = {
                     is_complete: o.is_complete || false,
                     last_active: o.last_active || new Date().toISOString(),
                     created_at: o.created_at || new Date().toISOString()
+                })));
+            }
+
+            // Allocations
+            if (newData.allocations !== undefined) {
+                await syncTable('allocations', newData.allocations.map(a => ({
+                    id: a.id,
+                    amount: a.amount,
+                    description: a.description,
+                    category: a.category,
+                    date: a.date,
+                    profile: (a as any).profile || 'el',
+                    created_at: new Date().toISOString()
                 })));
             }
 

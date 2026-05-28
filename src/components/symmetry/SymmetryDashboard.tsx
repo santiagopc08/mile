@@ -39,6 +39,12 @@ export const SymmetryDashboard = () => {
   const [dataB, setDataB] = useState({ academic: 75, fitness: 40, work: 90, home: 65, personal: 85 });
   const [allocationsA, setAllocationsA] = useState<any[]>([]);
   const [allocationsB, setAllocationsB] = useState<any[]>([]);
+  const storeAllocations = useMemo(() => data?.allocations || [], [data?.allocations]);
+
+  useEffect(() => {
+    setAllocationsA(storeAllocations.filter((a: any) => a.profile === 'el'));
+    setAllocationsB(storeAllocations.filter((a: any) => a.profile === 'ella'));
+  }, [storeAllocations]);
 
   useEffect(() => {
     const savedA = localStorage.getItem('symmetry_A_data');
@@ -46,14 +52,8 @@ export const SymmetryDashboard = () => {
     if (savedA) setDataA(JSON.parse(savedA));
     if (savedB) setDataB(JSON.parse(savedB));
 
-    const allocA = localStorage.getItem('symmetry_A_allocations') || localStorage.getItem('symmetry_A_expenses');
-    const allocB = localStorage.getItem('symmetry_B_allocations') || localStorage.getItem('symmetry_B_expenses');
-    if (allocA) setAllocationsA(JSON.parse(allocA));
-    if (allocB) setAllocationsB(JSON.parse(allocB));
-
     const fetchData = async () => {
       try {
-        // Data is now handled by StoreContext, but we can still perform initial fetch if needed
         await StoreService.getStore();
       } catch (e) {
         console.error("Failed to initialize store", e);
@@ -62,9 +62,8 @@ export const SymmetryDashboard = () => {
     fetchData();
   }, []);
 
-  // Sync allocations to localStorage
+  // Update fragmentation state
   useEffect(() => {
-    localStorage.setItem('symmetry_A_allocations', JSON.stringify(allocationsA));
     const total = allocationsA.reduce((sum, e) => sum + e.amount, 0);
     const miscTotal = allocationsA.filter(e => e.category === '🎲 Otros').reduce((sum, e) => sum + e.amount, 0);
     const miscPercent = total > 0 ? (miscTotal / total) * 100 : 0;
@@ -72,7 +71,6 @@ export const SymmetryDashboard = () => {
   }, [allocationsA, profile]);
 
   useEffect(() => {
-    localStorage.setItem('symmetry_B_allocations', JSON.stringify(allocationsB));
     const total = allocationsB.reduce((sum, e) => sum + e.amount, 0);
     const miscTotal = allocationsB.filter(e => e.category === '🎲 Otros').reduce((sum, e) => sum + e.amount, 0);
     const miscPercent = total > 0 ? (miscTotal / total) * 100 : 0;
@@ -112,6 +110,19 @@ export const SymmetryDashboard = () => {
   const handleTasksUpdate = useCallback((score: number) => {
     setFocusScore(score);
   }, []);
+
+  const { updateData } = useStore();
+  const handleAllocationsChange = (newAllocations: any[]) => {
+    // Determine which profile is making the change
+    const profileUpdating = profile;
+    const otherProfileAllocations = storeAllocations.filter((a: any) => a.profile !== profileUpdating);
+    
+    // Assign profile to new allocations
+    const newWithProfile = newAllocations.map(a => ({ ...a, profile: profileUpdating }));
+    
+    // Sync to store
+    updateData({ allocations: [...otherProfileAllocations, ...newWithProfile] });
+  };
 
   const [activeTab, setActiveTab] = useState<'tasks' | 'finances'>('tasks');
   const activeAccent = profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)';
@@ -248,8 +259,8 @@ export const SymmetryDashboard = () => {
                 <ShieldCheck size={120} style={{ color: accentColorValue }} />
               </div>
               <h2 className="mb-8 flex items-center justify-between border-b border-white/5 pb-4 text-[10px] font-black uppercase tracking-[0.22em] relative z-10" style={{ color: accentColorValue }}>
-                <span>{'>'} NUESTRAS TAREAS Y OBJETIVOS</span>
-                <span className="hidden text-[8px] opacity-50 sm:inline">[ CONECTADO ] EN LÍNEA</span>
+                <span>NUESTRAS TAREAS Y OBJETIVOS</span>
+                <span className="hidden text-[8px] opacity-50 sm:inline">CONECTADOS // EN LÍNEA</span>
               </h2>
               <TaskModule onTasksUpdate={handleTasksUpdate} />
             </div>
@@ -262,7 +273,7 @@ export const SymmetryDashboard = () => {
               </div>
               <h2 className="mb-8 flex items-center gap-2 border-b border-white/5 pb-4 text-[10px] font-black uppercase tracking-[0.22em] text-[#00dbe9] relative z-10">
                 <div className="w-1.5 h-1.5 bg-user-c" style={{ boxShadow: '0 0 5px var(--color-user-c)' }} />
-                [ / ] RESUMEN DE NUESTRO PROGRESO
+                RESUMEN DE NUESTRO PROGRESO
               </h2>
               <TaskAnalytics tasks={tasks} objectives={objectives} />
             </div>
@@ -275,7 +286,7 @@ export const SymmetryDashboard = () => {
               </div>
               <h2 className="mb-8 flex items-center gap-2 border-b border-white/5 pb-4 text-[10px] font-black uppercase tracking-[0.22em] relative z-10" style={{ color: accentColorValue }}>
                 <div className="w-1.5 h-1.5 bg-user-c animate-pulse" style={{ boxShadow: `0 0 5px ${accentColorValue}` }} />
-                [ LIVE ] BITÁCORA DE ACTIVIDAD COMPARTIDA
+                BITÁCORA DE ACTIVIDAD COMPARTIDA
               </h2>
               <NotificationsFeed />
             </div>
@@ -316,19 +327,19 @@ export const SymmetryDashboard = () => {
                   <WalletCards size={120} style={{ color: accentColorValue }} />
                 </div>
                 <h2 className="mb-6 flex items-center justify-between border-b border-white/5 pb-3 text-[10px] font-black uppercase tracking-[0.22em] relative z-10" style={{ color: accentColorValue }}>
-                  <span>[ / ] NUESTRAS FINANZAS</span>
+                  <span>NUESTRAS FINANZAS</span>
                   <span className="text-[8px] opacity-50">HISTORIAL DE MOVIMIENTOS</span>
                 </h2>
                 <DualWallet
                   allocations={profile === 'el' ? allocationsA : allocationsB}
-                  onAllocationsChange={profile === 'el' ? setAllocationsA : setAllocationsB}
+                  onAllocationsChange={handleAllocationsChange}
                 />
               </div>
               <div className="geometric-card relative border-white/10 bg-[#0a0a0a] p-6 sm:p-8 overflow-hidden">
                 <AnimatedBrutalistCorners color="var(--color-user-a)" />
                 <h2 className="mb-8 flex items-center gap-2 border-b border-white/10 pb-3 text-[10px] font-black uppercase tracking-[0.22em] text-[#a88a7e]">
                   <div className="w-1.5 h-1.5 bg-user-a" style={{ boxShadow: '0 0 5px var(--color-user-a)' }} />
-                  {'>'} DISTRIBUCIÓN DE NUESTRO GASTO
+                  DISTRIBUCIÓN DE NUESTRO GASTO
                 </h2>
                 <div className="h-64">
                   <FinanceChart

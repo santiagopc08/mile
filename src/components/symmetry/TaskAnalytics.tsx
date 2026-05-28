@@ -62,7 +62,7 @@ export const TaskAnalytics = ({ tasks, objectives }: { tasks: Task[], objectives
       <div className="relative flex min-h-[100px] flex-col justify-between border border-white/10 bg-black/40 p-4">
         <div className={`absolute left-0 top-0 h-1.5 w-1.5 border-l border-t border-${accentClass}`} style={{ borderColor: accentColor }} />
         <div className="flex justify-between items-start">
-          <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">{'>'} 01. TIME_INV</span>
+          <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">01. TIEMPO INVERTIDO</span>
           <Clock size={12} className={`text-${accentClass}`} style={{ color: accentColor }} />
         </div>
         <div className="mt-4">
@@ -75,7 +75,7 @@ export const TaskAnalytics = ({ tasks, objectives }: { tasks: Task[], objectives
       <div className="relative flex min-h-[100px] flex-col justify-between border border-white/10 bg-black/40 p-4">
         <div className={`absolute right-0 top-0 h-1.5 w-1.5 border-r border-t border-${accentClass}`} style={{ borderColor: accentColor }} />
         <div className="flex justify-between items-start">
-          <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">{'>'} 02. SYS_PERF</span>
+          <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">02. EFICIENCIA</span>
           <TrendingUp size={12} className={`text-${accentClass}`} style={{ color: accentColor }} />
         </div>
         <div className="mt-4 flex flex-col gap-2">
@@ -83,7 +83,7 @@ export const TaskAnalytics = ({ tasks, objectives }: { tasks: Task[], objectives
             <span className={`text-3xl font-black tabular-nums tracking-tighter ${stats.efficiency > 1 ? 'text-red-500' : 'text-white'}`}>
               {(stats.efficiency * 100).toFixed(0)}%
             </span>
-            <span className="pb-1.5 text-[8px] tracking-widest text-[#a88a7e]">{stats.efficiency > 1 ? '[ OVERLOAD ]' : '[ OPTIMAL ]'}</span>
+            <span className="pb-1.5 text-[8px] tracking-widest text-[#a88a7e]">{stats.efficiency > 1 ? 'SOBRECARGA' : 'ÓPTIMO'}</span>
           </div>
           <div className="h-1 w-full border border-white/10 bg-[#050505]">
             <div
@@ -101,14 +101,14 @@ export const TaskAnalytics = ({ tasks, objectives }: { tasks: Task[], objectives
       <div className="relative flex min-h-[100px] flex-col justify-between border border-white/10 bg-black/40 p-4">
         <div className={`absolute bottom-0 left-0 h-1.5 w-1.5 border-b border-l border-${accentClass}`} style={{ borderColor: accentColor }} />
         <div className="flex justify-between items-start">
-          <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">{'>'} MAX_NODE</span>
+          <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">MAYOR TIEMPO</span>
           <Zap size={12} className={`text-${accentClass}`} style={{ color: accentColor }} />
         </div>
         <div className="mt-4 overflow-hidden">
           <p className="text-[12px] uppercase font-bold truncate text-white" title={stats.mostWorked?.text}>
             {stats.mostWorked?.text || '---'}
           </p>
-          <p className="mt-1 font-mono text-[8px] tracking-widest text-[#a88a7e]">{stats.mostWorked?.actual_time || 0}M SYNCED</p>
+          <p className="mt-1 font-mono text-[8px] tracking-widest text-[#a88a7e]">{stats.mostWorked?.actual_time || 0} MINUTOS</p>
         </div>
       </div>
 
@@ -116,29 +116,30 @@ export const TaskAnalytics = ({ tasks, objectives }: { tasks: Task[], objectives
       <div className="relative flex min-h-[100px] flex-col justify-between border border-white/10 bg-black/40 p-4">
         <div className={`absolute bottom-0 right-0 h-1.5 w-1.5 border-b border-r border-${accentClass}`} style={{ borderColor: accentColor }} />
         <div className="flex justify-between items-start">
-          <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">{'>'} MIN_NODE</span>
+          <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">MENOR TIEMPO</span>
           <Target size={12} className={`text-${accentClass}`} style={{ color: accentColor }} />
         </div>
         <div className="mt-4 overflow-hidden">
           <p className="text-[12px] uppercase font-bold truncate text-white" title={stats.leastWorked?.text}>
             {stats.leastWorked?.text || '---'}
           </p>
-          <p className="mt-1 font-mono text-[8px] tracking-widest text-[#a88a7e]">{stats.leastWorked?.actual_time || 0}M SYNCED</p>
+          <p className="mt-1 font-mono text-[8px] tracking-widest text-[#a88a7e]">{stats.leastWorked?.actual_time || 0} MINUTOS</p>
         </div>
       </div>
 
       {/* Category Distribution */}
       <div className="relative mt-4 border border-white/10 bg-black/40 p-6 md:col-span-2 lg:col-span-4">
         <div className={`absolute left-0 top-0 h-2 w-2 border-l border-t border-${accentClass}`} style={{ borderColor: accentColor }} />
-        <span className="mb-6 block text-[10px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">{'>'} 03. CAT_DISTRIBUTION</span>
+        <span className="mb-6 block text-[10px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">03. DISTRIBUCIÓN POR CATEGORÍAS</span>
         <div className="flex flex-col gap-3">
           {stats.catStats.map(cat => {
             const percent = stats.totalActual > 0 ? (cat.time / stats.totalActual) * 100 : 0;
+            const translatedName = cat.name === 'work' ? 'TRABAJO' : cat.name === 'home' ? 'HOGAR' : cat.name === 'personal' ? 'PERSONAL' : cat.name;
             return (
               <div key={cat.name} className="space-y-1.5">
                 <div className="flex justify-between text-[9px] font-bold uppercase tracking-widest text-[#e1bfb2]">
-                  <span>{cat.name}</span>
-                  <span className="text-[#a88a7e]">{cat.time}M ({percent.toFixed(1)}%)</span>
+                  <span>{translatedName}</span>
+                  <span className="text-[#a88a7e]">{cat.time} Minutos ({percent.toFixed(1)}%)</span>
                 </div>
                 <div className="h-1 w-full border border-white/10 bg-[#050505]">
                   <motion.div
@@ -157,7 +158,7 @@ export const TaskAnalytics = ({ tasks, objectives }: { tasks: Task[], objectives
       {/* Weekly Stats Chart */}
       <div className="relative mt-4 border border-white/10 bg-black/40 p-6 md:col-span-2 lg:col-span-4 h-64">
         <div className={`absolute right-0 bottom-0 h-2 w-2 border-r border-b border-${accentClass}`} style={{ borderColor: accentColor }} />
-        <span className="mb-6 block text-[10px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">{'>'} 04. WEEKLY_PERFORMANCE</span>
+        <span className="mb-6 block text-[10px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">04. RENDIMIENTO SEMANAL</span>
         <TaskStatsChart tasks={tasks} objectives={objectives} />
       </div>
     </div>

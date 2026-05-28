@@ -222,10 +222,10 @@ export const BiometricVault = () => {
         }
 
         if (engineStats.currentPhase === 'Lútea' && engineStats.frequentSymptoms.includes('Ansiedad')) {
-            base += " [ALERTA DE TENDENCIA]: Ansiedad probable. Maximizar entorno de baja fricción.";
+            base += " - Alerta de Tendencia: Ansiedad probable. Maximizar entorno de baja fricción.";
         }
         if (engineStats.frequentSymptoms.includes('Cólicos') && (engineStats.currentPhase === 'Lútea' || engineStats.currentPhase === 'Menstrual')) {
-            base += " [ALERTA DE TENDENCIA]: Probabilidad Alta de Cólicos. Sugerencia: Tener analgésicos o infusiones a mano.";
+            base += " - Alerta de Tendencia: Probabilidad Alta de Cólicos. Sugerencia: Tener analgésicos o infusiones a mano.";
         }
 
         return base;

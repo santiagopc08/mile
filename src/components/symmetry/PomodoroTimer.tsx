@@ -451,7 +451,7 @@ export function PomodoroTimer() {
                                     onClick={isRunning ? handlePause : handleStart}
                                     className={`flex h-20 items-center justify-center gap-3 border px-12 text-[12px] font-black uppercase tracking-[0.3em] transition-all font-mono ${isRunning ? 'border-white/20 bg-white/5 text-white hover:bg-white/10' : (mode === 'work' ? 'border-user-a bg-user-a text-black hover:bg-[#ffb595]' : 'border-user-c bg-user-c text-black hover:bg-[#a8ffff]')}`}
                                 >
-                                    {isRunning ? <><Pause size={20} fill="currentColor" /> [ PAUSAR ]</> : <><Play size={20} fill="currentColor" /> [ REANUDAR ]</>}
+                                    {isRunning ? <><Pause size={20} fill="currentColor" /> PAUSAR</> : <><Play size={20} fill="currentColor" /> REANUDAR</>}
                                 </button>
 
                                 <button

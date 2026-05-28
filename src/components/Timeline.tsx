@@ -122,7 +122,7 @@ export function Timeline({ events }: TimelineProps) {
     return (
         <div className="relative flex w-full flex-col items-center bg-mosaic py-8">
             <div className="mb-10 w-full max-w-4xl border border-white/10 bg-[#0a0a0a] p-6 text-center">
-                <p className="text-[10px] font-bold uppercase tracking-[0.32em] text-[#a88a7e]">Temporal Archive</p>
+                <p className="text-[10px] font-bold uppercase tracking-[0.32em] text-[#a88a7e]">Nuestros Momentos</p>
                 <h2 className="mt-3 text-3xl font-black uppercase tracking-normal text-white">Historia Compartida</h2>
             </div>
             

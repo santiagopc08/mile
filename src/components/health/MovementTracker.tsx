@@ -718,7 +718,7 @@ export function MovementTracker() {
                         <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-white/30" />
 
                         <h3 className="text-[10px] uppercase font-black tracking-[0.25em] text-[#a88a7e] mb-5 border-b border-white/5 pb-3 flex items-center justify-between">
-                            <span>[ Registrar mi Actividad Física ]</span>
+                            <span>Registrar mi Actividad Física</span>
                             <span className="text-[8px] opacity-40">Registro Diario</span>
                         </h3>
 
@@ -868,7 +868,7 @@ export function MovementTracker() {
                                         className="overflow-hidden space-y-4 pt-4 border-t border-white/5"
                                     >
                                         <h4 className="text-[8px] font-black uppercase tracking-wider text-emerald-500">
-                                            [ REGISTRO ESPECIALIZADO DE TERAPIA REHABILITADORA ]
+                                            REGISTRO ESPECIALIZADO DE TERAPIA REHABILITADORA
                                         </h4>
                                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                             <div className="space-y-1">
@@ -973,7 +973,7 @@ export function MovementTracker() {
                         <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-white/30" />
 
                         <h3 className="text-[10px] uppercase font-black tracking-[0.25em] text-[#a88a7e] mb-4 border-b border-white/5 pb-3">
-                            [ Resumen de Progreso ]
+                            Resumen de Progreso
                         </h3>
 
                         {/* Therapy specific analytics displayed if logs are available */}
@@ -1084,7 +1084,7 @@ export function MovementTracker() {
                         <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-white/30" />
 
                         <h3 className="text-[10px] uppercase font-black tracking-[0.25em] text-[#a88a7e] mb-4 pb-2 border-b border-white/5">
-                            [ Historial de Actividad ]
+                            Historial de Actividad
                         </h3>
 
                         {loading ? (
@@ -1197,7 +1197,7 @@ export function MovementTracker() {
                                             {!isSelf && (
                                                 <div className="flex flex-wrap gap-1.5 pt-2.5 border-t border-white/5">
                                                     <span className="text-[7px] font-black tracking-widest text-[#a88a7e] uppercase block w-full mb-1">
-                                                        [ MOTIVAR_A_TU_PAREJA ]:
+                                                        ANIMA A TU PAREJA:
                                                     </span>
                                                     {(Object.keys(REACTION_CONFIG) as ReactionType[]).map(rxType => {
                                                         const rxConfig = REACTION_CONFIG[rxType];

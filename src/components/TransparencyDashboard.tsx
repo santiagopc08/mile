@@ -74,7 +74,7 @@ export function TransparencyDashboard() {
                 </div>
                 <div className="flex justify-between items-center mt-auto pt-3 border-t border-white/5 opacity-50 group-hover:opacity-100 transition-opacity">
                     <span className="text-[9px] uppercase font-bold tracking-[0.2em] text-stone-500">
-                        {type === 'el' ? 'Resgistro Él' : 'Registro Ella'}
+                        {type === 'el' ? 'Santiago' : 'Milena'}
                     </span>
                     <span className="text-[9px] font-mono tracking-widest uppercase text-stone-500">
                         {dateStr}
@@ -101,7 +101,7 @@ export function TransparencyDashboard() {
                             <Zap className="w-5 h-5" />
                         </div>
                         <div>
-                            <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-stone-500">Unión Temporal</p>
+                            <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-stone-500">Tiempo Juntos</p>
                             <p className="text-3xl font-light tracking-tighter text-white">
                                 {audioStats.daysTracking} <span className="text-sm font-normal text-stone-400">Días</span>
                             </p>
@@ -140,7 +140,7 @@ export function TransparencyDashboard() {
                     <div className="geometric-card p-8 bg-grid-mosaic">
                         <h3 className="text-sm uppercase font-bold tracking-[0.3em] text-white mb-8 flex items-center gap-3">
                             <Heart className="w-4 h-4 text-rose-500" />
-                            Directivas de Relación
+                            Compromisos Compartidos
                         </h3>
                         <ul className="grid sm:grid-cols-2 gap-4">
                             {commitments.map((commitment) => (
@@ -179,7 +179,7 @@ export function TransparencyDashboard() {
                                     type="text"
                                     value={newText}
                                     onChange={(e) => setNewText(e.target.value)}
-                                    placeholder="REGISTRAR NUEVO EVENTO..."
+                                    placeholder="Registrar nueva victoria..."
                                     className="flex-1 bg-transparent px-6 py-4 text-sm text-white placeholder-stone-600 outline-none uppercase tracking-widest font-bold"
                                 />
                                 <button
