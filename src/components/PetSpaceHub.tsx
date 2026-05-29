@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { PawPrint, Plus, Calendar, Edit2, RefreshCw, Activity, ChevronLeft, ChevronRight } from 'lucide-react';
+import { PawPrint, Plus, Calendar, Edit2, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
 import { StoreService } from '@/services/storeService';
 import { supabase } from '@/lib/supabase';
 import { useProfile } from '@/context/ProfileContext';
