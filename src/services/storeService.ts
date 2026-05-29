@@ -144,7 +144,7 @@ export interface AppData {
         daysTracking: number;
         lastUpdate: string;
     };
-    audioPlaylist: any[];
+    audioPlaylist: AudioTrack[];
     dailyProgress?: {
         yesterdayTotal: number;
         yesterdayCompleted: number;
@@ -537,17 +537,25 @@ export const StoreService = {
                 if (toDeleteCommentsTrackIds.length > 0) await supabase.from('audio_comments').delete().in('track_id', toDeleteCommentsTrackIds);
                 if (toInsertComments.length > 0) await supabase.from('audio_comments').insert(toInsertComments);
 
-                for (const track of newData.audioPlaylist) {
-                    const isNew = !existingIds.has(track.id);
-                    if (isNew) {
-                        const res = await supabase.from('audio_track').insert({
-                            title: track.title,
-                            artist: track.artist,
-                            spotify_url: track.spotifyUrl || track.spotify_url || null,
-                            display_order: track.display_order || 0,
-                            added_by: track.added_by || 'el'
-                        }).select('id').single();
-                        const trackId = res.data?.id || track.id;
+                const newTracksToInsert = newData.audioPlaylist.filter((track: any) => !existingIds.has(track.id));
+
+                if (newTracksToInsert.length > 0) {
+                    const insertPayload = newTracksToInsert.map((track: any) => ({
+                        title: track.title,
+                        artist: track.artist,
+                        spotify_url: track.spotifyUrl || track.spotify_url || null,
+                        display_order: track.display_order || 0,
+                        added_by: track.added_by || 'el'
+                    }));
+
+                    const { data: insertedTracks } = await supabase.from('audio_track').insert(insertPayload).select('id, title, artist');
+
+                    const newCommentsToInsert: any[] = [];
+
+                    newTracksToInsert.forEach((track: any, index: number) => {
+                        // Attempt to match by title and artist to be safe, fallback to index
+                        const insertedMatch = insertedTracks?.find((t: any) => t.title === track.title && t.artist === track.artist) || insertedTracks?.[index];
+                        const trackId = insertedMatch?.id || track.id;
 
                         if (track.added_by === 'el' && !existingTitles.has(track.title)) {
                             notificationsToInsert.push({
@@ -557,15 +565,17 @@ export const StoreService = {
                             });
                         }
 
-                        if (trackId && track.comments) {
-                            if (track.comments.length > 0) {
-                                await supabase.from('audio_comments').insert(track.comments.map((c: any) => ({
-                                    track_id: trackId,
-                                    author: c.author,
-                                    text: c.text
-                                })));
-                            }
+                        if (trackId && track.comments && track.comments.length > 0) {
+                            newCommentsToInsert.push(...track.comments.map((c: any) => ({
+                                track_id: trackId,
+                                author: c.author,
+                                text: c.text
+                            })));
                         }
+                    });
+
+                    if (newCommentsToInsert.length > 0) {
+                        await supabase.from('audio_comments').insert(newCommentsToInsert);
                     }
                 }
 
@@ -597,7 +607,7 @@ export const StoreService = {
                 const notificationsToInsert = [];
                 for (const item of newData.persistentListening) {
                     if (!existingIds.has(item.id) && !existingTopics.has(item.topic)) {
-                         notificationsToInsert.push({
+                        notificationsToInsert.push({
                             target_profile: 'ella',
                             type: 'escucha',
                             message: `Él agregó una nueva reflexión a la Escucha Persistente: "${item.topic}".`
@@ -644,7 +654,7 @@ export const StoreService = {
     async uploadTimelineImage(file: File, supabase: SupabaseClient = defaultSupabase): Promise<string> {
         try {
             const fileExt = file.name.split('.').pop();
-            const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
+            const fileName = `${crypto.randomUUID()}_${Date.now()}.${fileExt}`;
             const filePath = `${fileName}`;
 
             const { error: uploadError } = await supabase.storage

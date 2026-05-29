@@ -1,4 +1,8 @@
-const token = "sb_secret_WF3jVnibKzw5q66mbxqgLQ_9v_bGu7Z";
+const token = process.env.SUPABASE_ACCESS_TOKEN || process.env.JWT_SECRET;
+
+if (!token) {
+    throw new Error('SUPABASE_ACCESS_TOKEN or JWT_SECRET environment variable is missing.');
+}
 
 async function run() {
     const res = await fetch("https://api.supabase.com/v1/projects", {
