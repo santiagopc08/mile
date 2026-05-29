@@ -474,19 +474,21 @@ export function Mahjong() {
 
     const handleHint = () => {
         const freeOnBoard = tiles.filter(t => !t.isMatched && !dockIds.includes(t.id) && freeTilesMap.get(t.id));
-        for (let i = 0; i < freeOnBoard.length; i++) {
-            for (let j = i + 1; j < freeOnBoard.length; j++) {
-                if (freeOnBoard[i].content.value === freeOnBoard[j].content.value) {
-                    const id1 = freeOnBoard[i].id;
-                    const id2 = freeOnBoard[j].id;
-                    setTiles(prev => prev.map(t => (t.id === id1 || t.id === id2) ? { ...t, isHinted: true } : t));
-                    setTimeout(() => {
-                        setTiles(prev => prev.map(t => (t.id === id1 || t.id === id2) ? { ...t, isHinted: false } : t));
-                    }, 2000);
-                    return;
-                }
+        const seenValues = new Map<string, string>();
+        for (const tile of freeOnBoard) {
+            const value = tile.content.value;
+            if (seenValues.has(value)) {
+                const id1 = seenValues.get(value)!;
+                const id2 = tile.id;
+                setTiles(prev => prev.map(t => (t.id === id1 || t.id === id2) ? { ...t, isHinted: true } : t));
+                setTimeout(() => {
+                    setTiles(prev => prev.map(t => (t.id === id1 || t.id === id2) ? { ...t, isHinted: false } : t));
+                }, 2000);
+                return;
             }
+            seenValues.set(value, tile.id);
         }
+
         for (const dId of dockIds) {
             const dockTile = tiles.find(t => t.id === dId);
             if (!dockTile) continue;
