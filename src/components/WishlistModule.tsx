@@ -261,50 +261,54 @@ export function WishlistModule() {
             <SavingsOverview items={items} />
 
             <div className="flex flex-wrap items-center gap-2 font-mono text-[9px]">
-                <button
-                    onClick={() => setCatFilter('ALL')}
-                    className={`group w-9 h-9 flex items-center justify-center border transition-all ${
-                        catFilter === 'ALL'
-                            ? 'border-user-c bg-user-c/10 text-white'
-                            : 'border-white/10 bg-[#050505] text-[#a88a7e] hover:border-white/25 hover:text-white'
-                    }`}
-                    title="Todos los antojos"
-                >
-                    <Rss className={`h-4.5 w-4.5 ${catFilter === 'ALL' ? 'text-user-c' : 'text-white/25'}`} strokeWidth={1.5} />
-                </button>
-                {GOAL_CATEGORIES.map(cat => {
-                    const Icon = cat.icon;
-                    const isActive = catFilter === cat.id;
-                    return (
-                        <button
-                            key={cat.id}
-                            onClick={() => setCatFilter(cat.id as GoalCategory)}
-                            className={`group w-9 h-9 flex items-center justify-center border transition-all ${
-                                isActive
-                                    ? 'border-user-c bg-user-c/10 text-white'
-                                    : 'border-white/10 bg-[#050505] text-[#a88a7e] hover:border-white/25 hover:text-white'
-                            }`}
-                            title={cat.label}
-                        >
-                            <Icon className={`h-4.5 w-4.5 ${isActive ? 'text-user-c' : 'text-white/25'}`} strokeWidth={1.5} />
-                        </button>
-                    );
-                })}
+                <div className="flex gap-[1px] bg-white/[0.08] brutal-border shrink-0">
+                    <button
+                        onClick={() => setCatFilter('ALL')}
+                        className={`relative w-9 h-9 !min-h-0 flex items-center justify-center transition-colors hover:bg-white/5 ${
+                            catFilter === 'ALL'
+                                ? 'bg-user-c/10 text-user-c'
+                                : 'text-white/40 hover:text-white/70'
+                        }`}
+                        title="Todos los antojos"
+                    >
+                        <Rss className="h-4.5 w-4.5" strokeWidth={1.5} />
+                    </button>
+                    {GOAL_CATEGORIES.map(cat => {
+                        const Icon = cat.icon;
+                        const isActive = catFilter === cat.id;
+                        return (
+                            <button
+                                key={cat.id}
+                                onClick={() => setCatFilter(cat.id as GoalCategory)}
+                                className={`relative w-9 h-9 !min-h-0 flex items-center justify-center transition-colors hover:bg-white/5 ${
+                                    isActive
+                                        ? 'bg-user-c/10 text-user-c'
+                                        : 'text-white/40 hover:text-white/70'
+                                }`}
+                                title={cat.label}
+                            >
+                                <Icon className="h-4.5 w-4.5" strokeWidth={1.5} />
+                            </button>
+                        );
+                    })}
+                </div>
 
                 {/* Divider */}
                 <div className="mx-1 hidden h-5 w-px bg-white/10 sm:block" />
 
                 {/* State filter chips — same row */}
-                {STATE_FILTERS.map(sf => (
-                    <button key={sf.id} onClick={() => setStateFilter(sf.id)}
-                        className={`h-9 px-4 text-[9px] font-mono font-black uppercase tracking-[0.16em] border transition-all ${
-                            stateFilter === sf.id
-                                ? `border-${accentClass} text-${accentClass} bg-${accentClass}/10`
-                                : 'border-white/[0.06] text-white/25 hover:text-white/50 bg-[#050505]'
-                        }`}
-                        style={stateFilter === sf.id ? { borderColor: profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)', color: profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)' } : {}}
-                    >{sf.label}</button>
-                ))}
+                <div className="flex gap-[1px] bg-white/[0.08] brutal-border shrink-0">
+                    {STATE_FILTERS.map(sf => (
+                        <button key={sf.id} onClick={() => setStateFilter(sf.id)}
+                            className={`h-9 px-4 text-[9px] font-mono font-black uppercase tracking-[0.16em] transition-colors hover:bg-white/5 ${
+                                stateFilter === sf.id
+                                    ? `bg-${accentClass}/10 text-${accentClass}`
+                                    : 'text-white/40 hover:text-white/70'
+                            }`}
+                            style={stateFilter === sf.id ? { color: profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)' } : {}}
+                        >{sf.label}</button>
+                    ))}
+                </div>
             </div>
 
             {/* Toolbar: Add + Activity toggle */}
