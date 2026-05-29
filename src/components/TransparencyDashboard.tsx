@@ -8,7 +8,7 @@ import { Check, Heart, Trophy, Zap } from 'lucide-react';
 import { PomodoroTimer } from './symmetry/PomodoroTimer';
 import { PendingTasks } from './PendingTasks';
 import { QuickLinks } from './QuickLinks';
-import { StoreService } from '@/services/storeService';
+import { StoreService, Victory } from '@/services/storeService';
 
 export function TransparencyDashboard() {
     const { data, isLoading, updateData } = useStore();
@@ -56,7 +56,7 @@ export function TransparencyDashboard() {
         setNewText('');
     };
 
-    const StickyNote = ({ victory, type }: { victory: any, type: 'el' | 'ella' }) => {
+    const StickyNote = ({ victory, type }: { victory: Victory, type: 'el' | 'ella' }) => {
         const dateStr = victory.created_at ? new Intl.DateTimeFormat('es-CO', { month: 'short', day: 'numeric' }).format(new Date(victory.created_at)) : 'Hoy';
 
         return (
@@ -193,8 +193,8 @@ export function TransparencyDashboard() {
                         )}
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                            {victoriesEl.map((v: any) => <StickyNote key={v.id} victory={v} type="el" />)}
-                            {victoriesElla.map((v: any) => <StickyNote key={v.id} victory={v} type="ella" />)}
+                            {victoriesEl.map((v: Victory) => <StickyNote key={v.id} victory={v} type="el" />)}
+                            {victoriesElla.map((v: Victory) => <StickyNote key={v.id} victory={v} type="ella" />)}
                             {victoriesEl.length === 0 && victoriesElla.length === 0 && (
                                 <div className="col-span-full py-12 flex justify-center text-stone-600 text-[10px] uppercase font-bold tracking-[0.3em] border border-stone-800 border-dashed">
                                     ARCHIVO VACÍO

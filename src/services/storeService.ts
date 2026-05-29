@@ -109,6 +109,13 @@ export interface HealthHabit {
     createdAt: string;
 }
 
+export interface Victory {
+    id: string;
+    text: string;
+    author: string;
+    created_at?: string;
+}
+
 export interface AppData {
     events: {
         id: string;
@@ -129,8 +136,8 @@ export interface AppData {
         completed: boolean;
         author: string;
     }[];
-    victoriesEl: any[];
-    victoriesElla: any[];
+    victoriesEl: Victory[];
+    victoriesElla: Victory[];
     lastPulseAt?: string;
     audioStats: {
         daysTracking: number;
@@ -292,8 +299,8 @@ export const StoreService = {
                     completed: !c.is_active,
                     author: c.author || 'el'
                 })),
-                victoriesEl: allVictories.filter((v: any) => v.author === 'el'),
-                victoriesElla: allVictories.filter((v: any) => v.author === 'ella'),
+                victoriesEl: allVictories.filter((v: Victory) => v.author === 'el'),
+                victoriesElla: allVictories.filter((v: Victory) => v.author === 'ella'),
                 audioStats: {
                     daysTracking: trackingDays,
                     lastUpdate: formattedDate
@@ -466,10 +473,10 @@ export const StoreService = {
             }
 
             // Victories (Shared handling for El and Ella)
-            const handleVictories = async (victories: any[], author: 'el' | 'ella') => {
+            const handleVictories = async (victories: Victory[], author: 'el' | 'ella') => {
                 await syncTable('victories', victories.map(v => ({
-                    id: typeof v === 'object' ? v.id : undefined,
-                    text: typeof v === 'object' ? v.text : v,
+                    id: v.id,
+                    text: v.text,
                     author
                 })), { author });
             };
