@@ -233,20 +233,20 @@ export const DualWallet = ({
   );
 
   const monthMovements = useMemo(() => movements.filter((movement) => isThisMonth(movement.date)), [movements]);
-  const incomeThisMonth = monthMovements.filter((m) => m.type === 'income').reduce((sum, m) => sum + m.amount, 0);
-  const expensesThisMonth = monthMovements.filter((m) => m.type === 'expense').reduce((sum, m) => sum + m.amount, 0);
-  const savingsTotal = movements
+  const incomeThisMonth = useMemo(() => monthMovements.filter((m) => m.type === 'income').reduce((sum, m) => sum + m.amount, 0), [monthMovements]);
+  const expensesThisMonth = useMemo(() => monthMovements.filter((m) => m.type === 'expense').reduce((sum, m) => sum + m.amount, 0), [monthMovements]);
+  const savingsTotal = useMemo(() => movements
     .filter((m) => m.type === 'income' || normalizeCategory(m.category) === 'Savings' || m.related_budget === 'Savings')
-    .reduce((sum, m) => sum + signedAmount(m), 0);
-  const totalAvailable = movements.reduce((sum, movement) => sum + signedAmount(movement), 0);
-  const totalBudget = Object.values(budgets).reduce((sum, limit) => sum + limit, 0);
-  const spentAgainstBudget = monthMovements.filter((m) => m.type === 'expense').reduce((sum, m) => sum + m.amount, 0);
+    .reduce((sum, m) => sum + signedAmount(m), 0), [movements]);
+  const totalAvailable = useMemo(() => movements.reduce((sum, movement) => sum + signedAmount(movement), 0), [movements]);
+  const totalBudget = useMemo(() => Object.values(budgets).reduce((sum, limit) => sum + limit, 0), [budgets]);
+  const spentAgainstBudget = expensesThisMonth;
   const budgetRemaining = totalBudget - spentAgainstBudget;
   const savingsRate = incomeThisMonth > 0 ? ((incomeThisMonth - expensesThisMonth) / incomeThisMonth) * 100 : 0;
-  const weeklySpending = movements.filter((m) => m.type === 'expense' && isWithinDays(m.date, 7)).reduce((sum, m) => sum + m.amount, 0);
+  const weeklySpending = useMemo(() => movements.filter((m) => m.type === 'expense' && isWithinDays(m.date, 7)).reduce((sum, m) => sum + m.amount, 0), [movements]);
   const averageDailySpending = weeklySpending / 7;
 
-  const budgetRows = BUDGET_CATEGORIES.map((budget) => {
+  const budgetRows = useMemo(() => BUDGET_CATEGORIES.map((budget) => {
     const spent = monthMovements
       .filter((m) => m.type === 'expense' && (m.related_budget === budget || normalizeCategory(m.category) === budget))
       .reduce((sum, m) => sum + m.amount, 0);
@@ -255,14 +255,14 @@ export const DualWallet = ({
     const status = percent >= 100 ? 'OVERLOAD' : percent >= 80 ? 'CAUTION' : 'STABLE';
     const color = status === 'OVERLOAD' ? '#ffb4ab' : status === 'CAUTION' ? '#a178ff' : '#c3f400';
     return { budget, spent, limit, remaining: limit - spent, percent, status, color };
-  });
+  }), [monthMovements, budgets]);
 
-  const topCategories = [...budgetRows]
+  const topCategories = useMemo(() => [...budgetRows]
     .sort((a, b) => b.spent - a.spent)
     .slice(0, 3)
-    .filter((row) => row.spent > 0);
+    .filter((row) => row.spent > 0), [budgetRows]);
 
-  const recurringIncome = movements.filter((m) => m.type === 'income' && m.recurring).reduce((sum, m) => sum + m.amount, 0);
+  const recurringIncome = useMemo(() => movements.filter((m) => m.type === 'income' && m.recurring).reduce((sum, m) => sum + m.amount, 0), [movements]);
   const projectedIncome = incomeThisMonth + recurringIncome;
   const wishlistBudget = budgetRows.find((row) => row.budget === 'Wishlist');
   const wishlistAffordability = Math.max(0, Math.min(wishlistBudget?.remaining || 0, Math.max(totalAvailable, 0) * 0.18));
