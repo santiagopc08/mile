@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
-// Fallback key if process.env is not available
-const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || 'AIzaSyDbG5vya4c309kLnEfTEArDU52zPAMqd9A';
+// Use environment variable for API key
+const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
@@ -106,7 +106,7 @@ export async function GET(request: Request) {
                         query = titleMatch[1];
                     }
 
-                    if (query) {
+                    if (query && GOOGLE_MAPS_API_KEY) {
                         const placesRes = await fetch('https://places.googleapis.com/v1/places:searchText', {
                             method: 'POST',
                             headers: {
