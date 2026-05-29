@@ -7,7 +7,7 @@ import { BloodPressureTracker } from "@/components/health/BloodPressureTracker";
 import { HabitTracker } from "@/components/health/HabitTracker";
 import { useStore } from "@/context/StoreContext";
 import { useProfile } from "@/context/ProfileContext";
-import { Activity, HeartPulse, Utensils, Shield, Radio, Flame } from 'lucide-react';
+import { Activity, HeartPulse, Shield, Flame } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Allocation, StoreService } from "@/services/storeService";
 import { MovementTracker } from "@/components/health/MovementTracker";
