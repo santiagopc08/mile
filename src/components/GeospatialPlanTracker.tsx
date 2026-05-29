@@ -223,7 +223,7 @@ function LocationLists({ locations, onSelect, onDelete, onToggle }: {
           <Circle className="h-3 w-3 text-[#00dbe9]" /> Próximos Destinos
         </h4>
         <div className="max-h-[450px] overflow-y-auto custom-scrollbar pr-2">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-2">
             {toVisitList.map(loc => (
               <LocationListItem
                 key={loc.id}
@@ -235,7 +235,9 @@ function LocationLists({ locations, onSelect, onDelete, onToggle }: {
             ))}
           </div>
           {toVisitList.length === 0 && (
-            <p className="border border-dashed border-white/10 p-4 text-center text-[8px] uppercase italic tracking-[0.2em] text-white/25">No hay planes pendientes</p>
+            <div className="border border-white/10 bg-[#050505] p-4 flex items-center justify-center">
+              <p className="text-center text-[8px] uppercase tracking-[0.2em] text-white/25">No hay planes pendientes</p>
+            </div>
           )}
         </div>
       </div>
@@ -245,7 +247,7 @@ function LocationLists({ locations, onSelect, onDelete, onToggle }: {
           <CheckCircle className="h-3 w-3 text-[#a100f0]" /> Memorias Visitadas
         </h4>
         <div className="max-h-[450px] overflow-y-auto custom-scrollbar pr-2">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-2">
             {visitedList.map(loc => (
               <LocationListItem
                 key={loc.id}
@@ -257,7 +259,9 @@ function LocationLists({ locations, onSelect, onDelete, onToggle }: {
             ))}
           </div>
           {visitedList.length === 0 && (
-            <p className="border border-dashed border-white/10 p-4 text-center text-[8px] uppercase italic tracking-[0.2em] text-white/25">Aún no hay memorias</p>
+            <div className="border border-white/10 bg-[#050505] p-4 flex items-center justify-center mt-2">
+              <p className="text-center text-[8px] uppercase tracking-[0.2em] text-white/25">Aún no hay memorias</p>
+            </div>
           )}
         </div>
       </div>
@@ -272,32 +276,40 @@ function LocationListItem({ loc, onSelect, onDelete, onToggle }: {
   onToggle: () => void
 }) {
   const isVisited = loc.status === 'visited';
-  const accentColor = loc.created_by === 'ella' ? 'border-user-b' : 'border-user-a';
+  // Use bg colors for the strip instead of border
+  const isElla = loc.created_by === 'ella';
+  const stripColor = isVisited ? 'bg-white/10' : (isElla ? 'bg-[#a100f0]' : 'bg-[#ff7020]');
 
   return (
-    <div className={`flex min-h-[56px] items-center gap-3 border bg-black/65 p-4 transition-all hover:bg-white/[0.04] ${
-      isVisited ? 'border-white/10 opacity-60' : `border-dashed ${accentColor}`
-    }`}>
-      <button
-        onClick={onSelect}
-        className="flex min-w-0 flex-1 flex-col items-start"
-      >
-        <span className={`w-full truncate text-left text-[11px] font-black uppercase tracking-[0.18em] ${isVisited ? 'line-through opacity-50' : 'text-white'}`}>
-          {loc.nombre}
-        </span>
-        <span className="font-mono text-[8px] uppercase tracking-normal text-white/35">
-          {loc.created_by} • {new Date(loc.created_at).toLocaleDateString()}
-        </span>
-      </button>
+    <article className="group relative flex min-h-[64px] flex-col overflow-hidden border border-white/10 bg-[#050505] hover:border-white/20 transition-colors">
+      <div className={`absolute bottom-0 left-0 top-0 w-[5px] ${stripColor}`} />
 
-      <div className="flex gap-4 shrink-0">
-        <button onClick={onToggle} className="text-[#a88a7e] transition-colors hover:text-[#00dbe9]">
-          {isVisited ? <Circle className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
+      {/* Rigid Action Grid */}
+      <div className="absolute right-0 top-0 flex gap-[1px] bg-white/10 border-b border-l border-white/10">
+        <button
+          onClick={onToggle}
+          className="flex h-8 w-8 !min-h-0 items-center justify-center bg-[#050505] text-white/40 hover:text-[#00dbe9] hover:bg-white/5 transition-colors"
+          title={isVisited ? "Marcar pendiente" : "Marcar visitado"}
+        >
+          {isVisited ? <Circle className="h-3.5 w-3.5" strokeWidth={1.5} /> : <CheckCircle className="h-3.5 w-3.5 text-[#00dbe9]" strokeWidth={1.5} />}
         </button>
-        <button onClick={onDelete} className="text-[#a88a7e] transition-colors hover:text-red-400">
-          <Trash2 className="w-4 h-4" />
+        <button
+          onClick={onDelete}
+          className="flex h-8 w-8 !min-h-0 items-center justify-center bg-[#050505] text-white/40 hover:text-[#ff4444] hover:bg-white/5 transition-colors"
+          title="Eliminar"
+        >
+          <Trash2 className="h-3.5 w-3.5" strokeWidth={1.5} />
         </button>
       </div>
-    </div>
+
+      <div className="flex flex-1 flex-col pl-[14px] pr-[70px] py-3 cursor-pointer" onClick={onSelect} role="button" tabIndex={0} onKeyDown={(e) => { if(e.key === 'Enter') onSelect() }}>
+        <span className={`w-full truncate text-[11px] font-black uppercase tracking-[0.16em] ${isVisited ? 'line-through text-white/40' : 'text-white'}`}>
+          {loc.nombre}
+        </span>
+        <span className="font-mono text-[8px] uppercase tracking-wider text-white/35 mt-1">
+          {loc.created_by} [{new Date(loc.created_at).toLocaleDateString()}]
+        </span>
+      </div>
+    </article>
   );
 }
