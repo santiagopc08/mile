@@ -1,7 +1,12 @@
 import jwt from 'jsonwebtoken';
 import { createClient } from '@supabase/supabase-js';
 
-const JWT_SECRET = 'sb_secret_WF3jVnibKzw5q66mbxqgLQ_9v_bGu7Z';
+const JWT_SECRET = process.env.JWT_SECRET;
+
+if (!JWT_SECRET) {
+    throw new Error('JWT_SECRET environment variable is missing.');
+}
+
 const PROJECT_URL = 'https://ghazqlmvlptcysiruqig.supabase.co';
 
 const iat = Math.floor(Date.now() / 1000);
