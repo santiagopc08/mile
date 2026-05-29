@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import fs from 'fs';
+import fs from 'fs/promises';
 import path from 'path';
 
 export async function GET() {
@@ -7,12 +7,16 @@ export async function GET() {
         const directoryPath = path.join(process.cwd(), 'public', 'img');
         const results: string[] = [];
 
-        // Read all subdirectories in public/img
-        if (fs.existsSync(directoryPath)) {
-            const categories = fs.readdirSync(directoryPath, { withFileTypes: true });
+        try {
+            // Asynchronously check if the directory exists and is accessible
+            await fs.access(directoryPath);
+            
+            // Asynchronously read all subdirectories in public/img
+            const categories = await fs.readdir(directoryPath, { withFileTypes: true });
             for (const category of categories) {
                 if (category.isDirectory()) {
-                    const files = fs.readdirSync(path.join(directoryPath, category.name));
+                    const subDirPath = path.join(directoryPath, category.name);
+                    const files = await fs.readdir(subDirPath);
                     for (const file of files) {
                         if (file.endsWith('.png') || file.endsWith('.jpg') || file.endsWith('.jpeg')) {
                             results.push(`/img/${category.name}/${file}`);
@@ -22,6 +26,9 @@ export async function GET() {
                     results.push(`/img/${category.name}`);
                 }
             }
+        } catch (error) {
+            // Folder not found or not accessible
+            console.warn('img directory is not accessible:', error);
         }
 
         return NextResponse.json(results);

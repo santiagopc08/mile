@@ -48,7 +48,7 @@ export type WishlistState = 'DISCOVERED' | 'SAVING' | 'READY_TO_DEPLOY' | 'COMPL
 export type GoalCategory = 'Food' | 'Travel' | 'Gaming' | 'Tech' | 'Experiences' | 'Home';
 export type ReactionType = 'LIKE' | 'PRIORITY' | 'WANT_THIS_WITH_YOU';
 
-const isMapLink = (url?: string | null) =>
+export const isMapLink = (url?: string | null) =>
     Boolean(url && (url.includes('google.com/maps') || url.includes('maps.app.goo.gl') || url.includes('goo.gl/maps')));
 
 export interface WishlistContribution {

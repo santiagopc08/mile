@@ -52,3 +52,9 @@ pip-log.txt
 pip-delete-this-directory.txt
 .ipynb_checkpoints
 .pytest_cache/
+
+# log bloat protection
+*.log
+*.md.log
+*.html.log
+/logs/

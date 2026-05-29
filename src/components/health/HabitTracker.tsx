@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Pizza, Coffee, Bike, CreditCard, Activity, TrendingDown, Flame, DollarSign, CircleDollarSign } from 'lucide-react';
+import { Pizza, Coffee, Bike, CreditCard, Activity, TrendingDown, Flame, CircleDollarSign } from 'lucide-react';
 import { useStore } from '@/context/StoreContext';
 import { useProfile } from '@/context/ProfileContext';
 import { StoreService } from '@/services/storeService';
