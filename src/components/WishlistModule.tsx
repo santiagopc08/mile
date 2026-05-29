@@ -111,6 +111,9 @@ export function WishlistModule() {
                 const locationMap = new Map(currentLocations.map(l => [`${l.nombre.toLowerCase()}||${l.created_by}`, l]));
                 let mutated = false;
 
+                const itemsToFetch = [];
+                const updatesToPerform = [];
+
                 for (const item of items) {
                     const url = item.locationUrl;
                     if (!url) continue;
@@ -123,25 +126,44 @@ export function WishlistModule() {
                     const expectedStatus = (item.state === 'COMPLETED' || item.state === 'ARCHIVED') ? 'visited' : 'to-visit';
 
                     if (!existingPin) {
-                        const res = await fetch(`/api/link-preview?url=${encodeURIComponent(url)}`);
-                        if (res.ok) {
-                            const resData = await res.json();
-                            if (resData.coords && typeof resData.coords.lat === 'number' && typeof resData.coords.lng === 'number') {
-                                await supabase.from('ubicaciones').insert({
-                                    nombre: item.title,
-                                    latitud: resData.coords.lat,
-                                    longitud: resData.coords.lng,
-                                    created_by: item.author || 'el',
-                                    status: expectedStatus
-                                });
-                                mutated = true;
-                            }
-                        }
+                        itemsToFetch.push({ item, url, expectedStatus });
                     } else if (existingPin.status !== expectedStatus) {
-                        await supabase
-                            .from('ubicaciones')
-                            .update({ status: expectedStatus })
-                            .eq('id', existingPin.id);
+                        updatesToPerform.push({ ...existingPin, status: expectedStatus });
+                    }
+                }
+
+                if (itemsToFetch.length > 0 || updatesToPerform.length > 0) {
+                    const fetchPromises = itemsToFetch.map(async ({ item, url, expectedStatus }) => {
+                        try {
+                            const res = await fetch(`/api/link-preview?url=${encodeURIComponent(url)}`);
+                            if (res.ok) {
+                                const resData = await res.json();
+                                if (resData.coords && typeof resData.coords.lat === 'number' && typeof resData.coords.lng === 'number') {
+                                    return {
+                                        nombre: item.title,
+                                        latitud: resData.coords.lat,
+                                        longitud: resData.coords.lng,
+                                        created_by: item.author || 'el',
+                                        status: expectedStatus
+                                    };
+                                }
+                            }
+                        } catch (err) {
+                            console.error(`Error fetching coords for ${url}:`, err);
+                        }
+                        return null;
+                    });
+
+                    const fetchedResults = await Promise.all(fetchPromises);
+                    const insertsToPerform = fetchedResults.filter((result): result is NonNullable<typeof result> => result !== null);
+
+                    if (insertsToPerform.length > 0) {
+                        await supabase.from('ubicaciones').insert(insertsToPerform);
+                        mutated = true;
+                    }
+
+                    if (updatesToPerform.length > 0) {
+                        await supabase.from('ubicaciones').upsert(updatesToPerform);
                         mutated = true;
                     }
                 }
