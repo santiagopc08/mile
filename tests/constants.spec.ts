@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { formatCOP } from '../src/components/planes/constants';
+import { formatCOP, timeAgo } from '../src/components/planes/constants';
 
 test.describe('formatCOP utility', () => {
     test('should format positive standard numbers as COP currency', () => {
@@ -36,5 +36,68 @@ test.describe('formatCOP utility', () => {
         
         const result2 = formatCOP(1234.12);
         expect(result2).toContain('1.234'); // rounded down
+    });
+});
+
+test.describe('timeAgo utility', () => {
+    let originalDateNow: () => number;
+
+    test.beforeEach(() => {
+        originalDateNow = Date.now;
+        // Mock Date.now() to a fixed timestamp: 2024-01-01T12:00:00.000Z
+        const mockNow = new Date('2024-01-01T12:00:00.000Z').getTime();
+        Date.now = () => mockNow;
+    });
+
+    test.afterEach(() => {
+        // Restore the original Date.now()
+        Date.now = originalDateNow;
+    });
+
+    test('should return "ahora" for time differences less than 1 minute', () => {
+        // 30 seconds ago
+        const dateStr = new Date(Date.now() - 30 * 1000).toISOString();
+        expect(timeAgo(dateStr)).toBe('ahora');
+    });
+
+    test('should return minutes for time differences between 1 and 59 minutes', () => {
+        // 1 minute ago
+        const dateStr1 = new Date(Date.now() - 60 * 1000).toISOString();
+        expect(timeAgo(dateStr1)).toBe('hace 1m');
+
+        // 45 minutes ago
+        const dateStr2 = new Date(Date.now() - 45 * 60 * 1000).toISOString();
+        expect(timeAgo(dateStr2)).toBe('hace 45m');
+    });
+
+    test('should return hours for time differences between 1 and 23 hours', () => {
+        // 1 hour ago
+        const dateStr1 = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+        expect(timeAgo(dateStr1)).toBe('hace 1h');
+
+        // 12 hours ago
+        const dateStr2 = new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString();
+        expect(timeAgo(dateStr2)).toBe('hace 12h');
+    });
+
+    test('should return days for time differences of 24 hours or more', () => {
+        // 1 day (24 hours) ago
+        const dateStr1 = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+        expect(timeAgo(dateStr1)).toBe('hace 1d');
+
+        // 5 days ago
+        const dateStr2 = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString();
+        expect(timeAgo(dateStr2)).toBe('hace 5d');
+    });
+
+    test('should handle future dates as "ahora" (diff < 1 min)', () => {
+        // 1 minute in the future
+        const dateStr = new Date(Date.now() + 60 * 1000).toISOString();
+        expect(timeAgo(dateStr)).toBe('ahora');
+    });
+
+    test('should handle invalid dates gracefully', () => {
+        expect(timeAgo('invalid-date')).toBe('hace NaNd');
+        expect(timeAgo('')).toBe('hace NaNd');
     });
 });
