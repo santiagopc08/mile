@@ -7,24 +7,7 @@ import { useStore } from '@/context/StoreContext';
 import { useProfile } from '@/context/ProfileContext';
 import { LiveLinkPreview } from './LiveLinkPreview';
 import { AnimatedBrutalistCorners } from '@/components/ui/AnimatedBrutalistCorners';
-
-interface TrackComment {
-    id: string;
-    author: string;
-    text: string;
-    track_id: string;
-}
-
-interface AudioTrack {
-    id: string;
-    title?: string;
-    artist?: string;
-    spotifyUrl?: string | null;
-    spotify_url?: string | null;
-    display_order?: number;
-    added_by?: string;
-    comments?: TrackComment[];
-}
+import { AudioTrack, TrackComment } from '@/services/storeService';
 
 const SPOTIFY_TYPES = ['track', 'playlist', 'album', 'artist', 'show', 'episode'] as const;
 
@@ -189,7 +172,7 @@ export function AudioSection() {
 
     if (!data || !data.audioPlaylist) return null;
 
-    const playlist = data.audioPlaylist as AudioTrack[];
+    const playlist = data.audioPlaylist;
 
     // Default to first track if none active
     const currentTrackId = activeTrackId || (playlist.length > 0 ? playlist[0].id : null);

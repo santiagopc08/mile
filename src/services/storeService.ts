@@ -109,6 +109,24 @@ export interface HealthHabit {
     createdAt: string;
 }
 
+export interface TrackComment {
+    id: string;
+    author: string;
+    text: string;
+    track_id: string;
+}
+
+export interface AudioTrack {
+    id: string;
+    title?: string;
+    artist?: string;
+    spotifyUrl?: string | null;
+    spotify_url?: string | null;
+    display_order?: number;
+    added_by?: string;
+    comments?: TrackComment[];
+}
+
 export interface AppData {
     events: {
         id: string;
@@ -136,7 +154,7 @@ export interface AppData {
         daysTracking: number;
         lastUpdate: string;
     };
-    audioPlaylist: any[];
+    audioPlaylist: AudioTrack[];
     dailyProgress?: {
         yesterdayTotal: number;
         yesterdayCompleted: number;
