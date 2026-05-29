@@ -563,6 +563,7 @@ export const StoreService = {
             if (newData.persistentListening !== undefined) {
                 const { data: existingRows } = await supabase.from('persistent_listening').select('id, topic');
                 const existingTopics = new Set((existingRows || []).map((r: any) => r.topic));
+                const existingIds = new Set((existingRows || []).map((r: any) => r.id));
 
                 await syncTable('persistent_listening', newData.persistentListening.map(l => ({
                     id: l.id,
@@ -575,7 +576,7 @@ export const StoreService = {
                 // Notifications for new reflections
                 const notificationsToInsert = [];
                 for (const item of newData.persistentListening) {
-                    if (!existingRows?.find(r => r.id === item.id) && !existingTopics.has(item.topic)) {
+                    if (!existingIds.has(item.id) && !existingTopics.has(item.topic)) {
                          notificationsToInsert.push({
                             target_profile: 'ella',
                             type: 'escucha',
