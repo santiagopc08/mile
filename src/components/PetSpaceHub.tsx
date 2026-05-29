@@ -504,10 +504,8 @@ function GalleryStrip({ pet, photos, currentIndex, onSelect, onUploadComplete }:
     if (!file) return;
     try {
       setIsUploading(true);
-      console.log('Starting upload for pet:', pet.id);
       
       const url = await StoreService.uploadTimelineImage(file);
-      console.log('File uploaded to storage, public URL:', url);
 
       const { error: insertError } = await supabase
         .from('pet_gallery')
