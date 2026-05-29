@@ -522,7 +522,6 @@ function GalleryStrip({ pet, photos, currentIndex, onSelect, onUploadComplete }:
         throw new Error(`DB Error: ${insertError.message}`);
       }
 
-      console.log('Insert successful, reloading photos...');
       await onUploadComplete();
     } catch (err: any) {
       console.error('Upload process failed:', err);
