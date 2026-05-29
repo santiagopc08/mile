@@ -547,14 +547,19 @@ export const StoreService = {
                 })));
 
                 // Notifications for new reflections
+                const notificationsToInsert = [];
                 for (const item of newData.persistentListening) {
                     if (!existingRows?.find(r => r.id === item.id) && !existingTopics.has(item.topic)) {
-                         await supabase.from('notifications').insert({
+                         notificationsToInsert.push({
                             target_profile: 'ella',
                             type: 'escucha',
                             message: `Él agregó una nueva reflexión a la Escucha Persistente: "${item.topic}".`
                         });
                     }
+                }
+
+                if (notificationsToInsert.length > 0) {
+                    await supabase.from('notifications').insert(notificationsToInsert);
                 }
             }
 
