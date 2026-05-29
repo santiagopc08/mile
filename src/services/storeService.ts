@@ -623,7 +623,7 @@ export const StoreService = {
     async uploadTimelineImage(file: File, supabase: SupabaseClient = defaultSupabase): Promise<string> {
         try {
             const fileExt = file.name.split('.').pop();
-            const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
+            const fileName = `${crypto.randomUUID()}_${Date.now()}.${fileExt}`;
             const filePath = `${fileName}`;
 
             const { error: uploadError } = await supabase.storage
