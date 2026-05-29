@@ -12,7 +12,7 @@ import { DualWallet } from './DualWallet';
 import { FinanceChart } from './FinanceChart';
 import { StoreService } from '@/services/storeService';
 import { useMemo } from 'react';
-import { Activity, BarChart3, CircuitBoard, Eye, ShieldCheck, WalletCards, Clock } from 'lucide-react';
+import { Activity, BarChart3, Eye, ShieldCheck, WalletCards, Clock } from 'lucide-react';
 import { AnimatedBrutalistCorners } from '@/components/ui/AnimatedBrutalistCorners';
 import { NotificationBell } from '@/components/NotificationBell';
 import { NotificationsFeed } from '@/components/NotificationsFeed';

@@ -483,19 +483,43 @@ export const StoreService = {
                 const existingIds = new Set((existingTracks || []).map((r: any) => r.id));
                 const existingTitles = new Set((existingTracks || []).map((r: any) => r.title));
 
-                for (const track of newData.audioPlaylist) {
-                    let trackId = track.id;
-                    const isNew = !existingIds.has(trackId);
+                const toUpsertTracks: any[] = [];
+                const toDeleteCommentsTrackIds: string[] = [];
+                const toInsertComments: any[] = [];
+                const notificationsToInsert: any[] = [];
 
+                for (const track of newData.audioPlaylist) {
+                    const isNew = !existingIds.has(track.id);
                     if (!isNew) {
-                        await supabase.from('audio_track').update({
+                        toUpsertTracks.push({
+                            id: track.id,
                             title: track.title,
                             artist: track.artist,
                             spotify_url: track.spotifyUrl || track.spotify_url || null,
                             display_order: track.display_order || 0,
                             added_by: track.added_by || 'el'
-                        }).eq('id', trackId);
-                    } else {
+                        });
+
+                        if (track.comments) {
+                            toDeleteCommentsTrackIds.push(track.id);
+                            if (track.comments.length > 0) {
+                                toInsertComments.push(...track.comments.map((c: any) => ({
+                                    track_id: track.id,
+                                    author: c.author,
+                                    text: c.text
+                                })));
+                            }
+                        }
+                    }
+                }
+
+                if (toUpsertTracks.length > 0) await supabase.from('audio_track').upsert(toUpsertTracks);
+                if (toDeleteCommentsTrackIds.length > 0) await supabase.from('audio_comments').delete().in('track_id', toDeleteCommentsTrackIds);
+                if (toInsertComments.length > 0) await supabase.from('audio_comments').insert(toInsertComments);
+
+                for (const track of newData.audioPlaylist) {
+                    const isNew = !existingIds.has(track.id);
+                    if (isNew) {
                         const res = await supabase.from('audio_track').insert({
                             title: track.title,
                             artist: track.artist,
@@ -503,28 +527,30 @@ export const StoreService = {
                             display_order: track.display_order || 0,
                             added_by: track.added_by || 'el'
                         }).select('id').single();
-                        trackId = res.data?.id;
+                        const trackId = res.data?.id || track.id;
 
-                        // Notify Ella if a new song was added by him
                         if (track.added_by === 'el' && !existingTitles.has(track.title)) {
-                            await supabase.from('notifications').insert({
+                            notificationsToInsert.push({
                                 target_profile: 'ella',
                                 type: 'new_song',
                                 message: `Él agregó una nueva canción: ${track.title}`
                             });
                         }
-                    }
 
-                    if (trackId && track.comments) {
-                        await supabase.from('audio_comments').delete().eq('track_id', trackId);
-                        if (track.comments.length > 0) {
-                            await supabase.from('audio_comments').insert(track.comments.map((c: any) => ({
-                                track_id: trackId,
-                                author: c.author,
-                                text: c.text
-                            })));
+                        if (trackId && track.comments) {
+                            if (track.comments.length > 0) {
+                                await supabase.from('audio_comments').insert(track.comments.map((c: any) => ({
+                                    track_id: trackId,
+                                    author: c.author,
+                                    text: c.text
+                                })));
+                            }
                         }
                     }
+                }
+
+                if (notificationsToInsert.length > 0) {
+                    await supabase.from('notifications').insert(notificationsToInsert);
                 }
 
                 // Delete tracks not in payload
@@ -547,14 +573,19 @@ export const StoreService = {
                 })));
 
                 // Notifications for new reflections
+                const notificationsToInsert = [];
                 for (const item of newData.persistentListening) {
                     if (!existingRows?.find(r => r.id === item.id) && !existingTopics.has(item.topic)) {
-                         await supabase.from('notifications').insert({
+                         notificationsToInsert.push({
                             target_profile: 'ella',
                             type: 'escucha',
                             message: `Él agregó una nueva reflexión a la Escucha Persistente: "${item.topic}".`
                         });
                     }
+                }
+
+                if (notificationsToInsert.length > 0) {
+                    await supabase.from('notifications').insert(notificationsToInsert);
                 }
             }
 
