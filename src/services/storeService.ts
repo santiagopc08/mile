@@ -109,6 +109,14 @@ export interface HealthHabit {
     createdAt: string;
 }
 
+export interface Victory {
+    id: string;
+    text: string;
+    author: string;
+    created_at?: string;
+    createdAt?: string;
+}
+
 export interface AppData {
     events: {
         id: string;
@@ -129,8 +137,8 @@ export interface AppData {
         completed: boolean;
         author: string;
     }[];
-    victoriesEl: any[];
-    victoriesElla: any[];
+    victoriesEl: Victory[];
+    victoriesElla: Victory[];
     lastPulseAt?: string;
     audioStats: {
         daysTracking: number;
@@ -292,8 +300,20 @@ export const StoreService = {
                     completed: !c.is_active,
                     author: c.author || 'el'
                 })),
-                victoriesEl: allVictories.filter((v: any) => v.author === 'el'),
-                victoriesElla: allVictories.filter((v: any) => v.author === 'ella'),
+                victoriesEl: allVictories.filter((v: any) => v.author === 'el').map((v: any) => ({
+                    id: v.id,
+                    text: v.text,
+                    author: v.author,
+                    created_at: v.created_at || v.createdAt,
+                    createdAt: v.created_at || v.createdAt
+                })),
+                victoriesElla: allVictories.filter((v: any) => v.author === 'ella').map((v: any) => ({
+                    id: v.id,
+                    text: v.text,
+                    author: v.author,
+                    created_at: v.created_at || v.createdAt,
+                    createdAt: v.created_at || v.createdAt
+                })),
                 audioStats: {
                     daysTracking: trackingDays,
                     lastUpdate: formattedDate
@@ -466,10 +486,10 @@ export const StoreService = {
             }
 
             // Victories (Shared handling for El and Ella)
-            const handleVictories = async (victories: any[], author: 'el' | 'ella') => {
+            const handleVictories = async (victories: Victory[], author: 'el' | 'ella') => {
                 await syncTable('victories', victories.map(v => ({
-                    id: typeof v === 'object' ? v.id : undefined,
-                    text: typeof v === 'object' ? v.text : v,
+                    id: v.id,
+                    text: v.text,
                     author
                 })), { author });
             };
@@ -563,6 +583,7 @@ export const StoreService = {
             if (newData.persistentListening !== undefined) {
                 const { data: existingRows } = await supabase.from('persistent_listening').select('id, topic');
                 const existingTopics = new Set((existingRows || []).map((r: any) => r.topic));
+                const existingIds = new Set((existingRows || []).map((r: any) => r.id));
 
                 await syncTable('persistent_listening', newData.persistentListening.map(l => ({
                     id: l.id,
@@ -575,7 +596,7 @@ export const StoreService = {
                 // Notifications for new reflections
                 const notificationsToInsert = [];
                 for (const item of newData.persistentListening) {
-                    if (!existingRows?.find(r => r.id === item.id) && !existingTopics.has(item.topic)) {
+                    if (!existingIds.has(item.id) && !existingTopics.has(item.topic)) {
                          notificationsToInsert.push({
                             target_profile: 'ella',
                             type: 'escucha',

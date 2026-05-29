@@ -15,8 +15,8 @@ export function PrivateRoute({ children }: { children: React.ReactNode }) {
         return () => clearTimeout(timer);
     }, []);
 
-    const handleLoginSuccess = (profile: 'el' | 'ella') => {
-        login(profile);
+    const handleLoginSuccess = async (profile: 'el' | 'ella', password?: string): Promise<boolean> => {
+        return await login(profile, password);
     };
 
     if (isLoading) {

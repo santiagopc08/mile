@@ -323,6 +323,20 @@ button, input, select {
 .state-completed-bg { background-color: var(--color-user-c) !important; }
 .state-archived-bg { background-color: rgba(255, 255, 255, 0.3) !important; }
 
+/* Responsive Mahjong Tile Sizes */
+@media (max-width: 768px) {
+  .tile-item {
+    width: 3.2rem;
+    height: 4.0rem;
+  }
+}
+@media (min-width: 769px) {
+  .tile-item {
+    width: 3.5rem;
+    height: 4.2rem;
+  }
+}
+
 /* Category pills */
 .category-pill {
   display: inline-flex;

@@ -8,7 +8,7 @@ import { Check, Heart, Trophy, Zap } from 'lucide-react';
 import { PomodoroTimer } from './symmetry/PomodoroTimer';
 import { PendingTasks } from './PendingTasks';
 import { QuickLinks } from './QuickLinks';
-import { StoreService } from '@/services/storeService';
+import { StoreService, Victory } from '@/services/storeService';
 
 export function TransparencyDashboard() {
     const { data, isLoading, updateData } = useStore();
@@ -33,10 +33,11 @@ export function TransparencyDashboard() {
         if (!newText.trim() || !profile) return;
 
         const isEl = profile === 'el';
-        const victory = {
+        const victory: Victory = {
             id: Date.now().toString(),
             text: newText.trim(),
             created_at: new Date().toISOString(),
+            createdAt: new Date().toISOString(),
             author: profile
         };
 
@@ -56,7 +57,7 @@ export function TransparencyDashboard() {
         setNewText('');
     };
 
-    const StickyNote = ({ victory, type }: { victory: any, type: 'el' | 'ella' }) => {
+    const StickyNote = ({ victory, type }: { victory: Victory, type: 'el' | 'ella' }) => {
         const dateStr = victory.created_at ? new Intl.DateTimeFormat('es-CO', { month: 'short', day: 'numeric' }).format(new Date(victory.created_at)) : 'Hoy';
 
         return (

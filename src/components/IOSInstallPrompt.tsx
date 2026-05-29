@@ -19,8 +19,8 @@ export function IOSInstallPrompt() {
     setIsIOS(isIOSDevice);
 
     // Detect if running as standalone app
-    // @ts-ignore - iOS specific navigator property
-    const isApp = Boolean(('standalone' in window.navigator) && (window.navigator as any).standalone);
+    const navigatorWithStandalone = window.navigator as Navigator & { standalone?: boolean };
+    const isApp = Boolean(('standalone' in navigatorWithStandalone) && navigatorWithStandalone.standalone);
     setIsStandalone(isApp);
 
     // If it's iOS Safari and not standalone, show prompt after delay

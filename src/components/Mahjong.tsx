@@ -529,21 +529,6 @@ export function Mahjong() {
 
     return (
         <div className="relative flex w-full flex-col items-center justify-center overflow-hidden">
-            <style dangerouslySetInnerHTML={{
-                __html: `
-                @media (max-width: 768px) {
-                    .tile-item {
-                        width: 3.2rem;
-                        height: 4.0rem;
-                    }
-                }
-                @media (min-width: 769px) {
-                    .tile-item {
-                        width: 3.5rem;
-                        height: 4.2rem;
-                    }
-                }
-            `}} />
 
             <div className="relative z-10 mb-5 grid w-full gap-4 border border-white/10 bg-black/60 p-4 lg:grid-cols-[1fr_auto_auto] lg:items-center">
                 <div className="flex flex-col items-start">

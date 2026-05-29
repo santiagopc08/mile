@@ -5,11 +5,6 @@ import { Lock, ArrowRight, User, UserCheck, ChevronLeft, Shield } from 'lucide-r
 import { GeometricBackground } from './GeometricBackground';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const PASSWORDS = {
-    el: 'refugio',
-    ella: 'esperanza'
-};
-
 const PROFILE_COLORS = {
     el: {
         primary: '#89D94A',
@@ -26,7 +21,7 @@ const PROFILE_COLORS = {
 };
 
 interface LoginOverlayProps {
-    onLoginSuccess: (profile: 'el' | 'ella') => void;
+    onLoginSuccess: (profile: 'el' | 'ella', password?: string) => Promise<boolean>;
 }
 
 export function LoginOverlay({ onLoginSuccess }: LoginOverlayProps) {
@@ -59,12 +54,13 @@ export function LoginOverlay({ onLoginSuccess }: LoginOverlayProps) {
         setSelectedProfile(profile);
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!selectedProfile) return;
 
-        if (keyword.trim().toLowerCase() === PASSWORDS[selectedProfile]) {
-            onLoginSuccess(selectedProfile);
+        const success = await onLoginSuccess(selectedProfile, keyword);
+        if (success) {
+            // Login successful
         } else {
             setError(true);
             setTimeout(() => setError(false), 2000);

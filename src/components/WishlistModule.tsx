@@ -110,6 +110,8 @@ export function WishlistModule() {
 
                 const locationMap = new Map(currentLocations.map(l => [`${l.nombre.toLowerCase()}||${l.created_by}`, l]));
                 let mutated = false;
+                const itemsToFetch: { item: any; url: string; expectedStatus: string }[] = [];
+                const itemsToUpdate: any[] = [];
 
                 for (const item of items) {
                     const url = item.locationUrl;
@@ -123,26 +125,60 @@ export function WishlistModule() {
                     const expectedStatus = (item.state === 'COMPLETED' || item.state === 'ARCHIVED') ? 'visited' : 'to-visit';
 
                     if (!existingPin) {
-                        const res = await fetch(`/api/link-preview?url=${encodeURIComponent(url)}`);
-                        if (res.ok) {
-                            const resData = await res.json();
-                            if (resData.coords && typeof resData.coords.lat === 'number' && typeof resData.coords.lng === 'number') {
-                                await supabase.from('ubicaciones').insert({
-                                    nombre: item.title,
-                                    latitud: resData.coords.lat,
-                                    longitud: resData.coords.lng,
-                                    created_by: item.author || 'el',
-                                    status: expectedStatus
-                                });
-                                mutated = true;
-                            }
-                        }
+                        itemsToFetch.push({ item, url, expectedStatus });
                     } else if (existingPin.status !== expectedStatus) {
-                        await supabase
-                            .from('ubicaciones')
-                            .update({ status: expectedStatus })
-                            .eq('id', existingPin.id);
+                        itemsToUpdate.push({
+                            id: existingPin.id,
+                            nombre: existingPin.nombre,
+                            latitud: existingPin.latitud,
+                            longitud: existingPin.longitud,
+                            created_by: existingPin.created_by,
+                            status: expectedStatus
+                        });
+                    }
+                }
+
+                if (itemsToFetch.length > 0) {
+                    const fetchResults = await Promise.all(
+                        itemsToFetch.map(async ({ item, url, expectedStatus }) => {
+                            try {
+                                const res = await fetch(`/api/link-preview?url=${encodeURIComponent(url)}`);
+                                if (res.ok) {
+                                    const resData = await res.json();
+                                    if (resData.coords && typeof resData.coords.lat === 'number' && typeof resData.coords.lng === 'number') {
+                                        return {
+                                            nombre: item.title,
+                                            latitud: resData.coords.lat,
+                                            longitud: resData.coords.lng,
+                                            created_by: item.author || 'el',
+                                            status: expectedStatus
+                                        };
+                                    }
+                                }
+                            } catch (e) {
+                                console.error(`Error fetching coordinates for ${item.title}:`, e);
+                            }
+                            return null;
+                        })
+                    );
+
+                    const toInsert = fetchResults.filter(Boolean) as any[];
+                    if (toInsert.length > 0) {
+                        const { error: insertError } = await supabase.from('ubicaciones').insert(toInsert);
+                        if (!insertError) {
+                            mutated = true;
+                        } else {
+                            console.error("Error inserting batch locations:", insertError);
+                        }
+                    }
+                }
+
+                if (itemsToUpdate.length > 0) {
+                    const { error: updateError } = await supabase.from('ubicaciones').upsert(itemsToUpdate);
+                    if (!updateError) {
                         mutated = true;
+                    } else {
+                        console.error("Error updating batch locations:", updateError);
                     }
                 }
 

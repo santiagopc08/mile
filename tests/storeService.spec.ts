@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { isMapLink } from '../src/services/storeService';
+import { isMapLink, StoreService } from '../src/services/storeService';
 
 test.describe('isMapLink function', () => {
     test('should return true for valid Google Maps desktop URLs', () => {
@@ -32,5 +32,17 @@ test.describe('isMapLink function', () => {
     test('should return false for null or undefined', () => {
         expect(isMapLink(null)).toBe(false);
         expect(isMapLink(undefined)).toBe(false);
+    });
+});
+
+test.describe('StoreService.getStore error handling', () => {
+    test('should throw a "Could not read from data store." error when the database query fails', async () => {
+        const mockSupabase = {
+            from: () => {
+                throw new Error('Database connection failed');
+            }
+        } as any;
+
+        await expect(StoreService.getStore(mockSupabase)).rejects.toThrow('Could not read from data store.');
     });
 });
