@@ -5,7 +5,7 @@ test('verify objectives management on productivity dashboard', async ({ page }) 
   await page.goto('/');
   await page.click('text=Él');
   await page.fill('input[type="password"]', 'refugio');
-  await page.click('button:has-text("Acceder")');
+  await page.locator('button[type="submit"]').click();
 
   // Verify "Gestión de Objetivos" header
   await expect(page.locator('text=Gestión de Objetivos')).toBeVisible();

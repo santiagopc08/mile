@@ -5,15 +5,65 @@
 ▲ Next.js 16.2.4 (Turbopack)
 - Local:         http://localhost:3000
 - Network:       http://192.168.0.2:3000
-- Environments: .env.local
-✓ Ready in 465ms
-Attention: Next.js now collects completely anonymous telemetry regarding usage.
-This information is used to shape Next.js' roadmap and prioritize features.
-You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
-https://nextjs.org/telemetry
+- Environments: .env.local, .env
+✓ Ready in 565ms
 
-
-○ Compiling /planes ...
- GET /planes 200 in 7.7s (next.js: 7.1s, application-code: 603ms)
-[browser] As of February 21st, 2024, google.maps.Marker is deprecated. Please use google.maps.marker.AdvancedMarkerElement instead. At this time, google.maps.Marker is not scheduled to be discontinued, but google.maps.marker.AdvancedMarkerElement is recommended over google.maps.Marker. While google.maps.Marker will continue to receive bug fixes for any major regressions, existing bugs in google.maps.Marker will not be addressed. At least 12 months notice will be given before support is discontinued. Please see https://developers.google.com/maps/deprecations for additional details and https://developers.google.com/maps/documentation/javascript/advanced-markers/migration for the migration guide. (https://maps.googleapis.com/maps-api-v3/api/js/65/2d/main.js:418:208)
- GET /api/store 500 in 2.7s (next.js: 2.7s, application-code: 33ms)
+ GET / 200 in 1023ms (next.js: 264ms, application-code: 759ms)
+ GET / 200 in 178ms (next.js: 11ms, application-code: 166ms)
+ GET /api/store 200 in 307ms (next.js: 146ms, application-code: 161ms)
+ GET /api/store 200 in 73ms (next.js: 24ms, application-code: 48ms)
+TypeError: fetch failed
+    at async POST (src/app/api/auth/setup/route.ts:21:42)
+  19 |         // Ensure Supabase URL is accessible, otherwise we are in a mock/test environment
+  20 |         try {
+> 21 |             const { error: listError } = await supabase.auth.admin.listUsers();
+     |                                          ^
+  22 |             if (listError) throw listError;
+  23 |         } catch (e) {
+  24 |             console.warn("Supabase Auth unreachable or failed. Bypassing setup for test en... {
+  [cause]: AggregateError:
+      at ignore-listed frames {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+Supabase Auth unreachable or failed. Bypassing setup for test environment.
+ POST /api/auth/setup 200 in 649ms (next.js: 97ms, application-code: 552ms)
+TypeError: fetch failed
+    at async POST (src/app/api/auth/setup/route.ts:21:42)
+  19 |         // Ensure Supabase URL is accessible, otherwise we are in a mock/test environment
+  20 |         try {
+> 21 |             const { error: listError } = await supabase.auth.admin.listUsers();
+     |                                          ^
+  22 |             if (listError) throw listError;
+  23 |         } catch (e) {
+  24 |             console.warn("Supabase Auth unreachable or failed. Bypassing setup for test en... {
+  [cause]: AggregateError:
+      at ignore-listed frames {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+Supabase Auth unreachable or failed. Bypassing setup for test environment.
+ POST /api/auth/setup 200 in 195ms (next.js: 12ms, application-code: 183ms)
+ GET /planes 200 in 1082ms (next.js: 540ms, application-code: 542ms)
+ GET /api/store 200 in 61ms (next.js: 11ms, application-code: 50ms)
+ GET / 200 in 67ms (next.js: 4ms, application-code: 63ms)
+ GET /api/store 200 in 53ms (next.js: 5ms, application-code: 47ms)
+TypeError: fetch failed
+    at async POST (src/app/api/auth/setup/route.ts:21:42)
+  19 |         // Ensure Supabase URL is accessible, otherwise we are in a mock/test environment
+  20 |         try {
+> 21 |             const { error: listError } = await supabase.auth.admin.listUsers();
+     |                                          ^
+  22 |             if (listError) throw listError;
+  23 |         } catch (e) {
+  24 |             console.warn("Supabase Auth unreachable or failed. Bypassing setup for test en... {
+  [cause]: AggregateError:
+      at ignore-listed frames {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+Supabase Auth unreachable or failed. Bypassing setup for test environment.
+ POST /api/auth/setup 200 in 180ms (next.js: 7ms, application-code: 173ms)

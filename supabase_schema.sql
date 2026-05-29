@@ -117,18 +117,18 @@ ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE persistent_listening ENABLE ROW LEVEL SECURITY;
 ALTER TABLE mahjong_scores ENABLE ROW LEVEL SECURITY;
 
--- Create permissive policies for the 'anon' role.
-CREATE POLICY "Anon Full Access Events" ON events FOR ALL TO anon USING (true) WITH CHECK (true);
-CREATE POLICY "Anon Full Access Notes" ON notes FOR ALL TO anon USING (true) WITH CHECK (true);
-CREATE POLICY "Anon Full Access Commitments" ON commitments FOR ALL TO anon USING (true) WITH CHECK (true);
-CREATE POLICY "Anon Full Access Tracking" ON daily_tracking FOR ALL TO anon USING (true) WITH CHECK (true);
-CREATE POLICY "Anon Full Access Victories" ON victories FOR ALL TO anon USING (true) WITH CHECK (true);
-CREATE POLICY "Anon Full Access AudioTrack" ON audio_track FOR ALL TO anon USING (true) WITH CHECK (true);
-CREATE POLICY "Anon Full Access AudioComments" ON audio_comments FOR ALL TO anon USING (true) WITH CHECK (true);
-CREATE POLICY "Anon Full Access Settings" ON app_settings FOR ALL TO anon USING (true) WITH CHECK (true);
-CREATE POLICY "Anon Full Access Notifications" ON notifications FOR ALL TO anon USING (true) WITH CHECK (true);
-CREATE POLICY "Anon Full Access Persistent" ON persistent_listening FOR ALL TO anon USING (true) WITH CHECK (true);
-CREATE POLICY "Anon Full Access Mahjong" ON mahjong_scores FOR ALL TO anon USING (true) WITH CHECK (true);
+-- Create secure policies for authenticated users.
+CREATE POLICY "Auth Full Access Events" ON events FOR ALL TO authenticated USING (auth.jwt() ->> 'email' IN ('el@mile.app', 'ella@mile.app')) WITH CHECK (auth.jwt() ->> 'email' IN ('el@mile.app', 'ella@mile.app'));
+CREATE POLICY "Auth Full Access Notes" ON notes FOR ALL TO authenticated USING (auth.jwt() ->> 'email' IN ('el@mile.app', 'ella@mile.app')) WITH CHECK (auth.jwt() ->> 'email' IN ('el@mile.app', 'ella@mile.app'));
+CREATE POLICY "Auth Full Access Commitments" ON commitments FOR ALL TO authenticated USING (auth.jwt() ->> 'email' IN ('el@mile.app', 'ella@mile.app')) WITH CHECK (auth.jwt() ->> 'email' IN ('el@mile.app', 'ella@mile.app'));
+CREATE POLICY "Auth Full Access Tracking" ON daily_tracking FOR ALL TO authenticated USING (auth.jwt() ->> 'email' IN ('el@mile.app', 'ella@mile.app')) WITH CHECK (auth.jwt() ->> 'email' IN ('el@mile.app', 'ella@mile.app'));
+CREATE POLICY "Auth Full Access Victories" ON victories FOR ALL TO authenticated USING (auth.jwt() ->> 'email' IN ('el@mile.app', 'ella@mile.app')) WITH CHECK (auth.jwt() ->> 'email' IN ('el@mile.app', 'ella@mile.app'));
+CREATE POLICY "Auth Full Access AudioTrack" ON audio_track FOR ALL TO authenticated USING (auth.jwt() ->> 'email' IN ('el@mile.app', 'ella@mile.app')) WITH CHECK (auth.jwt() ->> 'email' IN ('el@mile.app', 'ella@mile.app'));
+CREATE POLICY "Auth Full Access AudioComments" ON audio_comments FOR ALL TO authenticated USING (auth.jwt() ->> 'email' IN ('el@mile.app', 'ella@mile.app')) WITH CHECK (auth.jwt() ->> 'email' IN ('el@mile.app', 'ella@mile.app'));
+CREATE POLICY "Auth Full Access Settings" ON app_settings FOR ALL TO authenticated USING (auth.jwt() ->> 'email' IN ('el@mile.app', 'ella@mile.app')) WITH CHECK (auth.jwt() ->> 'email' IN ('el@mile.app', 'ella@mile.app'));
+CREATE POLICY "Auth Full Access Notifications" ON notifications FOR ALL TO authenticated USING (auth.jwt() ->> 'email' IN ('el@mile.app', 'ella@mile.app')) WITH CHECK (auth.jwt() ->> 'email' IN ('el@mile.app', 'ella@mile.app'));
+CREATE POLICY "Auth Full Access Persistent" ON persistent_listening FOR ALL TO authenticated USING (auth.jwt() ->> 'email' IN ('el@mile.app', 'ella@mile.app')) WITH CHECK (auth.jwt() ->> 'email' IN ('el@mile.app', 'ella@mile.app'));
+CREATE POLICY "Auth Full Access Mahjong" ON mahjong_scores FOR ALL TO authenticated USING (auth.jwt() ->> 'email' IN ('el@mile.app', 'ella@mile.app')) WITH CHECK (auth.jwt() ->> 'email' IN ('el@mile.app', 'ella@mile.app'));
 
 -- Productivity Dashboard Additions
 CREATE TABLE IF NOT EXISTS tasks (
@@ -142,5 +142,5 @@ CREATE TABLE IF NOT EXISTS tasks (
 );
 
 ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Anon Full Access Tasks" ON tasks FOR ALL TO anon USING (true) WITH CHECK (true);
+CREATE POLICY "Auth Full Access Tasks" ON tasks FOR ALL TO authenticated USING (auth.jwt() ->> 'email' IN ('el@mile.app', 'ella@mile.app')) WITH CHECK (auth.jwt() ->> 'email' IN ('el@mile.app', 'ella@mile.app'));
 

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { supabase } from '@/lib/supabase';
 
 type Profile = 'el' | 'ella' | null;
 
@@ -18,13 +19,31 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
 
     useEffect(() => {
-        const savedProfile = sessionStorage.getItem('mile_profile') as Profile;
-        const authStatus = sessionStorage.getItem('mile_auth');
+        const checkSession = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            const savedProfile = sessionStorage.getItem('mile_profile') as Profile;
+            const authStatus = sessionStorage.getItem('mile_auth');
 
-        if (authStatus === 'true' && savedProfile) {
-            setProfile(savedProfile);
-            setIsAuthenticated(true);
-        }
+            if (session && authStatus === 'true' && savedProfile) {
+                setProfile(savedProfile);
+                setIsAuthenticated(true);
+            } else if (!session) {
+                // If there's no supabase session, clear local auth
+                sessionStorage.removeItem('mile_auth');
+                sessionStorage.removeItem('mile_profile');
+                setIsAuthenticated(false);
+            }
+        };
+        checkSession();
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            if (!session) {
+                setIsAuthenticated(false);
+                setProfile(null);
+            }
+        });
+
+        return () => subscription.unsubscribe();
     }, []);
 
     const login = (selectedProfile: 'el' | 'ella') => {
@@ -34,11 +53,11 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
         setIsAuthenticated(true);
     };
 
-    const logout = () => {
+    const logout = async () => {
+        await supabase.auth.signOut();
         sessionStorage.removeItem('mile_auth');
         sessionStorage.removeItem('mile_profile');
         setProfile(null);
-        setIsAuthenticated(true);
         setIsAuthenticated(false);
     };
 

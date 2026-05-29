@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Lock, ArrowRight, User, UserCheck, ChevronLeft, Shield } from 'lucide-react';
 import { GeometricBackground } from './GeometricBackground';
 import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '@/lib/supabase';
 
 const PASSWORDS = {
     el: 'refugio',
@@ -59,12 +60,41 @@ export function LoginOverlay({ onLoginSuccess }: LoginOverlayProps) {
         setSelectedProfile(profile);
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!selectedProfile) return;
 
         if (keyword.trim().toLowerCase() === PASSWORDS[selectedProfile]) {
-            onLoginSuccess(selectedProfile);
+            try {
+                // Setup the user in Supabase if necessary
+                const res = await fetch('/api/auth/setup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ profile: selectedProfile, password: keyword.trim().toLowerCase() })
+                });
+
+                if (!res.ok) {
+                    throw new Error('Setup failed');
+                }
+
+                const data = await res.json();
+
+                if (!data.testMode) {
+                    // Sign in with Supabase Auth
+                    const { error: signInError } = await supabase.auth.signInWithPassword({
+                        email: data.email,
+                        password: data.password
+                    });
+
+                    if (signInError) throw signInError;
+                }
+
+                onLoginSuccess(selectedProfile);
+            } catch (err) {
+                console.error('Authentication error:', err);
+                setError(true);
+                setTimeout(() => setError(false), 2000);
+            }
         } else {
             setError(true);
             setTimeout(() => setError(false), 2000);
