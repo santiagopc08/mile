@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useStore } from '@/context/StoreContext';
 import { useProfile } from '@/context/ProfileContext';
 import { motion } from 'framer-motion';
-import { CalendarDays, Clock, Check, Heart, Trophy, Zap } from 'lucide-react';
+import { Check, Heart, Trophy, Zap } from 'lucide-react';
 import { PomodoroTimer } from './symmetry/PomodoroTimer';
 import { PendingTasks } from './PendingTasks';
 import { QuickLinks } from './QuickLinks';
