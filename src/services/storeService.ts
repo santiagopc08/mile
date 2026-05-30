@@ -212,15 +212,22 @@ export const StoreService = {
             const trackingDays = Math.floor((new Date().getTime() - new Date(settings.connection_date).getTime()) / (1000 * 60 * 60 * 24));
 
             const rawPlaylist = playlistRes.data || [];
+            const allComments = commentsRes.data || [];
+            const commentsByTrackId = allComments.reduce((acc: any, c: any) => {
+                if (!acc[c.track_id]) acc[c.track_id] = [];
+                acc[c.track_id].push(c);
+                return acc;
+            }, {});
+
             const audioPlaylist = rawPlaylist.map(track => ({
                 ...track,
                 spotifyUrl: track.spotify_url || null,
-                comments: (commentsRes.data || []).filter((c: any) => c.track_id === track.id)
+                comments: commentsByTrackId[track.id] || []
             }));
 
             const formattedDate = new Intl.DateTimeFormat('es-CO', { dateStyle: 'long', timeStyle: 'short' }).format(new Date(settings.last_update));
 
-            let finalCommitments = commitmentsRes.data || [];
+            const finalCommitments = commitmentsRes.data || [];
 
             // Daily Tracking Logic
             const timeZoneOffset = (new Date()).getTimezoneOffset() * 60000;
@@ -233,18 +240,29 @@ export const StoreService = {
             const trackingRes = await supabase.from('daily_tracking').select('*').in('date', [todayStr, yesterdayStr]);
             const trackingData = trackingRes.data || [];
 
-            let todayTracking = trackingData.find((t: any) => t.date === todayStr);
+            const todayTracking = trackingData.find((t: any) => t.date === todayStr);
             const yesterdayTracking = trackingData.find((t: any) => t.date === yesterdayStr);
 
             const allVictories = victoriesRes.data || [];
 
             const allContributions = (contribRes.data || []) as any[];
+            const contributionsByItemId = allContributions.reduce((acc: any, c: any) => {
+                if (!acc[c.wishlist_item_id]) acc[c.wishlist_item_id] = [];
+                acc[c.wishlist_item_id].push(c);
+                return acc;
+            }, {});
+
             const allReactions = (reactionsRes.data || []) as any[];
+            const reactionsByItemId = allReactions.reduce((acc: any, r: any) => {
+                if (!acc[r.wishlist_item_id]) acc[r.wishlist_item_id] = [];
+                acc[r.wishlist_item_id].push(r);
+                return acc;
+            }, {});
 
             return {
                 wishlist: (wishlistRes.data || []).map(w => {
-                    const itemContribs = allContributions.filter(c => c.wishlist_item_id === w.id);
-                    const itemReactions = allReactions.filter(r => r.wishlist_item_id === w.id);
+                    const itemContribs = contributionsByItemId[w.id] || [];
+                    const itemReactions = reactionsByItemId[w.id] || [];
                     return {
                         id: w.id,
                         category: w.category || 'antojo',
