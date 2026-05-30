@@ -5,11 +5,6 @@ import { Lock, ArrowRight, User, UserCheck, ChevronLeft, Shield } from 'lucide-r
 import { GeometricBackground } from './GeometricBackground';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const PASSWORDS = {
-    el: 'refugio',
-    ella: 'esperanza'
-};
-
 const PROFILE_COLORS = {
     el: {
         primary: '#89D94A',
@@ -59,16 +54,33 @@ export function LoginOverlay({ onLoginSuccess }: LoginOverlayProps) {
         setSelectedProfile(profile);
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!selectedProfile) return;
 
-        if (keyword.trim().toLowerCase() === PASSWORDS[selectedProfile]) {
-            onLoginSuccess(selectedProfile);
-        } else {
-            setError(true);
-            setTimeout(() => setError(false), 2000);
+        try {
+            const res = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    profile: selectedProfile,
+                    password: keyword.trim().toLowerCase()
+                })
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                if (data.success) {
+                    onLoginSuccess(selectedProfile);
+                    return;
+                }
+            }
+        } catch (err) {
+            console.error('Login request failed', err);
         }
+
+        setError(true);
+        setTimeout(() => setError(false), 2000);
     };
 
     if (!isMounted) return null;
