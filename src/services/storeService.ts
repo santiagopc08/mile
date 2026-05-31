@@ -212,15 +212,21 @@ export const StoreService = {
             const trackingDays = Math.floor((new Date().getTime() - new Date(settings.connection_date).getTime()) / (1000 * 60 * 60 * 24));
 
             const rawPlaylist = playlistRes.data || [];
+            const commentsByTrackId = (commentsRes.data || []).reduce((acc: Record<string, any[]>, c: any) => {
+                if (!acc[c.track_id]) acc[c.track_id] = [];
+                acc[c.track_id].push(c);
+                return acc;
+            }, {});
+
             const audioPlaylist = rawPlaylist.map(track => ({
                 ...track,
                 spotifyUrl: track.spotify_url || null,
-                comments: (commentsRes.data || []).filter((c: any) => c.track_id === track.id)
+                comments: commentsByTrackId[track.id] || []
             }));
 
             const formattedDate = new Intl.DateTimeFormat('es-CO', { dateStyle: 'long', timeStyle: 'short' }).format(new Date(settings.last_update));
 
-            let finalCommitments = commitmentsRes.data || [];
+            const finalCommitments = commitmentsRes.data || [];
 
             // Daily Tracking Logic
             const timeZoneOffset = (new Date()).getTimezoneOffset() * 60000;
@@ -233,18 +239,29 @@ export const StoreService = {
             const trackingRes = await supabase.from('daily_tracking').select('*').in('date', [todayStr, yesterdayStr]);
             const trackingData = trackingRes.data || [];
 
-            let todayTracking = trackingData.find((t: any) => t.date === todayStr);
+            const todayTracking = trackingData.find((t: any) => t.date === todayStr);
             const yesterdayTracking = trackingData.find((t: any) => t.date === yesterdayStr);
 
             const allVictories = victoriesRes.data || [];
 
             const allContributions = (contribRes.data || []) as any[];
+            const contribsByWishlistId = allContributions.reduce((acc: Record<string, any[]>, c: any) => {
+                if (!acc[c.wishlist_item_id]) acc[c.wishlist_item_id] = [];
+                acc[c.wishlist_item_id].push(c);
+                return acc;
+            }, {});
+
             const allReactions = (reactionsRes.data || []) as any[];
+            const reactionsByWishlistId = allReactions.reduce((acc: Record<string, any[]>, r: any) => {
+                if (!acc[r.wishlist_item_id]) acc[r.wishlist_item_id] = [];
+                acc[r.wishlist_item_id].push(r);
+                return acc;
+            }, {});
 
             return {
                 wishlist: (wishlistRes.data || []).map(w => {
-                    const itemContribs = allContributions.filter(c => c.wishlist_item_id === w.id);
-                    const itemReactions = allReactions.filter(r => r.wishlist_item_id === w.id);
+                    const itemContribs = contribsByWishlistId[w.id] || [];
+                    const itemReactions = reactionsByWishlistId[w.id] || [];
                     return {
                         id: w.id,
                         category: w.category || 'antojo',
@@ -391,8 +408,8 @@ export const StoreService = {
                     }
                 }
 
-                const incomingIds = incomingItems.filter(i => i.id).map(i => i.id);
-                const toDelete = (existing || []).filter(r => !incomingIds.includes(r.id)).map(r => r.id);
+                const incomingIds = new Set(incomingItems.filter(i => i.id).map(i => i.id));
+                const toDelete = (existing || []).filter(r => !incomingIds.has(r.id)).map(r => r.id);
 
                 if (toDelete.length > 0) await supabase.from(tableName).delete().in('id', toDelete);
                 if (toUpsert.length > 0) await supabase.from(tableName).upsert(toUpsert);
@@ -603,8 +620,8 @@ export const StoreService = {
                 }
 
                 // Delete tracks not in payload
-                const incomingIds = newData.audioPlaylist.map(t => t.id);
-                const toDelete = (existingTracks || []).filter(r => !incomingIds.includes(r.id)).map(r => r.id);
+                const incomingIds = new Set(newData.audioPlaylist.map(t => t.id));
+                const toDelete = (existingTracks || []).filter(r => !incomingIds.has(r.id)).map(r => r.id);
                 if (toDelete.length > 0) await supabase.from('audio_track').delete().in('id', toDelete);
             }
 
