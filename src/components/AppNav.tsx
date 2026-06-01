@@ -11,7 +11,7 @@ export function AppNav() {
   const profileAccent = profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)';
 
   const navItems = [
-    { name: 'Día a Día', detail: 'Tareas', path: '/', icon: LayoutDashboard, accent: profileAccent },
+    { name: 'Día a Día', detail: 'Tareas', path: '/dashboard', icon: LayoutDashboard, accent: profileAccent },
     { name: 'Refugio', detail: 'Nosotros', path: '/refugio', icon: ShieldCheck, accent: profileAccent },
     { name: 'Antojos', detail: 'Deseos', path: '/planes', icon: MapPin, accent: profileAccent },
     { name: 'Salud', detail: 'Bienestar', path: '/salud', icon: Heart, accent: profileAccent },
@@ -65,7 +65,7 @@ export function AppNav() {
 
       {/* Desktop Sidebar (Placeholder structure as per design) */}
       <aside className="hidden lg:flex flex-col fixed left-0 top-0 h-full w-20 border-r border-white/10 bg-[#120d0e] z-40 items-center py-10 gap-8">
-        <div className="font-mono text-sm font-bold tracking-widest border border-white/20 p-2" style={{ color: profileAccent }}>OC</div>
+        <Link href="/" className="font-mono text-sm font-bold tracking-widest border border-white/20 p-2 hover:bg-white/5 transition-all" style={{ color: profileAccent }}>OC</Link>
         
         {navItems.map((item) => {
           const isActive = pathname === item.path;
