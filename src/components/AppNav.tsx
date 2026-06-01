@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { LayoutDashboard, ShieldCheck, Gamepad2, MapPin, Heart } from 'lucide-react';
 import { useProfile } from '@/context/ProfileContext';
+import { NotificationBell } from './NotificationBell';
 
 export function AppNav() {
   const pathname = usePathname();
@@ -20,7 +21,21 @@ export function AppNav() {
 
   return (
     <>
-      <div suppressHydrationWarning className="h-16 lg:h-0" aria-hidden="true" />
+      <div suppressHydrationWarning className="h-16 lg:h-0 bg-[#120d0e]/60 backdrop-blur-md border-b border-white/5 lg:border-none" aria-hidden="true" />
+
+      {/* Mobile Top Header (Tactical blueprint logo link to return home `/`) */}
+      <header className="fixed top-0 left-0 w-full h-16 bg-[#120d0e]/95 backdrop-blur-md border-b border-white/10 flex items-center justify-between px-6 lg:hidden z-40">
+        <Link href="/" className="font-mono text-xs font-black tracking-[0.25em] border border-white/15 px-3 py-1.5 bg-black/60 text-[#a88a7e] hover:text-[#e5e2e1] transition-all" style={{ borderColor: `${profileAccent}30`, color: profileAccent }}>
+          MILE & SANTI
+        </Link>
+        <div className="flex items-center gap-4">
+          <NotificationBell align="right" />
+          <div className="flex items-center gap-2">
+            <div className="w-1.5 h-1.5 rounded-full bg-user-c animate-pulse" />
+            <span className="text-[7px] font-mono uppercase tracking-[0.22em] text-[#a88a7e] opacity-70">EN LÍNEA</span>
+          </div>
+        </div>
+      </header>
 
       {/* Mobile Bottom Nav */}
       <nav className="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center h-16 bg-[#120d0e] border-t border-white/10 lg:hidden">
@@ -65,7 +80,8 @@ export function AppNav() {
 
       {/* Desktop Sidebar (Placeholder structure as per design) */}
       <aside className="hidden lg:flex flex-col fixed left-0 top-0 h-full w-20 border-r border-white/10 bg-[#120d0e] z-40 items-center py-10 gap-8">
-        <Link href="/" className="font-mono text-sm font-bold tracking-widest border border-white/20 p-2 hover:bg-white/5 transition-all" style={{ color: profileAccent }}>OC</Link>
+        <Link href="/" className="font-mono text-sm font-bold tracking-widest border border-white/20 p-2 hover:bg-white/5 transition-all mb-2" style={{ color: profileAccent }}>OC</Link>
+        <NotificationBell align="left" />
         
         {navItems.map((item) => {
           const isActive = pathname === item.path;

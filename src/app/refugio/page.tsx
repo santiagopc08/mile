@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { PrivateRoute } from "@/components/PrivateRoute";
 import { JarOfNotes } from "@/components/JarOfNotes";
 import { PersistentListening } from "@/components/PersistentListening";
@@ -16,6 +16,16 @@ export default function RefugioPage() {
   type RefugioTab = 'notas' | 'escucha' | 'musica' | 'bebes' | 'historia';
 
   const [activeTab, setActiveTab] = useState<RefugioTab>('notas');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const tab = params.get('tab') as RefugioTab;
+      if (tab && ['notas', 'escucha', 'musica', 'bebes', 'historia'].includes(tab)) {
+        setActiveTab(tab);
+      }
+    }
+  }, []);
   const { data } = useStore();
   const { profile } = useProfile();
   const accentColor = profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)';

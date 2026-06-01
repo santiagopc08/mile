@@ -15,6 +15,16 @@ import { MovementTracker } from "@/components/health/MovementTracker";
 export default function SaludPage() {
     type SaludTab = 'vitals' | 'biometric' | 'fiscal' | 'habits' | 'movement';
     const [activeTab, setActiveTab] = useState<SaludTab>('vitals');
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const params = new URLSearchParams(window.location.search);
+            const tab = params.get('tab') as SaludTab;
+            if (tab && ['vitals', 'biometric', 'fiscal', 'habits', 'movement'].includes(tab)) {
+                setActiveTab(tab);
+            }
+        }
+    }, []);
     const { data } = useStore();
     const { profile } = useProfile();
     const accentColor = profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)';

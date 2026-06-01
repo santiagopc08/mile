@@ -7,7 +7,7 @@ import { useProfile } from '@/context/ProfileContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
 
-export function NotificationBell() {
+export function NotificationBell({ align = 'right' }: { align?: 'left' | 'right' }) {
     const { profile } = useProfile();
     const [notifications, setNotifications] = useState<any[]>([]);
     const [isOpen, setIsOpen] = useState(false);
@@ -199,7 +199,9 @@ export function NotificationBell() {
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: 8 }}
                             transition={{ duration: 0.15, ease: "easeOut" }}
-                            className="absolute right-0 mt-3 w-80 border border-white/10 bg-[#0a0a0a]/98 backdrop-blur-xl shadow-[0_15px_40px_rgba(0,0,0,0.6)] z-50 overflow-hidden font-mono"
+                            className={`absolute mt-3 w-80 border border-white/10 bg-[#0a0a0a]/98 backdrop-blur-xl shadow-[0_15px_40px_rgba(0,0,0,0.6)] z-50 overflow-hidden font-mono ${
+                                align === 'left' ? 'left-0 lg:left-full lg:top-0 lg:mt-0 lg:ml-4' : 'right-0'
+                            }`}
                         >
                             {/* Header */}
                             <div className="flex items-center justify-between border-b border-white/10 bg-black/40 p-4">

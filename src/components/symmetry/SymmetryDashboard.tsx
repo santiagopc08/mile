@@ -12,9 +12,8 @@ import { DualWallet } from './DualWallet';
 import { FinanceChart } from './FinanceChart';
 import { StoreService } from '@/services/storeService';
 import { useMemo } from 'react';
-import { Activity, BarChart3, Eye, ShieldCheck, WalletCards, Clock } from 'lucide-react';
+import { Activity, BarChart3, Eye, ShieldCheck, WalletCards, Clock, ChevronDown, ChevronRight } from 'lucide-react';
 import { AnimatedBrutalistCorners } from '@/components/ui/AnimatedBrutalistCorners';
-import { NotificationBell } from '@/components/NotificationBell';
 import { NotificationsFeed } from '@/components/NotificationsFeed';
 
 interface Task {
@@ -125,9 +124,41 @@ export const SymmetryDashboard = () => {
   };
 
   const [activeTab, setActiveTab] = useState<'tasks' | 'finances'>('tasks');
+
+  // Collapsible drawer states
+  const [isPomodoroOpen, setIsPomodoroOpen] = useState(false);
+  const [isAnalyticsOpen, setIsAnalyticsOpen] = useState(false);
+  const [isActivityOpen, setIsActivityOpen] = useState(false);
+  const [isChartOpen, setIsChartOpen] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const tab = params.get('tab');
+      if (tab === 'tasks' || tab === 'finances') {
+        setActiveTab(tab);
+      }
+    }
+  }, []);
+
   const activeAccent = profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)';
   const completedTasks = tasks.filter(t => t.status === 'done').length;
   const activeTasks = tasks.filter(t => t.status === 'in_progress').length;
+
+  // Calculate financial statistics for dynamic header cell
+  const userAllocations = useMemo(() => profile === 'el' ? allocationsA : allocationsB, [profile, allocationsA, allocationsB]);
+  const totalSpent = useMemo(() => userAllocations.reduce((sum, a) => sum + a.amount, 0), [userAllocations]);
+  const combinedTotalSpent = useMemo(() => storeAllocations.reduce((sum, a: any) => sum + a.amount, 0), [storeAllocations]);
+
+  const formatPriceCompact = (v: number) => {
+    if (v >= 1000000) {
+      return '$ ' + (v / 1000000).toFixed(1) + 'M';
+    }
+    if (v >= 1000) {
+      return '$ ' + Math.round(v / 1000) + 'k';
+    }
+    return '$ ' + v;
+  };
 
   const accentColorValue = profile === 'ella' ? '#ff4b89' : '#c3f400';
   const accentAlphaValue = profile === 'ella' ? 'rgba(255, 75, 137, 0.3)' : 'rgba(195, 244, 0, 0.3)';
@@ -154,29 +185,48 @@ export const SymmetryDashboard = () => {
                   CONECTADOS
                 </span>
               </div>
-              <NotificationBell />
             </div>
             <h1 className="text-5xl font-black uppercase leading-[0.92] tracking-normal text-white sm:text-7xl lg:text-8xl">
               Eficiencia
             </h1>
             <div className="mt-6 grid max-w-4xl gap-5 border-t border-white/10 pt-5 lg:grid-cols-[1fr_auto] lg:items-end">
-              <p className="max-w-2xl text-sm leading-6 tracking-normal text-[#e1bfb2] md:text-base">
-                Plataforma de gestión de operaciones, finanzas y tareas diarias.
+              <p className="max-w-2xl text-sm leading-6 tracking-normal text-[#e1bfb2] md:text-base font-sans">
+                {activeTab === 'tasks' 
+                  ? 'Plataforma de gestión de operaciones, objetivos y tareas cotidianas.'
+                  : 'Bitácora financiera compartida, distribución de presupuesto y proyección.'}
               </p>
-              <div className="grid grid-cols-3 border border-white/10 text-center bg-black/20">
-                <div className="border-r border-white/10 px-4 py-3">
-                  <div className={`text-2xl font-black font-mono tracking-tighter ${profile === 'ella' ? 'text-user-a' : 'text-user-b'}`}>{tasks.length}</div>
-                  <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e] mt-1">Tareas</div>
+              
+              {activeTab === 'tasks' ? (
+                <div className="grid grid-cols-3 border border-white/10 text-center bg-black/20 rounded-none shrink-0 min-w-[280px]">
+                  <div className="border-r border-white/10 px-4 py-3">
+                    <div className={`text-2xl font-black font-mono tracking-tighter ${profile === 'ella' ? 'text-user-a' : 'text-user-b'}`}>{tasks.length}</div>
+                    <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e] mt-1">Tareas</div>
+                  </div>
+                  <div className="border-r border-white/10 px-4 py-3">
+                    <div className="text-2xl font-black font-mono tracking-tighter text-user-c">{activeTasks}</div>
+                    <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e] mt-1">Activas</div>
+                  </div>
+                  <div className="px-4 py-3">
+                    <div className={`text-2xl font-black font-mono tracking-tighter ${profile === 'ella' ? 'text-user-b' : 'text-user-a'}`}>{Math.round(focusScore)}%</div>
+                    <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e] mt-1">Enfoque</div>
+                  </div>
                 </div>
-                <div className="border-r border-white/10 px-4 py-3">
-                  <div className="text-2xl font-black font-mono tracking-tighter text-user-c">{activeTasks}</div>
-                  <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e] mt-1">Activas</div>
+              ) : (
+                <div className="grid grid-cols-3 border border-white/10 text-center bg-black/20 rounded-none shrink-0 min-w-[280px]">
+                  <div className="border-r border-white/10 px-4 py-3">
+                    <div className={`text-2xl font-black font-mono tracking-tighter ${profile === 'ella' ? 'text-user-a' : 'text-user-b'}`}>{userAllocations.length}</div>
+                    <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e] mt-1">Registros</div>
+                  </div>
+                  <div className="border-r border-white/10 px-4 py-3">
+                    <div className="text-2xl font-black font-mono tracking-tighter text-user-c">{formatPriceCompact(totalSpent)}</div>
+                    <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e] mt-1">Gastos Tuyos</div>
+                  </div>
+                  <div className="px-4 py-3">
+                    <div className={`text-2xl font-black font-mono tracking-tighter ${profile === 'ella' ? 'text-user-b' : 'text-user-a'}`}>{formatPriceCompact(combinedTotalSpent)}</div>
+                    <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e] mt-1">Gastado Juntos</div>
+                  </div>
                 </div>
-                <div className="px-4 py-3">
-                  <div className={`text-2xl font-black font-mono tracking-tighter ${profile === 'ella' ? 'text-user-b' : 'text-user-a'}`}>{Math.round(focusScore)}%</div>
-                  <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e] mt-1">Enfoque</div>
-                </div>
-              </div>
+              )}
             </div>
           </div>
         </div>
@@ -243,17 +293,38 @@ export const SymmetryDashboard = () => {
               <BarChart3 className="hidden h-10 w-10 text-user-a md:block" strokeWidth={1} />
             </div>
 
-             {/* Row 0: Pomodoro */}
-            <div className="geometric-card relative border-white/10 bg-[#0a0a0a] p-6 sm:p-8 overflow-hidden">
-              <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-                <Clock size={120} style={{ color: accentColorValue }} />
-              </div>
-              <AnimatedBrutalistCorners color={accentColorValue} />
-
-              <PomodoroTimer />
+             {/* Row 0: Pomodoro (COLLAPSIBLE) */}
+            <div className="border border-white/10 bg-[#0a0a0a] rounded-none overflow-hidden transition-all duration-300 relative">
+              <AnimatedBrutalistCorners color={accentColorValue} size={8} thickness={1} />
+              <button 
+                onClick={() => setIsPomodoroOpen(!isPomodoroOpen)} 
+                className="w-full px-5 py-4 flex items-center justify-between bg-black/40 hover:bg-black/60 transition-colors text-left"
+              >
+                <span className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.24em] text-white">
+                  <Clock size={14} className="stroke-[1.5]" style={{ color: accentColorValue }} />
+                  TEMPORIZADOR DE ENFOQUE (POMODORO)
+                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[7.5px] font-mono opacity-40 uppercase tracking-widest">{isPomodoroOpen ? 'Ocultar' : 'Mostrar'}</span>
+                  {isPomodoroOpen ? <ChevronDown size={14} className="opacity-60" /> : <ChevronRight size={14} className="opacity-60" />}
+                </div>
+              </button>
+              
+              <AnimatePresence>
+                {isPomodoroOpen && (
+                  <motion.div 
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="border-t border-white/10 p-6 sm:p-8"
+                  >
+                    <PomodoroTimer />
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
-            {/* Row 1: Kanban Board */}
+            {/* Row 1: Kanban Board (Always Expanded - Core Interface) */}
             <div className="geometric-card relative border-white/10 bg-[#0a0a0a] p-6 sm:p-8 overflow-hidden">
               <AnimatedBrutalistCorners color={accentColorValue} />
               <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
@@ -266,30 +337,66 @@ export const SymmetryDashboard = () => {
               <TaskModule onTasksUpdate={handleTasksUpdate} />
             </div>
 
-            {/* Row 2: Analytics */}
-            <div className="geometric-card relative border-white/10 bg-[#0a0a0a] p-6 sm:p-8 overflow-hidden">
-              <AnimatedBrutalistCorners color="#00dbe9" />
-              <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-                <BarChart3 size={120} className="text-[#00dbe9]" />
-              </div>
-              <h2 className="mb-8 flex items-center gap-2 border-b border-white/5 pb-4 text-[10px] font-black uppercase tracking-[0.22em] text-[#00dbe9] relative z-10">
-                <div className="w-1.5 h-1.5 bg-user-c" style={{ boxShadow: '0 0 5px var(--color-user-c)' }} />
-                RESUMEN DE NUESTRO PROGRESO
-              </h2>
-              <TaskAnalytics tasks={tasks} objectives={objectives} />
+            {/* Row 2: Analytics (COLLAPSIBLE) */}
+            <div className="border border-white/10 bg-[#0a0a0a] rounded-none overflow-hidden transition-all duration-300 relative">
+              <AnimatedBrutalistCorners color="#00dbe9" size={8} thickness={1} />
+              <button 
+                onClick={() => setIsAnalyticsOpen(!isAnalyticsOpen)} 
+                className="w-full px-5 py-4 flex items-center justify-between bg-black/40 hover:bg-black/60 transition-colors text-left"
+              >
+                <span className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.24em] text-white">
+                  <BarChart3 size={14} className="stroke-[1.5] text-[#00dbe9]" />
+                  MÉTRICAS Y ANÁLISIS DE PROGRESO
+                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[7.5px] font-mono opacity-40 uppercase tracking-widest">{isAnalyticsOpen ? 'Ocultar' : 'Mostrar'}</span>
+                  {isAnalyticsOpen ? <ChevronDown size={14} className="opacity-60" /> : <ChevronRight size={14} className="opacity-60" />}
+                </div>
+              </button>
+              
+              <AnimatePresence>
+                {isAnalyticsOpen && (
+                  <motion.div 
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="border-t border-white/10 p-6 sm:p-8"
+                  >
+                    <TaskAnalytics tasks={tasks} objectives={objectives} />
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
-            {/* Row 3: Bitácora de Alertas en Tiempo Real */}
-            <div className="geometric-card relative border-white/10 bg-[#0a0a0a] p-6 sm:p-8 overflow-hidden">
-              <AnimatedBrutalistCorners color={accentColorValue} />
-              <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-                <Activity size={120} style={{ color: accentColorValue }} />
-              </div>
-              <h2 className="mb-8 flex items-center gap-2 border-b border-white/5 pb-4 text-[10px] font-black uppercase tracking-[0.22em] relative z-10" style={{ color: accentColorValue }}>
-                <div className="w-1.5 h-1.5 bg-user-c animate-pulse" style={{ boxShadow: `0 0 5px ${accentColorValue}` }} />
-                BITÁCORA DE ACTIVIDAD COMPARTIDA
-              </h2>
-              <NotificationsFeed />
+            {/* Row 3: Bitácora de Alertas en Tiempo Real (COLLAPSIBLE) */}
+            <div className="border border-white/10 bg-[#0a0a0a] rounded-none overflow-hidden transition-all duration-300 relative">
+              <AnimatedBrutalistCorners color={accentColorValue} size={8} thickness={1} />
+              <button 
+                onClick={() => setIsActivityOpen(!isActivityOpen)} 
+                className="w-full px-5 py-4 flex items-center justify-between bg-black/40 hover:bg-black/60 transition-colors text-left"
+              >
+                <span className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.24em] text-white">
+                  <Activity size={14} className="stroke-[1.5]" style={{ color: accentColorValue }} />
+                  BITÁCORA DE ACTIVIDAD COMPARTIDA
+                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[7.5px] font-mono opacity-40 uppercase tracking-widest">{isActivityOpen ? 'Ocultar' : 'Mostrar'}</span>
+                  {isActivityOpen ? <ChevronDown size={14} className="opacity-60" /> : <ChevronRight size={14} className="opacity-60" />}
+                </div>
+              </button>
+              
+              <AnimatePresence>
+                {isActivityOpen && (
+                  <motion.div 
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="border-t border-white/10 p-6 sm:p-8"
+                  >
+                    <NotificationsFeed />
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </motion.div>
         ) : (
@@ -321,7 +428,8 @@ export const SymmetryDashboard = () => {
               <WalletCards className="hidden h-10 w-10 text-user-a md:block" strokeWidth={1} />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 gap-8">
+              {/* Financial Movement Log & Form (Always Expanded - Core Ledger) */}
               <div className="geometric-card relative border-white/10 bg-[#0a0a0a] p-6 overflow-hidden">
                 <AnimatedBrutalistCorners color={accentColorValue} />
                 <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
@@ -336,18 +444,41 @@ export const SymmetryDashboard = () => {
                   onAllocationsChange={handleAllocationsChange}
                 />
               </div>
-              <div className="geometric-card relative border-white/10 bg-[#0a0a0a] p-6 sm:p-8 overflow-hidden">
-                <AnimatedBrutalistCorners color="var(--color-user-a)" />
-                <h2 className="mb-8 flex items-center gap-2 border-b border-white/10 pb-3 text-[10px] font-black uppercase tracking-[0.22em] text-[#a88a7e]">
-                  <div className="w-1.5 h-1.5 bg-user-a" style={{ boxShadow: '0 0 5px var(--color-user-a)' }} />
-                  DISTRIBUCIÓN DE NUESTRO GASTO
-                </h2>
-                <div className="h-64">
-                  <FinanceChart
-                    allocationsElla={mode === 'me' && profile === 'el' ? [] : allocationsB}
-                    allocationsEl={mode === 'me' && profile === 'ella' ? [] : allocationsA}
-                  />
-                </div>
+
+              {/* Finance Chart (COLLAPSIBLE) */}
+              <div className="border border-white/10 bg-[#0a0a0a] rounded-none overflow-hidden transition-all duration-300 relative">
+                <AnimatedBrutalistCorners color="var(--color-user-a)" size={8} thickness={1} />
+                <button 
+                  onClick={() => setIsChartOpen(!isChartOpen)} 
+                  className="w-full px-5 py-4 flex items-center justify-between bg-black/40 hover:bg-black/60 transition-colors text-left"
+                >
+                  <span className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.24em] text-white">
+                    <BarChart3 size={14} className="stroke-[1.5] text-user-a" />
+                    DISTRIBUCIÓN Y ANÁLISIS GRÁFICO DE GASTOS
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[7.5px] font-mono opacity-40 uppercase tracking-widest">{isChartOpen ? 'Ocultar' : 'Mostrar'}</span>
+                    {isChartOpen ? <ChevronDown size={14} className="opacity-60" /> : <ChevronRight size={14} className="opacity-60" />}
+                  </div>
+                </button>
+                
+                <AnimatePresence>
+                  {isChartOpen && (
+                    <motion.div 
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="border-t border-white/10 p-6 sm:p-8"
+                    >
+                      <div className="h-64">
+                        <FinanceChart
+                          allocationsElla={mode === 'me' && profile === 'el' ? [] : allocationsB}
+                          allocationsEl={mode === 'me' && profile === 'ella' ? [] : allocationsA}
+                        />
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </div>
           </motion.div>

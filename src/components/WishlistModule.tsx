@@ -110,8 +110,8 @@ export function WishlistModule() {
 
                 const locationMap = new Map(currentLocations.map(l => [`${l.nombre.toLowerCase()}||${l.created_by}`, l]));
                 let mutated = false;
-                const itemsToFetch: { item: any; url: string; expectedStatus: string }[] = [];
-                const itemsToUpdate: any[] = [];
+                const itemsToFetchMap = new Map<string, { item: any; url: string; expectedStatus: string }>();
+                const itemsToUpdateMap = new Map<string, any>();
 
                 for (const item of items) {
                     const url = item.locationUrl;
@@ -125,9 +125,9 @@ export function WishlistModule() {
                     const expectedStatus = (item.state === 'COMPLETED' || item.state === 'ARCHIVED') ? 'visited' : 'to-visit';
 
                     if (!existingPin) {
-                        itemsToFetch.push({ item, url, expectedStatus });
+                        itemsToFetchMap.set(key, { item, url, expectedStatus });
                     } else if (existingPin.status !== expectedStatus) {
-                        itemsToUpdate.push({
+                        itemsToUpdateMap.set(key, {
                             id: existingPin.id,
                             nombre: existingPin.nombre,
                             latitud: existingPin.latitud,
@@ -137,6 +137,9 @@ export function WishlistModule() {
                         });
                     }
                 }
+
+                const itemsToFetch = Array.from(itemsToFetchMap.values());
+                const itemsToUpdate = Array.from(itemsToUpdateMap.values());
 
                 if (itemsToFetch.length > 0) {
                     const fetchResults = await Promise.all(
@@ -168,7 +171,7 @@ export function WishlistModule() {
                         if (!insertError) {
                             mutated = true;
                         } else {
-                            console.error("Error inserting batch locations:", insertError);
+                            console.error("Error inserting batch locations details: message =", insertError.message, "details =", insertError.details, "hint =", insertError.hint, "code =", insertError.code, "error =", insertError);
                         }
                     }
                 }
@@ -178,7 +181,7 @@ export function WishlistModule() {
                     if (!updateError) {
                         mutated = true;
                     } else {
-                        console.error("Error updating batch locations:", updateError);
+                        console.error("Error updating batch locations details: message =", updateError.message, "details =", updateError.details, "hint =", updateError.hint, "code =", updateError.code, "error =", updateError);
                     }
                 }
 

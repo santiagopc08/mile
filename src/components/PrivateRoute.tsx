@@ -10,16 +10,16 @@ export function PrivateRoute({ children }: { children: React.ReactNode }) {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        // Just delay briefly to avoid flicker if already auth'd
-        const timer = setTimeout(() => setIsLoading(false), 300);
-        return () => clearTimeout(timer);
+        setIsLoading(false);
     }, []);
 
     const handleLoginSuccess = async (profile: 'el' | 'ella', password?: string): Promise<boolean> => {
         return await login(profile, password);
     };
 
-    if (isLoading) {
+    const showLoader = isLoading && !isAuthenticated;
+
+    if (showLoader) {
         return (
             <div suppressHydrationWarning className="min-h-screen bg-stone-50 dark:bg-stone-950 flex items-center justify-center">
                 <div className="w-8 h-8 rounded-full border-4 border-earth-soft border-t-earth-dark animate-spin" />
