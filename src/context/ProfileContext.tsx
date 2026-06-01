@@ -20,9 +20,9 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         const checkSession = async () => {
-            // 1. Instant check sessionStorage for immediate UI paint and zero-latency load
-            const savedProfile = sessionStorage.getItem('mile_profile') as Profile;
-            const authStatus = sessionStorage.getItem('mile_auth');
+            // 1. Instant check localStorage for immediate UI paint and zero-latency load
+            const savedProfile = typeof window !== 'undefined' ? localStorage.getItem('mile_profile') as Profile : null;
+            const authStatus = typeof window !== 'undefined' ? localStorage.getItem('mile_auth') : null;
             if (authStatus === 'true' && (savedProfile === 'el' || savedProfile === 'ella')) {
                 setProfile(savedProfile);
                 setIsAuthenticated(true);
@@ -57,34 +57,62 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
 
     const login = async (selectedProfile: 'el' | 'ella', password?: string) => {
         try {
-            const pwd = password || (selectedProfile === 'ella' ? 'esperanza' : 'refugio');
-            const email = selectedProfile === 'ella' ? 'ella@mile.app' : 'el@mile.app';
-
-            // 1. Call custom setup endpoint to ensure Supabase Auth user is created/updated lazily
-            const res = await fetch('/api/auth/setup', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ profile: selectedProfile, password: pwd })
-            });
-
-            if (!res.ok) {
-                console.warn('API lazy auth setup failed, attempting standard sign-in');
-            }
-
-            // 2. Perform proper Supabase Auth sign-in to establish standard session
-            const { data, error } = await supabase.auth.signInWithPassword({
-                email,
-                password: pwd
-            });
-
-            if (error) {
-                console.error('Supabase Auth sign-in error:', error.message);
+            if (!password) {
+                // Try silent login via refresh
+                const refreshRes = await fetch('/api/auth/refresh', { method: 'POST' });
+                if (refreshRes.ok) {
+                    const data = await refreshRes.json();
+                    if (data.profile === selectedProfile) {
+                        if (data.session) {
+                            const { error: setSessionError } = await supabase.auth.setSession(data.session);
+                            if (setSessionError) {
+                                console.error('Failed to set session locally:', setSessionError);
+                                return false;
+                            }
+                        }
+                        localStorage.setItem('mile_auth', 'true');
+                        localStorage.setItem('mile_profile', selectedProfile);
+                        setProfile(selectedProfile);
+                        setIsAuthenticated(true);
+                        return true;
+                    }
+                }
                 return false;
             }
 
-            // 3. Persist standard & backwards-compatible session storage
-            sessionStorage.setItem('mile_auth', 'true');
-            sessionStorage.setItem('mile_profile', selectedProfile);
+            // Perform backend validation and authentication
+            const res = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ profile: selectedProfile, password })
+            });
+
+            if (!res.ok) {
+                console.warn('API login failed');
+                return false;
+            }
+
+            const loginData = await res.json();
+
+            if (loginData.session) {
+                // Set the session locally so client-side supabase works immediately
+                const { error: setSessionError } = await supabase.auth.setSession(loginData.session);
+                if (setSessionError) {
+                    console.error('Failed to set session locally:', setSessionError);
+                    return false;
+                }
+            } else {
+                // Re-fetch session from Supabase client to ensure auth state is in sync locally as fallback
+                const { error } = await supabase.auth.getSession();
+                if (error) {
+                    console.error('Supabase getSession error:', error.message);
+                    return false;
+                }
+            }
+
+            // 3. Persist standard & backwards-compatible local storage
+            localStorage.setItem('mile_auth', 'true');
+            localStorage.setItem('mile_profile', selectedProfile);
             setProfile(selectedProfile);
             setIsAuthenticated(true);
             return true;
@@ -100,8 +128,13 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
         } catch (err) {
             console.error('Supabase signOut error:', err);
         }
-        sessionStorage.removeItem('mile_auth');
-        sessionStorage.removeItem('mile_profile');
+        try {
+            await fetch('/api/logout', { method: 'POST' });
+        } catch (err) {
+            console.error('Logout API error:', err);
+        }
+        localStorage.removeItem('mile_auth');
+        localStorage.removeItem('mile_profile');
         setProfile(null);
         setIsAuthenticated(false);
     };
