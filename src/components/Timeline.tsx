@@ -120,10 +120,10 @@ export function Timeline({ events }: TimelineProps) {
     };
 
     return (
-        <div className="relative flex w-full flex-col items-center bg-mosaic py-8">
-            <div className="mb-10 w-full max-w-4xl border border-white/10 bg-[#0a0a0a] p-6 text-center">
+        <div className="relative flex w-full flex-col items-center bg-mosaic py-8 font-mono">
+            <div className="mb-10 w-full max-w-4xl border border-white/10 bg-[#0a0a0a] p-6 text-center rounded-none">
                 <p className="text-[10px] font-bold uppercase tracking-[0.32em] text-[#a88a7e]">Nuestros Momentos</p>
-                <h2 className="mt-3 text-3xl font-black uppercase tracking-normal text-white">Historia Compartida</h2>
+                <h2 className="mt-3 text-3xl font-black uppercase tracking-normal text-white font-sans">Historia Compartida</h2>
             </div>
             
             {profile && (
@@ -131,30 +131,33 @@ export function Timeline({ events }: TimelineProps) {
                     {!isAdding ? (
                         <button
                             onClick={() => setIsAdding(true)}
-                            className="flex w-full items-center justify-center gap-2 border border-white/10 bg-[#0a0a0a] py-4 font-medium text-[#a88a7e] transition-all hover:border-[#ff7020] hover:text-[#ffb595]"
+                            className="flex w-full items-center justify-center gap-2 border border-white/10 bg-[#0a0a0a] py-4 font-mono text-xs font-bold uppercase tracking-[0.2em] text-[#a88a7e] transition-all hover:border-[#ff7020] hover:text-[#ffb595] rounded-none"
                         >
-                            <Plus className="w-5 h-5" /> Añadir Nuevo Recuerdo
+                            <Plus className="w-4 h-4 stroke-[1.5]" /> Añadir Nuevo Recuerdo
                         </button>
                     ) : (
-                        <form onSubmit={handleAddEvent} className="geometric-card animate-in space-y-4 border-white/10 bg-[#0a0a0a] p-6 fade-in slide-in-from-top-4">
-                            <h3 className="mb-4 border-l-4 border-[#ff7020] pl-3 text-lg font-medium uppercase tracking-normal text-white">Nuevo Recuerdo</h3>
+                        <form onSubmit={handleAddEvent} className="relative animate-in space-y-4 border border-white/10 bg-[#0a0a0a] p-6 pl-10 fade-in slide-in-from-top-4 rounded-none overflow-hidden">
+                            {/* Left lateral author stripe */}
+                            <div className="absolute left-0 top-0 bottom-0 w-[5px]" style={{ backgroundColor: profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)' }} />
+
+                            <h3 className="mb-4 text-sm font-bold uppercase tracking-widest text-white">Nuevo Recuerdo</h3>
                             <div className="grid md:grid-cols-2 gap-4">
-                                <input name="title" required placeholder="Título del recuerdo" className="border border-white/10 bg-black px-4 py-3 text-white outline-none transition-colors placeholder:text-[#594137] focus:border-[#ff7020]" />
-                                <input name="date" type="date" required className="border border-white/10 bg-black px-4 py-3 text-[#a88a7e] outline-none transition-colors focus:border-[#ff7020]" />
+                                <input name="title" required placeholder="Título del recuerdo" className="border border-white/10 bg-black px-4 py-3 text-sm text-white outline-none transition-colors placeholder:text-[#594137] focus:border-[#ff7020] rounded-none" />
+                                <input name="date" type="date" required className="border border-white/10 bg-black px-4 py-3 text-sm text-[#a88a7e] outline-none transition-colors focus:border-[#ff7020] rounded-none" />
                             </div>
-                            <textarea name="desc" required placeholder="Nuestra historia dice..." className="min-h-[100px] w-full border border-white/10 bg-black px-4 py-3 text-white outline-none transition-colors placeholder:text-[#594137] focus:border-[#ff7020]" />
+                            <textarea name="desc" required placeholder="Nuestra historia dice..." className="min-h-[100px] w-full border border-white/10 bg-black px-4 py-3 text-sm text-white outline-none transition-colors placeholder:text-[#594137] focus:border-[#ff7020] rounded-none" />
 
                             <div className="relative">
                                 <input name="image" type="file" accept="image/*" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-                                <div className="flex w-full items-center justify-center gap-2 border border-dashed border-white/10 bg-black px-4 py-3 text-[#a88a7e] transition-colors hover:border-[#ff7020]">
-                                    <ImageIcon className="w-5 h-5" />
-                                    <span>Subir Foto (Opcional)</span>
+                                <div className="flex w-full items-center justify-center gap-2 border border-dashed border-white/10 bg-black px-4 py-3 text-[#a88a7e] transition-colors hover:border-[#ff7020] rounded-none">
+                                    <ImageIcon className="w-4 h-4 stroke-[1.5]" />
+                                    <span className="text-xs uppercase tracking-wider">Subir Foto (Opcional)</span>
                                 </div>
                             </div>
 
                             <div className="flex gap-3 pt-2">
-                                <button type="button" onClick={() => setIsAdding(false)} className="flex-1 border border-white/10 py-3 text-[#a88a7e] transition-colors hover:border-white/30 hover:text-white">Cancelar</button>
-                                <button type="submit" disabled={isUploading} className="flex-1 bg-[#ff7020] py-3 text-xs font-bold uppercase tracking-widest text-black transition-colors hover:bg-[#ffb595] disabled:opacity-50">
+                                <button type="button" onClick={() => setIsAdding(false)} className="flex-1 border border-white/10 py-3 text-[10px] font-bold uppercase tracking-widest text-[#a88a7e] transition-colors hover:border-white/30 hover:text-white rounded-none">Cancelar</button>
+                                <button type="submit" disabled={isUploading} className="flex-1 bg-[#ff7020] py-3 text-xs font-bold uppercase tracking-widest text-black transition-colors hover:bg-[#ffb595] disabled:opacity-50 rounded-none">
                                     {isUploading ? 'Subiendo...' : 'Guardar Recuerdo'}
                                 </button>
                             </div>
@@ -170,6 +173,7 @@ export function Timeline({ events }: TimelineProps) {
                 <div className="space-y-16 md:space-y-24">
                     {events.map((event, index) => {
                     const isLeft = index % 2 === 0;
+                    const eventAccent = event.author === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)';
 
                     return (
                         <motion.div
@@ -180,15 +184,18 @@ export function Timeline({ events }: TimelineProps) {
                             transition={{ duration: 0.6, ease: 'easeOut' }}
                             className={`relative flex items-center justify-between w-full md:flex-row flex-col ${isLeft ? 'md:flex-row-reverse' : ''}`}
                         >
-                            {/* Timeline dot - Square instead of circle */}
-                            <div className="absolute left-0 top-6 z-10 -ml-[8px] h-4 w-4 rotate-45 border-2 border-black bg-[#ff7020] md:left-1/2 md:top-auto md:-translate-x-1/2" />
+                            {/* Timeline dot - Square instead of circle, colored by author accent */}
+                            <div className="absolute left-0 top-6 z-10 -ml-[8px] h-4 w-4 rotate-45 border-2 border-black md:left-1/2 md:top-auto md:-translate-x-1/2" style={{ backgroundColor: eventAccent }} />
 
-                                {/* Empty space for opposite side (Desktop Only) */}
-                                <div className="hidden md:block md:w-5/12" />
+                            {/* Empty space for opposite side (Desktop Only) */}
+                            <div className="hidden md:block md:w-5/12" />
 
-                                {/* Content Card */}
-                                <div className={`w-full pl-8 md:pl-0 md:w-5/12 ${isLeft ? 'md:text-right text-left' : 'text-left'}`}>
-                                    <div className={`geometric-card group bg-[#0a0a0a] p-5 transition-all hover:border-[#ff7020] md:p-6 ${editingId === event.id ? 'border-[#ff7020] ring-1 ring-[#ff7020]/30' : 'border-white/10'}`}>
+                            {/* Content Card */}
+                            <div className={`w-full pl-8 md:pl-0 md:w-5/12 ${isLeft ? 'md:text-right text-left' : 'text-left'}`}>
+                                <div className={`relative overflow-hidden border p-5 pl-10 md:p-6 md:pl-10 transition-all rounded-none bg-[#0a0a0a] ${editingId === event.id ? 'border-[#ff7020]' : 'border-white/10'}`}>
+                                    
+                                    {/* Left lateral author stripe */}
+                                    <div className="absolute left-0 top-0 bottom-0 w-[5px]" style={{ backgroundColor: eventAccent }} />
 
                                     {editingId === event.id ? (
                                         <form onSubmit={handleEditSave} className="space-y-3 text-left">
@@ -198,24 +205,24 @@ export function Timeline({ events }: TimelineProps) {
                                                     value={editTitle}
                                                     onChange={e => setEditTitle(e.target.value)}
                                                     placeholder="Título"
-                                                    className="border border-white/10 bg-black px-3 py-2 text-sm text-white outline-none placeholder:text-[#594137] focus:border-[#ff7020]"
+                                                    className="border border-white/10 bg-black px-3 py-2 text-sm text-white outline-none placeholder:text-[#594137] focus:border-[#ff7020] rounded-none"
                                                 />
                                                 <input
                                                     type="date"
                                                     value={editDate}
                                                     onChange={e => setEditDate(e.target.value)}
-                                                    className="border border-white/10 bg-black px-3 py-2 text-sm text-[#a88a7e] outline-none focus:border-[#ff7020]"
+                                                    className="border border-white/10 bg-black px-3 py-2 text-sm text-[#a88a7e] outline-none focus:border-[#ff7020] rounded-none"
                                                 />
                                             </div>
                                             <textarea
                                                 value={editDesc}
                                                 onChange={e => setEditDesc(e.target.value)}
                                                 placeholder="Descripción"
-                                                className="min-h-[80px] w-full border border-white/10 bg-black px-3 py-2 text-sm text-white outline-none placeholder:text-[#594137] focus:border-[#ff7020]"
+                                                className="min-h-[80px] w-full border border-white/10 bg-black px-3 py-2 text-sm text-white outline-none placeholder:text-[#594137] focus:border-[#ff7020] rounded-none"
                                             />
 
                                             {editImageUrl && (
-                                                <div className="overflow-hidden border border-white/10">
+                                                <div className="overflow-hidden border border-white/10 rounded-none">
                                                     {/* eslint-disable-next-line @next/next/no-img-element */}
                                                     <img src={editImageUrl} alt="Current" className="w-full h-auto max-h-32 object-cover opacity-60" />
                                                 </div>
@@ -223,17 +230,17 @@ export function Timeline({ events }: TimelineProps) {
 
                                             <div className="relative">
                                                 <input name="editImage" type="file" accept="image/*" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-                                                <div className="flex w-full items-center justify-center gap-2 border border-dashed border-white/10 bg-black px-3 py-2 text-xs text-[#a88a7e] transition-colors hover:border-[#ff7020]">
-                                                    <ImageIcon className="w-4 h-4" />
-                                                    <span>{editImageUrl ? 'Reemplazar Foto' : 'Subir Foto'}</span>
+                                                <div className="flex w-full items-center justify-center gap-2 border border-dashed border-white/10 bg-black px-3 py-2 text-xs text-[#a88a7e] transition-colors hover:border-[#ff7020] rounded-none">
+                                                    <ImageIcon className="w-4 h-4 stroke-[1.5]" />
+                                                    <span className="uppercase text-[10px] tracking-wider">{editImageUrl ? 'Reemplazar Foto' : 'Subir Foto'}</span>
                                                 </div>
                                             </div>
 
                                             <div className="flex gap-2 pt-1">
-                                                <button type="button" onClick={() => setEditingId(null)} className="flex-1 border border-white/10 py-2 text-xs font-bold uppercase tracking-widest text-[#a88a7e] transition-colors hover:border-white/30 hover:text-white">
+                                                <button type="button" onClick={() => setEditingId(null)} className="flex-1 border border-white/10 py-2 text-xs font-bold uppercase tracking-widest text-[#a88a7e] transition-colors hover:border-white/30 hover:text-white rounded-none">
                                                     Cancelar
                                                 </button>
-                                                <button type="submit" disabled={isEditUploading} className="flex-1 bg-[#ff7020] py-2 text-xs font-bold uppercase tracking-widest text-black transition-colors hover:bg-[#ffb595] disabled:opacity-50">
+                                                <button type="submit" disabled={isEditUploading} className="flex-1 bg-[#ff7020] py-2 text-xs font-bold uppercase tracking-widest text-black transition-colors hover:bg-[#ffb595] disabled:opacity-50 rounded-none">
                                                     {isEditUploading ? 'Subiendo...' : 'Guardar'}
                                                 </button>
                                             </div>
@@ -241,15 +248,15 @@ export function Timeline({ events }: TimelineProps) {
                                     ) : (
                                     <>
                                     <div className={`mb-3 flex items-center gap-2 text-sm text-[#a88a7e] ${isLeft ? 'justify-start md:justify-end' : 'justify-start'}`}>
-                                        <Calendar className="h-4 w-4 text-[#00dbe9]" />
-                                        <time className="font-mono tracking-tighter">{event.date}</time>
+                                        <Calendar className="h-4 w-4 text-[#00dbe9] stroke-[1.5]" />
+                                        <time className="font-mono tracking-tighter text-xs">{event.date}</time>
                                         {profile && (
                                             <button onClick={() => handleEditStart(event)} className="ml-auto text-[#a88a7e] transition-all hover:text-[#ffb595]">
-                                                <Pencil className="w-3.5 h-3.5" />
+                                                <Pencil className="w-3.5 h-3.5 stroke-[1.5]" />
                                             </button>
                                         )}
                                     </div>
-                                    <h3 className="mb-2 text-xl font-bold uppercase tracking-normal text-white transition-colors group-hover:text-[#ffb595]">
+                                    <h3 className="mb-2 text-xl font-bold uppercase tracking-normal text-white transition-colors hover:text-[#ffb595] font-sans">
                                         {event.title}
                                     </h3>
                                     <p className="font-light leading-relaxed tracking-normal text-[#e1bfb2]">
@@ -257,7 +264,7 @@ export function Timeline({ events }: TimelineProps) {
                                     </p>
 
                                     {event.imageUrl && (
-                                        <div className="mt-4 min-h-32 overflow-hidden border border-white/10 bg-black">
+                                        <div className="mt-4 min-h-32 overflow-hidden border border-white/10 bg-black rounded-none">
                                             {/* eslint-disable-next-line @next/next/no-img-element */}
                                             <img
                                                 src={event.imageUrl}
@@ -270,7 +277,7 @@ export function Timeline({ events }: TimelineProps) {
 
                                     {/* Geometric accent corner */}
                                     <div className="absolute top-0 right-0 w-8 h-8 pointer-events-none overflow-hidden">
-                                        <div className="absolute right-0 top-0 h-[1px] w-[140%] origin-top-right rotate-45 bg-[#ff7020]/30" />
+                                        <div className="absolute right-0 top-0 h-[1px] w-[140%] origin-top-right rotate-45 bg-white/10" />
                                     </div>
                                 </div>
                             </div>

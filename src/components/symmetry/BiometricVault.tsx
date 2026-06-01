@@ -236,41 +236,44 @@ export const BiometricVault = () => {
     const isSovereign = profile === 'ella';
 
     return (
-        <div className="relative overflow-hidden border border-white/10 bg-[#0a0a0a] p-6 sm:p-8">
+        <div className="relative overflow-hidden border border-white/10 bg-[#0a0a0a] p-6 pl-10 sm:p-8 sm:pl-12 rounded-none">
+            {/* Left accent stripe */}
+            <div className="absolute left-0 top-0 bottom-0 w-[5px] bg-[#ff4b89]" />
+            
             <div className="pointer-events-none absolute inset-0 bg-mosaic opacity-35" />
             <AnimatedBrutalistCorners color="#ff4b89" size={12} thickness={1.5} />
             
             <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-                <Fingerprint size={120} className="text-[#ff4b89]" />
+                <Fingerprint size={120} className="text-[#ff4b89] stroke-[1.5]" />
             </div>
             
             <h2 className="relative z-10 mb-8 flex items-center justify-between border-b border-white/5 pb-4 text-[10px] font-black uppercase tracking-[0.22em] text-[#ff4b89]">
-                <span className="flex items-center gap-2"><Fingerprint className="h-4 w-4 text-[#ff4b89]" /> Mi Diario de Bienestar</span>
+                <span className="flex items-center gap-2"><Fingerprint className="h-4 w-4 text-[#ff4b89] stroke-[1.5]" /> Mi Diario de Bienestar</span>
                 <span className="hidden font-mono text-[8px] text-[#594137] sm:inline">DATOS ENCRIPTADOS Y PRIVADOS</span>
             </h2>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 relative z-10">
                 <div className="lg:col-span-7 space-y-6">
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                        <div className="flex flex-col items-center justify-center border border-white/10 bg-black/60 p-4 text-center">
+                        <div className="flex flex-col items-center justify-center border border-white/10 bg-black/60 p-4 text-center rounded-none">
                             <span className="mb-1 text-[8px] uppercase tracking-widest text-[#a88a7e]">Estado</span>
                             <span className="font-mono text-sm text-white">
                                 {engineStats ? `DÍA ${engineStats.daysSinceLast}` : 'N/A'}
                             </span>
                         </div>
-                        <div className="flex flex-col items-center justify-center border border-white/10 bg-black/60 p-4 text-center">
+                        <div className="flex flex-col items-center justify-center border border-white/10 bg-black/60 p-4 text-center rounded-none">
                             <span className="mb-1 text-[8px] uppercase tracking-widest text-[#a88a7e]">Índice Confianza</span>
                             <span className={`font-mono text-sm text-${accentClass}`} style={{ color: accentColor }}>
                                 {engineStats ? `${engineStats.confidenceScore}%` : '0%'}
                             </span>
                         </div>
-                        <div className="flex flex-col items-center justify-center border border-white/10 bg-black/60 p-4 text-center">
+                        <div className="flex flex-col items-center justify-center border border-white/10 bg-black/60 p-4 text-center rounded-none">
                             <span className="mb-1 text-[8px] uppercase tracking-widest text-[#a88a7e]">Ciclo Previsto</span>
                             <span className="font-mono text-sm text-white">
                                 {engineStats ? `${engineStats.predictedCycleLength}D` : 'N/A'}
                             </span>
                         </div>
-                        <div className="flex flex-col items-center justify-center border border-white/10 bg-black/60 p-4 text-center">
+                        <div className="flex flex-col items-center justify-center border border-white/10 bg-black/60 p-4 text-center rounded-none">
                             <span className="mb-1 text-[8px] uppercase tracking-widest text-[#a88a7e]">Varianza</span>
                             <span className="font-mono text-sm text-white">
                                 ±15%
@@ -278,7 +281,7 @@ export const BiometricVault = () => {
                         </div>
                     </div>
 
-                    <div className="border border-white/10 bg-black p-6">
+                    <div className="border border-white/10 bg-black p-6 rounded-none">
                         <div className="flex items-center justify-between mb-4">
                             <span className="text-[9px] uppercase tracking-widest text-[#a88a7e]">Mis Fases y Calendario</span>
                             <span className="font-mono text-[9px] text-[#594137]">Duración de fase: {state.luteal_constant} días</span>
@@ -289,23 +292,24 @@ export const BiometricVault = () => {
                                 <div className="flex justify-between items-center text-xs font-mono">
                                     <div className="flex flex-col">
                                         <span className="mb-1 text-[8px] uppercase tracking-wider text-[#a88a7e]">Último Registro</span>
-                                        <span className={`border border-${accentClass}/50 px-2 py-1 text-${accentClass}`} style={{ borderColor: `${accentColor}80`, color: accentColor, backgroundColor: `${accentColor}1a` }}>
+                                        <span className={`border border-${accentClass}/50 px-2 py-1 text-${accentClass} rounded-none`} style={{ borderColor: `${accentColor}80`, color: accentColor, backgroundColor: `${accentColor}1a` }}>
                                             {format(engineStats.latestCycleDate, 'MMM dd, yyyy')}
                                         </span>
                                     </div>
                                     <div className="mx-4 flex-1 border-t border-dashed border-white/10" />
                                     <div className="flex flex-col items-end">
                                         <span className="mb-1 text-[8px] uppercase tracking-wider text-[#a88a7e]">Inicio Previsto</span>
-                                        <span className={`border border-dashed border-${secondaryClass}/50 px-2 py-1 text-${secondaryClass}`} style={{ borderColor: `${secondaryColor}80`, color: secondaryColor, backgroundColor: `${secondaryColor}1a` }}>
+                                        <span className={`border border-dashed border-${secondaryClass}/50 px-2 py-1 text-${secondaryClass} rounded-none`} style={{ borderColor: `${secondaryColor}80`, color: secondaryColor, backgroundColor: `${secondaryColor}1a` }}>
                                             {format(engineStats.predictedNextDate, 'MMM dd, yyyy')}
                                         </span>
                                     </div>
                                 </div>
                                 
                                 {!isSovereign && (
-                                    <div className="mt-6 border border-white/10 bg-[#0a0a0a] p-4">
+                                    <div className="mt-6 border border-white/10 bg-[#0a0a0a] p-4 rounded-none relative pl-8">
+                                        <div className="absolute left-0 top-0 bottom-0 w-[4px]" style={{ backgroundColor: accentColor }} />
                                         <div className="flex items-center gap-2 mb-2">
-                                            <ShieldAlert className={`h-4 w-4 text-${accentClass}`} style={{ color: accentColor }} />
+                                            <ShieldAlert className={`h-4 w-4 text-${accentClass} stroke-[1.5]`} style={{ color: accentColor }} />
                                             <span className="text-[9px] font-bold uppercase tracking-widest text-[#a88a7e]">Consejos de Cuidado Mutuo</span>
                                         </div>
                                         <p className="text-sm font-light tracking-normal text-[#e1bfb2]">
@@ -315,14 +319,15 @@ export const BiometricVault = () => {
                                 )}
 
                                 {!isSovereign && engineStats.warningSignal && (
-                                    <div className="mt-2 p-3 border border-yellow-900 bg-yellow-950/20 rounded-none flex items-start gap-3">
-                                        <AlertTriangle className="w-4 h-4 text-yellow-600 mt-0.5" />
+                                    <div className="mt-2 p-3 border border-yellow-900 bg-yellow-950/20 rounded-none flex items-start gap-3 pl-8 relative">
+                                        <div className="absolute left-0 top-0 bottom-0 w-[4px] bg-yellow-600" />
+                                        <AlertTriangle className="w-4 h-4 text-yellow-600 mt-0.5 stroke-[1.5]" />
                                         <span className="text-xs text-yellow-600 font-mono">{engineStats.warningSignal}</span>
                                     </div>
                                 )}
                             </div>
                         ) : (
-                            <div className="text-center py-8 text-stone-600 text-xs uppercase tracking-widest">
+                            <div className="text-center py-8 text-stone-600 text-xs uppercase tracking-widest font-mono">
                                 ¡Aún no hay registros este mes!
                             </div>
                         )}
@@ -331,9 +336,9 @@ export const BiometricVault = () => {
 
                 <div className="lg:col-span-5">
                     {isSovereign ? (
-                        <div className="border border-white/10 bg-black p-6">
+                        <div className="border border-white/10 bg-black p-6 rounded-none">
                             <h3 className={`text-[9px] uppercase tracking-widest text-${accentClass} font-bold mb-4 flex items-center gap-2`} style={{ color: accentColor }}>
-                                <Database className="w-3 h-3" /> Mis Datos Privados
+                                <Database className="w-3 h-3 stroke-[1.5]" /> Mis Datos Privados
                             </h3>
                             <form onSubmit={handleLogCycle} className="space-y-4">
                                 <div className="grid grid-cols-2 gap-4">
@@ -343,7 +348,7 @@ export const BiometricVault = () => {
                                             type="date" 
                                             value={dateInput}
                                             onChange={e => setDateInput(e.target.value)}
-                                            className={`w-full border border-white/10 bg-[#0a0a0a] p-2 font-mono text-xs text-white outline-none focus:border-${accentClass}`}
+                                            className={`w-full border border-white/10 bg-[#0a0a0a] p-2 font-mono text-xs text-white outline-none rounded-none focus:border-${accentClass}`}
                                             required
                                         />
                                     </div>
@@ -352,7 +357,7 @@ export const BiometricVault = () => {
                                         <select 
                                             value={flowLevel}
                                             onChange={e => setFlowLevel(e.target.value as any)}
-                                            className={`w-full appearance-none border border-white/10 bg-[#0a0a0a] p-2 font-mono text-xs text-white outline-none focus:border-${accentClass}`}
+                                            className={`w-full appearance-none border border-white/10 bg-[#0a0a0a] p-2 font-mono text-xs text-white outline-none rounded-none focus:border-${accentClass}`}
                                             required
                                         >
                                             <option value="" disabled>Seleccionar Flujo</option>
@@ -367,18 +372,18 @@ export const BiometricVault = () => {
                                 <div>
                                     <label className="block text-[8px] uppercase tracking-widest text-stone-500 mb-2 flex justify-between">
                                         <span>Registro de Síntomas (Privado)</span>
-                                        <Lock className="w-3 h-3 text-stone-600" />
+                                        <Lock className="w-3 h-3 text-stone-600 stroke-[1.5]" />
                                     </label>
                                     <div className="grid grid-cols-2 gap-2">
                                         {FLO_SYMPTOMS.map(sym => (
-                                            <label key={sym} className="flex cursor-pointer items-center gap-2 border border-white/10 bg-[#0a0a0a] p-2">
+                                            <label key={sym} className="flex cursor-pointer items-center gap-2 border border-white/10 bg-[#0a0a0a] p-2 rounded-none hover:bg-white/5 transition-colors">
                                                 <input 
                                                     type="checkbox" 
                                                     checked={selectedSymptoms.includes(sym)}
                                                     onChange={() => toggleSymptom(sym)}
                                                     className={`accent-${accentClass} rounded-none`}
                                                 />
-                                                <span className="text-[10px] uppercase text-stone-400">{sym}</span>
+                                                <span className="text-[10px] uppercase text-stone-400 font-mono">{sym}</span>
                                             </label>
                                         ))}
                                     </div>
@@ -387,12 +392,12 @@ export const BiometricVault = () => {
                                 <div>
                                     <label className="block text-[8px] uppercase tracking-widest text-stone-500 mb-1 flex justify-between">
                                         <span>Notas del día (Privadas)</span>
-                                        <Lock className="w-3 h-3 text-stone-600" />
+                                        <Lock className="w-3 h-3 text-stone-600 stroke-[1.5]" />
                                     </label>
                                     <textarea 
                                         value={notes}
                                         onChange={e => setNotes(e.target.value)}
-                                        className={`h-16 w-full resize-none border border-white/10 bg-[#0a0a0a] p-2 font-mono text-xs text-white outline-none focus:border-${accentClass}`}
+                                        className={`h-16 w-full resize-none border border-white/10 bg-[#0a0a0a] p-2 font-mono text-xs text-white outline-none rounded-none focus:border-${accentClass}`}
                                     />
                                 </div>
 
@@ -404,19 +409,19 @@ export const BiometricVault = () => {
                                         onChange={e => setIsAtypical(e.target.checked)}
                                         className={`accent-${accentClass} rounded-none`}
                                     />
-                                    <label htmlFor="atypical" className="text-[9px] uppercase tracking-widest text-stone-400 cursor-pointer">
+                                    <label htmlFor="atypical" className="text-[9px] uppercase tracking-widest text-stone-400 cursor-pointer font-mono">
                                         Marcar como atípico (no incluir en las fases)
                                     </label>
                                 </div>
 
-                                <button type="submit" className={`w-full border border-${accentClass} bg-${accentClass}/20 py-3 text-[10px] font-bold uppercase tracking-widest text-${accentClass} transition-colors hover:bg-${accentClass}/40`} style={{ borderColor: `${accentColor}80`, color: accentColor }}>
+                                <button type="submit" className={`w-full border border-${accentClass} bg-${accentClass}/20 py-3 text-[10px] font-bold uppercase tracking-widest text-${accentClass} transition-colors rounded-none hover:bg-${accentClass}/40`} style={{ borderColor: `${accentColor}80`, color: accentColor }}>
                                     Guardar de Forma Segura
                                 </button>
                             </form>
                         </div>
                     ) : (
-                        <div className="flex h-full min-h-[200px] flex-col items-center justify-center border border-white/10 bg-black p-6 text-center">
-                            <Lock className="w-8 h-8 text-stone-700 mb-4" />
+                        <div className="flex h-full min-h-[200px] flex-col items-center justify-center border border-white/10 bg-black p-6 text-center rounded-none">
+                            <Lock className="w-8 h-8 text-stone-700 mb-4 stroke-[1.5]" />
                             <h3 className="text-[10px] uppercase tracking-widest text-stone-500 font-bold mb-2">
                                 Datos Protegidos (Privados)
                             </h3>
@@ -435,23 +440,24 @@ export const BiometricVault = () => {
                     </h3>
                     <div className="space-y-2 max-h-40 overflow-y-auto custom-scrollbar pr-2">
                         {[...state.cycles].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map(cycle => (
-                            <div key={cycle.id} className="flex items-center justify-between border border-white/10 bg-black/40 p-3">
+                            <div key={cycle.id} className="relative flex items-center justify-between border border-white/10 bg-black/40 p-3 pl-8 rounded-none">
+                                <div className="absolute left-0 top-0 bottom-0 w-[4px] bg-[#ff4b89]" />
                                 <div className="flex items-center gap-4">
                                     <span className="text-xs font-mono text-stone-300">{format(parseISO(cycle.date), 'MM.dd.yy')}</span>
-                                    {cycle.is_atypical && <span className="text-[8px] bg-yellow-900/30 text-yellow-500 px-1 border border-yellow-900 rounded-none">ATÍPICO</span>}
-                                    <span className="text-[9px] uppercase text-stone-500">Flujo: {cycle.flow_level}</span>
+                                    {cycle.is_atypical && <span className="text-[8px] bg-yellow-900/30 text-yellow-500 px-1 border border-yellow-900 rounded-none font-mono">ATÍPICO</span>}
+                                    <span className="text-[9px] uppercase text-stone-500 font-mono">Flujo: {cycle.flow_level}</span>
                                 </div>
                                 
                                 {isSovereign ? (
-                                    <div className="flex items-center gap-4">
-                                        <div className="text-[9px] text-stone-500 hidden md:block max-w-[200px] truncate">
+                                    <div className="flex items-center gap-4 relative z-10">
+                                        <div className="text-[9px] text-stone-500 hidden md:block max-w-[200px] truncate font-mono">
                                             S: {decrypt(cycle.symptoms_enc) || 'Ninguno'} | N: {decrypt(cycle.notes_enc) || 'N/A'}
                                         </div>
-                                        <button onClick={() => handleDelete(cycle.id)} className={`text-stone-600 hover:text-${accentClass} text-[10px] uppercase`}>Eliminar</button>
+                                        <button onClick={() => handleDelete(cycle.id)} className={`text-stone-600 hover:text-white text-[10px] uppercase font-mono`}>Eliminar</button>
                                     </div>
                                 ) : (
                                     <div className="flex items-center gap-2 text-[9px] font-mono text-stone-700">
-                                        <Lock className="w-3 h-3" /> E_{cycle.symptoms_enc.substring(0,6)}...
+                                        <Lock className="w-3 h-3 stroke-[1.5]" /> E_{cycle.symptoms_enc.substring(0,6)}...
                                     </div>
                                 )}
                             </div>

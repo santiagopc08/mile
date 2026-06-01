@@ -221,11 +221,11 @@ export function AudioSection() {
     };
 
     return (
-        <div id="audio" className="mx-auto w-full max-w-5xl space-y-10 bg-mosaic px-1 py-6">
-            <div className="relative border border-white/10 bg-[#0a0a0a] p-8 text-center">
+        <div id="audio" className="mx-auto w-full max-w-5xl space-y-10 bg-mosaic px-1 py-6 font-mono">
+            <div className="relative border border-white/10 bg-[#0a0a0a] p-8 text-center rounded-none">
                 <div className={`absolute left-1/2 top-0 h-[1px] w-24 -translate-x-1/2 bg-${accentClass}`} style={{ backgroundColor: accentColor }} />
-                <h2 className="mb-3 flex items-center justify-center gap-3 pt-4 text-3xl font-black uppercase tracking-normal text-white">
-                    <Music className={`h-6 w-6 text-${accentClass}`} style={{ color: accentColor }} />
+                <h2 className="mb-3 flex items-center justify-center gap-3 pt-4 text-3xl font-black uppercase tracking-normal text-white font-sans">
+                    <Music className={`h-6 w-6 text-${accentClass} stroke-[1.5]`} style={{ color: accentColor }} />
                     Banda Sonora
                 </h2>
                 <p className="mx-auto max-w-md text-sm leading-6 tracking-normal text-[#e1bfb2]">
@@ -242,67 +242,75 @@ export function AudioSection() {
                             onClick={() => setIsAddingTrack(!isAddingTrack)}
                             className={`flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-${accentClass} transition-colors hover:text-white`}
                         >
-                            {isAddingTrack ? <X className="w-3 h-3" /> : <Plus className="w-3 h-3" />}
+                            {isAddingTrack ? <X className="w-3 h-3 stroke-[1.5]" /> : <Plus className="w-3 h-3 stroke-[1.5]" />}
                             {isAddingTrack ? 'Cancelar' : 'Añadir'}
                         </button>
                     </div>
 
                     {isAddingTrack && (
-                        <form onSubmit={handleAddTrack} className="geometric-card mb-4 animate-in space-y-3 border-white/10 bg-[#0a0a0a] p-4 fade-in slide-in-from-top-2">
-                            <input value={newTitle} onChange={e => setNewTitle(e.target.value)} required placeholder="Título" className={`w-full border border-white/10 bg-black px-3 py-2 text-sm tracking-normal text-white outline-none transition-colors placeholder:text-[#594137] focus:border-${accentClass}`} style={accentRingStyle(accentColor)} />
-                            <input value={newArtist} onChange={e => setNewArtist(e.target.value)} placeholder="Artista" className={`w-full border border-white/10 bg-black px-3 py-2 text-sm tracking-normal text-white outline-none transition-colors placeholder:text-[#594137] focus:border-${accentClass}`} style={accentRingStyle(accentColor)} />
-                            <input value={newUrl} onChange={e => setNewUrl(e.target.value)} required placeholder="URL Spotify" className={`w-full border border-white/10 bg-black px-3 py-2 text-sm tracking-normal text-white outline-none transition-colors placeholder:text-[#594137] focus:border-${accentClass}`} style={accentRingStyle(accentColor)} />
+                        <form onSubmit={handleAddTrack} className="mb-4 animate-in space-y-3 border border-white/10 bg-[#0a0a0a] p-4 fade-in slide-in-from-top-2 rounded-none">
+                            <input value={newTitle} onChange={e => setNewTitle(e.target.value)} required placeholder="Título" className={`w-full border border-white/10 bg-black px-3 py-2 text-sm tracking-normal text-white outline-none transition-colors placeholder:text-[#594137] focus:border-${accentClass} rounded-none`} style={accentRingStyle(accentColor)} />
+                            <input value={newArtist} onChange={e => setNewArtist(e.target.value)} placeholder="Artista" className={`w-full border border-white/10 bg-black px-3 py-2 text-sm tracking-normal text-white outline-none transition-colors placeholder:text-[#594137] focus:border-${accentClass} rounded-none`} style={accentRingStyle(accentColor)} />
+                            <input value={newUrl} onChange={e => setNewUrl(e.target.value)} required placeholder="URL Spotify" className={`w-full border border-white/10 bg-black px-3 py-2 text-sm tracking-normal text-white outline-none transition-colors placeholder:text-[#594137] focus:border-${accentClass} rounded-none`} style={accentRingStyle(accentColor)} />
                             <LiveLinkPreview url={newUrl} label="Canción detectada" />
-                            <button type="submit" disabled={!newTitle || !newUrl} className={`w-full bg-${accentClass} py-2 text-xs font-bold uppercase tracking-widest text-black transition-colors hover:opacity-80 disabled:opacity-50`} style={{ backgroundColor: accentColor }}>Guardar</button>
+                            <button type="submit" disabled={!newTitle || !newUrl} className={`w-full bg-${accentClass} py-2 text-xs font-bold uppercase tracking-widest text-black transition-colors hover:opacity-80 disabled:opacity-50 rounded-none`} style={{ backgroundColor: accentColor }}>Guardar</button>
                         </form>
                     )}
 
                     <div className="space-y-2 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
-                        {playlist.map((track) => (
-                            <button
-                                key={track.id}
-                                onClick={() => setActiveTrackId(track.id)}
-                                className={`w-full border p-4 text-left transition-all ${currentTrackId === track.id
-                                    ? `border-${accentClass} bg-${accentClass}/10`
-                                    : 'border-white/10 bg-[#0a0a0a] hover:border-white/25 hover:bg-[#121212]'
-                                    }`} style={currentTrackId === track.id ? { borderColor: accentColor, backgroundColor: `${accentColor}1a` } : {}}
-                            >
-                                <div className="flex items-center gap-4">
-                                    <div className={`flex h-10 w-10 items-center justify-center border ${currentTrackId === track.id ? `border-${accentClass} bg-${accentClass} text-black` : 'border-white/10 bg-black text-[#a88a7e]'
-                                        }`} style={currentTrackId === track.id ? { backgroundColor: accentColor, borderColor: accentColor } : {}}>
-                                        <Music className="w-5 h-5" />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className={`truncate text-sm font-bold uppercase tracking-normal ${currentTrackId === track.id ? 'text-white' : 'text-[#e1bfb2]'}`}>
-                                            {track.title || 'Sin Título'}
-                                        </p>
-                                        <p className="truncate font-mono text-[10px] uppercase text-[#a88a7e]">{track.artist || 'Artista Desconocido'}</p>
-                                    </div>
-                                    {track.added_by && (
-                                        <div className="flex flex-col items-center opacity-20 group-hover:opacity-100 transition-opacity">
-                                            <span className="text-[8px] font-bold uppercase rotate-90">{track.added_by}</span>
+                        {playlist.map((track) => {
+                            const isElla = track.added_by === 'ella';
+                            const isEl = track.added_by === 'el';
+                            const trackColor = isElla ? 'var(--color-user-a)' : isEl ? 'var(--color-user-b)' : '#57534e';
+                            return (
+                                <button
+                                    key={track.id}
+                                    onClick={() => setActiveTrackId(track.id)}
+                                    className={`w-full border p-4 pl-6 text-left relative overflow-hidden transition-all rounded-none ${currentTrackId === track.id
+                                        ? `border-${accentClass} bg-${accentClass}/10`
+                                        : 'border-white/10 bg-[#0a0a0a] hover:border-white/25 hover:bg-[#121212]'
+                                        }`} style={currentTrackId === track.id ? { borderColor: accentColor, backgroundColor: `${accentColor}1a` } : {}}
+                                >
+                                    {/* Left lateral stripe representing added_by */}
+                                    <div className="absolute left-0 top-0 bottom-0 w-[5px]" style={{ backgroundColor: trackColor }} />
+                                    
+                                    <div className="flex items-center gap-4 relative z-10">
+                                        <div className={`flex h-10 w-10 items-center justify-center border rounded-none ${currentTrackId === track.id ? `border-${accentClass} bg-${accentClass} text-black` : 'border-white/10 bg-black text-[#a88a7e]'
+                                            }`} style={currentTrackId === track.id ? { backgroundColor: accentColor, borderColor: accentColor } : {}}>
+                                            <Music className="w-5 h-5 stroke-[1.5]" />
                                         </div>
-                                    )}
-                                </div>
-                            </button>
-                        ))}
+                                        <div className="flex-1 min-w-0">
+                                            <p className={`truncate text-sm font-bold uppercase tracking-normal ${currentTrackId === track.id ? 'text-white' : 'text-[#e1bfb2]'}`}>
+                                                {track.title || 'Sin Título'}
+                                            </p>
+                                            <p className="truncate font-mono text-[10px] uppercase text-[#a88a7e]">{track.artist || 'Artista Desconocido'}</p>
+                                        </div>
+                                        {track.added_by && (
+                                            <div className="flex flex-col items-center opacity-40 group-hover:opacity-100 transition-opacity">
+                                                <span className="text-[8px] font-bold uppercase rotate-90">{track.added_by}</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
 
                 {/* Player & Comments Area */}
                 <div className="lg:col-span-3">
-                    <div className="geometric-card relative flex min-h-[550px] flex-col border-white/10 bg-[#0a0a0a] p-6 overflow-hidden">
+                    <div className="relative flex min-h-[550px] flex-col border border-white/10 bg-[#0a0a0a] p-6 overflow-hidden rounded-none">
                         <AnimatedBrutalistCorners color={secondaryColor} />
 
                         {currentTrack ? (
                             <>
                                 <div className="mb-6 z-10">
                                     {getSpotifyUrl(currentTrack) ? (
-                                        <div className="border border-white/10 bg-black p-1">
+                                        <div className="border border-white/10 bg-black p-1 rounded-none">
                                             <SpotifyEmbed url={getSpotifyUrl(currentTrack)} track={currentTrack} />
                                         </div>
                                     ) : (
-                                        <div className="w-full border border-white/10 bg-black p-8 text-center text-[#a88a7e]">
+                                        <div className="w-full border border-white/10 bg-black p-8 text-center text-[#a88a7e] rounded-none">
                                             Sin vista previa disponible.
                                         </div>
                                     )}
@@ -310,27 +318,34 @@ export function AudioSection() {
 
                                 <div className="flex-1 flex flex-col z-10">
                                     <h4 className="mb-6 flex items-center gap-2 border-b border-white/10 pb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">
-                                        <MessageSquare className={`h-3 w-3 text-${secondaryClass}`} style={{ color: secondaryColor }} />
+                                        <MessageSquare className={`h-3 w-3 text-${secondaryClass} stroke-[1.5]`} style={{ color: secondaryColor }} />
                                         Lo que me hace sentir esta canción
                                     </h4>
 
                                     <div className="flex-1 space-y-4 mb-6 max-h-[250px] overflow-y-auto pr-2 custom-scrollbar">
                                         {currentTrack.comments && currentTrack.comments.length > 0 ? (
-                                            currentTrack.comments.map((comment: TrackComment) => (
-                                                <div key={comment.id} className={`border-l-2 border-${accentClass} bg-black p-4`} style={{ borderColor: accentColor }}>
-                                                    <div className="flex justify-between items-center mb-1">
-                                                        <span className={`text-[9px] font-bold uppercase tracking-widest ${comment.author === 'Ella' ? 'text-user-a' : 'text-user-b'}`}>
-                                                            {comment.author}
-                                                        </span>
+                                            currentTrack.comments.map((comment: TrackComment) => {
+                                                const commentAuthorIsElla = comment.author === 'Ella';
+                                                const commentColor = commentAuthorIsElla ? 'var(--color-user-a)' : 'var(--color-user-b)';
+                                                return (
+                                                    <div key={comment.id} className="relative overflow-hidden border border-white/10 bg-black p-4 pl-6 rounded-none">
+                                                        {/* Left lateral stripe for comment author */}
+                                                        <div className="absolute left-0 top-0 bottom-0 w-[4px]" style={{ backgroundColor: commentColor }} />
+                                                        
+                                                        <div className="flex justify-between items-center mb-1">
+                                                            <span className={`text-[9px] font-bold uppercase tracking-widest ${commentAuthorIsElla ? 'text-user-a' : 'text-user-b'}`}>
+                                                                {comment.author}
+                                                            </span>
+                                                        </div>
+                                                        <p className="text-sm font-light tracking-normal text-[#e5e2e1]">
+                                                            &quot;{comment.text}&quot;
+                                                        </p>
                                                     </div>
-                                                    <p className="text-sm font-light tracking-normal text-[#e5e2e1]">
-                                                        &quot;{comment.text}&quot;
-                                                    </p>
-                                                </div>
-                                            ))
+                                                );
+                                            })
                                         ) : (
                                             <div className="flex flex-col items-center justify-center py-10 text-[#a88a7e] opacity-50">
-                                                <MessageSquare className="w-8 h-8 mb-2" />
+                                                <MessageSquare className="w-8 h-8 mb-2 stroke-[1.5]" />
                                                 <p className="text-[10px] uppercase tracking-widest">Sin comentarios</p>
                                             </div>
                                         )}
@@ -344,12 +359,12 @@ export function AudioSection() {
                                                 onChange={(e) => setNewComment(e.target.value)}
                                                 onKeyDown={(e) => e.key === 'Enter' && handleAddComment()}
                                                 placeholder={`Añadir nota como ${profile === 'ella' ? 'ella' : 'él'}...`}
-                                                className={`flex-1 border border-white/10 bg-black px-4 py-3 text-sm tracking-normal text-white outline-none transition-colors placeholder:text-[#594137] focus:border-${accentClass}`} style={accentRingStyle(accentColor)}
+                                                className={`flex-1 border border-white/10 bg-black px-4 py-3 text-sm tracking-normal text-white outline-none transition-colors placeholder:text-[#594137] focus:border-${accentClass} rounded-none`} style={accentRingStyle(accentColor)}
                                             />
                                             <button
                                                 onClick={handleAddComment}
                                                 disabled={!newComment.trim()}
-                                                className={`bg-${accentClass} px-6 py-3 text-xs font-bold uppercase tracking-widest text-black transition-colors hover:opacity-80 disabled:opacity-50`} style={{ backgroundColor: accentColor }}
+                                                className={`bg-${accentClass} px-6 py-3 text-xs font-bold uppercase tracking-widest text-black transition-colors hover:opacity-80 disabled:opacity-50 rounded-none`} style={{ backgroundColor: accentColor }}
                                             >
                                                 Enviar
                                             </button>
@@ -358,8 +373,8 @@ export function AudioSection() {
                                 </div>
                             </>
                         ) : (
-                            <div className="flex flex-1 flex-col items-center justify-center p-10 text-center font-light text-[#a88a7e] opacity-60">
-                                <Music className="w-12 h-12 mb-4" />
+                            <div className="flex flex-1 flex-col items-center justify-center p-10 text-center font-light text-[#a88a7e] opacity-60 rounded-none">
+                                <Music className="w-12 h-12 mb-4 stroke-[1.5]" />
                                 <p className="uppercase text-[10px] tracking-[0.2em]">Playlist vacía</p>
                             </div>
                         )}

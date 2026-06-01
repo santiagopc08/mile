@@ -20,8 +20,16 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         const checkSession = async () => {
+            // 1. Instant check sessionStorage for immediate UI paint and zero-latency load
+            const savedProfile = sessionStorage.getItem('mile_profile') as Profile;
+            const authStatus = sessionStorage.getItem('mile_auth');
+            if (authStatus === 'true' && (savedProfile === 'el' || savedProfile === 'ella')) {
+                setProfile(savedProfile);
+                setIsAuthenticated(true);
+            }
+
             try {
-                // Get standard Supabase Auth session
+                // 2. Query Supabase Auth for backend session verification
                 const { data: { session } } = await supabase.auth.getSession();
                 const email = session?.user?.email;
                 if (email === 'el@mile.app') {
@@ -30,17 +38,17 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
                 } else if (email === 'ella@mile.app') {
                     setProfile('ella');
                     setIsAuthenticated(true);
-                } else {
-                    // Backwards-compatible session storage fallback
-                    const savedProfile = sessionStorage.getItem('mile_profile') as Profile;
-                    const authStatus = sessionStorage.getItem('mile_auth');
-                    if (authStatus === 'true' && savedProfile) {
-                        setProfile(savedProfile);
-                        setIsAuthenticated(true);
-                    }
+                } else if (authStatus === 'true' && (savedProfile === 'el' || savedProfile === 'ella')) {
+                    // No backend session exists but we have local session, auto-login silently
+                    await login(savedProfile);
                 }
             } catch (err) {
                 console.error('Session load error:', err);
+                // Ensure we don't break local auth state if backend check throws
+                if (authStatus === 'true' && (savedProfile === 'el' || savedProfile === 'ella')) {
+                    setProfile(savedProfile);
+                    setIsAuthenticated(true);
+                }
             }
         };
 

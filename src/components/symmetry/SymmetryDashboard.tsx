@@ -163,18 +163,18 @@ export const SymmetryDashboard = () => {
               <p className="max-w-2xl text-sm leading-6 tracking-normal text-[#e1bfb2] md:text-base">
                 Plataforma de gestión de operaciones, finanzas y tareas diarias.
               </p>
-              <div className="grid grid-cols-3 border border-white/10 text-center">
+              <div className="grid grid-cols-3 border border-white/10 text-center bg-black/20">
                 <div className="border-r border-white/10 px-4 py-3">
-                  <div className={`text-2xl font-black ${profile === 'ella' ? 'text-user-a' : 'text-user-b'}`}>{tasks.length}</div>
-                  <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Tareas</div>
+                  <div className={`text-2xl font-black font-mono tracking-tighter ${profile === 'ella' ? 'text-user-a' : 'text-user-b'}`}>{tasks.length}</div>
+                  <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e] mt-1">Tareas</div>
                 </div>
                 <div className="border-r border-white/10 px-4 py-3">
-                  <div className="text-2xl font-black text-user-c">{activeTasks}</div>
-                  <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Activas</div>
+                  <div className="text-2xl font-black font-mono tracking-tighter text-user-c">{activeTasks}</div>
+                  <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e] mt-1">Activas</div>
                 </div>
                 <div className="px-4 py-3">
-                  <div className={`text-2xl font-black ${profile === 'ella' ? 'text-user-b' : 'text-user-a'}`}>{Math.round(focusScore)}%</div>
-                  <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Enfoque</div>
+                  <div className={`text-2xl font-black font-mono tracking-tighter ${profile === 'ella' ? 'text-user-b' : 'text-user-a'}`}>{Math.round(focusScore)}%</div>
+                  <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e] mt-1">Enfoque</div>
                 </div>
               </div>
             </div>
@@ -190,9 +190,10 @@ export const SymmetryDashboard = () => {
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
               className={`group relative flex min-h-20 items-center justify-between border-r border-white/10 px-4 py-4 transition-all last:border-r-0 ${activeTab === tab.key
-                ? 'bg-user-a text-black'
+                ? 'text-black font-black'
                 : 'bg-[#0a0a0a] text-[#a88a7e] hover:bg-[#121212] hover:text-white'
                 }`}
+              style={activeTab === tab.key ? { backgroundColor: activeAccent } : undefined}
             >
               <span className="flex flex-col items-start gap-2">
                 <tab.icon className="h-4 w-4" />

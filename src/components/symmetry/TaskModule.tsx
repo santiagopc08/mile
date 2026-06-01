@@ -570,18 +570,18 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
           const colTasks = tasks.filter(t => t.status === col.status);
           return (
             <div key={col.status} className={`flex h-full flex-col border border-white/10 bg-black/30 p-2 md:p-3 ${col.opacity || ''}`}>
-              <h4 className={`mb-2 md:mb-3 flex items-center justify-between text-[9px] md:text-[10px] font-black uppercase tracking-[0.14em] md:tracking-[0.18em] ${col.accent}`}>
+              <h4 className={`mb-2 md:mb-3 flex items-center justify-between text-[9px] md:text-[10px] font-mono tracking-tighter uppercase ${col.accent}`}>
                 <div className="flex items-center gap-1.5">
                   <div className={`w-1.5 h-1.5 ${col.bgAccent} ${col.pulse ? 'animate-pulse' : ''}`} style={col.pulse ? { boxShadow: `0 0 5px ${accentColor}` } : {}} />
                   {col.title}
                 </div>
-                <span className="text-[8px] tabular-nums text-stone-600">{colTasks.length}</span>
+                <span className="text-[8px] font-mono tabular-nums text-stone-500">{colTasks.length}</span>
               </h4>
-              <div className="flex-1 space-y-3 md:space-y-4 overflow-y-auto custom-scrollbar">
+              <div className="flex-1 space-y-3 md:space-y-4 overflow-y-auto custom-scrollbar pt-2 md:pt-3">
                 <AnimatePresence>
                   {colTasks.map((task) => {
                     const priorityBorder = task.priority === 'high' ? 'border-rose-500' : task.priority === 'medium' ? `border-${accentClass}` : 'border-stone-700';
-                    const priorityBg = task.priority === 'high' ? 'bg-rose-500' : task.priority === 'medium' ? `bg-${accentClass}` : 'bg-stone-500';
+                    const priorityBg = task.priority === 'high' ? 'bg-rose-500' : task.priority === 'medium' ? `bg-${accentClass}` : 'bg-stone-600';
                     const isLateOrOverflow = isTaskLate(task) || isTaskOverflowed(task);
                     const clockColor = isLateOrOverflow ? 'text-red-500' : 'text-emerald-500';
                     
@@ -591,10 +591,10 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
                       initial={{ opacity: 0, y: 4 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.95 }}
-                      className={`relative border ${priorityBorder} bg-[#0a0a0a] p-2 md:p-3 transition-colors hover:border-white/20 ${editingTaskId === task.id ? `border-white shadow-[0_0_10px_rgba(255,255,255,0.1)]` : ''}`}
+                      className={`relative border border-white/10 bg-[#0a0a0a] p-0 transition-colors hover:border-white/20 ${editingTaskId === task.id ? `border-white shadow-[0_0_10px_rgba(255,255,255,0.1)]` : ''}`}
                     >
                       {editingTaskId === task.id ? (
-                        <div className="space-y-2">
+                        <div className="p-3 space-y-2">
                           <input value={editTaskText} onChange={e => setEditTaskText(e.target.value)} className={`w-full bg-black border border-white/20 px-2 py-1.5 text-[11px] text-white outline-none focus:border-${accentClass}`} />
                           <div className="flex gap-1 flex-wrap">
                             <select value={editTaskCategory} onChange={e => setEditTaskCategory(e.target.value as any)} className="flex-1 min-w-0 bg-black border border-white/20 px-1 py-1 text-[9px] uppercase text-stone-300 outline-none"><option value="work">TRABAJO</option><option value="home">HOGAR</option><option value="personal">PERSONAL</option></select>
@@ -620,16 +620,19 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
                           </div>
                         </div>
                       ) : (
-                        <div className="flex flex-col relative pt-1">
+                        <div className="flex flex-col relative pt-1 pl-6 pr-3 pb-3">
+                          {/* Lateral priority stripe */}
+                          <div className={`absolute left-0 top-0 bottom-0 w-[5px] ${priorityBg}`} />
+
                           {/* Corner Indicators Right */}
                           <div className="absolute -top-2 -right-2 md:-top-3 md:-right-3 flex items-center">
                             {/* Category Box */}
-                            <div className="border-l border-b border-white/10 bg-[#050505] px-1.5 py-[3px] text-[6px] md:text-[7px] uppercase font-bold text-stone-400">
+                            <div className="border-l border-b border-white/10 bg-[#050505] px-1.5 py-[3px] text-[6px] md:text-[7px] font-mono tracking-widest uppercase text-stone-400">
                                {task.category === 'personal' ? 'PER' : task.category === 'work' ? 'WRK' : 'HOM'}
                             </div>
                             {/* Clock Box */}
                             <div className={`border-b border-white/10 bg-[#050505] px-1.5 py-[3px] ${clockColor}`}>
-                               <Clock size={8} />
+                               <Clock size={8} strokeWidth={1.5} />
                             </div>
                           </div>
 
@@ -637,10 +640,10 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
                           {(() => {
                             const objective = getTaskObjective(task);
                             if (!objective) return null;
-                            const priorityText = task.priority === 'high' ? 'bg-rose-500 text-black' : task.priority === 'medium' ? `bg-${accentClass} text-black` : 'bg-stone-700 text-white';
+                            const priorityText = task.priority === 'high' ? 'bg-rose-500 text-black font-black' : task.priority === 'medium' ? `bg-${accentClass} text-black font-black` : 'bg-stone-700 text-white';
                             return (
-                              <div className="absolute -top-2 -left-2 md:-top-3 md:-left-3 flex items-center">
-                                <div className={`px-1.5 py-[3px] text-[6px] md:text-[7px] uppercase font-bold tracking-widest ${priorityText}`}>
+                              <div className="absolute -top-2 left-[5px] md:-top-3 flex items-center z-10">
+                                <div className={`px-1.5 py-[3px] text-[6px] md:text-[7px] font-mono uppercase tracking-[0.16em] ${priorityText}`}>
                                   {objective.title}
                                 </div>
                               </div>
@@ -648,7 +651,7 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
                           })()}
 
                           {/* Title and Detail */}
-                          <div className="flex flex-col gap-1 px-1 pt-3 md:pt-4 pb-1 mt-1">
+                          <div className="flex flex-col gap-1 pt-3 md:pt-4 pb-1 mt-1">
                              <p className={`text-[12px] md:text-[13px] uppercase font-semibold leading-tight tracking-tight text-white ${task.status === 'skipped' ? 'line-through opacity-50' : ''}`}>{task.text}</p>
                              {task.detail && <p className="text-[9px] leading-tight text-[#a88a7e] line-clamp-2 mt-0.5">{task.detail}</p>}
                           </div>
@@ -674,13 +677,13 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
                           {((task.actions && task.actions.length > 0) || (task.validations && task.validations.length > 0)) && (
                             <div className={`flex justify-start gap-3 mb-2 ${task.estimated_time > 0 ? '' : 'mt-2'}`}>
                               {task.actions && task.actions.length > 0 && (
-                                <button onClick={() => setExpandedTaskId(expandedTaskId === task.id ? null : task.id)} className={`text-[7px] uppercase font-bold hover:text-${accentClass} transition-colors leading-none flex items-center gap-1 text-stone-500`}>
+                                <button onClick={() => setExpandedTaskId(expandedTaskId === task.id ? null : task.id)} className={`text-[7px] font-mono uppercase font-bold hover:text-${accentClass} transition-colors leading-none flex items-center gap-1 text-stone-500`}>
                                   ACT · ✓ {task.actions.filter(a => a.checked).length}/{task.actions.length}
                                 </button>
                               )}
                               {task.validations && task.validations.length > 0 && (
-                                <button onClick={() => setExpandedTaskId(expandedTaskId === task.id ? null : task.id)} className={`text-[7px] uppercase font-bold hover:text-${accentClass} transition-colors leading-none flex items-center gap-1 text-stone-500`}>
-                                  VLD · ✓ {task.validations.filter(a => a.checked).length}/{task.validations.length}
+                                <button onClick={() => setExpandedTaskId(expandedTaskId === task.id ? null : task.id)} className={`text-[7px] font-mono uppercase font-bold hover:text-${accentClass} transition-colors leading-none flex items-center gap-1 text-stone-500`}>
+                                  VLD · ✓ {task.validations.filter(v => v.checked).length}/{task.validations.length}
                                 </button>
                               )}
                             </div>
@@ -725,18 +728,38 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
                           </AnimatePresence>
 
                           {/* Footer Controls */}
-                          <div className="mt-auto flex justify-between items-center border-t border-white/5 pt-2 h-4">
+                          <div className="mt-auto flex justify-between items-center border-t border-white/5 pt-2 h-7">
                              {/* Initials block representing author/system like [JD] in reference */}
-                             <div className="text-[6px] font-bold uppercase border border-stone-800 px-1 py-0.5 text-stone-500 tracking-widest bg-white/5">
-                                {profile === 'el' ? 'S' : 'M'}
+                             <div className="text-[7px] font-mono font-bold uppercase border border-white/10 px-2 py-0.5 text-stone-500 tracking-widest bg-white/5">
+                                {task.assignee === 'el' ? 'SANTI' : 'MILENA'}
                              </div>
                              
-                             <div className="flex items-center gap-1.5">
-                               {task.status !== 'done' && task.status !== 'skipped' && <button onClick={() => deleteTask(task.id)} className="text-stone-700 hover:text-red-500 transition-colors flex items-center justify-center leading-none"><Trash2 size={9} /></button>}
-                               {task.status !== 'done' && task.status !== 'skipped' && <button onClick={() => handleEditStart(task)} className="text-stone-600 hover:text-white transition-colors flex items-center justify-center leading-none"><Pencil size={9} /></button>}
-                               {task.status === 'todo' && <button onClick={() => updateTaskStatus(task.id, 'in_progress')} className={`text-stone-600 hover:text-${accentClass} transition-colors flex items-center justify-center leading-none`}><Check size={10} /></button>}
-                               {task.status === 'in_progress' && <button onClick={() => updateTaskStatus(task.id, 'done')} className={`text-stone-600 hover:text-${accentClass} transition-colors flex items-center justify-center leading-none`}><Check size={10} /></button>}
-                               {(task.status === 'done' || task.status === 'skipped') && <button onClick={() => updateTaskStatus(task.id, 'in_progress')} className="text-stone-600 hover:text-white transition-colors flex items-center justify-center leading-none" title="Retomar"><Pencil size={9} /></button>}
+                             <div className="flex items-center gap-[1px] bg-white/[0.08] brutal-border pl-[1px] pt-[1px]">
+                               {task.status !== 'done' && task.status !== 'skipped' && (
+                                 <button onClick={() => deleteTask(task.id)} className="h-6 w-6 bg-[#0a0a0a] text-stone-500 hover:text-red-500 transition-colors flex items-center justify-center !min-h-0">
+                                   <Trash2 size={10} strokeWidth={1.5} />
+                                 </button>
+                               )}
+                               {task.status !== 'done' && task.status !== 'skipped' && (
+                                 <button onClick={() => handleEditStart(task)} className="h-6 w-6 bg-[#0a0a0a] text-stone-500 hover:text-white transition-colors flex items-center justify-center !min-h-0">
+                                   <Pencil size={10} strokeWidth={1.5} />
+                                 </button>
+                               )}
+                               {task.status === 'todo' && (
+                                 <button onClick={() => updateTaskStatus(task.id, 'in_progress')} className="h-6 w-6 bg-[#0a0a0a] text-stone-500 hover:text-emerald-500 transition-colors flex items-center justify-center !min-h-0">
+                                   <Check size={11} strokeWidth={1.5} />
+                                 </button>
+                               )}
+                               {task.status === 'in_progress' && (
+                                 <button onClick={() => updateTaskStatus(task.id, 'done')} className="h-6 w-6 bg-[#0a0a0a] text-stone-500 hover:text-emerald-500 transition-colors flex items-center justify-center !min-h-0">
+                                   <Check size={11} strokeWidth={1.5} />
+                                 </button>
+                               )}
+                               {(task.status === 'done' || task.status === 'skipped') && (
+                                 <button onClick={() => updateTaskStatus(task.id, 'in_progress')} className="h-6 w-6 bg-[#0a0a0a] text-stone-500 hover:text-white transition-colors flex items-center justify-center !min-h-0" title="Retomar">
+                                   <Pencil size={10} strokeWidth={1.5} />
+                                 </button>
+                               )}
                              </div>
                           </div>
                         </div>

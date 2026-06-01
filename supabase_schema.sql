@@ -144,3 +144,18 @@ CREATE TABLE IF NOT EXISTS tasks (
 ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Auth Full Access Tasks" ON tasks FOR ALL TO authenticated USING (auth.jwt() ->> 'email' IN ('el@mile.app', 'ella@mile.app')) WITH CHECK (auth.jwt() ->> 'email' IN ('el@mile.app', 'ella@mile.app'));
 
+-- Health Blood Pressure Tracker Table
+CREATE TABLE IF NOT EXISTS blood_pressure (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    systolic INTEGER NOT NULL,
+    diastolic INTEGER NOT NULL,
+    heart_rate INTEGER NOT NULL,
+    position TEXT NOT NULL,
+    author TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE blood_pressure ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Auth Full Access Blood Pressure" ON blood_pressure FOR ALL TO authenticated USING (auth.jwt() ->> 'email' IN ('el@mile.app', 'ella@mile.app')) WITH CHECK (auth.jwt() ->> 'email' IN ('el@mile.app', 'ella@mile.app'));
+
+

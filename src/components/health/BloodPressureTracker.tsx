@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Activity, Heart, Trash2, Plus, TrendingUp, TrendingDown, Clipboard, User, Clock } from 'lucide-react';
+import { Activity, Heart, Plus, TrendingUp, TrendingDown, Clipboard, User, Clock } from 'lucide-react';
 import { useProfile } from '@/context/ProfileContext';
 import { StoreService } from '@/services/storeService';
 import { AnimatedBrutalistCorners } from '@/components/ui/AnimatedBrutalistCorners';
@@ -52,7 +52,6 @@ export const BloodPressureTracker = () => {
         const { data, error } = await supabase
             .from('blood_pressure')
             .select('*')
-            .eq('author', profile)
             .order('created_at', { ascending: false });
 
         if (error) {
@@ -104,7 +103,7 @@ export const BloodPressureTracker = () => {
             const dia = Number(diastolic);
             const hr = Number(heartRate);
             const isAtypical = sys >= 140 || sys <= 90 || dia >= 90 || dia <= 60 || hr >= 100 || hr <= 55;
-            
+
             if (isAtypical) {
                 const target = profile === 'el' ? 'ella' : 'el';
                 StoreService.addNotification(target, 'health_alert', 'Se registró una lectura atípica de signos vitales.').catch(err => console.error(err));
@@ -117,15 +116,6 @@ export const BloodPressureTracker = () => {
             await fetchEntries();
         }
         setLoading(false);
-    };
-
-    const handleDelete = async (id: string) => {
-        const { error } = await supabase.from('blood_pressure').delete().eq('id', id);
-        if (error) {
-            console.error('Error deleting entry:', error);
-        } else {
-            setEntries(entries.filter(e => e.id !== id));
-        }
     };
 
     const stats = useMemo(() => {
@@ -186,59 +176,77 @@ export const BloodPressureTracker = () => {
 
     return (
         <div className="space-y-6 font-mono">
-            <div className="geometric-card p-6 border-white/10 relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-4 opacity-5">
-                    <Activity size={120} />
-                </div>
-                <AnimatedBrutalistCorners color="var(--color-user-a)" size={12} thickness={1.5} />
+            <div className="relative border border-white/10 bg-[#0a0a0a] p-6 pl-10 sm:pl-12 rounded-none overflow-hidden">
+                {/* Solid Left Accent Stripe */}
+                <div className="absolute left-0 top-0 bottom-0 w-[5px]" style={{ backgroundColor: accentColor }} />
 
-                <h2 className="text-[10px] uppercase font-black tracking-[0.3em] mb-8 border-b border-white/5 pb-4 flex justify-between items-center text-user-a">
+                <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                    <Activity size={120} className="stroke-[1.5]" />
+                </div>
+                <AnimatedBrutalistCorners color={accentColor} size={12} thickness={1.5} />
+
+                <h2 className="text-[10px] uppercase font-black tracking-[0.3em] mb-8 border-b border-white/5 pb-4 flex justify-between items-center text-white font-sans">
                     <span className="flex items-center gap-2">
-                        <Clipboard size={12} /> Registro de Presión Arterial
+                        <Clipboard size={12} className="stroke-[1.5]" /> Registro de Presión Arterial
                     </span>
                     <span className="text-[8px] opacity-40">ESTADO: ACTIVO</span>
                 </h2>
 
-                <form onSubmit={handleAddEntry} className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-10 items-end relative z-10">
-                    <div className="space-y-2">
-                        <label className="text-[7px] uppercase font-bold text-stone-500 tracking-widest">PRESIÓN MÁXIMA (Sistólica)</label>
-                        <input
-                            type="number"
-                            value={systolic}
-                            onChange={e => setSystolic(e.target.value === '' ? '' : Number(e.target.value))}
-                            placeholder="120"
-                            className={`w-full bg-black border border-white/10 p-3 text-xs font-bold outline-none focus:border-${accentClass} text-white`}
-                            required
-                        />
+                <form onSubmit={handleAddEntry} className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-10 items-end relative z-10 bg-black/20 p-4 border border-white/5 rounded-none">
+                    <div className="md:col-span-3 space-y-2">
+                        <label className="text-[7px] uppercase font-bold text-stone-500 tracking-widest flex items-center gap-1">
+                            <Activity size={8} className="stroke-[1.5]" /> PRESIÓN MÁXIMA (Sistólica)
+                        </label>
+                        <div className="relative">
+                            <input
+                                type="number"
+                                value={systolic}
+                                onChange={e => setSystolic(e.target.value === '' ? '' : Number(e.target.value))}
+                                placeholder="120"
+                                className={`w-full bg-black border border-white/10 p-3 pr-10 text-xs font-bold outline-none focus:border-${accentClass} text-white rounded-none transition-all`}
+                                required
+                            />
+                            <span className="absolute right-3 top-3 text-[7px] font-bold text-stone-600">mmHg</span>
+                        </div>
                     </div>
-                    <div className="space-y-2">
-                        <label className="text-[7px] uppercase font-bold text-stone-500 tracking-widest">PRESIÓN MÍNIMA (Diastólica)</label>
-                        <input
-                            type="number"
-                            value={diastolic}
-                            onChange={e => setDiastolic(e.target.value === '' ? '' : Number(e.target.value))}
-                            placeholder="80"
-                            className={`w-full bg-black border border-white/10 p-3 text-xs font-bold outline-none focus:border-${accentClass} text-white`}
-                            required
-                        />
+                    <div className="md:col-span-3 space-y-2">
+                        <label className="text-[7px] uppercase font-bold text-stone-500 tracking-widest flex items-center gap-1">
+                            <Activity size={8} className="stroke-[1.5]" /> PRESIÓN MÍNIMA (Diastólica)
+                        </label>
+                        <div className="relative">
+                            <input
+                                type="number"
+                                value={diastolic}
+                                onChange={e => setDiastolic(e.target.value === '' ? '' : Number(e.target.value))}
+                                placeholder="80"
+                                className={`w-full bg-black border border-white/10 p-3 pr-10 text-xs font-bold outline-none focus:border-${accentClass} text-white rounded-none transition-all`}
+                                required
+                            />
+                            <span className="absolute right-3 top-3 text-[7px] font-bold text-stone-600">mmHg</span>
+                        </div>
                     </div>
-                    <div className="space-y-2">
-                        <label className="text-[7px] uppercase font-bold text-stone-500 tracking-widest">PULSO / RITMO CARDÍACO</label>
-                        <input
-                            type="number"
-                            value={heartRate}
-                            onChange={e => setHeartRate(e.target.value === '' ? '' : Number(e.target.value))}
-                            placeholder="70"
-                            className={`w-full bg-black border border-white/10 p-3 text-xs font-bold outline-none focus:border-${accentClass} text-white`}
-                            required
-                        />
+                    <div className="md:col-span-2 space-y-2">
+                        <label className="text-[7px] uppercase font-bold text-stone-500 tracking-widest flex items-center gap-1">
+                            <Heart size={8} className="stroke-[1.5]" /> PULSO
+                        </label>
+                        <div className="relative">
+                            <input
+                                type="number"
+                                value={heartRate}
+                                onChange={e => setHeartRate(e.target.value === '' ? '' : Number(e.target.value))}
+                                placeholder="70"
+                                className={`w-full bg-black border border-white/10 p-3 pr-10 text-xs font-bold outline-none focus:border-${accentClass} text-white rounded-none transition-all`}
+                                required
+                            />
+                            <span className="absolute right-3 top-3 text-[7px] font-bold text-stone-600">BPM</span>
+                        </div>
                     </div>
-                    <div className="space-y-2">
-                        <label className="text-[7px] uppercase font-bold text-stone-500 tracking-widest">Posición al medir</label>
+                    <div className="md:col-span-2 space-y-2">
+                        <label className="text-[7px] uppercase font-bold text-stone-500 tracking-widest">POSICIÓN AL MEDIR</label>
                         <select
                             value={position}
                             onChange={e => setPosition(e.target.value as any)}
-                            className={`w-full bg-black border border-white/10 p-3 text-xs font-bold outline-none focus:border-${accentClass} text-stone-300 appearance-none cursor-pointer`}
+                            className={`w-full bg-black border border-white/10 p-3 text-xs font-bold outline-none focus:border-${accentClass} text-stone-300 appearance-none cursor-pointer rounded-none transition-all`}
                         >
                             <option value="sitting">SENTADO</option>
                             <option value="edge of bed">BORDE CAMA</option>
@@ -248,9 +256,9 @@ export const BloodPressureTracker = () => {
                     <button
                         type="submit"
                         disabled={loading}
-                        className={`md:col-span-4 py-4 text-[10px] uppercase font-black tracking-[0.3em] transition-all flex items-center justify-center gap-2 border mt-2 ${loading
-                                ? 'bg-stone-800 text-stone-500 border-stone-800 cursor-not-allowed'
-                                : `bg-${accentClass} text-black border-${accentClass}`
+                        className={`md:col-span-2 py-3.5 text-[9px] uppercase font-black tracking-[0.25em] transition-all flex items-center justify-center gap-2 border rounded-none cursor-pointer ${loading
+                            ? 'bg-stone-800 text-stone-500 border-stone-800 cursor-not-allowed'
+                            : `bg-${accentClass} text-black border-${accentClass} hover:opacity-90`
                             }`}
                         style={!loading ? { backgroundColor: accentColor, borderColor: accentColor } : {}}
                     >
@@ -262,7 +270,7 @@ export const BloodPressureTracker = () => {
                             />
                         ) : (
                             <>
-                                <Plus size={14} /> REGISTRAR LECTURA
+                                <Plus size={12} className="stroke-[2]" /> REGISTRAR
                             </>
                         )}
                     </button>
@@ -270,71 +278,71 @@ export const BloodPressureTracker = () => {
 
                 {stats && (
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
-                        <div className="p-4 border border-white/5 bg-stone-900/20 space-y-4">
+                        <div className="p-4 border border-white/10 bg-stone-900/20 space-y-4 rounded-none">
                             <div className="flex justify-between items-center border-b border-white/5 pb-2">
                                 <h3 className="text-[8px] uppercase font-black text-stone-500 tracking-widest flex items-center gap-1">
-                                    <Activity size={10} /> MÁXIMA (Sistólica)
+                                    <Activity size={10} className="stroke-[1.5]" /> MÁXIMA (Sistólica)
                                 </h3>
                                 <span className="text-[6px] text-stone-600">mmHg</span>
                             </div>
                             <div className="grid grid-cols-3 gap-4 text-center">
                                 <div className="flex flex-col">
                                     <span className="text-[6px] text-stone-600 uppercase">MAX</span>
-                                    <span className="text-sm font-bold text-white">{stats.systolic.max.systolic}</span>
+                                    <span className="text-sm font-bold text-white tracking-tighter">{stats.systolic.max.systolic}</span>
                                 </div>
                                 <div className="flex flex-col border-x border-white/5">
                                     <span className="text-[6px] text-stone-600 uppercase">AVG</span>
-                                    <span className={`text-sm font-bold text-${accentClass}`} style={{ color: accentColor }}>{stats.systolic.avg}</span>
+                                    <span className={`text-sm font-bold tracking-tighter text-${accentClass}`} style={{ color: accentColor }}>{stats.systolic.avg}</span>
                                 </div>
                                 <div className="flex flex-col">
                                     <span className="text-[6px] text-stone-600 uppercase">MIN</span>
-                                    <span className="text-sm font-bold text-white">{stats.systolic.min.systolic}</span>
+                                    <span className="text-sm font-bold text-white tracking-tighter">{stats.systolic.min.systolic}</span>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="p-4 border border-white/5 bg-stone-900/20 space-y-4">
+                        <div className="p-4 border border-white/10 bg-stone-900/20 space-y-4 rounded-none">
                             <div className="flex justify-between items-center border-b border-white/5 pb-2">
                                 <h3 className="text-[8px] uppercase font-black text-stone-500 tracking-widest flex items-center gap-1">
-                                    <Activity size={10} /> MÍNIMA (Diastólica)
+                                    <Activity size={10} className="stroke-[1.5]" /> MÍNIMA (Diastólica)
                                 </h3>
                                 <span className="text-[6px] text-stone-600">mmHg</span>
                             </div>
                             <div className="grid grid-cols-3 gap-4 text-center">
                                 <div className="flex flex-col">
                                     <span className="text-[6px] text-stone-600 uppercase">MAX</span>
-                                    <span className="text-sm font-bold text-white">{stats.diastolic.max.diastolic}</span>
+                                    <span className="text-sm font-bold text-white tracking-tighter">{stats.diastolic.max.diastolic}</span>
                                 </div>
                                 <div className="flex flex-col border-x border-white/5">
                                     <span className="text-[6px] text-stone-600 uppercase">AVG</span>
-                                    <span className={`text-sm font-bold text-${accentClass}`} style={{ color: accentColor }}>{stats.diastolic.avg}</span>
+                                    <span className={`text-sm font-bold tracking-tighter text-${accentClass}`} style={{ color: accentColor }}>{stats.diastolic.avg}</span>
                                 </div>
                                 <div className="flex flex-col">
                                     <span className="text-[6px] text-stone-600 uppercase">MIN</span>
-                                    <span className="text-sm font-bold text-white">{stats.diastolic.min.diastolic}</span>
+                                    <span className="text-sm font-bold text-white tracking-tighter">{stats.diastolic.min.diastolic}</span>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="p-4 border border-white/5 bg-stone-900/20 space-y-4">
+                        <div className="p-4 border border-white/10 bg-stone-900/20 space-y-4 rounded-none">
                             <div className="flex justify-between items-center border-b border-white/5 pb-2">
                                 <h3 className="text-[8px] uppercase font-black text-stone-500 tracking-widest flex items-center gap-1">
-                                    <Heart size={10} /> RITMO CARDÍACO
+                                    <Heart size={10} className="stroke-[1.5]" /> RITMO CARDÍACO
                                 </h3>
                                 <span className="text-[6px] text-stone-600">BPM</span>
                             </div>
                             <div className="grid grid-cols-3 gap-4 text-center">
                                 <div className="flex flex-col">
                                     <span className="text-[6px] text-stone-600 uppercase">MAX</span>
-                                    <span className="text-sm font-bold text-white">{stats.heartRate.max.heart_rate}</span>
+                                    <span className="text-sm font-bold text-white tracking-tighter">{stats.heartRate.max.heart_rate}</span>
                                 </div>
                                 <div className="flex flex-col border-x border-white/5">
                                     <span className="text-[6px] text-stone-600 uppercase">AVG</span>
-                                    <span className={`text-sm font-bold text-${accentClass}`} style={{ color: accentColor }}>{stats.heartRate.avg}</span>
+                                    <span className={`text-sm font-bold tracking-tighter text-${accentClass}`} style={{ color: accentColor }}>{stats.heartRate.avg}</span>
                                 </div>
                                 <div className="flex flex-col">
                                     <span className="text-[6px] text-stone-600 uppercase">MIN</span>
-                                    <span className="text-sm font-bold text-white">{stats.heartRate.min.heart_rate}</span>
+                                    <span className="text-sm font-bold text-white tracking-tighter">{stats.heartRate.min.heart_rate}</span>
                                 </div>
                             </div>
                         </div>
@@ -342,7 +350,7 @@ export const BloodPressureTracker = () => {
                 )}
 
                 {entries.length > 0 && (
-                    <div className="h-72 w-full mb-10 border border-white/5 bg-black/40 p-2 sm:p-6 relative">
+                    <div className="h-72 w-full mb-10 border border-white/10 bg-black/40 p-2 sm:p-6 relative rounded-none">
                         <AnimatedBrutalistCorners color={accentColor} />
                         <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={chartData} margin={{ left: 0, right: 10, top: 10, bottom: 0 }}>
@@ -403,57 +411,89 @@ export const BloodPressureTracker = () => {
                     </div>
                 )}
 
-                <div className="space-y-2 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
+                <div className="space-y-1 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
                     <AnimatePresence mode="popLayout">
-                        {entries.map((entry) => (
-                            <motion.div
-                                key={entry.id}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, scale: 0.98 }}
-                                className={`flex items-center justify-between p-4 border border-white/5 bg-[#0a0a0a] group hover:border-${accentClass}/30 transition-all relative`}
-                            >
-                                <div className={`absolute top-0 left-0 w-1 h-1 bg-${accentClass} opacity-20 group-hover:opacity-100 transition-opacity`} style={{ backgroundColor: accentColor }} />
-                                <div className="grid grid-cols-5 gap-4 items-center flex-1 mr-4">
-                                    <div className="flex items-center gap-1.5 text-stone-500">
-                                        <Clock size={8} />
-                                        <span className="text-[7px] font-bold tracking-widest">
-                                            {new Date(entry.created_at).toLocaleDateString()}
-                                        </span>
-                                    </div>
+                        {entries.map((entry) => {
+                            const entryIsElla = entry.author === 'ella';
+                            const authorAccent = entryIsElla ? 'var(--color-user-a)' : '#00dbe9';
+                            const authorName = entryIsElla ? 'MILENA' : 'SANTIAGO';
+                            const formattedDate = new Date(entry.created_at).toLocaleDateString([], {
+                                year: 'numeric',
+                                month: '2-digit',
+                                day: '2-digit'
+                            });
+                            const formattedTime = new Date(entry.created_at).toLocaleTimeString([], {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                hour12: false
+                            });
 
-                                    <div className={`flex items-center gap-1.5 text-${accentClass}`} style={{ color: accentColor }}>
-                                        <User size={8} />
-                                        <span className="text-[7px] uppercase font-black tracking-[0.2em]">
-                                            {entry.author === 'ella' ? 'Ella' : entry.author === 'el' ? 'Él' : entry.author}
-                                        </span>
-                                    </div>
-
-                                    <div className="flex flex-col">
-                                        <span className="text-[6px] uppercase font-bold text-stone-600 mb-0.5">PRESIÓN (mmHg)</span>
-                                        <span className="text-xs font-black tabular-nums text-white">
-                                            {entry.systolic}/{entry.diastolic}
-                                        </span>
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <span className="text-[6px] uppercase font-bold text-stone-600 mb-0.5">PULSO (BPM)</span>
-                                        <span className="text-xs font-black tabular-nums text-white">{entry.heart_rate}</span>
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <span className="text-[6px] uppercase font-bold text-stone-600 mb-0.5">POSICIÓN</span>
-                                        <span className="text-[8px] font-bold text-stone-400 uppercase tracking-tighter">
-                                            {POSITION_LABELS[entry.position as keyof typeof POSITION_LABELS] || entry.position}
-                                        </span>
-                                    </div>
-                                </div>
-                                <button
-                                    onClick={() => handleDelete(entry.id)}
-                                    className="p-2 text-stone-800 hover:text-red-500 hover:bg-red-500/10 transition-all opacity-20 group-hover:opacity-100"
+                            return (
+                                <motion.div
+                                    key={entry.id}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, scale: 0.98 }}
+                                    className="relative overflow-hidden border border-white/5 bg-[#0c0c0c] hover:bg-[#121212] py-2 px-3 pl-8 flex items-center justify-between gap-3 transition-all rounded-none group"
                                 >
-                                    <Trash2 size={12} />
-                                </button>
-                            </motion.div>
-                        ))}
+                                    {/* Left lateral author stripe */}
+                                    <div className="absolute left-0 top-0 bottom-0 w-[3px]" style={{ backgroundColor: authorAccent }} />
+
+                                    <div className="flex flex-row items-center justify-between w-full flex-1 mr-2 relative z-10">
+                                        {/* 1. Timestamp */}
+                                        <div className="flex flex-col gap-0.5">
+                                            <span className="text-[5.5px] uppercase font-bold text-stone-600 tracking-wider flex items-center gap-1">
+                                                <Clock size={7} className="stroke-[1.5]" /> REGISTRO
+                                            </span>
+                                            <span className="text-[8px] font-bold text-stone-400 tabular-nums">
+                                                {formattedDate} {formattedTime}
+                                            </span>
+                                        </div>
+
+                                        {/* 2. Author */}
+                                        <div className="flex flex-col gap-0.5">
+                                            <span className="text-[5.5px] uppercase font-bold text-stone-600 tracking-wider flex items-center gap-1">
+                                                <User size={7} className="stroke-[1.5]" /> OPERADOR
+                                            </span>
+                                            <span className="text-[8px] font-black tracking-wider" style={{ color: authorAccent }}>
+                                                {authorName}
+                                            </span>
+                                        </div>
+
+                                        {/* 3. Pressure */}
+                                        <div className="flex flex-col gap-0.5">
+                                            <span className="text-[5.5px] uppercase font-bold text-stone-600 tracking-wider">PRESIÓN</span>
+                                            <div className="flex items-baseline gap-1">
+                                                <span className="text-[11px] font-black tabular-nums text-white">
+                                                    {entry.systolic}/{entry.diastolic}
+                                                </span>
+                                                <span className="text-[6.5px] font-bold text-stone-500 uppercase">mmHg</span>
+                                            </div>
+                                        </div>
+
+                                        {/* 4. Pulses */}
+                                        <div className="flex flex-col gap-0.5">
+                                            <span className="text-[5.5px] uppercase font-bold text-stone-600 tracking-wider">PULSO</span>
+                                            <div className="flex items-baseline gap-1">
+                                                <span className="text-[11px] font-black tabular-nums text-white">
+                                                    {entry.heart_rate}
+                                                </span>
+                                                <span className="text-[6.5px] font-bold text-stone-500 uppercase">BPM</span>
+                                            </div>
+                                        </div>
+
+                                        {/* 5. Position */}
+                                        <div className="flex flex-col gap-0.5">
+                                            <span className="text-[5.5px] uppercase font-bold text-stone-600 tracking-wider">POSICIÓN</span>
+                                            <span className="text-[7px] font-bold text-stone-400 uppercase tracking-wide border border-white/5 bg-white/[0.01] px-1.5 py-0.5 self-start rounded-none">
+                                                {POSITION_LABELS[entry.position as keyof typeof POSITION_LABELS] || entry.position}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                </motion.div>
+                            );
+                        })}
                     </AnimatePresence>
                 </div>
             </div>

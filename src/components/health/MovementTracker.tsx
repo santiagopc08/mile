@@ -563,7 +563,7 @@ export function MovementTracker() {
         <div className="space-y-6 font-mono text-[#e5e2e1]">
             
             {/* CAPA 1: SHARED STATUS HEADER WITH GLOW DUAL */}
-            <div className={`relative border p-6 bg-black transition-all duration-700 ${
+            <div className={`relative border p-6 bg-black transition-all duration-700 rounded-none ${
                 bothActiveToday 
                     ? 'border-transparent shadow-[0_0_20px_rgba(195,244,0,0.15),_0_0_20px_rgba(255,75,137,0.15)]' 
                     : 'border-white/10'
@@ -573,7 +573,7 @@ export function MovementTracker() {
                     <>
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#c3f400] to-[#ff4b89]" />
                         <div className="absolute inset-0 opacity-[0.03] bg-gradient-to-tr from-[#c3f400] via-transparent to-[#ff4b89] pointer-events-none" />
-                        <div className="absolute -top-1 left-4 px-2 py-0.5 bg-gradient-to-r from-[#c3f400] to-[#ff4b89] text-black text-[7px] font-black tracking-widest uppercase">
+                        <div className="absolute -top-1 left-4 px-2 py-0.5 bg-gradient-to-r from-[#c3f400] to-[#ff4b89] text-black text-[7px] font-black tracking-widest uppercase rounded-none">
                             GLOW_DUAL_SYNCED_ACTIVE
                         </div>
                     </>
@@ -583,7 +583,7 @@ export function MovementTracker() {
                     <div className="space-y-2 max-w-xl">
                         <div className="flex flex-wrap items-center gap-3">
                             <span 
-                                className="border px-2.5 py-0.5 text-[8px] font-black uppercase tracking-[0.25em]"
+                                className="border px-2.5 py-0.5 text-[8px] font-black uppercase tracking-[0.25em] rounded-none"
                                 style={{ 
                                     borderColor: bothActiveToday ? 'transparent' : 'rgba(255, 255, 255, 0.2)',
                                     backgroundImage: bothActiveToday ? 'linear-gradient(to right, #c3f400, #ff4b89)' : 'none',
@@ -593,7 +593,7 @@ export function MovementTracker() {
                                 {motivationalMessage.title}
                             </span>
                             {isUsingLocalStorage && (
-                                <span className="border border-amber-500/30 text-amber-500 bg-amber-500/5 px-2 py-0.5 text-[7px] font-black tracking-widest uppercase">
+                                <span className="border border-amber-500/30 text-amber-500 bg-amber-500/5 px-2 py-0.5 text-[7px] font-black tracking-widest uppercase rounded-none">
                                     LOCAL_SANDBOX_ACTIVE
                                 </span>
                             )}
@@ -608,10 +608,10 @@ export function MovementTracker() {
 
                     <div className="flex flex-wrap items-center gap-4">
                         {/* Streak Box */}
-                        <div className="border border-white/10 bg-[#070707] p-4 text-center min-w-[120px] relative">
+                        <div className="border border-white/10 bg-[#070707] p-4 text-center min-w-[120px] relative rounded-none">
                             <div className="absolute top-0 right-0 w-1.5 h-1.5 bg-[#c3f400]" style={{ backgroundColor: accentColor }} />
                             <Flame 
-                                className="w-5 h-5 mx-auto mb-1 animate-pulse" 
+                                className="w-5 h-5 mx-auto mb-1 animate-pulse stroke-[1.5]" 
                                 style={{ color: bothActiveToday ? 'url(#syncGrad)' : accentColor }} 
                             />
                             <div className="text-3xl font-black font-mono tracking-tight tabular-nums text-white">
@@ -623,7 +623,7 @@ export function MovementTracker() {
                         </div>
 
                         {/* Combined Weekly Metrics */}
-                        <div className="border border-white/10 bg-[#070707] p-4 min-w-[200px] flex-1 lg:flex-none">
+                        <div className="border border-white/10 bg-[#070707] p-4 min-w-[200px] flex-1 lg:flex-none rounded-none">
                             <div className="flex justify-between items-center text-[8px] font-bold text-[#a88a7e] uppercase tracking-wider mb-2">
                                 <span>Progreso Semanal</span>
                                 <span className="font-mono tabular-nums text-white">{weeklyStats.totalCompleted}/8 Sesiones</span>
@@ -652,10 +652,10 @@ export function MovementTracker() {
                         initial={{ opacity: 0, y: -20, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.95 }}
-                        className="p-3 border text-black text-center text-xs font-black tracking-widest uppercase flex items-center justify-center gap-2 relative z-50"
+                        className="p-3 border text-black text-center text-xs font-black tracking-widest uppercase flex items-center justify-center gap-2 relative z-50 rounded-none"
                         style={{ backgroundColor: accentColor, borderColor: accentColor }}
                     >
-                        <Zap className="w-4 h-4 fill-black" />
+                        <Zap className="w-4 h-4 fill-black stroke-[1.5]" />
                         {feedbackMessage}
                     </motion.div>
                 )}
@@ -667,13 +667,15 @@ export function MovementTracker() {
                 <div className="space-y-6">
                     
                     {/* CAPA 2: DUAL USER PANELS (STATUS DISPLAY) */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 border border-white/10 bg-[#030303] divide-y sm:divide-y-0 sm:divide-x divide-white/10 relative">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 border border-white/10 bg-[#030303] divide-y sm:divide-y-0 sm:divide-x divide-white/10 relative rounded-none">
                         <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-white/30" />
                         <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-white/30" />
 
                         {/* Panel de "ÉL" */}
-                        <div className="p-5 flex flex-col justify-between min-h-[170px] relative">
-                            <div className="absolute top-2 right-2 flex items-center gap-1.5 text-[8px] font-bold text-[#c3f400] uppercase tracking-wider bg-[#c3f400]/5 px-2 py-0.5 border border-[#c3f400]/20">
+                        <div className="p-5 pl-8 flex flex-col justify-between min-h-[170px] relative rounded-none">
+                            {/* Left accent stripe */}
+                            <div className="absolute left-0 top-0 bottom-0 w-[4px] bg-[#c3f400]" />
+                            <div className="absolute top-2 right-2 flex items-center gap-1.5 text-[8px] font-bold text-[#c3f400] uppercase tracking-wider bg-[#c3f400]/5 px-2 py-0.5 border border-[#c3f400]/20 rounded-none">
                                 <span className="h-1.5 w-1.5 rounded-full bg-[#c3f400]" />
                                 ÉL / TERAPIA Y RECUPERACIÓN
                             </div>
@@ -681,19 +683,21 @@ export function MovementTracker() {
                                 <h3 className="text-xs font-black tracking-wide text-white uppercase mt-4 mb-1">
                                     Enfoque de Recuperación
                                 </h3>
-                                <p className="text-[10px] text-white/50 leading-relaxed mb-4">
+                                <p className="text-[10px] text-white/50 leading-relaxed mb-4 font-mono">
                                     Terapia física, terapia ocupacional, estiramiento táctico y movilidad articular.
                                 </p>
                             </div>
-                            <div className="border-t border-white/5 pt-3 flex justify-between items-center text-[9px] font-bold uppercase tracking-wider text-[#a88a7e]">
+                            <div className="border-t border-white/5 pt-3 flex justify-between items-center text-[9px] font-bold uppercase tracking-wider text-[#a88a7e] font-mono">
                                 <span>Sesiones (7 días)</span>
                                 <span className="text-[#c3f400] font-black text-xs font-mono">{weeklyStats.elSessions}</span>
                             </div>
                         </div>
 
                         {/* Panel de "ELLA" */}
-                        <div className="p-5 flex flex-col justify-between min-h-[170px] relative">
-                            <div className="absolute top-2 right-2 flex items-center gap-1.5 text-[8px] font-bold text-[#ff4b89] uppercase tracking-wider bg-[#ff4b89]/5 px-2 py-0.5 border border-[#ff4b89]/20">
+                        <div className="p-5 pl-8 flex flex-col justify-between min-h-[170px] relative rounded-none">
+                            {/* Left accent stripe */}
+                            <div className="absolute left-0 top-0 bottom-0 w-[4px] bg-[#ff4b89]" />
+                            <div className="absolute top-2 right-2 flex items-center gap-1.5 text-[8px] font-bold text-[#ff4b89] uppercase tracking-wider bg-[#ff4b89]/5 px-2 py-0.5 border border-[#ff4b89]/20 rounded-none">
                                 <span className="h-1.5 w-1.5 rounded-full bg-[#ff4b89]" />
                                 ELLA / FUERZA Y RESISTENCIA
                             </div>
@@ -701,11 +705,11 @@ export function MovementTracker() {
                                 <h3 className="text-xs font-black tracking-wide text-white uppercase mt-4 mb-1">
                                     Enfoque de Resistencia
                                 </h3>
-                                <p className="text-[10px] text-white/50 leading-relaxed mb-4">
+                                <p className="text-[10px] text-white/50 leading-relaxed mb-4 font-mono">
                                     Entrenamiento de potencia, fuerza muscular, cardio funcional y core.
                                 </p>
                             </div>
-                            <div className="border-t border-white/5 pt-3 flex justify-between items-center text-[9px] font-bold uppercase tracking-wider text-[#a88a7e]">
+                            <div className="border-t border-white/5 pt-3 flex justify-between items-center text-[9px] font-bold uppercase tracking-wider text-[#a88a7e] font-mono">
                                 <span>Sesiones (7 días)</span>
                                 <span className="text-[#ff4b89] font-black text-xs font-mono">{weeklyStats.ellaSessions}</span>
                             </div>
@@ -713,18 +717,18 @@ export function MovementTracker() {
                     </div>
 
                     {/* CAPA 3: FORMULARIO DE REGISTRO RÁPIDO */}
-                    <div className="border border-white/10 bg-[#080808] p-6 relative">
+                    <div className="border border-white/10 bg-[#080808] p-6 relative rounded-none">
                         <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-white/30" />
                         <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-white/30" />
 
-                        <h3 className="text-[10px] uppercase font-black tracking-[0.25em] text-[#a88a7e] mb-5 border-b border-white/5 pb-3 flex items-center justify-between">
+                        <h3 className="text-[10px] uppercase font-black tracking-[0.25em] text-[#a88a7e] mb-5 border-b border-white/5 pb-3 flex items-center justify-between font-mono">
                             <span>Registrar mi Actividad Física</span>
                             <span className="text-[8px] opacity-40">Registro Diario</span>
                         </h3>
 
                         {/* Presets / Quick Logging Buttons */}
                         <div className="mb-6 space-y-2.5">
-                            <label className="text-[8px] font-bold uppercase tracking-[0.2em] text-white/40 block">
+                            <label className="text-[8px] font-bold uppercase tracking-[0.2em] text-white/40 block font-mono">
                                 Cargar ejercicio frecuente (Preajustes de {isElla ? 'Ella' : 'Él'}):
                             </label>
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -735,7 +739,7 @@ export function MovementTracker() {
                                             key={index}
                                             type="button"
                                             onClick={() => applyPreset(preset)}
-                                            className="px-2 py-2 border border-white/5 bg-white/[0.01] hover:bg-white/[0.05] text-[9px] font-black uppercase text-left transition-all truncate border-l-2 hover:border-l-white"
+                                            className="px-2 py-2 border border-white/10 bg-white/[0.01] hover:bg-white/[0.05] text-[9px] font-black uppercase text-left transition-all truncate border-l-2 rounded-none hover:border-l-white"
                                             style={{ borderLeftColor: accentColor }}
                                         >
                                             {label}
@@ -753,11 +757,11 @@ export function MovementTracker() {
                                 
                                 {/* Session Type */}
                                 <div className="space-y-1.5">
-                                    <label className="text-[8px] font-black uppercase tracking-[0.2em] text-[#a88a7e]">Tipo de Actividad</label>
+                                    <label className="text-[8px] font-black uppercase tracking-[0.2em] text-[#a88a7e] font-mono">Tipo de Actividad</label>
                                     <select
                                         value={sessionType}
                                         onChange={e => setSessionType(e.target.value as SessionCategory)}
-                                        className="w-full bg-black border border-white/10 p-3 text-xs font-bold outline-none focus:border-white/30 text-white cursor-pointer"
+                                        className="w-full bg-black border border-white/10 p-3 text-xs font-bold outline-none rounded-none focus:border-white/30 text-white cursor-pointer"
                                     >
                                         {/* Show He categories first if current user is El, and vice versa */}
                                         {!isElla ? (
@@ -786,7 +790,7 @@ export function MovementTracker() {
 
                                 {/* Duration */}
                                 <div className="space-y-1.5">
-                                    <label className="text-[8px] font-black uppercase tracking-[0.2em] text-[#a88a7e]">Duración (Minutos)</label>
+                                    <label className="text-[8px] font-black uppercase tracking-[0.2em] text-[#a88a7e] font-mono">Duración (Minutos)</label>
                                     <input
                                         type="number"
                                         required
@@ -794,7 +798,7 @@ export function MovementTracker() {
                                         max="300"
                                         value={duration}
                                         onChange={e => setDuration(e.target.value === '' ? '' : Number(e.target.value))}
-                                        className="w-full bg-black border border-white/10 p-3 text-xs font-bold outline-none focus:border-white/30 text-white font-mono"
+                                        className="w-full bg-black border border-white/10 p-3 text-xs font-bold outline-none rounded-none focus:border-white/30 text-white font-mono"
                                         placeholder="Ej: 30"
                                     />
                                 </div>
@@ -803,14 +807,14 @@ export function MovementTracker() {
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                 {/* Difficulty */}
                                 <div className="space-y-1.5">
-                                    <label className="text-[8px] font-black uppercase tracking-[0.2em] text-[#a88a7e]">Nivel de Esfuerzo</label>
-                                    <div className="flex border border-white/10">
+                                    <label className="text-[8px] font-black uppercase tracking-[0.2em] text-[#a88a7e] font-mono">Nivel de Esfuerzo</label>
+                                    <div className="flex border border-white/10 rounded-none">
                                         {(['low', 'medium', 'high'] as const).map(lvl => (
                                             <button
                                                 key={lvl}
                                                 type="button"
                                                 onClick={() => setDifficulty(lvl)}
-                                                className={`flex-1 py-2 text-[9px] uppercase font-black transition-all ${
+                                                className={`flex-1 py-2 text-[9px] uppercase font-black transition-all rounded-none ${
                                                     difficulty === lvl 
                                                         ? 'bg-white text-black' 
                                                         : 'bg-black text-[#a88a7e] hover:bg-white/5'
@@ -824,14 +828,14 @@ export function MovementTracker() {
 
                                 {/* Energy Level */}
                                 <div className="space-y-1.5">
-                                    <label className="text-[8px] font-black uppercase tracking-[0.2em] text-[#a88a7e]">Energía al iniciar</label>
-                                    <div className="flex border border-white/10">
+                                    <label className="text-[8px] font-black uppercase tracking-[0.2em] text-[#a88a7e] font-mono">Energía al iniciar</label>
+                                    <div className="flex border border-white/10 rounded-none">
                                         {(['low', 'medium', 'high'] as const).map(lvl => (
                                             <button
                                                 key={lvl}
                                                 type="button"
                                                 onClick={() => setEnergyLevel(lvl)}
-                                                className={`flex-1 py-2 text-[9px] uppercase font-black transition-all ${
+                                                className={`flex-1 py-2 text-[9px] uppercase font-black transition-all rounded-none ${
                                                     energyLevel === lvl 
                                                         ? 'bg-white text-black' 
                                                         : 'bg-black text-[#a88a7e] hover:bg-white/5'
@@ -845,11 +849,11 @@ export function MovementTracker() {
 
                                 {/* Daily Status Mode */}
                                 <div className="space-y-1.5">
-                                    <label className="text-[8px] font-black uppercase tracking-[0.2em] text-[#a88a7e]">Estado de la actividad</label>
+                                    <label className="text-[8px] font-black uppercase tracking-[0.2em] text-[#a88a7e] font-mono">Estado de la actividad</label>
                                     <select
                                         value={completionStatus}
                                         onChange={e => setCompletionStatus(e.target.value as CompletionStatus)}
-                                        className="w-full bg-black border border-white/10 p-2.5 text-xs font-bold outline-none focus:border-white/30 text-white cursor-pointer"
+                                        className="w-full bg-black border border-white/10 p-2.5 text-xs font-bold outline-none rounded-none focus:border-white/30 text-white cursor-pointer"
                                     >
                                         <option value="completed">Sesión Completada</option>
                                         <option value="recovery">Día de Recuperación</option>
@@ -865,14 +869,14 @@ export function MovementTracker() {
                                         initial={{ opacity: 0, height: 0 }}
                                         animate={{ opacity: 1, height: 'auto' }}
                                         exit={{ opacity: 0, height: 0 }}
-                                        className="overflow-hidden space-y-4 pt-4 border-t border-white/5"
+                                        className="overflow-hidden space-y-4 pt-4 border-t border-white/5 rounded-none"
                                     >
-                                        <h4 className="text-[8px] font-black uppercase tracking-wider text-emerald-500">
+                                        <h4 className="text-[8px] font-black uppercase tracking-wider text-emerald-500 font-mono">
                                             REGISTRO ESPECIALIZADO DE TERAPIA REHABILITADORA
                                         </h4>
                                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                             <div className="space-y-1">
-                                                <label className="text-[8px] font-black uppercase tracking-wider text-[#a88a7e]">Dolor inicial (0 al 10)</label>
+                                                <label className="text-[8px] font-black uppercase tracking-wider text-[#a88a7e] font-mono">Dolor inicial (0 al 10)</label>
                                                 <input
                                                     type="number"
                                                     min="0"
@@ -880,11 +884,11 @@ export function MovementTracker() {
                                                     value={painBefore}
                                                     onChange={e => setPainBefore(e.target.value === '' ? '' : Number(e.target.value))}
                                                     placeholder="Ej: 5"
-                                                    className="w-full bg-black border border-white/10 p-2 text-xs font-bold outline-none focus:border-white/30 text-white font-mono"
+                                                    className="w-full bg-black border border-white/10 p-2 text-xs font-bold outline-none rounded-none focus:border-white/30 text-white font-mono"
                                                 />
                                             </div>
                                             <div className="space-y-1">
-                                                <label className="text-[8px] font-black uppercase tracking-wider text-[#a88a7e]">Dolor al finalizar (0 al 10)</label>
+                                                <label className="text-[8px] font-black uppercase tracking-wider text-[#a88a7e] font-mono">Dolor al finalizar (0 al 10)</label>
                                                 <input
                                                     type="number"
                                                     min="0"
@@ -892,15 +896,15 @@ export function MovementTracker() {
                                                     value={painAfter}
                                                     onChange={e => setPainAfter(e.target.value === '' ? '' : Number(e.target.value))}
                                                     placeholder="Ej: 3"
-                                                    className="w-full bg-black border border-white/10 p-2 text-xs font-bold outline-none focus:border-white/30 text-white font-mono"
+                                                    className="w-full bg-black border border-white/10 p-2 text-xs font-bold outline-none rounded-none focus:border-white/30 text-white font-mono"
                                                 />
                                             </div>
                                             <div className="space-y-1">
-                                                <label className="text-[8px] font-black uppercase tracking-wider text-[#a88a7e]">Estado de movilidad</label>
+                                                <label className="text-[8px] font-black uppercase tracking-wider text-[#a88a7e] font-mono">Estado de movilidad</label>
                                                 <select
                                                     value={mobilityStatus}
                                                     onChange={e => setMobilityStatus(e.target.value as MobilityStatus)}
-                                                    className="w-full bg-black border border-white/10 p-2 text-xs font-bold outline-none focus:border-white/30 text-white cursor-pointer"
+                                                    className="w-full bg-black border border-white/10 p-2 text-xs font-bold outline-none rounded-none focus:border-white/30 text-white cursor-pointer"
                                                 >
                                                     <option value="good">Adecuado</option>
                                                     <option value="normal">Esperado</option>
@@ -911,7 +915,7 @@ export function MovementTracker() {
 
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                             <div className="space-y-1">
-                                                <label className="text-[8px] font-black uppercase tracking-wider text-[#a88a7e]">Nivel de fatiga (1 al 5)</label>
+                                                <label className="text-[8px] font-black uppercase tracking-wider text-[#a88a7e] font-mono">Nivel de fatiga (1 al 5)</label>
                                                 <input
                                                     type="number"
                                                     min="1"
@@ -919,17 +923,17 @@ export function MovementTracker() {
                                                     value={fatigueLevel}
                                                     onChange={e => setFatigueLevel(e.target.value === '' ? '' : Number(e.target.value))}
                                                     placeholder="Ej: 2"
-                                                    className="w-full bg-black border border-white/10 p-2 text-xs font-bold outline-none focus:border-white/30 text-white font-mono"
+                                                    className="w-full bg-black border border-white/10 p-2 text-xs font-bold outline-none rounded-none focus:border-white/30 text-white font-mono"
                                                 />
                                             </div>
                                             <div className="space-y-1">
-                                                <label className="text-[8px] font-black uppercase tracking-wider text-[#a88a7e]">Notas del terapeuta / Indicaciones</label>
+                                                <label className="text-[8px] font-black uppercase tracking-wider text-[#a88a7e] font-mono">Notas del terapeuta / Indicaciones</label>
                                                 <input
                                                     type="text"
                                                     value={therapistNotes}
                                                     onChange={e => setTherapistNotes(e.target.value)}
                                                     placeholder="Pautas del fisioterapeuta..."
-                                                    className="w-full bg-black border border-white/10 p-2 text-xs font-bold outline-none focus:border-white/30 text-white"
+                                                    className="w-full bg-black border border-white/10 p-2 text-xs font-bold outline-none rounded-none focus:border-white/30 text-white font-mono"
                                                 />
                                             </div>
                                         </div>
@@ -938,20 +942,20 @@ export function MovementTracker() {
                             </AnimatePresence>
 
                             <div className="space-y-1.5">
-                                <label className="text-[8px] font-black uppercase tracking-[0.2em] text-[#a88a7e]">Notas u observaciones personales</label>
+                                <label className="text-[8px] font-black uppercase tracking-[0.2em] text-[#a88a7e] font-mono">Notas u observaciones personales</label>
                                 <textarea
                                     value={notes}
                                     onChange={e => setNotes(e.target.value)}
                                     placeholder="Sensaciones de la sesión, progreso o estado del cuerpo..."
                                     rows={2}
-                                    className="w-full bg-black border border-white/10 p-3 text-xs font-bold outline-none focus:border-white/30 text-white resize-none"
+                                    className="w-full bg-black border border-white/10 p-3 text-xs font-bold outline-none rounded-none focus:border-white/30 text-white resize-none font-mono"
                                 />
                             </div>
 
                             <button
                                 type="submit"
                                 disabled={isSubmitting}
-                                className="w-full py-4 text-[10px] uppercase font-black tracking-[0.25em] transition-all border mt-2 flex items-center justify-center gap-2"
+                                className="w-full py-4 text-[10px] uppercase font-black tracking-[0.25em] transition-all border mt-2 flex items-center justify-center gap-2 rounded-none font-mono"
                                 style={{ 
                                     backgroundColor: accentColor, 
                                     borderColor: accentColor, 
@@ -968,21 +972,22 @@ export function MovementTracker() {
                 <div className="space-y-6">
                     
                     {/* CAPA 4: PROGRESS ANALYTICS */}
-                    <div className="border border-white/10 bg-[#060606] p-6 relative">
+                    <div className="border border-white/10 bg-[#060606] p-6 relative rounded-none">
                         <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-white/30" />
                         <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-white/30" />
 
-                        <h3 className="text-[10px] uppercase font-black tracking-[0.25em] text-[#a88a7e] mb-4 border-b border-white/5 pb-3">
+                        <h3 className="text-[10px] uppercase font-black tracking-[0.25em] text-[#a88a7e] mb-4 border-b border-white/5 pb-3 font-mono">
                             Resumen de Progreso
                         </h3>
 
                         {/* Therapy specific analytics displayed if logs are available */}
                         {painAnalytics && (
-                            <div className="border border-emerald-900/30 bg-emerald-950/5 p-4 mb-5 space-y-3">
-                                <h4 className="text-[8px] font-black text-emerald-500 uppercase tracking-widest flex items-center gap-1.5">
-                                    <Activity className="w-3.5 h-3.5" /> Tu evolución y recuperación
+                            <div className="border border-emerald-900/30 bg-emerald-950/5 p-4 mb-5 space-y-3 rounded-none relative pl-8">
+                                <div className="absolute left-0 top-0 bottom-0 w-[4px] bg-emerald-500" />
+                                <h4 className="text-[8px] font-black text-emerald-500 uppercase tracking-widest flex items-center gap-1.5 font-mono">
+                                    <Activity className="w-3.5 h-3.5 stroke-[1.5]" /> Tu evolución y recuperación
                                 </h4>
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-2 gap-4 font-mono">
                                     <div className="border-r border-white/5 pr-2">
                                         <span className="text-[7px] text-[#a88a7e] block uppercase">Nivel de dolor (Antes / Después)</span>
                                         <span className="text-sm font-black tabular-nums text-white">
@@ -996,7 +1001,7 @@ export function MovementTracker() {
                                         </span>
                                     </div>
                                 </div>
-                                <p className="text-[7px] text-[#a88a7e] uppercase">
+                                <p className="text-[7px] text-[#a88a7e] uppercase font-mono">
                                     Análisis generado sobre {painAnalytics.sessionsCount} sesiones de terapia.
                                 </p>
                             </div>
@@ -1004,7 +1009,7 @@ export function MovementTracker() {
 
                         {/* Heatmap Matrix for Weekly consistency */}
                         <div className="space-y-2">
-                            <label className="text-[8px] font-black uppercase tracking-[0.2em] text-[#a88a7e] block">
+                            <label className="text-[8px] font-black uppercase tracking-[0.2em] text-[#a88a7e] block font-mono">
                                 Consistencia de la semana (Él / Ella):
                             </label>
                             
@@ -1028,32 +1033,32 @@ export function MovementTracker() {
 
                                     return (
                                         <div key={index} className="flex flex-col gap-1">
-                                            <div className="text-[8px] font-bold text-white/30 uppercase">{label[0]}</div>
+                                            <div className="text-[8px] font-bold text-white/30 uppercase font-mono">{label[0]}</div>
                                             
                                             {/* El Box */}
                                             <div 
-                                                className="h-6 border border-white/5 relative"
+                                                className="h-6 border border-white/5 relative rounded-none"
                                                 style={{ 
                                                     backgroundColor: isElActive ? '#c3f400' : isElRecovery ? '#c3f4002b' : isElRest ? '#0f172a' : 'transparent',
                                                     borderColor: isElActive ? '#c3f400' : 'rgba(255,255,255,0.05)'
                                                 }}
                                                 title={`Él: ${dStr}`}
                                             >
-                                                <span className="absolute inset-0 flex items-center justify-center text-[7px] font-black text-black/50">
+                                                <span className="absolute inset-0 flex items-center justify-center text-[7px] font-black text-black/50 font-mono">
                                                     {isElRest ? 'R' : ''}
                                                 </span>
                                             </div>
                                             
                                             {/* Ella Box */}
                                             <div 
-                                                className="h-6 border border-white/5 relative"
+                                                className="h-6 border border-white/5 relative rounded-none"
                                                 style={{ 
                                                     backgroundColor: isEllaActive ? '#ff4b89' : isEllaRecovery ? '#ff4b892b' : isEllaRest ? '#0f172a' : 'transparent',
                                                     borderColor: isEllaActive ? '#ff4b89' : 'rgba(255,255,255,0.05)'
                                                 }}
                                                 title={`Ella: ${dStr}`}
                                             >
-                                                <span className="absolute inset-0 flex items-center justify-center text-[7px] font-black text-black/50">
+                                                <span className="absolute inset-0 flex items-center justify-center text-[7px] font-black text-black/50 font-mono">
                                                     {isEllaRest ? 'R' : ''}
                                                 </span>
                                             </div>
@@ -1063,34 +1068,34 @@ export function MovementTracker() {
                             </div>
                             <div className="flex flex-wrap items-center gap-3 pt-2 text-[7px] text-white/40 uppercase font-black font-mono">
                                 <div className="flex items-center gap-1">
-                                    <span className="w-2 h-2 bg-[#c3f400]" /> Él Activo
+                                    <span className="w-2 h-2 bg-[#c3f400] rounded-none" /> Él Activo
                                 </div>
                                 <div className="flex items-center gap-1">
-                                    <span className="w-2 h-2 bg-[#ff4b89]" /> Ella Activa
+                                    <span className="w-2 h-2 bg-[#ff4b89] rounded-none" /> Ella Activa
                                 </div>
                                 <div className="flex items-center gap-1">
-                                    <span className="w-2 h-2 bg-slate-900 border border-white/10" /> Descanso (R)
+                                    <span className="w-2 h-2 bg-slate-900 border border-white/10 rounded-none" /> Descanso (R)
                                 </div>
                                 <div className="flex items-center gap-1">
-                                    <span className="w-2 h-2 bg-emerald-500/20" /> Recuperación Activa
+                                    <span className="w-2 h-2 bg-emerald-500/20 rounded-none" /> Recuperación Activa
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     {/* CAPA 3: HISTORIAL & ACTIVIDAD RECIENTE */}
-                    <div className="border border-white/10 bg-black p-5 relative">
+                    <div className="border border-white/10 bg-black p-5 relative rounded-none">
                         <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-white/30" />
                         <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-white/30" />
 
-                        <h3 className="text-[10px] uppercase font-black tracking-[0.25em] text-[#a88a7e] mb-4 pb-2 border-b border-white/5">
+                        <h3 className="text-[10px] uppercase font-black tracking-[0.25em] text-[#a88a7e] mb-4 pb-2 border-b border-white/5 font-mono">
                             Historial de Actividad
                         </h3>
 
                         {loading ? (
-                            <div className="py-8 text-center text-xs text-white/30">Cargando registros...</div>
+                            <div className="py-8 text-center text-xs text-white/30 font-mono">Cargando registros...</div>
                         ) : sessions.length === 0 ? (
-                            <div className="py-12 border border-dashed border-white/10 text-center text-xs text-white/20">
+                            <div className="py-12 border border-dashed border-white/10 text-center text-xs text-white/20 font-mono">
                                 No hay sesiones registradas en la base de datos.
                             </div>
                         ) : (
@@ -1105,26 +1110,26 @@ export function MovementTracker() {
                                     return (
                                         <div 
                                             key={session.id} 
-                                            className="p-4 border border-white/5 bg-[#070707] hover:border-white/10 transition-all space-y-3 relative group"
+                                            className="p-4 pl-8 border border-white/5 bg-[#070707] hover:border-white/10 transition-all space-y-3 relative group rounded-none"
                                         >
                                             <div className="absolute top-0 left-0 w-1 h-full" style={{ backgroundColor: accent }} />
                                             
                                             <div className="flex justify-between items-start gap-4">
                                                 <div className="flex items-start gap-2.5">
-                                                    <div className="p-1.5 border border-white/10 bg-black text-white mt-0.5">
-                                                        <IconComponent className="w-3.5 h-3.5" style={{ color: accent }} />
+                                                    <div className="p-1.5 border border-white/10 bg-black text-white mt-0.5 rounded-none">
+                                                        <IconComponent className="w-3.5 h-3.5 stroke-[1.5]" style={{ color: accent }} />
                                                     </div>
                                                     <div>
                                                         <div className="flex items-center gap-2">
-                                                            <span className="text-[10px] font-black uppercase tracking-wider text-white">
+                                                            <span className="text-[10px] font-black uppercase tracking-wider text-white font-mono">
                                                                 {catConfig ? catConfig.label : session.session_type}
                                                             </span>
-                                                            <span className={`text-[7px] font-black uppercase tracking-widest ${accentTextClass}`}>
+                                                            <span className={`text-[7px] font-black uppercase tracking-widest font-mono ${accentTextClass}`}>
                                                                 {session.profile === 'ella' ? 'Ella' : 'Él'}
                                                             </span>
                                                         </div>
                                                         <div className="flex items-center gap-3 text-[7px] text-white/30 font-bold mt-1 font-mono uppercase">
-                                                            <span className="flex items-center gap-1"><Clock className="w-2.5 h-2.5" /> {session.duration} MIN</span>
+                                                            <span className="flex items-center gap-1"><Clock className="w-2.5 h-2.5 stroke-[1.5]" /> {session.duration} MIN</span>
                                                             <span>DIF: {session.difficulty}</span>
                                                             <span>ENERGÍA: {session.energy_level}</span>
                                                         </div>
@@ -1139,10 +1144,10 @@ export function MovementTracker() {
                                                     {isSelf && (
                                                         <button 
                                                             onClick={() => handleDeleteSession(session.id)}
-                                                            className="text-stone-700 hover:text-red-500 transition-colors p-1"
+                                                            className="text-stone-700 hover:text-red-500 transition-colors p-1 rounded-none"
                                                             title="Eliminar sesión"
                                                         >
-                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                            <Trash2 className="w-3.5 h-3.5 stroke-[1.5]" />
                                                         </button>
                                                     )}
                                                 </div>
@@ -1150,14 +1155,14 @@ export function MovementTracker() {
 
                                             {/* Note / Description */}
                                             {session.notes && (
-                                                <p className="text-[9px] text-[#e1bfb2] leading-relaxed pl-1.5 border-l border-white/10 italic">
+                                                <p className="text-[9px] text-[#e1bfb2] leading-relaxed pl-1.5 border-l border-white/10 italic font-mono">
                                                     "{session.notes}"
                                                 </p>
                                             )}
 
                                             {/* Advanced clinical parameters (For rehabilitation focus) */}
                                             {catConfig?.isTherapy && (session.pain_before !== undefined || session.therapist_notes) && (
-                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-2 border border-emerald-950 bg-emerald-950/5 text-[8px] font-bold text-[#a88a7e] uppercase tracking-wider pl-2">
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-2 border border-emerald-955 bg-emerald-955/5 text-[8px] font-bold text-[#a88a7e] uppercase tracking-wider pl-2 rounded-none font-mono">
                                                     {session.pain_before !== undefined && (
                                                         <div>
                                                             <span className="text-white/40 block text-[6px]">EVOLUCIÓN DEL DOLOR:</span>
@@ -1175,13 +1180,13 @@ export function MovementTracker() {
 
                                             {/* Mutual Support reactions list */}
                                             {session.reactions && session.reactions.length > 0 && (
-                                                <div className="flex flex-wrap gap-1.5 pt-1 pl-1.5">
+                                                <div className="flex flex-wrap gap-1.5 pt-1 pl-1.5 font-mono">
                                                     {session.reactions.map((rx, idx) => {
                                                         const rxConfig = REACTION_CONFIG[rx.type];
                                                         return (
                                                             <span 
                                                                 key={idx}
-                                                                className="px-2 py-0.5 border border-white/10 bg-black/40 text-[7px] font-black uppercase tracking-wider flex items-center gap-1 text-white/80"
+                                                                className="px-2 py-0.5 border border-white/10 bg-black/40 text-[7px] font-black uppercase tracking-wider flex items-center gap-1 text-white/80 rounded-none"
                                                                 style={{ borderLeftColor: rxConfig?.color || 'white' }}
                                                             >
                                                                 <span>{rxConfig?.emoji}</span>
@@ -1195,7 +1200,7 @@ export function MovementTracker() {
 
                                             {/* Reaction Support Trigger Buttons (Allow logging reaction for partner) */}
                                             {!isSelf && (
-                                                <div className="flex flex-wrap gap-1.5 pt-2.5 border-t border-white/5">
+                                                <div className="flex flex-wrap gap-1.5 pt-2.5 border-t border-white/5 font-mono">
                                                     <span className="text-[7px] font-black tracking-widest text-[#a88a7e] uppercase block w-full mb-1">
                                                         ANIMA A TU PAREJA:
                                                     </span>
@@ -1207,7 +1212,7 @@ export function MovementTracker() {
                                                             <button
                                                                 key={rxType}
                                                                 onClick={() => handleAddReaction(session.id, rxType)}
-                                                                className={`px-2 py-1 text-[7px] font-black uppercase tracking-wider border transition-all flex items-center gap-1 ${
+                                                                className={`px-2 py-1 text-[7px] font-black uppercase tracking-wider border transition-all flex items-center gap-1 rounded-none ${
                                                                     alreadyReacted 
                                                                         ? 'bg-white text-black border-white' 
                                                                         : 'bg-black hover:bg-white/5 border-white/10 text-white/50 hover:text-white'

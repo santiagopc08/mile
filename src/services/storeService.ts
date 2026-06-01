@@ -117,6 +117,25 @@ export interface Victory {
     createdAt?: string;
 }
 
+export interface TrackComment {
+    id: string;
+    track_id?: string;
+    author: string;
+    text: string;
+    created_at?: string;
+}
+
+export interface AudioTrack {
+    id: string;
+    title: string;
+    artist: string;
+    spotify_url?: string;
+    spotifyUrl?: string;
+    display_order?: number;
+    added_by?: string;
+    comments?: TrackComment[];
+}
+
 export interface AppData {
     events: {
         id: string;

@@ -287,12 +287,12 @@ function PetSelector({ pets, activeId, onSelect }: { pets: Pet[]; activeId: stri
         <button
           key={p.id}
           onClick={() => onSelect(p.id)}
-          className={`relative flex-shrink-0 flex items-center gap-3 border px-4 py-3 transition-all font-mono text-[10px] uppercase tracking-[0.2em] ${p.id === activeId
+          className={`relative flex-shrink-0 flex items-center gap-3 border px-4 py-3 transition-all font-mono text-[10px] uppercase tracking-[0.2em] rounded-none ${p.id === activeId
             ? 'border-profile-accent bg-profile-accent/10 text-white'
             : 'border-white/10 bg-black/40 text-[#a88a7e] hover:border-white/20 hover:text-white'
             }`}
         >
-          <div className={`w-8 h-8 overflow-hidden border ${p.id === activeId ? 'border-profile-accent' : 'border-white/10'}`}>
+          <div className={`w-8 h-8 overflow-hidden border rounded-none ${p.id === activeId ? 'border-profile-accent' : 'border-white/10'}`}>
             <img src={p.src} alt={p.name} className="w-full h-full object-cover" />
           </div>
           <div className="flex flex-col items-start">
@@ -302,8 +302,8 @@ function PetSelector({ pets, activeId, onSelect }: { pets: Pet[]; activeId: stri
           {p.id === activeId && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-profile-accent" />}
         </button>
       ))}
-      <button className="flex-shrink-0 flex items-center justify-center w-14 border border-dashed border-profile-accent/30 text-profile-accent/60 hover:text-profile-accent hover:border-profile-accent/60 transition-colors">
-        <Plus size={16} />
+      <button className="flex-shrink-0 flex items-center justify-center w-14 border border-dashed border-profile-accent/30 text-profile-accent/60 hover:text-profile-accent hover:border-profile-accent/60 transition-colors rounded-none">
+        <Plus size={16} className="stroke-[1.5]" />
       </button>
     </div>
   );
@@ -357,12 +357,9 @@ function HabitatModule({
   };
 
   return (
-    <div className="geometric-card relative p-5 sm:p-6">
-      {/* Corner accents */}
-      <div className="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2" style={{ borderColor: pet.accent }} />
-      <div className="absolute top-0 right-0 w-2 h-2 border-t-2 border-r-2" style={{ borderColor: pet.accent }} />
-      <div className="absolute bottom-0 left-0 w-2 h-2 border-b-2 border-l-2" style={{ borderColor: pet.accent }} />
-      <div className="absolute bottom-0 right-0 w-2 h-2 border-b-2 border-r-2" style={{ borderColor: pet.accent }} />
+    <div className="relative border border-white/10 bg-[#0a0a0a] p-5 sm:p-6 pl-10 sm:pl-12 rounded-none overflow-hidden">
+      {/* Solid Left Accent Stripe */}
+      <div className="absolute left-0 top-0 bottom-0 w-[5px]" style={{ backgroundColor: pet.accent }} />
 
       {/* Header */}
       <div className="flex items-center justify-between mb-5 pb-3 border-b border-white/10">
@@ -370,14 +367,14 @@ function HabitatModule({
           <h3 className="text-sm font-black uppercase tracking-[0.15em] text-white font-sans">Espacio de Vida</h3>
           <p className="text-[9px] uppercase tracking-[0.2em] text-[#a88a7e] font-mono mt-1">BEBÉ: {pet.name}</p>
         </div>
-        <span className="border border-profile-accent/40 bg-profile-accent/10 px-2 py-1 text-[8px] font-bold uppercase tracking-[0.2em] text-profile-accent">
+        <span className="border border-profile-accent/40 bg-profile-accent/10 px-2 py-1 text-[8px] font-bold uppercase tracking-[0.2em] text-profile-accent rounded-none">
           ● STABLE
         </span>
       </div>
 
       {/* Pet Image Carousel */}
-      <div className="relative w-full min-h-[350px] max-w-md mx-auto mb-6 overflow-hidden border border-white/10 bg-black group flex items-center justify-center" style={{ perspective: "2000px" }}>
-                <div className="absolute inset-0 bg-mosaic opacity-30 pointer-events-none z-10" />
+      <div className="relative w-full min-h-[350px] max-w-md mx-auto mb-6 overflow-hidden border border-white/10 bg-black group flex items-center justify-center rounded-none" style={{ perspective: "2000px" }}>
+        <div className="absolute inset-0 bg-mosaic opacity-30 pointer-events-none z-10" />
 
         {/* Ghost image to drive dynamic height */}
         <img
@@ -425,11 +422,11 @@ function HabitatModule({
         {photos.length > 1 && (
           <>
             <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between px-2 opacity-0 group-hover:opacity-100 transition-opacity z-20">
-              <button onClick={onPrev} className="p-1.5 bg-[#050505] border border-white/20 text-stone-500 hover:text-white hover:border-profile-accent transition-colors">
-                <ChevronLeft size={16} />
+              <button onClick={onPrev} className="p-1.5 bg-[#050505] border border-white/20 text-stone-500 hover:text-white hover:border-profile-accent transition-colors rounded-none">
+                <ChevronLeft size={16} className="stroke-[1.5]" />
               </button>
-              <button onClick={onNext} className="p-1.5 bg-[#050505] border border-white/20 text-stone-500 hover:text-white hover:border-profile-accent transition-colors">
-                <ChevronRight size={16} />
+              <button onClick={onNext} className="p-1.5 bg-[#050505] border border-white/20 text-stone-500 hover:text-white hover:border-profile-accent transition-colors rounded-none">
+                <ChevronRight size={16} className="stroke-[1.5]" />
               </button>
             </div>
             {/* Indicators */}
@@ -440,7 +437,7 @@ function HabitatModule({
                   <button
                     key={i}
                     onClick={() => onSelect(i)}
-                    className={`w-2 h-2 border transition-colors duration-300 ${i === currentIndex ? "bg-profile-accent border-profile-accent" : "border-stone-700 bg-transparent hover:border-stone-400"}`}
+                    className={`w-2 h-2 border transition-colors duration-300 rounded-none ${i === currentIndex ? "bg-profile-accent border-profile-accent" : "border-stone-700 bg-transparent hover:border-stone-400"}`}
                   />
                 ))}
               </div>
@@ -451,44 +448,44 @@ function HabitatModule({
 
       {/* Vitals */}
       <div className="grid grid-cols-2 gap-4 mb-5">
-        <div className="border border-white/10 bg-black/40 p-3">
+        <div className="border border-white/10 bg-black/40 p-3 rounded-none">
           <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-[#a88a7e] font-mono">Nivel de Alegría</span>
-          <div className="flex items-baseline gap-1 mt-1">
-            <span className="text-2xl font-black text-white font-sans">{pet.o2}</span>
-            <span className="text-xs font-mono" style={{ color: 'var(--color-profile-accent)' }}>%</span>
+          <div className="flex items-baseline gap-1 mt-1 font-mono">
+            <span className="text-2xl font-black text-white">{pet.o2}</span>
+            <span className="text-xs" style={{ color: 'var(--color-profile-accent)' }}>%</span>
           </div>
-          <div className="h-1 w-full bg-white/5 mt-2">
-            <div className="h-full" style={{ width: `${pet.o2}%`, backgroundColor: 'var(--color-profile-accent)' }} />
+          <div className="h-1 w-full bg-white/5 mt-2 rounded-none">
+            <div className="h-full rounded-none" style={{ width: `${pet.o2}%`, backgroundColor: 'var(--color-profile-accent)' }} />
           </div>
         </div>
-        <div className="border border-white/10 bg-black/40 p-3">
+        <div className="border border-white/10 bg-black/40 p-3 rounded-none">
           <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-[#a88a7e] font-mono">Calor de Hogar</span>
-          <div className="flex items-baseline gap-1 mt-1">
-            <span className="text-2xl font-black text-white font-sans">{pet.temp}</span>
-            <span className="text-xs font-mono" style={{ color: 'var(--color-profile-accent)' }}>°C</span>
+          <div className="flex items-baseline gap-1 mt-1 font-mono">
+            <span className="text-2xl font-black text-white">{pet.temp}</span>
+            <span className="text-xs" style={{ color: 'var(--color-profile-accent)' }}>°C</span>
           </div>
-          <div className="h-1 w-full bg-white/5 mt-2">
-            <div className="h-full" style={{ width: `${(pet.temp / 40) * 100}%`, backgroundColor: 'var(--color-profile-accent)' }} />
+          <div className="h-1 w-full bg-white/5 mt-2 rounded-none">
+            <div className="h-full rounded-none" style={{ width: `${(pet.temp / 40) * 100}%`, backgroundColor: 'var(--color-profile-accent)' }} />
           </div>
         </div>
       </div>
 
       {/* Metadata */}
       <div className="flex items-center gap-4 border-t border-white/10 pt-4">
-        <div className="flex items-center gap-2 border border-white/10 px-3 py-2 flex-1">
-          <Calendar size={12} className="text-[#a88a7e]" />
+        <div className="flex items-center gap-2 border border-white/10 px-3 py-2 flex-1 rounded-none">
+          <Calendar size={12} className="text-[#a88a7e] stroke-[1.5]" />
           <div>
             <span className="text-[7px] uppercase tracking-[0.2em] text-[#594137] font-mono block">Fecha Especial</span>
             <span className="text-[10px] font-bold text-white font-mono">{pet.birthDate}</span>
           </div>
         </div>
-        <div className="flex items-center gap-2 border border-white/10 px-3 py-2 flex-1">
-          <span className="text-sm">{pet.gender}</span>
+        <div className="flex items-center gap-2 border border-white/10 px-3 py-2 flex-1 rounded-none">
+          <span className="text-sm font-mono">{pet.gender}</span>
           <div>
             <span className="text-[7px] uppercase tracking-[0.2em] text-[#594137] font-mono block">Identidad</span>
             <span className="text-[10px] font-bold text-white font-mono">{pet.designation}</span>
           </div>
-          <button className="ml-auto text-[#a88a7e] hover:text-profile-accent transition-colors" style={{ '--tw-hover-text-opacity': 1 } as any}><Edit2 size={12} /></button>
+          <button className="ml-auto text-[#a88a7e] hover:text-profile-accent transition-colors" style={{ '--tw-hover-text-opacity': 1 } as any}><Edit2 size={12} className="stroke-[1.5]" /></button>
         </div>
       </div>
     </div>
@@ -531,7 +528,10 @@ function GalleryStrip({ pet, photos, currentIndex, onSelect, onUploadComplete }:
   };
 
   return (
-    <div className="geometric-card relative p-5 sm:p-6">
+    <div className="relative border border-white/10 bg-[#0a0a0a] p-5 sm:p-6 pl-10 sm:pl-12 rounded-none overflow-hidden">
+      {/* Solid Left Accent Stripe */}
+      <div className="absolute left-0 top-0 bottom-0 w-[5px]" style={{ backgroundColor: pet.accent }} />
+
       <div className="flex items-center justify-between mb-4">
         <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#a88a7e] font-mono">FOTOS</span>
         <button 
@@ -539,7 +539,7 @@ function GalleryStrip({ pet, photos, currentIndex, onSelect, onUploadComplete }:
           disabled={isUploading}
           className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-[0.2em] text-profile-accent hover:opacity-80 transition-colors font-mono disabled:opacity-50"
         >
-          {isUploading ? 'SUBIENDO...' : 'AGREGAR'} <Plus size={10} />
+          {isUploading ? 'SUBIENDO...' : 'AGREGAR'} <Plus size={10} className="stroke-[1.5]" />
         </button>
       </div>
       <div className="flex gap-2 overflow-x-auto custom-scrollbar pb-1">
@@ -547,7 +547,7 @@ function GalleryStrip({ pet, photos, currentIndex, onSelect, onUploadComplete }:
           <div
             key={src}
             onClick={() => onSelect(i)}
-            className={`relative flex-shrink-0 w-20 h-20 border overflow-hidden bg-black transition-all duration-300 cursor-pointer ${i === currentIndex ? "border-profile-accent scale-105 z-10 shadow-[0_0_15px_rgba(255,255,255,0.2)]" : "border-white/10 hover:border-white/30"}`}
+            className={`relative flex-shrink-0 w-20 h-20 border overflow-hidden bg-black transition-all duration-300 cursor-pointer rounded-none ${i === currentIndex ? "border-profile-accent scale-105 z-10 shadow-[0_0_15px_rgba(255,255,255,0.2)]" : "border-white/10 hover:border-white/30"}`}
           >
             <img src={src} alt="" className="w-full h-full object-cover" />
             {i === currentIndex && <div className="absolute bottom-1 left-1 w-1.5 h-1.5 bg-profile-accent" />}
@@ -555,9 +555,9 @@ function GalleryStrip({ pet, photos, currentIndex, onSelect, onUploadComplete }:
         ))}
         <div 
           onClick={() => fileInputRef.current?.click()}
-          className={`flex-shrink-0 w-20 h-20 border border-dashed border-profile-accent/30 flex flex-col items-center justify-center text-profile-accent/40 hover:text-profile-accent hover:border-profile-accent/60 transition-colors cursor-pointer gap-1 ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}
+          className={`flex-shrink-0 w-20 h-20 border border-dashed border-profile-accent/30 flex flex-col items-center justify-center text-profile-accent/40 hover:text-profile-accent hover:border-profile-accent/60 transition-colors cursor-pointer gap-1 rounded-none ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}
         >
-          <Plus size={16} />
+          <Plus size={16} className="stroke-[1.5]" />
           <span className="text-[7px] font-bold uppercase tracking-wider font-mono">{isUploading ? '...' : 'AGREGAR'}</span>
         </div>
       </div>
@@ -580,7 +580,10 @@ function SystemLog({ pet }: { pet: Pet }) {
   }, []);
 
   return (
-    <div className="geometric-card relative p-4 font-mono text-[9px] leading-relaxed text-[#594137] max-h-44 overflow-y-auto custom-scrollbar">
+    <div className="relative border border-white/10 bg-[#0a0a0a] p-4 pl-10 font-mono text-[9px] leading-relaxed text-[#594137] max-h-44 overflow-y-auto custom-scrollbar rounded-none overflow-hidden">
+      {/* Solid Left Accent Stripe */}
+      <div className="absolute left-0 top-0 bottom-0 w-[5px]" style={{ backgroundColor: pet.accent }} />
+
       <div className="mb-2 text-[8px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Diario de Cuidados</div>
       <div><span className="text-profile-accent">●</span> Espacio de Vida</div>
       <div className="ml-4 text-[#a88a7e]"><span className="text-[#594137]">14:02:45</span> Dosis de mimos completada. ¡Mucha felicidad!</div>

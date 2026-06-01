@@ -354,7 +354,7 @@ export const DualWallet = ({
       </section>
 
       <section className="border border-white/10 bg-black/40 p-4">
-        <div className="mb-4 grid gap-2 sm:grid-cols-3">
+        <div className="mb-4 grid grid-cols-1 sm:grid-cols-3 gap-[1px] bg-white/[0.08] brutal-border pl-[1px] pt-[1px]">
           {(['expense', 'income', 'transfer'] as TransactionType[]).map((quickType) => {
             const meta = TYPE_META[quickType];
             const Icon = meta.Icon;
@@ -364,14 +364,13 @@ export const DualWallet = ({
                 key={quickType}
                 type="button"
                 onClick={() => setQuickAction(quickType)}
-                className="flex items-center justify-center gap-2 border px-3 py-3 text-[9px] font-black uppercase tracking-[0.18em] transition-all hover:bg-white/5"
+                className="flex items-center justify-center gap-2 px-3 py-3 text-[9px] font-mono tracking-widest uppercase transition-all bg-[#0a0a0a] hover:bg-white/5 !min-h-0"
                 style={{
-                  borderColor: active ? meta.color : 'rgba(255,255,255,0.1)',
                   color: active ? meta.color : '#a88a7e',
-                  backgroundColor: active ? meta.bg : 'transparent',
+                  boxShadow: active ? `inset 0 -2px 0 0 ${meta.color}` : 'none',
                 }}
               >
-                <Icon size={14} /> + {meta.label}
+                <Icon size={14} strokeWidth={1.5} /> {meta.label}
               </button>
             );
           })}
@@ -619,38 +618,43 @@ export const DualWallet = ({
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, scale: 0.95 }}
-                  className="group relative grid gap-3 border border-white/10 bg-[#0a0a0a] p-3 transition-all hover:border-white/30 md:grid-cols-[auto_1fr_auto]"
+                  className="group relative border border-white/10 bg-[#0a0a0a] p-0 transition-all hover:border-white/30"
                 >
-                  <div className="flex h-10 w-10 items-center justify-center border" style={{ borderColor: meta.color, color: meta.color, backgroundColor: meta.bg }}>
-                    <Icon size={16} />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-[10px] font-black uppercase tracking-widest text-white">{movement.description}</span>
-                      <span className="border px-1.5 py-0.5 text-[7px] font-black uppercase tracking-[0.14em]" style={{ borderColor: meta.color, color: meta.color }}>
-                        {meta.tag}
+                  {/* Lateral type stripe */}
+                  <div className="absolute left-0 top-0 bottom-0 w-[5px]" style={{ backgroundColor: meta.color }} />
+
+                  <div className="flex flex-col md:flex-row items-start md:items-center gap-3 pl-6 pr-3 py-3 w-full">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center border !min-h-0" style={{ borderColor: meta.color, color: meta.color, backgroundColor: meta.bg }}>
+                      <Icon size={14} strokeWidth={1.5} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-white">{movement.description}</span>
+                        <span className="border px-1.5 py-0.5 text-[7px] font-mono tracking-widest uppercase" style={{ borderColor: meta.color, color: meta.color }}>
+                          {meta.tag}
+                        </span>
+                        {movement.recurring && <span className="border border-user-c/30 px-1.5 py-0.5 text-[7px] font-mono tracking-widest uppercase text-user-c">recurrente</span>}
+                      </div>
+                      <div className="mt-1 flex flex-wrap items-center gap-2 text-[7px] font-mono tracking-widest uppercase text-[#594137]">
+                        <span>{t(normalizeCategory(movement.category))}</span>
+                        <span>{t(movement.account || 'main_wallet')}</span>
+                        <span>{t(movement.related_budget || 'no_budget')}</span>
+                        <span>{new Date(movement.date).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between gap-4 w-full md:w-auto md:justify-end shrink-0">
+                      <span className="text-[11px] font-mono font-black tracking-tighter tabular-nums" style={{ color: meta.color }}>
+                        {movement.type === 'expense' ? '-' : movement.type === 'income' ? '+' : ''}
+                        {formatCOP(movement.amount)}
                       </span>
-                      {movement.recurring && <span className="border border-user-c/30 px-1.5 py-0.5 text-[7px] font-black uppercase tracking-[0.14em] text-user-c">recurrente</span>}
+                      <button
+                        onClick={() => deleteMovement(movement.id)}
+                        className="p-1 text-[#594137] opacity-60 transition-all hover:bg-red-500/10 hover:text-red-500 group-hover:opacity-100 !min-h-0"
+                        aria-label="Eliminar movimiento"
+                      >
+                        <Trash2 size={12} strokeWidth={1.5} />
+                      </button>
                     </div>
-                    <div className="mt-1 flex flex-wrap items-center gap-2 text-[7px] font-bold uppercase tracking-widest text-[#594137]">
-                      <span>{t(normalizeCategory(movement.category))}</span>
-                      <span>{t(movement.account || 'main_wallet')}</span>
-                      <span>{t(movement.related_budget || 'no_budget')}</span>
-                      <span>{new Date(movement.date).toLocaleDateString()}</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between gap-4 md:justify-end">
-                    <span className="text-[11px] font-black tabular-nums" style={{ color: meta.color }}>
-                      {movement.type === 'expense' ? '-' : movement.type === 'income' ? '+' : ''}
-                      {formatCOP(movement.amount)}
-                    </span>
-                    <button
-                      onClick={() => deleteMovement(movement.id)}
-                      className="p-1.5 text-[#594137] opacity-60 transition-all hover:bg-red-500/10 hover:text-red-500 group-hover:opacity-100"
-                      aria-label="Eliminar movimiento"
-                    >
-                      <Trash2 size={12} />
-                    </button>
                   </div>
                 </motion.div>
               );
