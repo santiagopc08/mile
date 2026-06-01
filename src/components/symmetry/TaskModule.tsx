@@ -42,6 +42,31 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
   const objectives = useMemo(() => (data?.objectives as Objective[]) || [], [data?.objectives]);
   const visibleObjectives = useMemo(() => objectives.filter(o => o.author === profile), [objectives, profile]);
 
+  const objectiveStats = useMemo(() => {
+    const statsMap = new Map();
+    for (const obj of visibleObjectives) {
+      statsMap.set(obj.id, {
+        taskCount: 0,
+        pendingCount: 0,
+        totalEst: 0,
+        totalAct: 0
+      });
+    }
+
+    for (const task of tasks) {
+      if (task.objective_id && statsMap.has(task.objective_id)) {
+        const stats = statsMap.get(task.objective_id);
+        stats.taskCount++;
+        if (task.status !== 'done' && task.status !== 'skipped') {
+          stats.pendingCount++;
+        }
+        stats.totalEst += (task.estimated_time || 0);
+        stats.totalAct += (task.actual_time || 0);
+      }
+    }
+    return statsMap;
+  }, [tasks, visibleObjectives]);
+
   const [newTask, setNewTask] = useState('');
   const [category, setCategory] = useState<'work' | 'home' | 'personal'>('work');
   const [newPriority, setNewPriority] = useState<'low' | 'medium' | 'high'>('medium');
@@ -307,11 +332,8 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
           </div>
           <div className="flex flex-wrap gap-2">
             {visibleObjectives.map(obj => {
-              const objTasks = tasks.filter(t => t.objective_id === obj.id);
-              const pendingCount = objTasks.filter(t => t.status !== 'done' && t.status !== 'skipped').length;
-              const completedCount = objTasks.length - pendingCount;
-              const totalEst = objTasks.reduce((acc, t) => acc + (t.estimated_time || 0), 0);
-              const totalAct = objTasks.reduce((acc, t) => acc + (t.actual_time || 0), 0);
+              const stats = objectiveStats.get(obj.id) || { taskCount: 0, pendingCount: 0, totalEst: 0, totalAct: 0 };
+              const completedCount = stats.taskCount - stats.pendingCount;
 
               const objColor = obj.author === 'ella' ? 'user-a' : 'user-b';
 
@@ -320,7 +342,7 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => toggleObjectiveComplete(obj.id)}
-                      disabled={pendingCount > 0}
+                      disabled={stats.pendingCount > 0}
                       className={`border p-0.5 ${obj.is_complete ? 'border-emerald-500 bg-emerald-500 text-white' : `border-${objColor}/50 text-transparent hover:border-${objColor}`} disabled:cursor-not-allowed disabled:opacity-30`}
                     >
                       {obj.is_complete ? <Check size={10} /> : <div className="w-[10px] h-[10px]" />}
@@ -330,10 +352,10 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
                       <X size={10} />
                     </button>
                   </div>
-                  {objTasks.length > 0 && (
+                  {stats.taskCount > 0 && (
                     <div className={`mt-0.5 flex gap-2 border-t border-${objColor}/10 pt-1 font-mono text-[6px] uppercase text-[#a88a7e]`}>
-                      <span>{completedCount}/{objTasks.length} Tareas</span>
-                      <span>{totalAct}/{totalEst} Min</span>
+                      <span>{completedCount}/{stats.taskCount} Tareas</span>
+                      <span>{stats.totalAct}/{stats.totalEst} Min</span>
                     </div>
                   )}
                 </div>

@@ -39,11 +39,22 @@ export const TaskAnalytics = ({ tasks, objectives }: { tasks: Task[], objectives
     const efficiency = totalEstimated > 0 ? (totalActual / totalEstimated) : 0;
 
     const categories = ['work', 'home', 'personal'];
-    const catStats = categories.map(cat => {
-      const catTasks = tasks.filter(t => t.category === cat);
-      const catTime = catTasks.reduce((sum, t) => sum + (t.actual_time || 0), 0);
-      return { name: cat, time: catTime };
-    });
+    const catStatsMap = new Map<string, number>([
+      ['work', 0],
+      ['home', 0],
+      ['personal', 0]
+    ]);
+
+    for (const t of tasks) {
+      if (catStatsMap.has(t.category)) {
+        catStatsMap.set(t.category, (catStatsMap.get(t.category) || 0) + (t.actual_time || 0));
+      }
+    }
+
+    const catStats = categories.map(cat => ({
+      name: cat,
+      time: catStatsMap.get(cat) || 0
+    }));
 
     return {
       totalActual,
