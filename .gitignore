@@ -58,3 +58,6 @@ pip-delete-this-directory.txt
 *.md.log
 *.html.log
 /logs/
+/playwright-report/
+/test-results/
+*.png
