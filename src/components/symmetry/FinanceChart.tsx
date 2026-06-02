@@ -40,26 +40,61 @@ export const FinanceChart = ({ allocationsElla, allocationsEl }: { allocationsEl
     const days = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'];
     const today = new Date();
 
-    return Array.from({ length: 7 }).map((_, i) => {
+    // Create a map to hold data for the last 7 days
+    const dateMap = new Map();
+    const dateKeys: string[] = [];
+
+    // Pre-populate the map with 0s for the last 7 days
+    for (let i = 6; i >= 0; i--) {
       const d = new Date();
-      d.setDate(today.getDate() - (6 - i));
-      const dayLabel = days[d.getDay()];
+      d.setDate(today.getDate() - i);
       const dateStr = d.toLocaleDateString();
+      dateKeys.push(dateStr);
 
-      const dayElla = (allocationsElla || []).filter(e => new Date(e.date).toLocaleDateString() === dateStr);
-      const dayEl = (allocationsEl || []).filter(e => new Date(e.date).toLocaleDateString() === dateStr);
+      dateMap.set(dateStr, {
+        name: days[d.getDay()],
+        incomeElla: 0,
+        expenseElla: 0,
+        incomeEl: 0,
+        expenseEl: 0
+      });
+    }
 
-      const incomeElla = dayElla.filter(e => getType(e) === 'income').reduce((sum, e) => sum + getAmount(e), 0);
-      const expenseElla = dayElla.filter(e => getType(e) === 'expense').reduce((sum, e) => sum + getAmount(e), 0);
-      const incomeEl = dayEl.filter(e => getType(e) === 'income').reduce((sum, e) => sum + getAmount(e), 0);
-      const expenseEl = dayEl.filter(e => getType(e) === 'expense').reduce((sum, e) => sum + getAmount(e), 0);
+    // Process Ella's allocations in a single pass
+    if (allocationsElla) {
+      for (const e of allocationsElla) {
+        const dateStr = new Date(e.date).toLocaleDateString();
+        if (dateMap.has(dateStr)) {
+          const stats = dateMap.get(dateStr);
+          const amount = getAmount(e);
+          if (getType(e) === 'income') stats.incomeElla += amount;
+          else if (getType(e) === 'expense') stats.expenseElla += amount;
+        }
+      }
+    }
 
+    // Process El's allocations in a single pass
+    if (allocationsEl) {
+      for (const e of allocationsEl) {
+        const dateStr = new Date(e.date).toLocaleDateString();
+        if (dateMap.has(dateStr)) {
+          const stats = dateMap.get(dateStr);
+          const amount = getAmount(e);
+          if (getType(e) === 'income') stats.incomeEl += amount;
+          else if (getType(e) === 'expense') stats.expenseEl += amount;
+        }
+      }
+    }
+
+    // Map back to array in chronological order
+    return dateKeys.map(dateStr => {
+      const stats = dateMap.get(dateStr);
       return {
-        name: dayLabel,
-        USER_A: incomeElla - expenseElla,
-        USER_B: incomeEl - expenseEl,
-        INCOME: incomeElla + incomeEl,
-        EXPENSE: expenseElla + expenseEl,
+        name: stats.name,
+        USER_A: stats.incomeElla - stats.expenseElla,
+        USER_B: stats.incomeEl - stats.expenseEl,
+        INCOME: stats.incomeElla + stats.incomeEl,
+        EXPENSE: stats.expenseElla + stats.expenseEl,
       };
     });
   }, [allocationsElla, allocationsEl]);

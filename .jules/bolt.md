@@ -16,3 +16,6 @@
 ## 2024-06-01 - Avoid Nested Array Scans in Render/Mapping Loops
 **Learning:** Discovered O(N*M) calculation bottlenecks in \`TaskModule.tsx\` and \`TaskAnalytics.tsx\` where nested array methods (\`.filter\` and \`.reduce\`) were used inside mapping functions across large datasets on every render.
 **Action:** Pre-calculated the grouped stats in a single O(N) pass using a \`Map\` wrapped in a \`useMemo\` hook, eliminating nested loops entirely and significantly boosting render performance.
+## 2024-06-02 - Eliminate Redundant Date Parsing and Nested Array Scans in FinanceChart
+**Learning:** `FinanceChart.tsx` exhibited a hidden O(D*N) performance bottleneck inside a `useMemo` hook. For each chart day (D=7), the code iterated over the full `allocations` arrays and repeatedly executed `new Date(e.date).toLocaleDateString()` for every element. This caused massive redundant object instantiation and string formatting overhead, especially as the allocations array grows.
+**Action:** Transformed the approach into O(D+N) by pre-calculating the 7 target dates into an O(1) hash map `Map<string, Stats>`, parsing each `allocation`'s date strictly *once* in a single pass, and mutating the hash map values directly before returning the array. Always prioritize single-pass aggregations with maps over nested array filtering when deriving chart data.
