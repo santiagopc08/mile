@@ -15,25 +15,45 @@ export const TaskStatsChart = ({ tasks, objectives }: { tasks: any[], objectives
     const days = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
     const today = new Date();
 
-    return Array.from({ length: 7 }).map((_, i) => {
+    // Pre-calculate target dates and labels into an O(1) hash map
+    const targetDates = new Map<string, { name: string; Ella: number; Yo: number }>();
+    const orderedKeys: string[] = [];
+
+    for (let i = 0; i < 7; i++) {
       const d = new Date();
       d.setDate(today.getDate() - (6 - i));
-      const dayLabel = days[d.getDay()];
       const dateStr = d.toLocaleDateString();
+      orderedKeys.push(dateStr);
+      targetDates.set(dateStr, {
+        name: days[d.getDay()],
+        Ella: 0,
+        Yo: 0
+      });
+    }
 
-      const dayTasks = tasks.filter(t => t.status === 'done' && t.updated_at && new Date(t.updated_at).toLocaleDateString() === dateStr);
-      
-      const countByAuthor = (author: string) => dayTasks.filter(t => {
-        const obj = objectives.find(o => o.id === t.objective_id);
-        return obj?.author === author;
-      }).length;
+    // Pre-calculate objective authors into an O(1) hash map
+    const objectiveAuthorMap = new Map<string, string>();
+    for (const obj of objectives) {
+      if (obj.id) objectiveAuthorMap.set(obj.id, obj.author);
+    }
 
-      return {
-        name: dayLabel,
-        Ella: countByAuthor('ella'),
-        Yo: countByAuthor('el'),
-      };
-    });
+    // Single O(N) pass to aggregate tasks
+    for (const t of tasks) {
+      if (t.status === 'done' && t.updated_at) {
+        const dateStr = new Date(t.updated_at).toLocaleDateString();
+        const target = targetDates.get(dateStr);
+        if (target) {
+          const author = objectiveAuthorMap.get(t.objective_id);
+          if (author === 'ella') {
+            target.Ella++;
+          } else if (author === 'el') {
+            target.Yo++;
+          }
+        }
+      }
+    }
+
+    return orderedKeys.map(key => targetDates.get(key)!);
   }, [tasks, objectives]);
 
   return (
