@@ -463,22 +463,33 @@ export function MovementTracker() {
         const now = new Date();
         const startOfWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
         
-        const thisWeeksSessions = sessions.filter(s => new Date(s.date) >= startOfWeek);
+        let elSessions = 0;
+        let ellaSessions = 0;
+        let totalCompleted = 0;
+        let recoveryDays = 0;
+        const activeDates = new Set<string>();
+
+        // ⚡ Bolt Optimization: Replace multiple .filter() and .map() with single pass O(N) loop
+        for (const s of sessions) {
+            if (new Date(s.date) >= startOfWeek) {
+                totalCompleted++;
+                if (s.profile === 'el') elSessions++;
+                else if (s.profile === 'ella') ellaSessions++;
+
+                activeDates.add(s.date);
+
+                if (s.completion_status === 'recovery' || s.completion_status === 'rest_day') {
+                    recoveryDays++;
+                }
+            }
+        }
         
-        const elSessions = thisWeeksSessions.filter(s => s.profile === 'el').length;
-        const ellaSessions = thisWeeksSessions.filter(s => s.profile === 'ella').length;
-        const totalCompleted = thisWeeksSessions.length;
-        
-        const activeDates = new Set(thisWeeksSessions.map(s => s.date));
         const activeDaysCount = activeDates.size;
         
         // Target: Combined 8 sessions a week
         const combinedTarget = 8;
         const goalProgressPercentage = Math.min(100, Math.round((totalCompleted / combinedTarget) * 100));
 
-        // Recovery vs Active ratio
-        const recoveryDays = thisWeeksSessions.filter(s => s.completion_status === 'recovery' || s.completion_status === 'rest_day').length;
-        
         return {
             elSessions,
             ellaSessions,
@@ -539,23 +550,33 @@ export function MovementTracker() {
 
     // Calculate pain reduction delta
     const painAnalytics = useMemo(() => {
-        const therapyLogs = sessions.filter(s => s.pain_before !== undefined && s.pain_after !== undefined);
-        if (therapyLogs.length === 0) return null;
-        
-        const totalReduction = therapyLogs.reduce((acc, s) => {
-            const before = s.pain_before || 0;
-            const after = s.pain_after || 0;
-            return acc + (before - after);
-        }, 0);
+        let count = 0;
+        let totalReduction = 0;
+        let sumBefore = 0;
+        let sumAfter = 0;
 
-        const averageBefore = Math.round((therapyLogs.reduce((acc, s) => acc + (s.pain_before || 0), 0) / therapyLogs.length) * 10) / 10;
-        const averageAfter = Math.round((therapyLogs.reduce((acc, s) => acc + (s.pain_after || 0), 0) / therapyLogs.length) * 10) / 10;
+        // ⚡ Bolt Optimization: Replace multiple .filter() and .reduce() with single pass O(N) loop
+        for (const s of sessions) {
+            if (s.pain_before !== undefined && s.pain_after !== undefined) {
+                count++;
+                const before = s.pain_before || 0;
+                const after = s.pain_after || 0;
+                totalReduction += (before - after);
+                sumBefore += before;
+                sumAfter += after;
+            }
+        }
+
+        if (count === 0) return null;
+
+        const averageBefore = Math.round((sumBefore / count) * 10) / 10;
+        const averageAfter = Math.round((sumAfter / count) * 10) / 10;
 
         return {
             totalReduction,
             averageBefore,
             averageAfter,
-            sessionsCount: therapyLogs.length
+            sessionsCount: count
         };
     }, [sessions]);
 
