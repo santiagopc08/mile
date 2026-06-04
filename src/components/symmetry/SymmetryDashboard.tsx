@@ -165,7 +165,7 @@ export const SymmetryDashboard = () => {
 
   return (
     <div 
-      className="relative mx-auto w-full max-w-[95%] 2xl:max-w-[1800px] px-4 pb-24 text-[#e5e2e1] sm:px-6"
+      className="relative mx-auto w-full max-w-[98vw] 2xl:max-w-[1920px] px-2 pb-24 text-[#e5e2e1] sm:px-4"
       style={{ 
         '--color-profile-accent': accentColorValue,
         '--color-profile-accent-alpha': accentAlphaValue
@@ -270,7 +270,7 @@ export const SymmetryDashboard = () => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="space-y-8 border-x border-white/10 bg-[#050505] p-3 sm:p-5 md:p-8"
+            className="space-y-6 border-x border-white/10 bg-[#050505] p-2 sm:p-4 md:p-5"
           >
             {/* Task Video Header */}
             <div className="grid gap-4 border border-white/10 bg-[#0a0a0a] p-4 md:grid-cols-[auto_1fr_auto] md:items-center">
@@ -325,12 +325,12 @@ export const SymmetryDashboard = () => {
             </div>
 
             {/* Row 1: Kanban Board (Always Expanded - Core Interface) */}
-            <div className="geometric-card relative border-white/10 bg-[#0a0a0a] p-6 sm:p-8 overflow-hidden">
+            <div className="geometric-card relative overflow-hidden border-white/10 bg-[#0a0a0a] p-3 sm:p-4 md:p-5">
               <AnimatedBrutalistCorners color={accentColorValue} />
               <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
                 <ShieldCheck size={120} style={{ color: accentColorValue }} />
               </div>
-              <h2 className="mb-8 flex items-center justify-between border-b border-white/5 pb-4 text-[10px] font-black uppercase tracking-[0.22em] relative z-10" style={{ color: accentColorValue }}>
+              <h2 className="relative z-10 mb-4 flex items-center justify-between border-b border-white/5 pb-3 text-[10px] font-black uppercase tracking-[0.22em]" style={{ color: accentColorValue }}>
                 <span>NUESTRAS TAREAS Y OBJETIVOS</span>
                 <span className="hidden text-[8px] opacity-50 sm:inline">CONECTADOS // EN LÍNEA</span>
               </h2>

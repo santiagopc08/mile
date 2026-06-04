@@ -307,24 +307,67 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
   const isTaskLate = (task: Task) => task.due_date && new Date() > new Date(task.due_date) && task.status !== 'done' && task.status !== 'skipped';
   const isTaskOverflowed = (task: Task) => task.estimated_time > 0 && task.actual_time > task.estimated_time;
   const getTaskObjective = (task: Task) => objectives.find(o => o.id === task.objective_id);
+  const categoryStyles: Record<Task['category'], { label: string; chip: string; active: string; stripe: string }> = {
+    work: {
+      label: 'TRABAJO',
+      chip: 'border-cyan-400/40 bg-cyan-400/10 text-cyan-200',
+      active: 'border-cyan-400 bg-cyan-400 text-black',
+      stripe: 'bg-cyan-400'
+    },
+    home: {
+      label: 'CASA',
+      chip: 'border-user-b/40 bg-user-b/10 text-user-b',
+      active: 'border-user-b bg-user-b text-black',
+      stripe: 'bg-user-b'
+    },
+    personal: {
+      label: 'PERSONAL',
+      chip: 'border-user-a/40 bg-user-a/10 text-user-a',
+      active: 'border-user-a bg-user-a text-black',
+      stripe: 'bg-user-a'
+    }
+  };
+  const priorityStyles: Record<NonNullable<Task['priority']>, { label: string; active: string; chip: string; stripe: string; text: string }> = {
+    low: {
+      label: 'BAJA',
+      active: 'border-sky-400 bg-sky-400 text-black',
+      chip: 'border-sky-400/40 bg-sky-400/10 text-sky-200',
+      stripe: 'bg-sky-400',
+      text: 'text-sky-200'
+    },
+    medium: {
+      label: 'MEDIA',
+      active: 'border-amber-400 bg-amber-400 text-black',
+      chip: 'border-amber-400/40 bg-amber-400/10 text-amber-200',
+      stripe: 'bg-amber-400',
+      text: 'text-amber-200'
+    },
+    high: {
+      label: 'ALTA',
+      active: 'border-rose-400 bg-rose-400 text-black',
+      chip: 'border-rose-400/40 bg-rose-400/10 text-rose-200',
+      stripe: 'bg-rose-400',
+      text: 'text-rose-200'
+    }
+  };
 
   return (
-    <div className="space-y-6 border border-white/10 bg-black/40 p-4">
+    <div className="space-y-4 border border-white/10 bg-black/40 p-2 sm:p-3">
       {/* Creation UI */}
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-4">
         {/* Objectives First */}
-        <div className="space-y-4">
+        <div className="space-y-3">
           <div className="flex flex-col gap-2">
             <div className="flex gap-2">
               <input
                 value={newObjective}
                 onChange={e => setNewObjective(e.target.value)}
                 placeholder="NUEVO OBJETIVO"
-                className={`flex-1 border border-white/10 bg-black px-4 py-2 text-[10px] uppercase text-white outline-none placeholder:text-[#594137] focus:border-${newObjectiveAuthor === 'ella' ? 'user-a' : 'user-b'}`}
+                className={`flex-1 border border-white/10 bg-black px-3 py-1.5 text-[10px] uppercase text-white outline-none placeholder:text-[#594137] focus:border-${newObjectiveAuthor === 'ella' ? 'user-a' : 'user-b'}`}
               />
               <button
                 onClick={addObjective}
-                className={`border px-4 py-2 text-white transition-colors ${newObjectiveAuthor === 'ella' ? 'border-user-a bg-user-a hover:bg-user-a/80' : 'border-user-b bg-user-b hover:bg-user-b/80'}`}
+                className={`!min-h-0 border px-3 py-1.5 text-black transition-colors ${newObjectiveAuthor === 'ella' ? 'border-user-a bg-user-a hover:bg-user-a/80' : 'border-user-b bg-user-b hover:bg-user-b/80'}`}
               >
                 <Plus size={16} />
               </button>
@@ -371,11 +414,11 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              className="space-y-4 overflow-hidden border-t border-white/10 pt-4"
+              className="space-y-3 overflow-hidden border-t border-white/10 pt-3"
             >
               <div className="flex items-center justify-between">
                 <span className={`text-[10px] font-mono text-${accentClass} tracking-[0.2em]`}>NUEVA TAREA</span>
-                <button onClick={() => setIsTaskFormOpen(false)} className="text-stone-500 hover:text-white transition-colors">
+                <button onClick={() => setIsTaskFormOpen(false)} className="!min-h-0 text-stone-500 hover:text-white transition-colors">
                   <X size={14} />
                 </button>
               </div>
@@ -385,7 +428,7 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
                   value={newTask}
                   onChange={e => setNewTask(e.target.value)}
                   placeholder="NUEVA TAREA"
-                  className={`flex-1 border border-white/10 bg-black px-4 py-2 text-[10px] uppercase text-white outline-none placeholder:text-[#594137] focus:border-${accentClass}`}
+                  className={`flex-1 border border-white/10 bg-black px-3 py-1.5 text-[10px] uppercase text-white outline-none placeholder:text-[#594137] focus:border-${accentClass}`}
                 />
               </div>
               <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
@@ -402,29 +445,29 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
                 </div>
                 <div className="flex flex-col gap-1">
                   <label className="text-[7px] uppercase font-bold text-stone-400">Categoría</label>
-                  <div className="flex min-h-[32px] border border-white/10 bg-black">
+                  <div className="flex min-h-[30px] border border-white/10 bg-black">
                     {(['work', 'home', 'personal'] as const).map(cat => (
                       <button
                         key={cat}
                         type="button"
                         onClick={() => setCategory(cat)}
-                        className={`flex-1 px-1 py-2 text-[7px] font-bold uppercase transition-colors ${category === cat ? `bg-${accentClass}/15 text-${accentClass}` : 'text-stone-500 hover:bg-white/5 hover:text-stone-300'}`}
+                        className={`!min-h-0 flex-1 border-r border-white/10 px-1 py-1.5 text-[7px] font-bold uppercase transition-colors last:border-r-0 ${category === cat ? categoryStyles[cat].active : `${categoryStyles[cat].chip} opacity-60 hover:opacity-100`}`}
                       >
-                        {cat}
+                        {categoryStyles[cat].label}
                       </button>
                     ))}
                   </div>
                 </div>
                 <div className="flex flex-col gap-1">
                   <label className="text-[7px] uppercase font-bold text-stone-400">Prioridad</label>
-                  <div className="flex min-h-[32px] border border-white/10 bg-black">
+                  <div className="flex min-h-[30px] border border-white/10 bg-black">
                     {(['low', 'medium', 'high'] as const).map(p => (
                       <button
                         key={p}
                         onClick={() => setNewPriority(p)}
-                        className={`flex-1 flex items-center justify-center py-2 text-[7px] uppercase font-bold transition-colors ${newPriority === p ? (p === 'high' ? 'bg-rose-500/20 text-rose-500' : p === 'medium' ? 'bg-amber-500/20 text-amber-500' : 'bg-stone-500/20 text-stone-400') : 'text-stone-500 hover:bg-white/5'}`}
+                        className={`!min-h-0 flex flex-1 items-center justify-center border-r border-white/10 py-1.5 text-[7px] font-bold uppercase transition-colors last:border-r-0 ${newPriority === p ? priorityStyles[p].active : `${priorityStyles[p].chip} opacity-60 hover:opacity-100`}`}
                       >
-                        {p === 'high' ? 'ALTA' : p === 'medium' ? 'MED' : 'BAJA'}
+                        {priorityStyles[p].label}
                       </button>
                     ))}
                   </div>
@@ -452,25 +495,25 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
               </div>
 
               {/* Advanced Fields Toggle */}
-              <div className="pt-2">
-                <button onClick={() => setShowAdvanced(!showAdvanced)} className="flex items-center gap-2 text-[8px] uppercase font-bold text-stone-400 hover:text-stone-200 transition-colors">
+              <div className="pt-1">
+                <button onClick={() => setShowAdvanced(!showAdvanced)} className="!min-h-0 flex items-center gap-2 text-[8px] uppercase font-bold text-stone-400 hover:text-stone-200 transition-colors">
                   <ChevronDown size={12} className={`transition-transform ${showAdvanced ? 'rotate-180' : ''}`} />
-                  Campos Avanzados {showAdvanced ? '(Ocultar)' : '(Mostrar)'}
+                  Campos avanzados {showAdvanced ? 'Ocultar' : 'Mostrar'}
                 </button>
               </div>
 
               <AnimatePresence>
                 {showAdvanced && (
-                  <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden space-y-4 border-l-2 border-stone-800 pl-4 py-2">
+                  <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden space-y-3 border-l-2 border-stone-800 py-1.5 pl-3">
 
                     {/* Detail */}
                     <div className="flex flex-col gap-1">
-                      <label className="text-[7px] uppercase font-bold text-stone-400">Detalle (Contexto Estático)</label>
+                      <label className="text-[7px] uppercase font-bold text-stone-400">Detalle</label>
                       <textarea
                         value={newDetail}
                         onChange={e => setNewDetail(e.target.value)}
                         placeholder="Información adicional o contexto..."
-                        className="min-h-[60px] resize-none border border-white/10 bg-black px-3 py-2 text-[10px] text-white outline-none placeholder:text-[#594137]"
+                        className="min-h-[48px] resize-none border border-white/10 bg-black px-3 py-1.5 text-[10px] text-white outline-none placeholder:text-[#594137]"
                       />
                       {newDetail.match(/https?:\/\/[^\s]+/) && (
                         <div className="pt-2">
@@ -479,22 +522,22 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
                       )}
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                       {/* Actions */}
                       <div className="space-y-2">
                         <div className="flex justify-between items-center">
                           <label className="text-[7px] uppercase font-bold text-stone-400">Checklist de Acciones</label>
-                          <button onClick={() => fetchAiSuggestions('actions')} disabled={!newTask || aiLoading} className={`text-[7px] flex items-center gap-1 text-${accentClass} hover:text-white disabled:opacity-30`}>
-                            <Sparkles size={10} /> AI Suggest
+                          <button onClick={() => fetchAiSuggestions('actions')} disabled={!newTask || aiLoading} className={`!min-h-0 text-[7px] flex items-center gap-1 text-${accentClass} hover:text-white disabled:opacity-30`}>
+                            <Sparkles size={10} /> Sugerir
                           </button>
                         </div>
 
                         {/* AI Suggestions (Actions) */}
                         {aiSuggestions.field === 'actions' && aiSuggestions.items.length > 0 && (
                           <div className={`p-2 border border-${accentClass}/30 bg-${accentClass}/5 space-y-1`}>
-                            <div className={`text-[6px] uppercase font-bold text-${accentClass} mb-1`}>Sugerencias (Pick & Choose)</div>
+                            <div className={`text-[6px] uppercase font-bold text-${accentClass} mb-1`}>Sugerencias</div>
                             {aiSuggestions.items.map(sug => (
-                              <button key={sug} onClick={() => importSuggestion(sug, 'actions')} className={`text-left w-full text-[8px] text-stone-300 hover:text-white hover:bg-${accentClass}/20 p-1 flex items-center gap-2`}>
+                              <button key={sug} onClick={() => importSuggestion(sug, 'actions')} className={`!min-h-0 text-left w-full text-[8px] text-stone-300 hover:text-white hover:bg-${accentClass}/20 p-1 flex items-center gap-2`}>
                                 <Plus size={8} /> {sug}
                               </button>
                             ))}
@@ -509,7 +552,7 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
                             placeholder="Nueva acción..."
                             className="flex-1 border border-white/10 bg-black px-2 py-1 text-[9px] text-white outline-none placeholder:text-[#594137]"
                           />
-                          <button onClick={() => { if (newActionText) { setNewActions([...newActions, { id: Date.now().toString(), text: newActionText, checked: false }]); setNewActionText(''); } }} className={`border border-white/10 px-2 hover:border-${accentClass} hover:bg-white/5`}><Plus size={10} /></button>
+                          <button onClick={() => { if (newActionText) { setNewActions([...newActions, { id: Date.now().toString(), text: newActionText, checked: false }]); setNewActionText(''); } }} className={`!min-h-0 border border-white/10 px-2 hover:border-${accentClass} hover:bg-white/5`}><Plus size={10} /></button>
                         </div>
                         <div className="space-y-1">
                           {newActions.map(act => (
@@ -525,17 +568,17 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
                       <div className="space-y-2">
                         <div className="flex justify-between items-center">
                           <label className="text-[7px] uppercase font-bold text-stone-400">Validaciones de Éxito</label>
-                          <button onClick={() => fetchAiSuggestions('validations')} disabled={!newTask || aiLoading} className="text-[7px] flex items-center gap-1 text-emerald-500 hover:text-white disabled:opacity-30">
-                            <Sparkles size={10} /> AI Suggest
+                          <button onClick={() => fetchAiSuggestions('validations')} disabled={!newTask || aiLoading} className="!min-h-0 text-[7px] flex items-center gap-1 text-emerald-500 hover:text-white disabled:opacity-30">
+                            <Sparkles size={10} /> Sugerir
                           </button>
                         </div>
 
                         {/* AI Suggestions (Validations) */}
                         {aiSuggestions.field === 'validations' && aiSuggestions.items.length > 0 && (
                           <div className="p-2 border border-emerald-500/30 bg-emerald-500/5 space-y-1">
-                            <div className="text-[6px] uppercase font-bold text-emerald-500 mb-1">Sugerencias (Pick & Choose)</div>
+                            <div className="text-[6px] uppercase font-bold text-emerald-500 mb-1">Sugerencias</div>
                             {aiSuggestions.items.map(sug => (
-                              <button key={sug} onClick={() => importSuggestion(sug, 'validations')} className="text-left w-full text-[8px] text-stone-300 hover:text-white hover:bg-emerald-500/20 p-1 flex items-center gap-2">
+                              <button key={sug} onClick={() => importSuggestion(sug, 'validations')} className="!min-h-0 text-left w-full text-[8px] text-stone-300 hover:text-white hover:bg-emerald-500/20 p-1 flex items-center gap-2">
                                 <Plus size={8} /> {sug}
                               </button>
                             ))}
@@ -550,7 +593,7 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
                             placeholder="Nueva validación..."
                             className="flex-1 border border-white/10 bg-black px-2 py-1 text-[9px] text-white outline-none placeholder:text-[#594137]"
                           />
-                          <button onClick={() => { if (newValidationText) { setNewValidations([...newValidations, { id: Date.now().toString(), text: newValidationText, checked: false }]); setNewValidationText(''); } }} className="border border-white/10 px-2 hover:border-emerald-500 hover:bg-white/5"><Plus size={10} /></button>
+                          <button onClick={() => { if (newValidationText) { setNewValidations([...newValidations, { id: Date.now().toString(), text: newValidationText, checked: false }]); setNewValidationText(''); } }} className="!min-h-0 border border-white/10 px-2 hover:border-emerald-500 hover:bg-white/5"><Plus size={10} /></button>
                         </div>
                         <div className="space-y-1">
                           {newValidations.map(val => (
@@ -568,16 +611,16 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
 
               <button
                 onClick={addTask}
-                className={`w-full py-3 mt-2 border border-${accentClass} bg-${accentClass} text-black font-bold text-[10px] uppercase tracking-widest transition-colors hover:opacity-80`}
+                className={`mt-1 w-full border border-${accentClass} bg-${accentClass} py-2.5 text-[10px] font-bold uppercase tracking-widest text-black transition-colors hover:opacity-80`}
               >
-                GUARDAR_DATOS (SAVE)
+                Guardar tarea
               </button>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
-      <div className="grid min-h-[250px] grid-cols-2 gap-2 md:gap-3 xl:grid-cols-4">
+      <div className="grid min-h-[250px] grid-cols-1 gap-2 md:grid-cols-2 md:gap-3 xl:grid-cols-4">
         {[
           { status: 'todo' as const, title: 'PEND', accent: 'text-stone-500', bgAccent: 'bg-stone-500' },
           { status: 'in_progress' as const, title: 'ACTIVO', accent: `text-${accentClass}`, bgAccent: `bg-${accentClass}`, pulse: true },
@@ -597,8 +640,9 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
               <div className="flex-1 space-y-3 md:space-y-4 overflow-y-auto custom-scrollbar pt-2 md:pt-3">
                 <AnimatePresence>
                   {colTasks.map((task) => {
-                    const priorityBorder = task.priority === 'high' ? 'border-rose-500' : task.priority === 'medium' ? `border-${accentClass}` : 'border-stone-700';
-                    const priorityBg = task.priority === 'high' ? 'bg-rose-500' : task.priority === 'medium' ? `bg-${accentClass}` : 'bg-stone-600';
+                    const taskPriority = task.priority || 'medium';
+                    const priorityBg = priorityStyles[taskPriority].stripe;
+                    const categoryStyle = categoryStyles[task.category];
                     const isLateOrOverflow = isTaskLate(task) || isTaskOverflowed(task);
                     const clockColor = isLateOrOverflow ? 'text-red-500' : 'text-emerald-500';
                     
@@ -640,12 +684,16 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
                         <div className="flex flex-col relative pt-1 pl-6 pr-3 pb-3">
                           {/* Lateral priority stripe */}
                           <div className={`absolute left-0 top-0 bottom-0 w-[5px] ${priorityBg}`} />
+                          <div className={`absolute left-[5px] top-0 h-1 w-12 ${categoryStyle.stripe}`} />
 
                           {/* Corner Indicators Right */}
                           <div className="absolute -top-2 -right-2 md:-top-3 md:-right-3 flex items-center">
                             {/* Category Box */}
-                            <div className="border-l border-b border-white/10 bg-[#050505] px-1.5 py-[3px] text-[6px] md:text-[7px] font-mono tracking-widest uppercase text-stone-400">
-                               {task.category === 'personal' ? 'PER' : task.category === 'work' ? 'WRK' : 'HOM'}
+                            <div className={`border px-1.5 py-[3px] text-[6px] md:text-[7px] font-mono tracking-widest uppercase ${categoryStyle.chip}`}>
+                               {categoryStyle.label}
+                            </div>
+                            <div className={`border-y border-r px-1.5 py-[3px] text-[6px] md:text-[7px] font-mono tracking-widest uppercase ${priorityStyles[taskPriority].chip}`}>
+                               {priorityStyles[taskPriority].label}
                             </div>
                             {/* Clock Box */}
                             <div className={`border-b border-white/10 bg-[#050505] px-1.5 py-[3px] ${clockColor}`}>
@@ -657,7 +705,7 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
                           {(() => {
                             const objective = getTaskObjective(task);
                             if (!objective) return null;
-                            const priorityText = task.priority === 'high' ? 'bg-rose-500 text-black font-black' : task.priority === 'medium' ? `bg-${accentClass} text-black font-black` : 'bg-stone-700 text-white';
+                            const priorityText = priorityStyles[taskPriority].active;
                             return (
                               <div className="absolute -top-2 left-[5px] md:-top-3 flex items-center z-10">
                                 <div className={`px-1.5 py-[3px] text-[6px] md:text-[7px] font-mono uppercase tracking-[0.16em] ${priorityText}`}>
@@ -786,8 +834,8 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
                 </AnimatePresence>
 
                 {col.status === 'todo' && (
-                  <button className={`w-full mt-1 py-2 border border-dashed border-white/15 text-stone-600 text-[9px] tracking-[0.15em] hover:border-white/40 hover:text-white transition-colors flex items-center justify-center gap-1.5`} onClick={() => setIsTaskFormOpen(true)}>
-                    <Plus size={10} /> ADD
+                  <button className={`mt-1 flex w-full items-center justify-center gap-1.5 border border-dashed border-white/15 py-2 text-[9px] tracking-[0.15em] text-stone-600 transition-colors hover:border-white/40 hover:text-white`} onClick={() => setIsTaskFormOpen(true)}>
+                    <Plus size={10} /> CREAR
                   </button>
                 )}
               </div>
