@@ -387,11 +387,8 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
                   placeholder="NUEVA TAREA"
                   className={`flex-1 border border-white/10 bg-black px-4 py-2 text-[10px] uppercase text-white outline-none placeholder:text-[#594137] focus:border-${accentClass}`}
                 />
-                <button onClick={addTask} className={`border border-${accentClass} bg-${accentClass} px-4 py-2 text-black transition-colors hover:opacity-80`}>
-                  <Plus size={16} />
-                </button>
               </div>
-              <div className="grid grid-cols-1 gap-2 md:grid-cols-6">
+              <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
                 <div className="flex flex-col gap-1">
                   <label className="text-[7px] uppercase font-bold text-stone-400">Objetivo</label>
                   <select
@@ -401,17 +398,6 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
                   >
                     <option value="">Sin Objetivo</option>
                     {visibleObjectives.map(o => <option key={o.id} value={o.id}>{o.title}</option>)}
-                  </select>
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label className="text-[7px] uppercase font-bold text-stone-400">Responsable</label>
-                  <select
-                    value={newTaskAssignee}
-                    onChange={e => setNewTaskAssignee(e.target.value as any)}
-                    className="h-[32px] border border-white/10 bg-black px-2 text-[8px] uppercase text-[#e5e2e1] outline-none"
-                  >
-                    <option value="ella">Milena</option>
-                    <option value="el">Santiago</option>
                   </select>
                 </div>
                 <div className="flex flex-col gap-1">
@@ -443,6 +429,8 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
                     ))}
                   </div>
                 </div>
+              </div>
+              <div className="grid grid-cols-[1fr_2fr] gap-2">
                 <div className="flex flex-col gap-1">
                   <label className="text-[7px] uppercase font-bold text-stone-400">Est. (m)</label>
                   <input
@@ -577,6 +565,13 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
                   </motion.div>
                 )}
               </AnimatePresence>
+
+              <button
+                onClick={addTask}
+                className={`w-full py-3 mt-2 border border-${accentClass} bg-${accentClass} text-black font-bold text-[10px] uppercase tracking-widest transition-colors hover:opacity-80`}
+              >
+                GUARDAR_DATOS (SAVE)
+              </button>
             </motion.div>
           )}
         </AnimatePresence>

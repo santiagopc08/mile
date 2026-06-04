@@ -165,7 +165,7 @@ export const SymmetryDashboard = () => {
 
   return (
     <div 
-      className="relative mx-auto w-full max-w-7xl px-4 pb-24 text-[#e5e2e1] sm:px-6"
+      className="relative mx-auto w-full max-w-[95%] 2xl:max-w-[1800px] px-4 pb-24 text-[#e5e2e1] sm:px-6"
       style={{ 
         '--color-profile-accent': accentColorValue,
         '--color-profile-accent-alpha': accentAlphaValue
