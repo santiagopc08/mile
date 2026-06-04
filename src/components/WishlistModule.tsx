@@ -390,7 +390,7 @@ export function WishlistModule() {
                             <motion.form key="form" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
                                 onSubmit={handleSubmit} className="mb-4 space-y-4 border border-white/10 bg-black/60 p-4 sm:p-6">
                                 <div className="flex items-center justify-between mb-2">
-                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#a88a7e]">
+                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#a88a7e] font-mono">
                                         {editingItem ? 'Editar deseo' : 'Nuevo deseo'}
                                     </span>
                                     <button type="button" onClick={() => { setIsAdding(false); setEditingItem(null); }} className="text-white/30 hover:text-white">
@@ -432,7 +432,7 @@ export function WishlistModule() {
                                                         : 'border-white/10 bg-[#050505] text-[#a88a7e] hover:border-white/25 hover:text-white'
                                                 }`}>
                                                 <Icon className={`h-3.5 w-3.5 ${isActive ? 'text-user-c' : 'text-white/25'}`} strokeWidth={1.5} />
-                                                <span className="text-[7px] font-black uppercase tracking-[0.12em]">{cat.label}</span>
+                                                <span className="text-[7px] font-black uppercase tracking-[0.12em] font-mono">{cat.label}</span>
                                             </button>
                                         )})}
                                     </div>
@@ -464,7 +464,7 @@ export function WishlistModule() {
                                             className="w-full border border-white/10 bg-[#050505] px-4 py-3 text-xs tracking-normal text-white outline-none placeholder:text-white/20 focus:border-[#00dbe9]" />
                                     </div>
                                     <div className="flex items-end">
-                                        <div className="w-full border border-white/10 bg-[#050505] p-3 text-[8px] font-bold uppercase leading-5 tracking-[0.18em] text-white/35">
+                                        <div className="w-full border border-white/10 bg-[#050505] p-3 text-[8px] font-bold uppercase leading-5 tracking-[0.18em] text-white/35 font-mono">
                                             La ubicación alimenta nuestro mapa de planes. El enlace web muestra una vista previa.
                                         </div>
                                     </div>
@@ -505,8 +505,8 @@ export function WishlistModule() {
                     {filteredItems.length === 0 ? (
                         <div className="flex min-h-52 flex-col items-center justify-center border border-dashed border-white/10 py-16 text-[#a88a7e] opacity-60">
                             <Rss className="mb-4 h-10 w-10" strokeWidth={1} />
-                            <p className="text-[10px] font-black uppercase tracking-[0.3em]">Sin planes</p>
-                            <p className="mt-1 text-[8px] uppercase tracking-[0.2em] text-white/25">Nuestra lista de planes está vacía. ¡Añade tu primer deseo juntos! ✨</p>
+                            <p className="text-[10px] font-black uppercase tracking-[0.3em] font-mono">Sin planes</p>
+                            <p className="mt-1 text-[8px] uppercase tracking-[0.2em] text-white/25 font-mono">Nuestra lista de planes está vacía. ¡Añade tu primer deseo juntos! ✨</p>
                         </div>
                     ) : (
                         <div className="grid gap-3 sm:grid-cols-2">
@@ -522,7 +522,7 @@ export function WishlistModule() {
                 {showFeed && (
                     <div className="border border-white/10 bg-black/40">
                         <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
-                            <span className="text-[9px] font-black uppercase tracking-[0.22em] text-[#a88a7e]">Actividad</span>
+                            <span className="text-[9px] font-black uppercase tracking-[0.22em] text-[#a88a7e] font-mono">Actividad</span>
                             <span className="text-[8px] font-mono text-white/20">{activity.length}</span>
                         </div>
                         <ActivityFeed activity={activity} />

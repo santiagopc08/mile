@@ -136,7 +136,7 @@ export function JarOfNotes() {
 
     return (
         <div className="relative flex min-h-[70vh] w-full flex-col items-center justify-center overflow-hidden border border-white/10 bg-[#0a0a0a] bg-dot-matrix">
-            <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex justify-between border-b border-white/10 px-4 py-3 text-[9px] font-bold uppercase tracking-[0.24em] text-[#a88a7e]">
+            <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex justify-between border-b border-white/10 px-4 py-3 text-[9px] font-bold uppercase tracking-[0.24em] text-[#a88a7e] font-mono">
                 <span>BAÚL DE RECUERDOS</span>
                 <span className={`text-${accentClass}`} style={{ color: accentColor }}>{notes.length.toString().padStart(2, '0')} RECUERDOS</span>
             </div>
@@ -149,11 +149,11 @@ export function JarOfNotes() {
                         exit={{ opacity: 0, y: -20 }}
                         className="pointer-events-none absolute left-0 right-0 top-16 z-20 px-4 text-center"
                     >
-                        <h2 className="mb-3 text-3xl font-black uppercase tracking-normal text-white md:text-4xl">
+                        <h2 className="mb-3 text-3xl font-black uppercase tracking-normal text-white md:text-4xl font-mono">
                             El Tarro de Notas
                         </h2>
                         <div className={`mx-auto mb-4 h-1 w-20 bg-${accentClass}`} style={{ backgroundColor: accentColor }} />
-                        <p className="mx-auto max-w-xs text-sm leading-6 tracking-normal text-[#e1bfb2]">
+                        <p className="mx-auto max-w-xs text-sm leading-6 tracking-normal text-[#e1bfb2] font-sans">
                             La nave de Kiaro, llena de pensamientos y amor.
                         </p>
                     </motion.div>
@@ -247,7 +247,7 @@ export function JarOfNotes() {
                                 <div className="pointer-events-none absolute inset-0 bg-mosaic opacity-40" />
  
                                 <div className="relative z-10 mb-8 flex items-start justify-between border-b border-white/10 pb-4">
-                                    <span className={`flex items-center gap-2 text-xs font-black uppercase tracking-[0.3em] text-${accentClass}`}>
+                                    <span className={`flex items-center gap-2 text-xs font-black uppercase tracking-[0.3em] text-${accentClass} font-mono`}>
                                         <div className={`h-2 w-2 bg-${accentClass}`} style={{ backgroundColor: accentColor }} />
                                         Nota Diaria
                                     </span>
@@ -259,7 +259,7 @@ export function JarOfNotes() {
                                         <X className="w-6 h-6" />
                                     </button>
                                 </div>
-                                <p className="relative z-10 px-2 py-4 text-center text-2xl font-medium leading-relaxed tracking-normal text-white md:text-3xl">
+                                <p className="relative z-10 px-2 py-4 text-center text-2xl font-medium leading-relaxed tracking-normal text-white md:text-3xl font-sans">
                                     &quot;{renderTextWithHashtags(currentNote)}&quot;
                                 </p>
 
@@ -284,7 +284,7 @@ export function JarOfNotes() {
                             style={{ '--tw-hover-text-opacity': 1, '--tw-hover-border-opacity': 1 } as any}
                         >
                             <MessageCircleHeart className="w-5 h-5" />
-                            <span className="uppercase text-xs font-bold tracking-widest">Añadir Nueva Nota</span>
+                            <span className="uppercase text-xs font-bold tracking-widest font-mono">Añadir Nueva Nota</span>
                         </button>
                     ) : (
                         <form onSubmit={handleAddNote} className={`geometric-card border-${accentClass}/50 bg-[#0a0a0a]/95 p-6 backdrop-blur-md`} style={{ borderColor: `${accentColor}80` }}>
@@ -297,8 +297,8 @@ export function JarOfNotes() {
                                 autoFocus
                             />
                             <div className="flex gap-3">
-                                <button type="button" onClick={() => setIsAddingMode(false)} className="flex-1 border border-white/10 py-3 text-[10px] font-bold uppercase tracking-widest text-[#a88a7e] transition-colors hover:border-white/30 hover:text-white">Cancelar</button>
-                                <button type="submit" disabled={!newNoteText.trim()} className={`flex-1 bg-${accentClass} py-3 text-[10px] font-bold uppercase tracking-widest text-black transition-colors hover:opacity-80 disabled:opacity-50`} style={{ backgroundColor: accentColor }}>Guardar</button>
+                                <button type="button" onClick={() => setIsAddingMode(false)} className="flex-1 border border-white/10 py-3 text-[10px] font-bold uppercase tracking-widest text-[#a88a7e] transition-colors hover:border-white/30 hover:text-white font-mono">Cancelar</button>
+                                <button type="submit" disabled={!newNoteText.trim()} className={`flex-1 bg-${accentClass} py-3 text-[10px] font-bold uppercase tracking-widest text-black transition-colors hover:opacity-80 disabled:opacity-50 font-mono`} style={{ backgroundColor: accentColor }}>Guardar</button>
                             </div>
                         </form>
                     )}

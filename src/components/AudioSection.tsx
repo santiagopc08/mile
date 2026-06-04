@@ -115,7 +115,7 @@ function SpotifyEmbed({ url, track }: { url: string, track?: AudioTrack }) {
                         <Music className="w-6 h-6" />
                     </div>
                     <div className="flex-1 min-w-0 text-left">
-                        <p className="truncate text-sm font-bold uppercase tracking-normal text-white">
+                        <p className="truncate text-sm font-bold uppercase tracking-normal text-white font-mono">
                             {track?.title || 'Sin Título'}
                         </p>
                         <p className="truncate font-mono text-[10px] uppercase text-[#a88a7e]">
@@ -129,7 +129,7 @@ function SpotifyEmbed({ url, track }: { url: string, track?: AudioTrack }) {
                             rel="noopener noreferrer"
                             className="flex items-center gap-2 border border-white/10 bg-white/5 px-4 py-2 text-[#a88a7e] transition-colors hover:border-white/40 hover:text-white"
                         >
-                            <span className="text-[9px] font-bold uppercase tracking-[0.2em]">Escuchar</span>
+                            <span className="text-[9px] font-bold uppercase tracking-[0.2em] font-mono">Escuchar</span>
                             <ExternalLink className="h-3 w-3" />
                         </a>
                     )}
@@ -252,7 +252,7 @@ export function AudioSection() {
                 {/* Playlist Sidebar */}
                 <div className="lg:col-span-2 space-y-4">
                     <div className="mb-4 flex items-center justify-between border-b border-white/10 px-2 pb-3 font-mono">
-                        <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Playlist</h3>
+                        <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#a88a7e] font-mono">Playlist</h3>
                         <button
                             onClick={() => setIsAddingTrack(!isAddingTrack)}
                             className={`flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-${accentClass} transition-colors hover:text-white font-mono`}
@@ -295,14 +295,14 @@ export function AudioSection() {
                                             <Music className="w-5 h-5 stroke-[1.5]" />
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <p className={`truncate text-sm font-bold uppercase tracking-normal ${currentTrackId === track.id ? 'text-white' : 'text-[#e1bfb2]'}`}>
+                                            <p className={`truncate text-sm font-bold uppercase tracking-normal font-mono ${currentTrackId === track.id ? 'text-white' : 'text-[#e1bfb2]'}`}>
                                                 {track.title || 'Sin Título'}
                                             </p>
                                             <p className="truncate font-mono text-[10px] uppercase text-[#a88a7e]">{track.artist || 'Artista Desconocido'}</p>
                                         </div>
                                         {track.added_by && (
                                             <div className="flex flex-col items-center opacity-40 group-hover:opacity-100 transition-opacity">
-                                                <span className="text-[8px] font-bold uppercase rotate-90">{track.added_by}</span>
+                                                <span className="text-[8px] font-bold uppercase rotate-90 font-mono">{track.added_by}</span>
                                             </div>
                                         )}
                                     </div>
@@ -352,7 +352,7 @@ export function AudioSection() {
                                                                 {comment.author}
                                                             </span>
                                                         </div>
-                                                        <p className="text-sm font-light tracking-normal text-[#e5e2e1] text-left">
+                                                        <p className="text-sm font-light tracking-normal text-[#e5e2e1] text-left font-sans">
                                                             &quot;{renderTextWithHashtags(comment.text)}&quot;
                                                         </p>
                                                     </div>
@@ -361,7 +361,7 @@ export function AudioSection() {
                                         ) : (
                                             <div className="flex flex-col items-center justify-center py-10 text-[#a88a7e] opacity-50">
                                                 <MessageSquare className="w-8 h-8 mb-2 stroke-[1.5]" />
-                                                <p className="text-[10px] uppercase tracking-widest">Sin comentarios</p>
+                                                <p className="text-[10px] uppercase tracking-widest font-mono">Sin comentarios</p>
                                             </div>
                                         )}
                                     </div>
@@ -390,7 +390,7 @@ export function AudioSection() {
                         ) : (
                             <div className="flex flex-1 flex-col items-center justify-center p-10 text-center font-light text-[#a88a7e] opacity-60 rounded-none">
                                 <Music className="w-12 h-12 mb-4 stroke-[1.5]" />
-                                <p className="uppercase text-[10px] tracking-[0.2em]">Playlist vacía</p>
+                                <p className="uppercase text-[10px] tracking-[0.2em] font-mono">Playlist vacía</p>
                             </div>
                         )}
                     </div>

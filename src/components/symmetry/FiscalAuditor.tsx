@@ -108,7 +108,7 @@ export const FiscalAuditor: React.FC<FiscalAuditorProps> = ({ allocations, onAdd
 
     return (
         <div className={`geometric-card p-6 transition-all duration-500 ${thresholdsExceeded ? 'border-system-alert bg-fractured-mosaic bg-system-alert-soft' : 'border-white/10 bg-[#0a0a0a] bg-dot-matrix'}`}>
-            <h2 className={`mb-6 flex items-center justify-between border-b pb-3 text-[10px] font-black uppercase tracking-[0.22em] ${thresholdsExceeded ? 'border-system-alert/20 text-system-alert' : 'border-white/10 text-[#a88a7e]'}`}>
+            <h2 className={`mb-6 flex items-center justify-between border-b pb-3 text-[10px] font-black uppercase tracking-[0.22em] font-mono ${thresholdsExceeded ? 'border-system-alert/20 text-system-alert' : 'border-white/10 text-[#a88a7e]'}`}>
                 <span className="pr-2">Fiscal Health Guardian</span>
                 <span className="text-[8px] font-mono opacity-50 pl-2">Auditor v1.0</span>
             </h2>
@@ -121,15 +121,15 @@ export const FiscalAuditor: React.FC<FiscalAuditorProps> = ({ allocations, onAdd
                 >
                     <AlertCircle className="w-5 h-5 text-system-alert shrink-0" />
                     <div>
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-system-alert">Dietary Threshold Exceeded</p>
-                        <p className="text-[9px] text-system-alert/80 mt-1 uppercase">You are spending {betrayalPercentage.toFixed(1)}% of your weekly budget on vices.</p>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-system-alert font-mono">Dietary Threshold Exceeded</p>
+                        <p className="text-[9px] text-system-alert/80 mt-1 uppercase font-mono">You are spending {betrayalPercentage.toFixed(1)}% of your weekly budget on vices.</p>
                     </div>
                 </motion.div>
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
                 <div className="space-y-4">
-                    <div className="flex justify-between text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">
+                    <div className="flex justify-between text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e] font-mono">
                         <span>Junk Food Tracker</span>
                         <span className={junkCount > 3 ? 'text-system-alert' : ''}>{junkCount} / 3</span>
                     </div>
@@ -143,7 +143,7 @@ export const FiscalAuditor: React.FC<FiscalAuditorProps> = ({ allocations, onAdd
                 </div>
 
                 <div className="space-y-4">
-                    <div className="flex justify-between text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">
+                    <div className="flex justify-between text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e] font-mono">
                         <span>Snacks Tracker</span>
                         <span className={snackCount > 5 ? 'text-system-alert' : ''}>{snackCount} / 5</span>
                     </div>
@@ -164,21 +164,21 @@ export const FiscalAuditor: React.FC<FiscalAuditorProps> = ({ allocations, onAdd
                         value={price}
                         onChange={(e) => setPrice(e.target.value)}
                         placeholder="PRECIO (COP)"
-                        className={`flex-1 border bg-black px-4 py-2 text-xs uppercase tracking-widest text-white outline-none transition-colors placeholder:text-[#594137] ${thresholdsExceeded ? 'border-system-alert/30 focus:border-system-alert' : 'border-white/10 focus:border-profile-accent'}`}
+                        className={`flex-1 border bg-black px-4 py-2 text-xs uppercase tracking-widest text-white outline-none transition-colors placeholder:text-[#594137] font-mono ${thresholdsExceeded ? 'border-system-alert/30 focus:border-system-alert' : 'border-white/10 focus:border-profile-accent'}`}
                         style={!thresholdsExceeded ? { borderColor: accentColor } as any : {}}
                     />
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                     <button
                         onClick={() => addVice('junk_food')}
-                        className={`flex items-center justify-center gap-2 border px-4 py-3 text-[9px] font-bold uppercase tracking-[0.2em] transition-all ${thresholdsExceeded ? 'border-system-alert bg-system-alert text-white' : `border-${accentClass} bg-${accentClass} text-black hover:opacity-80`}`}
+                        className={`flex items-center justify-center gap-2 border px-4 py-3 text-[9px] font-bold uppercase tracking-[0.2em] transition-all font-mono ${thresholdsExceeded ? 'border-system-alert bg-system-alert text-white' : `border-${accentClass} bg-${accentClass} text-black hover:opacity-80`}`}
                         style={!thresholdsExceeded ? { backgroundColor: accentColor, borderColor: accentColor } : {}}
                     >
                         <Pizza size={14} /> Add Junk Food
                     </button>
                     <button
                         onClick={() => addVice('snack')}
-                        className={`flex items-center justify-center gap-2 border px-4 py-3 text-[9px] font-bold uppercase tracking-[0.2em] transition-all ${thresholdsExceeded ? 'border-system-alert bg-system-alert text-white' : `border-${secondaryClass} bg-${secondaryClass} text-white hover:opacity-80`}`}
+                        className={`flex items-center justify-center gap-2 border px-4 py-3 text-[9px] font-bold uppercase tracking-[0.2em] transition-all font-mono ${thresholdsExceeded ? 'border-system-alert bg-system-alert text-white' : `border-${secondaryClass} bg-${secondaryClass} text-white hover:opacity-80`}`}
                         style={!thresholdsExceeded ? { backgroundColor: secondaryColor, borderColor: secondaryColor } : {}}
                     >
                         <Coffee size={14} /> Add Snack
@@ -188,8 +188,8 @@ export const FiscalAuditor: React.FC<FiscalAuditorProps> = ({ allocations, onAdd
 
             <div className="mt-8 border-t border-white/10 pt-6">
                 <div className="flex justify-between items-center mb-4">
-                    <span className="text-[9px] font-black uppercase tracking-[0.3em] text-[#a88a7e]">% of Betrayal</span>
-                    <span className={`text-xl font-light tracking-normal ${thresholdsExceeded ? 'text-system-alert' : 'text-[#e5e2e1]'}`}>{betrayalPercentage.toFixed(1)}%</span>
+                    <span className="text-[9px] font-black uppercase tracking-[0.3em] text-[#a88a7e] font-mono">% of Betrayal</span>
+                    <span className={`text-xl font-light tracking-normal font-mono ${thresholdsExceeded ? 'text-system-alert' : 'text-[#e5e2e1]'}`}>{betrayalPercentage.toFixed(1)}%</span>
                 </div>
 
                 <div className="space-y-2 max-h-40 overflow-y-auto custom-scrollbar pr-2">
@@ -206,7 +206,7 @@ export const FiscalAuditor: React.FC<FiscalAuditorProps> = ({ allocations, onAdd
                                     <div className={`p-1.5 border ${vice.type === 'junk_food' ? 'border-user-a/20 text-user-a' : 'border-user-b/20 text-user-b'}`}>
                                         {vice.type === 'junk_food' ? <Pizza size={10} /> : <Coffee size={10} />}
                                     </div>
-                                    <span className="text-[9px] font-bold uppercase tracking-widest text-[#e1bfb2]">
+                                    <span className="text-[9px] font-bold uppercase tracking-widest text-[#e1bfb2] font-mono">
                                         {vice.type === 'junk_food' ? 'Junk Food' : 'Snack'}
                                     </span>
                                 </div>

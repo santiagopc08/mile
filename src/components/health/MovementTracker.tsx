@@ -594,7 +594,7 @@ export function MovementTracker() {
                     <>
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#c3f400] to-[#ff4b89]" />
                         <div className="absolute inset-0 opacity-[0.03] bg-gradient-to-tr from-[#c3f400] via-transparent to-[#ff4b89] pointer-events-none" />
-                        <div className="absolute -top-1 left-4 px-2 py-0.5 bg-gradient-to-r from-[#c3f400] to-[#ff4b89] text-black text-[7px] font-black tracking-widest uppercase rounded-none">
+                        <div className="absolute -top-1 left-4 px-2 py-0.5 bg-gradient-to-r from-[#c3f400] to-[#ff4b89] text-black text-[7px] font-black tracking-widest uppercase rounded-none font-mono">
                             GLOW_DUAL_SYNCED_ACTIVE
                         </div>
                     </>
@@ -604,7 +604,7 @@ export function MovementTracker() {
                     <div className="space-y-2 max-w-xl">
                         <div className="flex flex-wrap items-center gap-3">
                             <span 
-                                className="border px-2.5 py-0.5 text-[8px] font-black uppercase tracking-[0.25em] rounded-none"
+                                className="border px-2.5 py-0.5 text-[8px] font-black uppercase tracking-[0.25em] rounded-none font-mono"
                                 style={{ 
                                     borderColor: bothActiveToday ? 'transparent' : 'rgba(255, 255, 255, 0.2)',
                                     backgroundImage: bothActiveToday ? 'linear-gradient(to right, #c3f400, #ff4b89)' : 'none',
@@ -614,15 +614,15 @@ export function MovementTracker() {
                                 {motivationalMessage.title}
                             </span>
                             {isUsingLocalStorage && (
-                                <span className="border border-amber-500/30 text-amber-500 bg-amber-500/5 px-2 py-0.5 text-[7px] font-black tracking-widest uppercase rounded-none">
+                                <span className="border border-amber-500/30 text-amber-500 bg-amber-500/5 px-2 py-0.5 text-[7px] font-black tracking-widest uppercase rounded-none font-mono">
                                     LOCAL_SANDBOX_ACTIVE
                                 </span>
                             )}
                         </div>
-                        <p className="text-sm font-bold text-white/90 uppercase tracking-tight leading-relaxed">
+                        <p className="text-sm font-bold text-white/90 uppercase tracking-tight leading-relaxed font-mono">
                             {motivationalMessage.text}
                         </p>
-                        <p className="text-[10px] text-[#a88a7e]">
+                        <p className="text-[10px] text-[#a88a7e] font-sans">
                             Priorizando consistencia sobre intensidad. El descanso y la recuperación forman parte de tu progreso operativo.
                         </p>
                     </div>
@@ -696,12 +696,12 @@ export function MovementTracker() {
                         <div className="p-5 pl-8 flex flex-col justify-between min-h-[170px] relative rounded-none">
                             {/* Left accent stripe */}
                             <div className="absolute left-0 top-0 bottom-0 w-[4px] bg-[#c3f400]" />
-                            <div className="absolute top-2 right-2 flex items-center gap-1.5 text-[8px] font-bold text-[#c3f400] uppercase tracking-wider bg-[#c3f400]/5 px-2 py-0.5 border border-[#c3f400]/20 rounded-none">
+                            <div className="absolute top-2 right-2 flex items-center gap-1.5 text-[8px] font-bold text-[#c3f400] uppercase tracking-wider bg-[#c3f400]/5 px-2 py-0.5 border border-[#c3f400]/20 rounded-none font-mono">
                                 <span className="h-1.5 w-1.5 rounded-full bg-[#c3f400]" />
                                 ÉL / TERAPIA Y RECUPERACIÓN
                             </div>
                             <div>
-                                <h3 className="text-xs font-black tracking-wide text-white uppercase mt-4 mb-1">
+                                <h3 className="text-xs font-black tracking-wide text-white uppercase mt-4 mb-1 font-mono">
                                     Enfoque de Recuperación
                                 </h3>
                                 <p className="text-[10px] text-white/50 leading-relaxed mb-4 font-mono">
@@ -718,12 +718,12 @@ export function MovementTracker() {
                         <div className="p-5 pl-8 flex flex-col justify-between min-h-[170px] relative rounded-none">
                             {/* Left accent stripe */}
                             <div className="absolute left-0 top-0 bottom-0 w-[4px] bg-[#ff4b89]" />
-                            <div className="absolute top-2 right-2 flex items-center gap-1.5 text-[8px] font-bold text-[#ff4b89] uppercase tracking-wider bg-[#ff4b89]/5 px-2 py-0.5 border border-[#ff4b89]/20 rounded-none">
+                            <div className="absolute top-2 right-2 flex items-center gap-1.5 text-[8px] font-bold text-[#ff4b89] uppercase tracking-wider bg-[#ff4b89]/5 px-2 py-0.5 border border-[#ff4b89]/20 rounded-none font-mono">
                                 <span className="h-1.5 w-1.5 rounded-full bg-[#ff4b89]" />
                                 ELLA / FUERZA Y RESISTENCIA
                             </div>
                             <div>
-                                <h3 className="text-xs font-black tracking-wide text-white uppercase mt-4 mb-1">
+                                <h3 className="text-xs font-black tracking-wide text-white uppercase mt-4 mb-1 font-mono">
                                     Enfoque de Resistencia
                                 </h3>
                                 <p className="text-[10px] text-white/50 leading-relaxed mb-4 font-mono">

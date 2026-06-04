@@ -155,7 +155,7 @@ export function Timeline({ events }: TimelineProps) {
                             {/* Left lateral author stripe */}
                             <div className="absolute left-0 top-0 bottom-0 w-[5px]" style={{ backgroundColor: profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)' }} />
 
-                            <h3 className="mb-4 text-sm font-bold uppercase tracking-widest text-white">Nuevo Recuerdo</h3>
+                            <h3 className="mb-4 text-sm font-bold uppercase tracking-widest text-white font-mono">Nuevo Recuerdo</h3>
                             <div className="grid md:grid-cols-2 gap-4">
                                 <input name="title" required placeholder="Título del recuerdo" className="border border-white/10 bg-black px-4 py-3 text-sm text-white outline-none transition-colors placeholder:text-[#594137] focus:border-[#ff7020] rounded-none" />
                                 <input name="date" type="date" required className="border border-white/10 bg-black px-4 py-3 text-sm text-[#a88a7e] outline-none transition-colors focus:border-[#ff7020] rounded-none" />
@@ -166,13 +166,13 @@ export function Timeline({ events }: TimelineProps) {
                                 <input name="image" type="file" accept="image/*" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
                                 <div className="flex w-full items-center justify-center gap-2 border border-dashed border-white/10 bg-black px-4 py-3 text-[#a88a7e] transition-colors hover:border-[#ff7020] rounded-none">
                                     <ImageIcon className="w-4 h-4 stroke-[1.5]" />
-                                    <span className="text-xs uppercase tracking-wider">Subir Foto (Opcional)</span>
+                                    <span className="text-xs uppercase tracking-wider font-mono">Subir Foto (Opcional)</span>
                                 </div>
                             </div>
 
                             <div className="flex gap-3 pt-2">
-                                <button type="button" onClick={() => setIsAdding(false)} className="flex-1 border border-white/10 py-3 text-[10px] font-bold uppercase tracking-widest text-[#a88a7e] transition-colors hover:border-white/30 hover:text-white rounded-none">Cancelar</button>
-                                <button type="submit" disabled={isUploading} className="flex-1 bg-[#ff7020] py-3 text-xs font-bold uppercase tracking-widest text-black transition-colors hover:bg-[#ffb595] disabled:opacity-50 rounded-none">
+                                <button type="button" onClick={() => setIsAdding(false)} className="flex-1 border border-white/10 py-3 text-[10px] font-bold uppercase tracking-widest text-[#a88a7e] transition-colors hover:border-white/30 hover:text-white rounded-none font-mono">Cancelar</button>
+                                <button type="submit" disabled={isUploading} className="flex-1 bg-[#ff7020] py-3 text-xs font-bold uppercase tracking-widest text-black transition-colors hover:bg-[#ffb595] disabled:opacity-50 rounded-none font-mono">
                                     {isUploading ? 'Subiendo...' : 'Guardar Recuerdo'}
                                 </button>
                             </div>
@@ -247,15 +247,15 @@ export function Timeline({ events }: TimelineProps) {
                                                 <input name="editImage" type="file" accept="image/*" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
                                                 <div className="flex w-full items-center justify-center gap-2 border border-dashed border-white/10 bg-black px-3 py-2 text-xs text-[#a88a7e] transition-colors hover:border-[#ff7020] rounded-none">
                                                     <ImageIcon className="w-4 h-4 stroke-[1.5]" />
-                                                    <span className="uppercase text-[10px] tracking-wider">{editImageUrl ? 'Reemplazar Foto' : 'Subir Foto'}</span>
+                                                    <span className="uppercase text-[10px] tracking-wider font-mono">{editImageUrl ? 'Reemplazar Foto' : 'Subir Foto'}</span>
                                                 </div>
                                             </div>
 
                                             <div className="flex gap-2 pt-1">
-                                                <button type="button" onClick={() => setEditingId(null)} className="flex-1 border border-white/10 py-2 text-xs font-bold uppercase tracking-widest text-[#a88a7e] transition-colors hover:border-white/30 hover:text-white rounded-none">
+                                                <button type="button" onClick={() => setEditingId(null)} className="flex-1 border border-white/10 py-2 text-xs font-bold uppercase tracking-widest text-[#a88a7e] transition-colors hover:border-white/30 hover:text-white rounded-none font-mono">
                                                     Cancelar
                                                 </button>
-                                                <button type="submit" disabled={isEditUploading} className="flex-1 bg-[#ff7020] py-2 text-xs font-bold uppercase tracking-widest text-black transition-colors hover:bg-[#ffb595] disabled:opacity-50 rounded-none">
+                                                <button type="submit" disabled={isEditUploading} className="flex-1 bg-[#ff7020] py-2 text-xs font-bold uppercase tracking-widest text-black transition-colors hover:bg-[#ffb595] disabled:opacity-50 rounded-none font-mono">
                                                     {isEditUploading ? 'Subiendo...' : 'Guardar'}
                                                 </button>
                                             </div>
@@ -274,7 +274,7 @@ export function Timeline({ events }: TimelineProps) {
                                     <h3 className="mb-2 text-xl font-bold uppercase tracking-normal text-white transition-colors hover:text-[#ffb595] font-sans">
                                         {event.title}
                                     </h3>
-                                    <p className="font-light leading-relaxed tracking-normal text-[#e1bfb2]">
+                                    <p className="font-light leading-relaxed tracking-normal text-[#e1bfb2] font-sans">
                                         {renderTextWithHashtags(event.description)}
                                     </p>
 

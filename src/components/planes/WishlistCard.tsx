@@ -185,11 +185,11 @@ export function WishlistCard({ item, profile, onRefresh, onEdit, onDelete }: Wis
                 <div className={`w-full ${hasDetailLink ? 'grid grid-cols-[minmax(0,1fr)_100px] sm:grid-cols-[minmax(0,1fr)_120px] gap-4' : ''}`}>
                     {/* Left side */}
                     <div className="min-w-0 flex flex-col gap-2 justify-center">
-                        <h4 className={`text-[13px] font-black uppercase leading-tight tracking-[0.08em] ${isCompleted ? 'line-through text-[#a88a7e]' : 'text-white'}`}>
+                        <h4 className={`text-[13px] font-black uppercase leading-tight tracking-[0.08em] font-mono ${isCompleted ? 'line-through text-[#a88a7e]' : 'text-white'}`}>
                             {item.title}
                         </h4>
                         {item.description && (
-                            <p className="text-[10px] leading-relaxed tracking-normal text-[#a88a7e] line-clamp-2">{item.description}</p>
+                            <p className="text-[10px] leading-relaxed tracking-normal text-[#a88a7e] line-clamp-2 font-sans">{item.description}</p>
                         )}
 
                         {/* Savings progress */}
@@ -242,7 +242,7 @@ export function WishlistCard({ item, profile, onRefresh, onEdit, onDelete }: Wis
                         {item.contributions.length > 0 && (
                             <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 border-t border-white/[0.04] pt-1.5">
                                 {item.contributions.slice(0, 2).map(c => (
-                                    <span key={c.id} className="text-[8px] uppercase tracking-wider font-mono">
+                                    <span className="text-[8px] uppercase tracking-wider font-mono">
                                         <span className={c.contributor === 'el' ? 'text-user-b' : 'text-user-a'}>{c.contributor === 'el' ? 'S' : 'M'}</span>
                                         <span className="text-white/40 ml-1">aportó</span>
                                         <span className="font-bold text-user-b ml-1">{formatCOP(c.amount)}</span>

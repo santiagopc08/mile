@@ -131,7 +131,7 @@ export function PersistentListening() {
                             
                             <div className="relative z-10 flex flex-col h-full">
                                 <div className="flex justify-between items-start mb-6">
-                                    <h3 className="text-sm font-bold uppercase tracking-[0.2em] text-white">
+                                    <h3 className="text-sm font-bold uppercase tracking-[0.2em] text-white font-mono">
                                         {note.topic}
                                     </h3>
                                     <div className={`flex items-center gap-2 text-[9px] font-mono uppercase tracking-widest text-${secondaryClass}`} style={{ color: secondaryColor }}>
@@ -141,7 +141,7 @@ export function PersistentListening() {
                                 </div>
 
                                 <div className="flex-1 border-t border-dashed border-white/10 pt-6 text-left">
-                                    <p className="text-sm leading-relaxed tracking-normal text-[#e1bfb2]">
+                                    <p className="text-sm leading-relaxed tracking-normal text-[#e1bfb2] font-sans">
                                         &quot;{renderTextWithHashtags(note.reflection)}&quot;
                                     </p>
                                 </div>

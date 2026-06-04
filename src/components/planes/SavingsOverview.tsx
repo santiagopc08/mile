@@ -103,7 +103,7 @@ export function SavingsOverview({ items }: { items: WishlistItem[] }) {
             {aiSuggestion && (
                 <div className="flex items-start gap-3 border border-user-c/25 bg-user-c/[0.04] p-3">
                     <TrendingUp className="w-4 h-4 text-user-c shrink-0 mt-0.5" />
-                    <p className="text-[10px] tracking-normal text-[#d9c1e8] leading-relaxed">{aiSuggestion}</p>
+                    <p className="text-[10px] tracking-normal text-[#d9c1e8] leading-relaxed font-sans">{aiSuggestion}</p>
                 </div>
             )}
         </div>
