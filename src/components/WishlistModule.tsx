@@ -99,6 +99,19 @@ export function WishlistModule() {
         }
     };
 
+    // Serialized hash of only items with Google Maps URLs and their current state/url,
+    // which isolates map backfill checks from other non-map updates.
+    const mapItemsHash = useMemo(() => {
+        return items
+            .filter(item => {
+                const url = item.locationUrl;
+                if (!url) return false;
+                return url.includes('google.com/maps') || url.includes('maps.app.goo.gl') || url.includes('goo.gl/maps');
+            })
+            .map(item => `${item.id}:${item.state}:${item.locationUrl}`)
+            .join('||');
+    }, [items]);
+
     // Auto-backfill and sync routine for Google Maps items
     useEffect(() => {
         if (items.length === 0) return;
@@ -195,7 +208,7 @@ export function WishlistModule() {
 
         const timer = setTimeout(performBackfill, 2000);
         return () => clearTimeout(timer);
-    }, [items]);
+    }, [mapItemsHash]);
 
     const filteredItems = useMemo(() => {
         return items

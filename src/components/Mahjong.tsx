@@ -781,7 +781,7 @@ export function Mahjong() {
                                         rotate: frag.rot,
                                     }}
                                     transition={{ duration: 1.5, ease: 'easeOut' }}
-                                    className="absolute inset-0 rounded-sm shadow-lg"
+                                    className="absolute inset-0 rounded-none shadow-lg"
                                     style={{
                                         clipPath: frag.clipPath,
                                         background: `linear-gradient(${frag.rot}deg, #b8860b, #d4a853, #f5e6c8)`,
