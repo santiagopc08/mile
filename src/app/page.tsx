@@ -98,22 +98,12 @@ export default function Home() {
           <div className="border-b border-white/10 p-6 sm:p-8 lg:p-10 relative">
              <div className="absolute left-0 top-0 h-full w-[4px]" style={{ backgroundColor: accentColorValue }} />
              
-             <div className="flex items-center justify-between mb-6">
-               <span className="text-[9px] font-mono font-black uppercase tracking-[0.2em] text-[#a88a7e] border border-white/10 px-2 py-1 bg-[#121212]">
-                 NUESTRO ESPACIO SEGURO
-               </span>
-               <div className="flex gap-2 items-center">
-                  <div className="w-2 h-2 bg-user-c animate-pulse shadow-[0_0_5px_var(--color-user-c)]" />
-                  <span className="text-[8px] font-mono uppercase tracking-widest opacity-60">EN LÍNEA</span>
-               </div>
-             </div>
-
              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                {/* Greeting block */}
-               <div className="lg:col-span-7 space-y-3">
-                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-black uppercase tracking-tight text-white leading-none">
-                   {greetingTitle}
-                 </h1>
+                <div className="lg:col-span-7 space-y-3">
+                  <h1 className="text-2xl sm:text-3xl md:text-4xl font-mono font-bold uppercase tracking-tight text-white leading-none">
+                    {greetingTitle}
+                  </h1>
                  <p className="text-sm tracking-normal text-[#e1bfb2] font-medium leading-relaxed max-w-xl font-sans">
                    {greetingSubtitle}
                  </p>

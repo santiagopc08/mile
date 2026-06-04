@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Space_Grotesk } from "next/font/google";
+import { Space_Grotesk, Anta, Quantico } from "next/font/google";
 import "./globals.css";
 import { StoreProvider } from "@/context/StoreContext";
 import { ProfileProvider } from "@/context/ProfileContext";
@@ -12,6 +12,18 @@ const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
   variable: "--font-space-grotesk",
   weight: ["300", "400", "500", "600", "700"],
+});
+
+const anta = Anta({
+  subsets: ["latin"],
+  variable: "--font-anta",
+  weight: ["400"],
+});
+
+const quantico = Quantico({
+  subsets: ["latin"],
+  variable: "--font-quantico",
+  weight: ["400", "700"],
 });
 
 export const viewport: Viewport = {
@@ -38,7 +50,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" suppressHydrationWarning>
-      <body suppressHydrationWarning className={`${spaceGrotesk.variable} font-sans antialiased text-[#fbdae0] bg-[#1f0e13] min-h-screen lg:pl-20 pb-safe`}>
+      <body suppressHydrationWarning className={`${spaceGrotesk.variable} ${anta.variable} ${quantico.variable} font-sans antialiased text-[#fbdae0] bg-[#1f0e13] min-h-screen lg:pl-20 pb-safe`}>
         <StoreProvider>
           <ProfileProvider>
             <VisibilityProvider>

@@ -20,6 +20,21 @@ interface TimelineProps {
     events: TimelineEvent[];
 }
 
+const renderTextWithHashtags = (text: string) => {
+    if (!text) return null;
+    const parts = text.split(/(#[\w\dÀ-ÿ\u00f1\u00d1]+)/g);
+    return parts.map((part, index) => {
+        if (part.startsWith('#')) {
+            return (
+                <span key={index} className="font-mono text-user-c font-bold tracking-wider mx-0.5">
+                    {part}
+                </span>
+            );
+        }
+        return part;
+    });
+};
+
 export function Timeline({ events }: TimelineProps) {
     const { updateData } = useStore();
     const { profile } = useProfile();
@@ -120,9 +135,9 @@ export function Timeline({ events }: TimelineProps) {
     };
 
     return (
-        <div className="relative flex w-full flex-col items-center bg-mosaic py-8 font-mono">
+        <div className="relative flex w-full flex-col items-center bg-mosaic py-8">
             <div className="mb-10 w-full max-w-4xl border border-white/10 bg-[#0a0a0a] p-6 text-center rounded-none">
-                <p className="text-[10px] font-bold uppercase tracking-[0.32em] text-[#a88a7e]">Nuestros Momentos</p>
+                <p className="text-[10px] font-bold uppercase tracking-[0.32em] text-[#a88a7e] font-mono">Nuestros Momentos</p>
                 <h2 className="mt-3 text-3xl font-black uppercase tracking-normal text-white font-sans">Historia Compartida</h2>
             </div>
             
@@ -260,7 +275,7 @@ export function Timeline({ events }: TimelineProps) {
                                         {event.title}
                                     </h3>
                                     <p className="font-light leading-relaxed tracking-normal text-[#e1bfb2]">
-                                        {event.description}
+                                        {renderTextWithHashtags(event.description)}
                                     </p>
 
                                     {event.imageUrl && (

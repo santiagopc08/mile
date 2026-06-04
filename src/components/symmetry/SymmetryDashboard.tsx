@@ -24,13 +24,17 @@ interface Task {
   priority?: 'low' | 'medium' | 'high';
   actual_time: number;
   estimated_time: number;
+  assignee?: 'el' | 'ella';
 }
 
 export const SymmetryDashboard = () => {
   const { mode, toggleMode } = useVisibility();
   const { profile } = useProfile();
   const { data } = useStore();
-  const tasks = useMemo(() => (data?.tasks as Task[]) || [], [data?.tasks]);
+  const tasks = useMemo(() => {
+    const allTasks = (data?.tasks as Task[]) || [];
+    return allTasks.filter(t => !t.assignee || t.assignee === profile);
+  }, [data?.tasks, profile]);
   const objectives = useMemo(() => (data?.objectives as any[]) || [], [data?.objectives]);
   const [focusScore, setFocusScore] = useState(0);
   const [isFragmented, setIsFragmented] = useState(false);
@@ -115,10 +119,10 @@ export const SymmetryDashboard = () => {
     // Determine which profile is making the change
     const profileUpdating = profile;
     const otherProfileAllocations = storeAllocations.filter((a: any) => a.profile !== profileUpdating);
-    
+
     // Assign profile to new allocations
     const newWithProfile = newAllocations.map(a => ({ ...a, profile: profileUpdating }));
-    
+
     // Sync to store
     updateData({ allocations: [...otherProfileAllocations, ...newWithProfile] });
   };
@@ -164,9 +168,9 @@ export const SymmetryDashboard = () => {
   const accentAlphaValue = profile === 'ella' ? 'rgba(255, 75, 137, 0.3)' : 'rgba(195, 244, 0, 0.3)';
 
   return (
-    <div 
-      className="relative mx-auto w-full max-w-[98vw] 2xl:max-w-[1920px] px-2 pb-24 text-[#e5e2e1] sm:px-4"
-      style={{ 
+    <div
+      className="relative mx-auto w-full max-w-[98vw] 2xl:max-w-[1920px] px-2 pb-24 text-[#e5e2e1] sm:px-4 font-sans"
+      style={{
         '--color-profile-accent': accentColorValue,
         '--color-profile-accent-alpha': accentAlphaValue
       } as React.CSSProperties}
@@ -174,62 +178,7 @@ export const SymmetryDashboard = () => {
       <div className="pointer-events-none fixed inset-0 -z-10 bg-mosaic opacity-50" />
 
       <div className="border-x border-white/10">
-        <div className="border-y border-white/10 bg-[#0a0a0a]/95">
-          <div className="relative p-5 sm:p-8 lg:p-10">
-            <div className="absolute left-0 top-0 h-full w-px" style={{ backgroundColor: activeAccent }} />
-            <div className="mb-8 flex items-center justify-between gap-3 border-b border-white/5 pb-4">
-              <div className="flex flex-wrap items-center gap-3 text-[10px] font-black uppercase tracking-[0.22em] text-[#a88a7e]">
-                <span className={`border px-2 py-1 ${profile === 'ella' ? 'border-user-a/50 text-user-a' : 'border-user-b/50 text-user-b'}`}>ENFOQUE</span>
-                <span className="flex items-center gap-2">
-                  <span className="h-2 w-2 bg-user-c" />
-                  CONECTADOS
-                </span>
-              </div>
-            </div>
-            <h1 className="text-5xl font-black uppercase leading-[0.92] tracking-normal text-white sm:text-7xl lg:text-8xl">
-              Eficiencia
-            </h1>
-            <div className="mt-6 grid max-w-4xl gap-5 border-t border-white/10 pt-5 lg:grid-cols-[1fr_auto] lg:items-end">
-              <p className="max-w-2xl text-sm leading-6 tracking-normal text-[#e1bfb2] md:text-base font-sans">
-                {activeTab === 'tasks' 
-                  ? 'Plataforma de gestión de operaciones, objetivos y tareas cotidianas.'
-                  : 'Bitácora financiera compartida, distribución de presupuesto y proyección.'}
-              </p>
-              
-              {activeTab === 'tasks' ? (
-                <div className="grid grid-cols-3 border border-white/10 text-center bg-black/20 rounded-none shrink-0 min-w-[280px]">
-                  <div className="border-r border-white/10 px-4 py-3">
-                    <div className={`text-2xl font-black font-mono tracking-tighter ${profile === 'ella' ? 'text-user-a' : 'text-user-b'}`}>{tasks.length}</div>
-                    <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e] mt-1">Tareas</div>
-                  </div>
-                  <div className="border-r border-white/10 px-4 py-3">
-                    <div className="text-2xl font-black font-mono tracking-tighter text-user-c">{activeTasks}</div>
-                    <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e] mt-1">Activas</div>
-                  </div>
-                  <div className="px-4 py-3">
-                    <div className={`text-2xl font-black font-mono tracking-tighter ${profile === 'ella' ? 'text-user-b' : 'text-user-a'}`}>{Math.round(focusScore)}%</div>
-                    <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e] mt-1">Enfoque</div>
-                  </div>
-                </div>
-              ) : (
-                <div className="grid grid-cols-3 border border-white/10 text-center bg-black/20 rounded-none shrink-0 min-w-[280px]">
-                  <div className="border-r border-white/10 px-4 py-3">
-                    <div className={`text-2xl font-black font-mono tracking-tighter ${profile === 'ella' ? 'text-user-a' : 'text-user-b'}`}>{userAllocations.length}</div>
-                    <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e] mt-1">Registros</div>
-                  </div>
-                  <div className="border-r border-white/10 px-4 py-3">
-                    <div className="text-2xl font-black font-mono tracking-tighter text-user-c">{formatPriceCompact(totalSpent)}</div>
-                    <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e] mt-1">Gastos Tuyos</div>
-                  </div>
-                  <div className="px-4 py-3">
-                    <div className={`text-2xl font-black font-mono tracking-tighter ${profile === 'ella' ? 'text-user-b' : 'text-user-a'}`}>{formatPriceCompact(combinedTotalSpent)}</div>
-                    <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e] mt-1">Gastado Juntos</div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+
 
         <div className="grid grid-cols-2 border-b border-white/10 bg-black">
           {([
@@ -239,7 +188,7 @@ export const SymmetryDashboard = () => {
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`group relative flex min-h-20 items-center justify-between border-r border-white/10 px-4 py-4 transition-all last:border-r-0 ${activeTab === tab.key
+              className={`group relative font-mono flex min-h-20 items-center justify-between border-r border-white/10 px-4 py-4 transition-all last:border-r-0 ${activeTab === tab.key
                 ? 'text-black font-black'
                 : 'bg-[#0a0a0a] text-[#a88a7e] hover:bg-[#121212] hover:text-white'
                 }`}
@@ -247,9 +196,9 @@ export const SymmetryDashboard = () => {
             >
               <span className="flex flex-col items-start gap-2">
                 <tab.icon className="h-4 w-4" />
-                <span className="text-[10px] font-black uppercase tracking-[0.22em]">{tab.label}</span>
+                <span className="text-[10px] font-black uppercase tracking-[0.22em] font-mono">{tab.label}</span>
               </span>
-              <span className={`text-[9px] font-bold uppercase tracking-[0.2em] ${activeTab === tab.key ? 'text-black/55' : 'text-white/20 group-hover:text-white'}`}>
+              <span className={`text-[9px] font-bold uppercase tracking-[0.2em] font-mono ${activeTab === tab.key ? 'text-black/55' : 'text-white/20 group-hover:text-white'}`}>
                 {tab.index}
               </span>
               {activeTab === tab.key && (
@@ -273,34 +222,50 @@ export const SymmetryDashboard = () => {
             className="space-y-6 border-x border-white/10 bg-[#050505] p-2 sm:p-4 md:p-5"
           >
             {/* Task Video Header */}
-            <div className="grid gap-4 border border-white/10 bg-[#0a0a0a] p-4 md:grid-cols-[auto_1fr_auto] md:items-center">
-              <div className="relative h-28 w-28 border border-white/10 bg-black p-1">
-                <AnimatedBrutalistCorners color="var(--color-user-a)" />
-                <video
-                  className="h-full w-full object-cover opacity-80 mix-blend-screen contrast-125"
-                  src="vid/planningCat.mp4"
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  webkit-playsinline="true"
-                />
+            <div className="grid gap-4 border border-white/10 bg-[#0a0a0a] p-4 md:grid-cols-[1fr_auto] md:items-center relative">
+              <AnimatedBrutalistCorners color={accentColorValue} size={12} thickness={1.5} />
+              <div className="w-full">
+                <h2 className="text-2xl font-mono font-bold uppercase tracking-tight text-white mt-1 flex justify-between items-center w-full">
+                  <span>
+                    <p className="text-[9px] font-mono font-bold uppercase tracking-[0.24em] text-user-c">OPERACIONES</p>Tareas</span>
+                  <div className="relative h-20 w-20 border border-white/10 bg-black p-1 flex-shrink-0">
+                    <AnimatedBrutalistCorners color="var(--color-profile-accent)" size={6} />
+                    <video
+                      className="h-full w-full object-cover opacity-80 mix-blend-screen contrast-125"
+                      src="vid/planningCat.mp4"
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      webkit-playsinline="true"
+                    />
+                  </div>
+                </h2>
               </div>
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-user-c">Plataforma de gestión</p>
-                <h2 className="mt-2 text-2xl font-black uppercase tracking-normal text-white">Ejecución y planeación</h2>
+              <div className="grid grid-cols-3 border border-white/10 text-center bg-black/40 rounded-none shrink-0 md:min-w-[280px]">
+                <div className="border-r border-white/10 px-3 py-2">
+                  <div className={`text-xl font-bold font-mono tracking-tighter ${profile === 'ella' ? 'text-user-a' : 'text-user-b'}`}>{tasks.length}</div>
+                  <div className="text-[8px] font-bold uppercase tracking-[0.15em] text-[#a88a7e] mt-0.5">Tareas</div>
+                </div>
+                <div className="border-r border-white/10 px-3 py-2">
+                  <div className="text-xl font-bold font-mono tracking-tighter text-user-c">{activeTasks}</div>
+                  <div className="text-[8px] font-bold uppercase tracking-[0.15em] text-[#a88a7e] mt-0.5">Activas</div>
+                </div>
+                <div className="px-3 py-2">
+                  <div className={`text-xl font-bold font-mono tracking-tighter ${profile === 'ella' ? 'text-user-b' : 'text-user-a'}`}>{Math.round(focusScore)}%</div>
+                  <div className="text-[8px] font-bold uppercase tracking-[0.15em] text-[#a88a7e] mt-0.5">Enfoque</div>
+                </div>
               </div>
-              <BarChart3 className="hidden h-10 w-10 text-user-a md:block" strokeWidth={1} />
             </div>
 
-             {/* Row 0: Pomodoro (COLLAPSIBLE) */}
+            {/* Row 0: Pomodoro (COLLAPSIBLE) */}
             <div className="border border-white/10 bg-[#0a0a0a] rounded-none overflow-hidden transition-all duration-300 relative">
               <AnimatedBrutalistCorners color={accentColorValue} size={8} thickness={1} />
-              <button 
-                onClick={() => setIsPomodoroOpen(!isPomodoroOpen)} 
+              <button
+                onClick={() => setIsPomodoroOpen(!isPomodoroOpen)}
                 className="w-full px-5 py-4 flex items-center justify-between bg-black/40 hover:bg-black/60 transition-colors text-left"
               >
-                <span className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.24em] text-white">
+                <span className="flex items-center gap-3 text-[10px] font-mono font-black uppercase tracking-[0.24em] text-white">
                   <Clock size={14} className="stroke-[1.5]" style={{ color: accentColorValue }} />
                   TEMPORIZADOR DE ENFOQUE (POMODORO)
                 </span>
@@ -309,10 +274,10 @@ export const SymmetryDashboard = () => {
                   {isPomodoroOpen ? <ChevronDown size={14} className="opacity-60" /> : <ChevronRight size={14} className="opacity-60" />}
                 </div>
               </button>
-              
+
               <AnimatePresence>
                 {isPomodoroOpen && (
-                  <motion.div 
+                  <motion.div
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: 'auto', opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
@@ -330,9 +295,8 @@ export const SymmetryDashboard = () => {
               <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
                 <ShieldCheck size={120} style={{ color: accentColorValue }} />
               </div>
-              <h2 className="relative z-10 mb-4 flex items-center justify-between border-b border-white/5 pb-3 text-[10px] font-black uppercase tracking-[0.22em]" style={{ color: accentColorValue }}>
-                <span>NUESTRAS TAREAS Y OBJETIVOS</span>
-                <span className="hidden text-[8px] opacity-50 sm:inline">CONECTADOS // EN LÍNEA</span>
+              <h2 className="relative z-10 mb-4 flex items-center justify-between border-b border-white/5 pb-3 text-[10px] font-mono font-black uppercase tracking-[0.22em]" style={{ color: accentColorValue }}>
+                <span>TAREAS Y OBJETIVOS</span>
               </h2>
               <TaskModule onTasksUpdate={handleTasksUpdate} />
             </div>
@@ -340,11 +304,11 @@ export const SymmetryDashboard = () => {
             {/* Row 2: Analytics (COLLAPSIBLE) */}
             <div className="border border-white/10 bg-[#0a0a0a] rounded-none overflow-hidden transition-all duration-300 relative">
               <AnimatedBrutalistCorners color="#00dbe9" size={8} thickness={1} />
-              <button 
-                onClick={() => setIsAnalyticsOpen(!isAnalyticsOpen)} 
+              <button
+                onClick={() => setIsAnalyticsOpen(!isAnalyticsOpen)}
                 className="w-full px-5 py-4 flex items-center justify-between bg-black/40 hover:bg-black/60 transition-colors text-left"
               >
-                <span className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.24em] text-white">
+                <span className="flex items-center gap-3 text-[10px] font-mono font-black uppercase tracking-[0.24em] text-white">
                   <BarChart3 size={14} className="stroke-[1.5] text-[#00dbe9]" />
                   MÉTRICAS Y ANÁLISIS DE PROGRESO
                 </span>
@@ -353,10 +317,10 @@ export const SymmetryDashboard = () => {
                   {isAnalyticsOpen ? <ChevronDown size={14} className="opacity-60" /> : <ChevronRight size={14} className="opacity-60" />}
                 </div>
               </button>
-              
+
               <AnimatePresence>
                 {isAnalyticsOpen && (
-                  <motion.div 
+                  <motion.div
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: 'auto', opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
@@ -371,11 +335,11 @@ export const SymmetryDashboard = () => {
             {/* Row 3: Bitácora de Alertas en Tiempo Real (COLLAPSIBLE) */}
             <div className="border border-white/10 bg-[#0a0a0a] rounded-none overflow-hidden transition-all duration-300 relative">
               <AnimatedBrutalistCorners color={accentColorValue} size={8} thickness={1} />
-              <button 
-                onClick={() => setIsActivityOpen(!isActivityOpen)} 
+              <button
+                onClick={() => setIsActivityOpen(!isActivityOpen)}
                 className="w-full px-5 py-4 flex items-center justify-between bg-black/40 hover:bg-black/60 transition-colors text-left"
               >
-                <span className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.24em] text-white">
+                <span className="flex items-center gap-3 text-[10px] font-mono font-black uppercase tracking-[0.24em] text-white">
                   <Activity size={14} className="stroke-[1.5]" style={{ color: accentColorValue }} />
                   BITÁCORA DE ACTIVIDAD COMPARTIDA
                 </span>
@@ -384,10 +348,10 @@ export const SymmetryDashboard = () => {
                   {isActivityOpen ? <ChevronDown size={14} className="opacity-60" /> : <ChevronRight size={14} className="opacity-60" />}
                 </div>
               </button>
-              
+
               <AnimatePresence>
                 {isActivityOpen && (
-                  <motion.div 
+                  <motion.div
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: 'auto', opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
@@ -408,24 +372,41 @@ export const SymmetryDashboard = () => {
             className="space-y-8 border-x border-white/10 bg-[#050505] p-3 sm:p-5 md:p-8"
           >
             {/* Finance Video Header */}
-            <div className="grid gap-4 border border-white/10 bg-[#0a0a0a] p-4 md:grid-cols-[auto_1fr_auto] md:items-center">
-              <div className="relative h-28 w-28 border border-white/10 bg-black p-1">
-                <AnimatedBrutalistCorners color="var(--color-user-a)" />
-                <video
-                  className="h-full w-full object-cover opacity-80 mix-blend-screen contrast-125"
-                  src="vid/financesCat.mp4"
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  webkit-playsinline="true"
-                />
+            <div className="grid gap-4 border border-white/10 bg-[#0a0a0a] p-4 md:grid-cols-[1fr_auto] md:items-center relative">
+              <AnimatedBrutalistCorners color={accentColorValue} size={12} thickness={1.5} />
+              <div className="w-full">
+                <h2 className="text-2xl font-mono font-bold uppercase tracking-tight text-white mt-1 flex justify-between items-center w-full">
+
+                  <span>
+                    <p className="text-[9px] font-mono font-bold uppercase tracking-[0.24em] text-user-c">CONTROL PRESUPUESTARIO</p>Finanzas</span>
+                  <div className="relative h-20 w-20 border border-white/10 bg-black p-1 flex-shrink-0">
+                    <AnimatedBrutalistCorners color="var(--color-profile-accent)" size={6} />
+                    <video
+                      className="h-full w-full object-cover opacity-80 mix-blend-screen contrast-125"
+                      src="vid/financesCat.mp4"
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      webkit-playsinline="true"
+                    />
+                  </div>
+                </h2>
               </div>
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-user-c">Actividad Financiera</p>
-                <h2 className="mt-2 text-2xl font-black uppercase tracking-normal text-white">Nuestro Balance</h2>
+              <div className="grid grid-cols-3 border border-white/10 text-center bg-black/40 rounded-none shrink-0 md:min-w-[280px]">
+                <div className="border-r border-white/10 px-3 py-2">
+                  <div className={`text-xl font-bold font-mono tracking-tighter ${profile === 'ella' ? 'text-user-a' : 'text-user-b'}`}>{userAllocations.length}</div>
+                  <div className="text-[8px] font-bold uppercase tracking-[0.15em] text-[#a88a7e] mt-0.5">Registros</div>
+                </div>
+                <div className="border-r border-white/10 px-3 py-2">
+                  <div className="text-xl font-bold font-mono tracking-tighter text-user-c">{formatPriceCompact(totalSpent)}</div>
+                  <div className="text-[8px] font-bold uppercase tracking-[0.15em] text-[#a88a7e] mt-0.5">Gastos Tuyos</div>
+                </div>
+                <div className="px-3 py-2">
+                  <div className={`text-xl font-bold font-mono tracking-tighter ${profile === 'ella' ? 'text-user-b' : 'text-user-a'}`}>{formatPriceCompact(combinedTotalSpent)}</div>
+                  <div className="text-[8px] font-bold uppercase tracking-[0.15em] text-[#a88a7e] mt-0.5">Gastado Juntos</div>
+                </div>
               </div>
-              <WalletCards className="hidden h-10 w-10 text-user-a md:block" strokeWidth={1} />
             </div>
 
             <div className="grid grid-cols-1 gap-8">
@@ -435,9 +416,9 @@ export const SymmetryDashboard = () => {
                 <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
                   <WalletCards size={120} style={{ color: accentColorValue }} />
                 </div>
-                <h2 className="mb-6 flex items-center justify-between border-b border-white/5 pb-3 text-[10px] font-black uppercase tracking-[0.22em] relative z-10" style={{ color: accentColorValue }}>
+                <h2 className="mb-6 flex items-center justify-between border-b border-white/5 pb-3 text-[10px] font-mono font-black uppercase tracking-[0.22em] relative z-10" style={{ color: accentColorValue }}>
                   <span>NUESTRAS FINANZAS</span>
-                  <span className="text-[8px] opacity-50">HISTORIAL DE MOVIMIENTOS</span>
+                  <span className="text-[8px] font-mono opacity-50">HISTORIAL DE MOVIMIENTOS</span>
                 </h2>
                 <DualWallet
                   allocations={profile === 'el' ? allocationsA : allocationsB}
@@ -448,11 +429,11 @@ export const SymmetryDashboard = () => {
               {/* Finance Chart (COLLAPSIBLE) */}
               <div className="border border-white/10 bg-[#0a0a0a] rounded-none overflow-hidden transition-all duration-300 relative">
                 <AnimatedBrutalistCorners color="var(--color-user-a)" size={8} thickness={1} />
-                <button 
-                  onClick={() => setIsChartOpen(!isChartOpen)} 
+                <button
+                  onClick={() => setIsChartOpen(!isChartOpen)}
                   className="w-full px-5 py-4 flex items-center justify-between bg-black/40 hover:bg-black/60 transition-colors text-left"
                 >
-                  <span className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.24em] text-white">
+                  <span className="flex items-center gap-3 text-[10px] font-mono font-black uppercase tracking-[0.24em] text-white">
                     <BarChart3 size={14} className="stroke-[1.5] text-user-a" />
                     DISTRIBUCIÓN Y ANÁLISIS GRÁFICO DE GASTOS
                   </span>
@@ -461,10 +442,10 @@ export const SymmetryDashboard = () => {
                     {isChartOpen ? <ChevronDown size={14} className="opacity-60" /> : <ChevronRight size={14} className="opacity-60" />}
                   </div>
                 </button>
-                
+
                 <AnimatePresence>
                   {isChartOpen && (
-                    <motion.div 
+                    <motion.div
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: 'auto', opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}

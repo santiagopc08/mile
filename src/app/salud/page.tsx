@@ -44,29 +44,7 @@ export default function SaludPage() {
         if (savedB) setAllocationsB(JSON.parse(savedB));
     }, []);
 
-    const handleAddAllocation = (newAlloc: any) => {
-        if (profile === 'el') {
-            const next = [newAlloc, ...allocationsA];
-            setAllocationsA(next);
-            localStorage.setItem('symmetry_A_allocations', JSON.stringify(next));
-        } else {
-            const next = [newAlloc, ...allocationsB];
-            setAllocationsB(next);
-            localStorage.setItem('symmetry_B_allocations', JSON.stringify(next));
-        }
-    };
 
-    const handleRemoveAllocation = (id: string) => {
-        if (profile === 'el') {
-            const next = allocationsA.filter(a => a.id !== id);
-            setAllocationsA(next);
-            localStorage.setItem('symmetry_A_allocations', JSON.stringify(next));
-        } else {
-            const next = allocationsB.filter(a => a.id !== id);
-            setAllocationsB(next);
-            localStorage.setItem('symmetry_B_allocations', JSON.stringify(next));
-        }
-    };
 
     const tabs: Array<{ id: SaludTab; label: string; icon: typeof Activity }> = [
         { id: 'vitals', label: 'Signos Vitales', icon: HeartPulse },
@@ -84,49 +62,24 @@ export default function SaludPage() {
                     <div className="border-y border-white/10 bg-[#0a0a0a]/95 rounded-none">
                         <div className="relative p-5 sm:p-8 md:p-10">
                             <div className={`absolute left-0 top-0 h-full w-[5px] bg-${accentClass}`} style={{ backgroundColor: accentColor }} />
-                            <div className="mb-8 flex flex-wrap items-center gap-3 text-[10px] font-bold uppercase tracking-[0.28em] text-[#a88a7e]">
-                                <span className={`border border-${accentClass}/50 px-2 py-1 text-${accentClass} rounded-none`} style={{ borderColor: `${accentColor}80`, color: accentColor }}>BIENESTAR // REGISTRO</span>
-                                <span className="flex items-center gap-2">
-                                    <span className={`h-2 w-2 bg-${secondaryClass}`} style={{ backgroundColor: secondaryColor }} />
-                                    EN LÍNEA
-                                </span>
-                            </div>
-                            <h1 className="text-5xl font-black uppercase leading-[0.92] tracking-normal text-white sm:text-7xl lg:text-8xl font-sans">Salud</h1>
-                            <div className="mt-6 grid max-w-4xl gap-5 border-t border-white/10 pt-5 md:grid-cols-[1fr_auto] md:items-end">
-                                <p className="max-w-2xl text-sm leading-6 tracking-normal text-[#e1bfb2] md:text-base font-sans">
-                                    Monitoreo de parámetros vitales, privacidad biométrica y hábitos personales asociados al bienestar.
-                                </p>
-                                <div className="grid grid-cols-2 border border-white/10 text-center rounded-none bg-black">
-                                    <div className="border-r border-white/10 px-4 py-3">
-                                        <div className={`text-2xl font-black text-${accentClass} tracking-tighter`} style={{ color: accentColor }}>{tabs.length}</div>
-                                        <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Secciones</div>
-                                    </div>
-                                    <div className="px-4 py-3">
-                                        <div className={`text-2xl font-black text-${secondaryClass} tracking-tighter`} style={{ color: secondaryColor }}>{profile === 'ella' ? 'Milena' : 'Santiago'}</div>
-                                        <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Perfil</div>
+                            <h1 className="text-3xl sm:text-4xl md:text-5xl font-mono font-bold uppercase leading-[0.92] tracking-tight text-white flex justify-between items-center">Salud
+                                <div className="relative p-1 border border-white/10 bg-black rounded-none">
+                                    <div className={`absolute top-0 left-0 w-1.5 h-1.5 border-t border-l border-${accentClass}`} style={{ borderColor: accentColor }} />
+                                    <div className={`absolute bottom-0 right-0 w-1.5 h-1.5 border-b border-r border-${accentClass}`} style={{ borderColor: accentColor }} />
+                                    <video
+                                        className="w-20 h-20 object-cover contrast-125 opacity-80 mix-blend-screen rounded-none"
+                                        src="vid/dogtor.mp4"
+                                        autoPlay
+                                        loop
+                                        muted
+                                        playsInline
+                                        webkit-playsinline="true"
+                                    />
+                                    <div className="absolute top-2 right-2 flex gap-1">
+                                        <div className={`w-1 h-1 bg-${secondaryClass} animate-pulse`} style={{ backgroundColor: secondaryColor }} />
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Section Video Header */}
-                    <div className="flex justify-center mb-8 mt-8">
-                        <div className="relative p-1 border border-white/10 bg-black rounded-none">
-                            <div className={`absolute top-0 left-0 w-1.5 h-1.5 border-t border-l border-${accentClass}`} style={{ borderColor: accentColor }} />
-                            <div className={`absolute bottom-0 right-0 w-1.5 h-1.5 border-b border-r border-${accentClass}`} style={{ borderColor: accentColor }} />
-                            <video
-                                className="w-32 h-32 object-cover contrast-125 opacity-80 mix-blend-screen rounded-none"
-                                src="vid/dogtor.mp4"
-                                autoPlay
-                                loop
-                                muted
-                                playsInline
-                                webkit-playsinline="true"
-                            />
-                            <div className="absolute top-2 right-2 flex gap-1">
-                                <div className={`w-1 h-1 bg-${secondaryClass} animate-pulse`} style={{ backgroundColor: secondaryColor }} />
-                            </div>
+                            </h1>
                         </div>
                     </div>
 
@@ -135,7 +88,7 @@ export default function SaludPage() {
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
-                                className={`group relative flex min-h-20 items-center justify-between border-b border-white/10 px-4 py-4 transition-all last:border-b-0 sm:border-b-0 sm:border-r sm:last:border-r-0 rounded-none ${activeTab === tab.id
+                                className={`group relative font-mono flex min-h-20 items-center justify-between border-b border-white/10 px-4 py-4 transition-all last:border-b-0 sm:border-b-0 sm:border-r sm:last:border-r-0 rounded-none ${activeTab === tab.id
                                     ? 'text-black'
                                     : 'bg-[#0a0a0a] text-[#a88a7e] hover:bg-[#121212] hover:text-white'
                                     }`}

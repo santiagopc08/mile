@@ -67,12 +67,12 @@ export const TaskStatsChart = ({ tasks, objectives }: { tasks: any[], objectives
             dataKey="name"
             axisLine={false}
             tickLine={false}
-            tick={{ fontSize: 9, fontWeight: 'bold', fill: 'currentColor', opacity: 0.5 }}
+            tick={{ fontSize: 9, fontWeight: 'bold', fill: 'currentColor', opacity: 0.5, fontFamily: 'var(--font-mono)' }}
           />
           <YAxis
             axisLine={false}
             tickLine={false}
-            tick={{ fontSize: 9, fontWeight: 'bold', fill: 'currentColor', opacity: 0.5 }}
+            tick={{ fontSize: 9, fontWeight: 'bold', fill: 'currentColor', opacity: 0.5, fontFamily: 'var(--font-mono)' }}
             allowDecimals={false}
           />
           <Tooltip
@@ -84,7 +84,8 @@ export const TaskStatsChart = ({ tasks, objectives }: { tasks: any[], objectives
               fontSize: '10px',
               textTransform: 'uppercase',
               fontWeight: 'bold',
-              padding: '8px'
+              padding: '8px',
+              fontFamily: 'var(--font-mono)'
             }}
           />
           <Bar

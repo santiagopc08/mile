@@ -38,7 +38,10 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
   const accentClass = profile === 'ella' ? 'user-a' : 'user-b';
   const { data, updateData } = useStore();
 
-  const tasks = useMemo(() => (data?.tasks as Task[]) || [], [data?.tasks]);
+  const tasks = useMemo(() => {
+    const allTasks = (data?.tasks as Task[]) || [];
+    return allTasks.filter(t => !t.assignee || t.assignee === profile);
+  }, [data?.tasks, profile]);
   const objectives = useMemo(() => (data?.objectives as Objective[]) || [], [data?.objectives]);
   const visibleObjectives = useMemo(() => objectives.filter(o => o.author === profile), [objectives, profile]);
 
@@ -363,7 +366,7 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
                 value={newObjective}
                 onChange={e => setNewObjective(e.target.value)}
                 placeholder="NUEVO OBJETIVO"
-                className={`flex-1 border border-white/10 bg-black px-3 py-1.5 text-[10px] uppercase text-white outline-none placeholder:text-[#594137] focus:border-${newObjectiveAuthor === 'ella' ? 'user-a' : 'user-b'}`}
+                className={`flex-1 border border-white/10 bg-black px-3 py-1.5 text-[10px] font-mono uppercase text-white outline-none placeholder:text-[#594137] focus:border-${newObjectiveAuthor === 'ella' ? 'user-a' : 'user-b'}`}
               />
               <button
                 onClick={addObjective}
@@ -381,7 +384,7 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
               const objColor = obj.author === 'ella' ? 'user-a' : 'user-b';
 
               return (
-                <div key={obj.id} className={`flex flex-col gap-1 border px-2 py-1 transition-all ${obj.is_complete ? 'border-emerald-500 bg-emerald-500/5 opacity-50' : `border-${objColor}/30 bg-${objColor}/5`}`}>
+                <div key={obj.id} className={`flex flex-col gap-1 border px-2 py-[2px] transition-all ${obj.is_complete ? 'border-emerald-500 bg-emerald-500/5 opacity-50' : `border-${objColor}/30 bg-${objColor}/5`}`}>
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => toggleObjectiveComplete(obj.id)}
@@ -390,7 +393,7 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
                     >
                       {obj.is_complete ? <Check size={10} /> : <div className="w-[10px] h-[10px]" />}
                     </button>
-                    <span className={`text-[8px] uppercase font-bold ${obj.is_complete ? 'text-emerald-500 line-through' : `text-${objColor}`}`}>{obj.title}</span>
+                    <span className={`text-[8px] font-mono uppercase font-bold ${obj.is_complete ? 'text-emerald-500 line-through' : `text-${objColor}`}`}>{obj.title}</span>
                     <button onClick={() => deleteObjective(obj.id)} className="text-stone-400 hover:text-red-500 ml-auto">
                       <X size={10} />
                     </button>
@@ -428,30 +431,30 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
                   value={newTask}
                   onChange={e => setNewTask(e.target.value)}
                   placeholder="NUEVA TAREA"
-                  className={`flex-1 border border-white/10 bg-black px-3 py-1.5 text-[10px] uppercase text-white outline-none placeholder:text-[#594137] focus:border-${accentClass}`}
+                  className={`flex-1 border border-white/10 bg-black px-3 py-1.5 text-[10px] font-mono uppercase text-white outline-none placeholder:text-[#594137] focus:border-${accentClass}`}
                 />
               </div>
               <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
                 <div className="flex flex-col gap-1">
-                  <label className="text-[7px] uppercase font-bold text-stone-400">Objetivo</label>
+                  <label className="text-[7px] uppercase font-bold text-stone-400 font-mono">Objetivo</label>
                   <select
                     value={selectedObjectiveId}
                     onChange={e => setSelectedObjectiveId(e.target.value)}
-                    className="h-[32px] border border-white/10 bg-black px-2 text-[8px] uppercase text-[#e5e2e1] outline-none"
+                    className="h-[32px] border border-white/10 bg-black px-2 text-[8px] uppercase text-[#e5e2e1] outline-none font-mono"
                   >
                     <option value="">Sin Objetivo</option>
                     {visibleObjectives.map(o => <option key={o.id} value={o.id}>{o.title}</option>)}
                   </select>
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="text-[7px] uppercase font-bold text-stone-400">Categoría</label>
-                  <div className="flex min-h-[30px] border border-white/10 bg-black">
+                  <label className="text-[7px] uppercase font-bold text-stone-400 font-mono">Categoría</label>
+                  <div className="flex min-h-[30px] border border-white/10 bg-black font-mono">
                     {(['work', 'home', 'personal'] as const).map(cat => (
                       <button
                         key={cat}
                         type="button"
                         onClick={() => setCategory(cat)}
-                        className={`!min-h-0 flex-1 border-r border-white/10 px-1 py-1.5 text-[7px] font-bold uppercase transition-colors last:border-r-0 ${category === cat ? categoryStyles[cat].active : `${categoryStyles[cat].chip} opacity-60 hover:opacity-100`}`}
+                        className={`!min-h-0 flex-1 border-r border-white/10 px-1 py-1.5 text-[7px] font-bold uppercase transition-colors last:border-r-0 font-mono ${category === cat ? categoryStyles[cat].active : `${categoryStyles[cat].chip} opacity-60 hover:opacity-100`}`}
                       >
                         {categoryStyles[cat].label}
                       </button>
@@ -459,13 +462,13 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
                   </div>
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="text-[7px] uppercase font-bold text-stone-400">Prioridad</label>
-                  <div className="flex min-h-[30px] border border-white/10 bg-black">
+                  <label className="text-[7px] uppercase font-bold text-stone-400 font-mono">Prioridad</label>
+                  <div className="flex min-h-[30px] border border-white/10 bg-black font-mono">
                     {(['low', 'medium', 'high'] as const).map(p => (
                       <button
                         key={p}
                         onClick={() => setNewPriority(p)}
-                        className={`!min-h-0 flex flex-1 items-center justify-center border-r border-white/10 py-1.5 text-[7px] font-bold uppercase transition-colors last:border-r-0 ${newPriority === p ? priorityStyles[p].active : `${priorityStyles[p].chip} opacity-60 hover:opacity-100`}`}
+                        className={`!min-h-0 flex flex-1 items-center justify-center border-r border-white/10 py-1.5 text-[7px] font-bold uppercase transition-colors last:border-r-0 font-mono ${newPriority === p ? priorityStyles[p].active : `${priorityStyles[p].chip} opacity-60 hover:opacity-100`}`}
                       >
                         {priorityStyles[p].label}
                       </button>
@@ -474,22 +477,22 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
                 </div>
               </div>
               <div className="grid grid-cols-[1fr_2fr] gap-2">
-                <div className="flex flex-col gap-1">
-                  <label className="text-[7px] uppercase font-bold text-stone-400">Est. (m)</label>
+                <div className="flex flex-col gap-1 font-mono">
+                  <label className="text-[7px] uppercase font-bold text-stone-400 font-mono">Est. (m)</label>
                   <input
                     type="number"
                     value={newEstimatedTime}
                     onChange={e => setNewEstimatedTime(Number(e.target.value))}
-                    className="h-[32px] border border-white/10 bg-black px-2 text-[8px] text-white outline-none"
+                    className="h-[32px] border border-white/10 bg-black px-2 text-[8px] text-white outline-none font-mono"
                   />
                 </div>
-                <div className="flex flex-col gap-1">
-                  <label className="text-[7px] uppercase font-bold text-stone-400">Fecha Límite</label>
+                <div className="flex flex-col gap-1 font-mono">
+                  <label className="text-[7px] uppercase font-bold text-stone-400 font-mono">Fecha Límite</label>
                   <input
                     type="datetime-local"
                     value={newDueDate}
                     onChange={e => setNewDueDate(e.target.value)}
-                    className="h-[32px] border border-white/10 bg-black px-2 text-[8px] text-white outline-none"
+                    className="h-[32px] border border-white/10 bg-black px-2 text-[8px] text-white outline-none font-mono"
                   />
                 </div>
               </div>
@@ -507,16 +510,16 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
                   <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden space-y-3 border-l-2 border-stone-800 py-1.5 pl-3">
 
                     {/* Detail */}
-                    <div className="flex flex-col gap-1">
-                      <label className="text-[7px] uppercase font-bold text-stone-400">Detalle</label>
+                    <div className="flex flex-col gap-1 font-mono">
+                      <label className="text-[7px] uppercase font-bold text-stone-400 font-mono">Detalle</label>
                       <textarea
                         value={newDetail}
                         onChange={e => setNewDetail(e.target.value)}
                         placeholder="Información adicional o contexto..."
-                        className="min-h-[48px] resize-none border border-white/10 bg-black px-3 py-1.5 text-[10px] text-white outline-none placeholder:text-[#594137]"
+                        className="min-h-[48px] resize-none border border-white/10 bg-black px-3 py-1.5 text-[10px] text-white outline-none placeholder:text-[#594137] font-mono"
                       />
                       {newDetail.match(/https?:\/\/[^\s]+/) && (
-                        <div className="pt-2">
+                        <div className="pt-2 font-mono">
                           <LiveLinkPreview url={newDetail.match(/https?:\/\/[^\s]+/)![0]} label="ENLACE DETECTADO" />
                         </div>
                       )}
@@ -524,39 +527,39 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
 
                     <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                       {/* Actions */}
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center">
-                          <label className="text-[7px] uppercase font-bold text-stone-400">Checklist de Acciones</label>
-                          <button onClick={() => fetchAiSuggestions('actions')} disabled={!newTask || aiLoading} className={`!min-h-0 text-[7px] flex items-center gap-1 text-${accentClass} hover:text-white disabled:opacity-30`}>
+                      <div className="space-y-2 font-mono">
+                        <div className="flex justify-between items-center font-mono">
+                          <label className="text-[7px] uppercase font-bold text-stone-400 font-mono">Checklist de Acciones</label>
+                          <button onClick={() => fetchAiSuggestions('actions')} disabled={!newTask || aiLoading} className={`!min-h-0 text-[7px] flex items-center gap-1 text-${accentClass} hover:text-white disabled:opacity-30 font-mono`}>
                             <Sparkles size={10} /> Sugerir
                           </button>
                         </div>
 
                         {/* AI Suggestions (Actions) */}
                         {aiSuggestions.field === 'actions' && aiSuggestions.items.length > 0 && (
-                          <div className={`p-2 border border-${accentClass}/30 bg-${accentClass}/5 space-y-1`}>
-                            <div className={`text-[6px] uppercase font-bold text-${accentClass} mb-1`}>Sugerencias</div>
+                          <div className={`p-2 border border-${accentClass}/30 bg-${accentClass}/5 space-y-1 font-mono`}>
+                            <div className={`text-[6px] uppercase font-bold text-${accentClass} mb-1 font-mono`}>Sugerencias</div>
                             {aiSuggestions.items.map(sug => (
-                              <button key={sug} onClick={() => importSuggestion(sug, 'actions')} className={`!min-h-0 text-left w-full text-[8px] text-stone-300 hover:text-white hover:bg-${accentClass}/20 p-1 flex items-center gap-2`}>
+                              <button key={sug} onClick={() => importSuggestion(sug, 'actions')} className={`!min-h-0 text-left w-full text-[8px] text-stone-300 hover:text-white hover:bg-${accentClass}/20 p-1 flex items-center gap-2 font-mono`}>
                                 <Plus size={8} /> {sug}
                               </button>
                             ))}
                           </div>
                         )}
 
-                        <div className="flex gap-1">
+                        <div className="flex gap-1 font-mono">
                           <input
                             value={newActionText}
                             onChange={e => setNewActionText(e.target.value)}
                             onKeyDown={e => { if (e.key === 'Enter') { setNewActions([...newActions, { id: Date.now().toString(), text: newActionText, checked: false }]); setNewActionText(''); } }}
                             placeholder="Nueva acción..."
-                            className="flex-1 border border-white/10 bg-black px-2 py-1 text-[9px] text-white outline-none placeholder:text-[#594137]"
+                            className="flex-1 border border-white/10 bg-black px-2 py-1 text-[9px] text-white outline-none placeholder:text-[#594137] font-mono"
                           />
                           <button onClick={() => { if (newActionText) { setNewActions([...newActions, { id: Date.now().toString(), text: newActionText, checked: false }]); setNewActionText(''); } }} className={`!min-h-0 border border-white/10 px-2 hover:border-${accentClass} hover:bg-white/5`}><Plus size={10} /></button>
                         </div>
-                        <div className="space-y-1">
+                        <div className="space-y-1 font-mono">
                           {newActions.map(act => (
-                            <div key={act.id} className="flex justify-between items-center text-[9px] px-2 py-1 bg-white/5 border border-stone-800/50">
+                            <div key={act.id} className="flex justify-between items-center text-[9px] px-2 py-[2px] bg-white/5 border border-stone-800/50 font-mono">
                               <span className="truncate pr-2">{act.text}</span>
                               <button onClick={() => setNewActions(newActions.filter(a => a.id !== act.id))} className="text-stone-500 hover:text-red-500"><X size={10} /></button>
                             </div>
@@ -565,39 +568,39 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
                       </div>
 
                       {/* Validations */}
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center">
-                          <label className="text-[7px] uppercase font-bold text-stone-400">Validaciones de Éxito</label>
-                          <button onClick={() => fetchAiSuggestions('validations')} disabled={!newTask || aiLoading} className="!min-h-0 text-[7px] flex items-center gap-1 text-emerald-500 hover:text-white disabled:opacity-30">
+                      <div className="space-y-2 font-mono">
+                        <div className="flex justify-between items-center font-mono">
+                          <label className="text-[7px] uppercase font-bold text-stone-400 font-mono">Validaciones de Éxito</label>
+                          <button onClick={() => fetchAiSuggestions('validations')} disabled={!newTask || aiLoading} className="!min-h-0 text-[7px] flex items-center gap-1 text-emerald-500 hover:text-white disabled:opacity-30 font-mono">
                             <Sparkles size={10} /> Sugerir
                           </button>
                         </div>
 
                         {/* AI Suggestions (Validations) */}
                         {aiSuggestions.field === 'validations' && aiSuggestions.items.length > 0 && (
-                          <div className="p-2 border border-emerald-500/30 bg-emerald-500/5 space-y-1">
-                            <div className="text-[6px] uppercase font-bold text-emerald-500 mb-1">Sugerencias</div>
+                          <div className="p-2 border border-emerald-500/30 bg-emerald-500/5 space-y-1 font-mono">
+                            <div className="text-[6px] uppercase font-bold text-emerald-500 mb-1 font-mono">Sugerencias</div>
                             {aiSuggestions.items.map(sug => (
-                              <button key={sug} onClick={() => importSuggestion(sug, 'validations')} className="!min-h-0 text-left w-full text-[8px] text-stone-300 hover:text-white hover:bg-emerald-500/20 p-1 flex items-center gap-2">
+                              <button key={sug} onClick={() => importSuggestion(sug, 'validations')} className="!min-h-0 text-left w-full text-[8px] text-stone-300 hover:text-white hover:bg-emerald-500/20 p-1 flex items-center gap-2 font-mono">
                                 <Plus size={8} /> {sug}
                               </button>
                             ))}
                           </div>
                         )}
 
-                        <div className="flex gap-1">
+                        <div className="flex gap-1 font-mono">
                           <input
                             value={newValidationText}
                             onChange={e => setNewValidationText(e.target.value)}
                             onKeyDown={e => { if (e.key === 'Enter') { setNewValidations([...newValidations, { id: Date.now().toString(), text: newValidationText, checked: false }]); setNewValidationText(''); } }}
                             placeholder="Nueva validación..."
-                            className="flex-1 border border-white/10 bg-black px-2 py-1 text-[9px] text-white outline-none placeholder:text-[#594137]"
+                            className="flex-1 border border-white/10 bg-black px-2 py-1 text-[9px] text-white outline-none placeholder:text-[#594137] font-mono"
                           />
                           <button onClick={() => { if (newValidationText) { setNewValidations([...newValidations, { id: Date.now().toString(), text: newValidationText, checked: false }]); setNewValidationText(''); } }} className="!min-h-0 border border-white/10 px-2 hover:border-emerald-500 hover:bg-white/5"><Plus size={10} /></button>
                         </div>
-                        <div className="space-y-1">
+                        <div className="space-y-1 font-mono">
                           {newValidations.map(val => (
-                            <div key={val.id} className="flex justify-between items-center text-[9px] px-2 py-1 bg-white/5 border border-stone-800/50">
+                            <div key={val.id} className="flex justify-between items-center text-[9px] px-2 py-[2px] bg-white/5 border border-stone-800/50 font-mono">
                               <span className="truncate pr-2">{val.text}</span>
                               <button onClick={() => setNewValidations(newValidations.filter(v => v.id !== val.id))} className="text-stone-500 hover:text-red-500"><X size={10} /></button>
                             </div>
@@ -638,6 +641,11 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
                 <span className="text-[8px] font-mono tabular-nums text-stone-500">{colTasks.length}</span>
               </h4>
               <div className="flex-1 space-y-3 md:space-y-4 overflow-y-auto custom-scrollbar pt-2 md:pt-3">
+                {col.status === 'todo' && (
+                  <button className="mb-2 flex w-full items-center justify-center gap-1.5 border border-dashed border-white/15 py-2 text-[9px] tracking-[0.15em] text-stone-600 transition-colors hover:border-white/40 hover:text-white font-mono" onClick={() => setIsTaskFormOpen(true)}>
+                    <Plus size={10} /> CREAR
+                  </button>
+                )}
                 <AnimatePresence>
                   {colTasks.map((task) => {
                     const taskPriority = task.priority || 'medium';
@@ -652,15 +660,14 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
                       initial={{ opacity: 0, y: 4 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.95 }}
-                      className={`relative border border-white/10 bg-[#0a0a0a] p-0 transition-colors hover:border-white/20 ${editingTaskId === task.id ? `border-white shadow-[0_0_10px_rgba(255,255,255,0.1)]` : ''}`}
+                      className={`relative w-full border border-white/10 bg-[#0a0a0a] p-0 transition-colors hover:border-white/20 ${editingTaskId === task.id ? `border-white shadow-[0_0_10px_rgba(255,255,255,0.1)]` : ''}`}
                     >
                       {editingTaskId === task.id ? (
                         <div className="p-3 space-y-2">
                           <input value={editTaskText} onChange={e => setEditTaskText(e.target.value)} className={`w-full bg-black border border-white/20 px-2 py-1.5 text-[11px] text-white outline-none focus:border-${accentClass}`} />
                           <div className="flex gap-1 flex-wrap">
-                            <select value={editTaskCategory} onChange={e => setEditTaskCategory(e.target.value as any)} className="flex-1 min-w-0 bg-black border border-white/20 px-1 py-1 text-[9px] uppercase text-stone-300 outline-none"><option value="work">TRABAJO</option><option value="home">HOGAR</option><option value="personal">PERSONAL</option></select>
-                            <select value={editPriority} onChange={e => setEditPriority(e.target.value as any)} className="flex-1 min-w-0 bg-black border border-white/20 px-1 py-1 text-[9px] uppercase text-stone-300 outline-none"><option value="low">BAJA</option><option value="medium">MEDIA</option><option value="high">ALTA</option></select>
-                            <select value={editTaskAssignee} onChange={e => setEditTaskAssignee(e.target.value as any)} className="flex-1 min-w-0 bg-black border border-white/20 px-1 py-1 text-[9px] uppercase text-stone-300 outline-none"><option value="ella">Mile</option><option value="el">Santi</option></select>
+                            <select value={editTaskCategory} onChange={e => setEditTaskCategory(e.target.value as any)} className="flex-1 min-w-0 bg-black border border-white/20 px-1 py-1 text-[9px] uppercase text-stone-300 outline-none font-mono"><option value="work">TRABAJO</option><option value="home">HOGAR</option><option value="personal">PERSONAL</option></select>
+                            <select value={editPriority} onChange={e => setEditPriority(e.target.value as any)} className="flex-1 min-w-0 bg-black border border-white/20 px-1 py-1 text-[9px] uppercase text-stone-300 outline-none font-mono"><option value="low">BAJA</option><option value="medium">MEDIA</option><option value="high">ALTA</option></select>
                           </div>
                           <div className="grid grid-cols-2 gap-1">
                             <div><label className="text-[7px] uppercase font-bold text-stone-500 block">Est</label><input type="number" value={editEstimatedTime} onChange={e => setEditEstimatedTime(Number(e.target.value))} className="w-full bg-black border border-white/20 px-1 py-1 text-[10px] text-white outline-none" /></div>
@@ -681,163 +688,157 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
                           </div>
                         </div>
                       ) : (
-                        <div className="flex flex-col relative pt-1 pl-6 pr-3 pb-3">
-                          {/* Lateral priority stripe */}
-                          <div className={`absolute left-0 top-0 bottom-0 w-[5px] ${priorityBg}`} />
-                          <div className={`absolute left-[5px] top-0 h-1 w-12 ${categoryStyle.stripe}`} />
+                        (() => {
+                          const isCollapsed = task.status === 'done' || task.status === 'skipped';
+                          return (
+                            <div className="flex flex-col relative pt-1 pl-6 pr-3 pb-3">
+                              {/* Lateral priority stripe */}
+                              <div className={`absolute left-0 top-0 bottom-0 w-[5px] ${priorityBg}`} />
+                              <div className={`absolute left-[5px] top-0 h-1 w-12 ${categoryStyle.stripe}`} />
 
-                          {/* Corner Indicators Right */}
-                          <div className="absolute -top-2 -right-2 md:-top-3 md:-right-3 flex items-center">
-                            {/* Category Box */}
-                            <div className={`border px-1.5 py-[3px] text-[6px] md:text-[7px] font-mono tracking-widest uppercase ${categoryStyle.chip}`}>
-                               {categoryStyle.label}
-                            </div>
-                            <div className={`border-y border-r px-1.5 py-[3px] text-[6px] md:text-[7px] font-mono tracking-widest uppercase ${priorityStyles[taskPriority].chip}`}>
-                               {priorityStyles[taskPriority].label}
-                            </div>
-                            {/* Clock Box */}
-                            <div className={`border-b border-white/10 bg-[#050505] px-1.5 py-[3px] ${clockColor}`}>
-                               <Clock size={8} strokeWidth={1.5} />
-                            </div>
-                          </div>
-
-                          {/* Corner Indicator Left (Objective) */}
-                          {(() => {
-                            const objective = getTaskObjective(task);
-                            if (!objective) return null;
-                            const priorityText = priorityStyles[taskPriority].active;
-                            return (
-                              <div className="absolute -top-2 left-[5px] md:-top-3 flex items-center z-10">
-                                <div className={`px-1.5 py-[3px] text-[6px] md:text-[7px] font-mono uppercase tracking-[0.16em] ${priorityText}`}>
-                                  {objective.title}
+                              {/* Corner Indicators Right */}
+                              <div className="absolute -top-2 -right-2 md:-top-3 md:-right-3 flex items-center">
+                                {/* Category Box */}
+                                <div className={`border px-1.5 py-[3px] text-[6px] md:text-[7px] font-mono tracking-widest uppercase ${categoryStyle.chip}`}>
+                                   {categoryStyle.label}
+                                </div>
+                                <div className={`border-y border-r px-1.5 py-[3px] text-[6px] md:text-[7px] font-mono tracking-widest uppercase ${priorityStyles[taskPriority].chip}`}>
+                                   {priorityStyles[taskPriority].label}
+                                </div>
+                                {/* Clock Box */}
+                                <div className={`border-b border-white/10 bg-[#050505] px-1.5 py-[3px] ${clockColor}`}>
+                                   <Clock size={8} strokeWidth={1.5} />
                                 </div>
                               </div>
-                            );
-                          })()}
 
-                          {/* Title and Detail */}
-                          <div className="flex flex-col gap-1 pt-3 md:pt-4 pb-1 mt-1">
-                             <p className={`text-[12px] md:text-[13px] uppercase font-semibold leading-tight tracking-tight text-white ${task.status === 'skipped' ? 'line-through opacity-50' : ''}`}>{task.text}</p>
-                             {task.detail && <p className="text-[9px] leading-tight text-[#a88a7e] line-clamp-2 mt-0.5">{task.detail}</p>}
-                          </div>
+                              {/* Corner Indicator Left (Objective) */}
+                              {(() => {
+                                const objective = getTaskObjective(task);
+                                if (!objective) return null;
+                                const priorityText = priorityStyles[taskPriority].active;
+                                return (
+                                  <div className="absolute -top-2 left-[5px] md:-top-3 flex items-center z-10">
+                                    <div className={`px-1.5 py-[3px] text-[6px] md:text-[7px] font-mono uppercase tracking-[0.16em] ${priorityText}`}>
+                                      {objective.title}
+                                    </div>
+                                  </div>
+                                );
+                              })()}
 
-                          {/* Progress Bar (Conditional) */}
-                          {task.estimated_time > 0 && (
-                            <div className="mt-3 mb-2 flex items-center justify-between gap-1.5">
-                              <span className="text-[6px] font-mono text-stone-500 tracking-wider">PRG</span>
-                              <div className="flex-1 flex gap-[1px] h-1.5">
-                                {Array.from({ length: 10 }).map((_, i) => {
-                                    const progress = task.actual_time / task.estimated_time;
-                                    const filled = i < (progress * 10);
-                                    return <div key={i} className={`h-full flex-1 ${filled ? priorityBg : 'bg-white/10'}`} />;
-                                })}
+                              {/* Title and Detail */}
+                              <div className="flex flex-col gap-1 pt-3 md:pt-4 pb-1 mt-1 font-mono">
+                                 <p className={`text-[12px] md:text-[13px] uppercase font-semibold leading-tight tracking-tight text-white text-center w-full font-mono ${task.status === 'skipped' ? 'line-through opacity-50' : ''}`}>{task.text}</p>
+                                 {!isCollapsed && task.detail && <p className="text-[9px] leading-tight text-[#a88a7e] line-clamp-2 mt-0.5 text-left font-mono">{task.detail}</p>}
                               </div>
-                              <span className="text-[6px] font-mono text-stone-500 shrink-0 text-right">
-                                {task.actual_time}/{task.estimated_time}M · {Math.round((task.actual_time/task.estimated_time)*100)}%
-                              </span>
-                            </div>
-                          )}
 
-                          {/* Actions / Validations Toggle */}
-                          {((task.actions && task.actions.length > 0) || (task.validations && task.validations.length > 0)) && (
-                            <div className={`flex justify-start gap-3 mb-2 ${task.estimated_time > 0 ? '' : 'mt-2'}`}>
-                              {task.actions && task.actions.length > 0 && (
-                                <button onClick={() => setExpandedTaskId(expandedTaskId === task.id ? null : task.id)} className={`text-[7px] font-mono uppercase font-bold hover:text-${accentClass} transition-colors leading-none flex items-center gap-1 text-stone-500`}>
-                                  ACT · ✓ {task.actions.filter(a => a.checked).length}/{task.actions.length}
-                                </button>
+                              {/* Progress Bar (Conditional) */}
+                              {!isCollapsed && task.estimated_time > 0 && (
+                                <div className="mt-3 mb-2 flex items-center justify-between gap-1.5">
+                                  <span className="text-[6px] font-mono text-stone-500 tracking-wider">PRG</span>
+                                  <div className="flex-1 flex gap-[1px] h-1.5">
+                                    {Array.from({ length: 10 }).map((_, i) => {
+                                        const progress = task.actual_time / task.estimated_time;
+                                        const filled = i < (progress * 10);
+                                        return <div key={i} className={`h-full flex-1 ${filled ? priorityBg : 'bg-white/10'}`} />;
+                                    })}
+                                  </div>
+                                  <span className="text-[6px] font-mono text-stone-500 shrink-0 text-right">
+                                    {task.actual_time}/{task.estimated_time}M · {Math.round((task.actual_time/task.estimated_time)*100)}%
+                                  </span>
+                                </div>
                               )}
-                              {task.validations && task.validations.length > 0 && (
-                                <button onClick={() => setExpandedTaskId(expandedTaskId === task.id ? null : task.id)} className={`text-[7px] font-mono uppercase font-bold hover:text-${accentClass} transition-colors leading-none flex items-center gap-1 text-stone-500`}>
-                                  VLD · ✓ {task.validations.filter(v => v.checked).length}/{task.validations.length}
-                                </button>
+
+                              {/* Actions / Validations Toggle */}
+                              {!isCollapsed && ((task.actions && task.actions.length > 0) || (task.validations && task.validations.length > 0)) && (
+                                <div className={`flex justify-start gap-3 mb-2 ${task.estimated_time > 0 ? '' : 'mt-2'}`}>
+                                  {task.actions && task.actions.length > 0 && (
+                                    <button onClick={() => setExpandedTaskId(expandedTaskId === task.id ? null : task.id)} className={`text-[7px] font-mono uppercase font-bold hover:text-${accentClass} transition-colors leading-none flex items-center gap-1 text-stone-500`}>
+                                      ACT · ✓ {task.actions.filter(a => a.checked).length}/{task.actions.length}
+                                    </button>
+                                  )}
+                                  {task.validations && task.validations.length > 0 && (
+                                    <button onClick={() => setExpandedTaskId(expandedTaskId === task.id ? null : task.id)} className={`text-[7px] font-mono uppercase font-bold hover:text-${accentClass} transition-colors leading-none flex items-center gap-1 text-stone-500`}>
+                                      VLD · ✓ {task.validations.filter(v => v.checked).length}/{task.validations.length}
+                                    </button>
+                                  )}
+                                </div>
                               )}
+
+                              {/* Actions / Validations Collapsible */}
+                              <AnimatePresence>
+                                {!isCollapsed && expandedTaskId === task.id && ((task.actions && task.actions.length > 0) || (task.validations && task.validations.length > 0)) && (
+                                   <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden space-y-2 border-t border-white/5 pt-2 mb-2">
+                                     {task.actions && task.actions.length > 0 && (
+                                       <div className="space-y-0.5">
+                                         <span className="text-[6px] text-stone-600 font-mono tracking-widest uppercase block mb-1">Actions</span>
+                                         {task.actions.map(act => {
+                                            const obj = getTaskObjective(task);
+                                            const clr = obj?.author === 'ella' ? 'user-a' : 'user-b';
+                                            return (
+                                              <button key={act.id} onClick={() => toggleChecklistInCard(task.id, 'actions', act.id)} className={`w-full flex items-center gap-1.5 py-0 text-[9px] text-left leading-none font-mono ${act.checked ? 'text-stone-600 line-through' : 'text-[#e5e2e1]'}`}>
+                                                <div className={`w-1.5 h-1.5 border shrink-0 ${act.checked ? `bg-${clr} border-${clr}` : 'border-stone-500'}`} />
+                                                <span className="truncate font-mono">{act.text}</span>
+                                              </button>
+                                            );
+                                         })}
+                                       </div>
+                                     )}
+                                     {task.validations && task.validations.length > 0 && (
+                                       <div className="space-y-0.5 font-mono">
+                                         <span className="text-[6px] text-stone-600 font-mono tracking-widest uppercase block mb-1">Validations</span>
+                                         {task.validations.map(act => {
+                                            const obj = getTaskObjective(task);
+                                            const clr = obj?.author === 'ella' ? 'user-a' : 'user-b';
+                                            return (
+                                              <button key={act.id} onClick={() => toggleChecklistInCard(task.id, 'validations', act.id)} className={`w-full flex items-center gap-1.5 py-0 text-[9px] text-left leading-none font-mono ${act.checked ? 'text-stone-600 line-through' : 'text-[#e5e2e1]'}`}>
+                                                <div className={`w-1.5 h-1.5 border shrink-0 ${act.checked ? `bg-${clr} border-${clr}` : 'border-stone-500'}`} />
+                                                <span className="truncate font-mono">{act.text}</span>
+                                              </button>
+                                            );
+                                         })}
+                                       </div>
+                                     )}
+                                   </motion.div>
+                                )}
+                              </AnimatePresence>
+
+                              {/* Footer Controls */}
+                              <div className="mt-auto flex justify-start items-center border-t border-white/5 pt-2 h-7">
+                                 <div className="flex items-center gap-[1px] bg-white/[0.08] brutal-border pl-[1px] pt-[1px]">
+                                   {task.status !== 'done' && task.status !== 'skipped' && (
+                                     <button onClick={() => deleteTask(task.id)} className="h-5 w-5 bg-[#0a0a0a] text-stone-500 hover:text-red-500 transition-colors flex items-center justify-center !min-h-0">
+                                       <Trash2 size={10} strokeWidth={1.5} />
+                                     </button>
+                                   )}
+                                   {task.status !== 'done' && task.status !== 'skipped' && (
+                                     <button onClick={() => handleEditStart(task)} className="h-5 w-5 bg-[#0a0a0a] text-stone-500 hover:text-white transition-colors flex items-center justify-center !min-h-0">
+                                       <Pencil size={10} strokeWidth={1.5} />
+                                     </button>
+                                   )}
+                                   {task.status === 'todo' && (
+                                     <button onClick={() => updateTaskStatus(task.id, 'in_progress')} className="h-5 w-5 bg-[#0a0a0a] text-stone-500 hover:text-emerald-500 transition-colors flex items-center justify-center !min-h-0">
+                                       <Check size={11} strokeWidth={1.5} />
+                                     </button>
+                                   )}
+                                   {task.status === 'in_progress' && (
+                                     <button onClick={() => updateTaskStatus(task.id, 'done')} className="h-5 w-5 bg-[#0a0a0a] text-stone-500 hover:text-emerald-500 transition-colors flex items-center justify-center !min-h-0">
+                                       <Check size={11} strokeWidth={1.5} />
+                                     </button>
+                                   )}
+                                   {(task.status === 'done' || task.status === 'skipped') && (
+                                     <button onClick={() => updateTaskStatus(task.id, 'in_progress')} className="h-5 w-5 bg-[#0a0a0a] text-stone-500 hover:text-white transition-colors flex items-center justify-center !min-h-0" title="Retomar">
+                                       <Pencil size={10} strokeWidth={1.5} />
+                                     </button>
+                                   )}
+                                 </div>
+                              </div>
                             </div>
-                          )}
-
-                          {/* Actions / Validations Collapsible */}
-                          <AnimatePresence>
-                            {expandedTaskId === task.id && ((task.actions && task.actions.length > 0) || (task.validations && task.validations.length > 0)) && (
-                               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden space-y-2 border-t border-white/5 pt-2 mb-2">
-                                 {task.actions && task.actions.length > 0 && (
-                                   <div className="space-y-0.5">
-                                     <span className="text-[6px] text-stone-600 font-mono tracking-widest uppercase block mb-1">Actions</span>
-                                     {task.actions.map(act => {
-                                        const obj = getTaskObjective(task);
-                                        const clr = obj?.author === 'ella' ? 'user-a' : 'user-b';
-                                        return (
-                                          <button key={act.id} onClick={() => toggleChecklistInCard(task.id, 'actions', act.id)} className={`w-full flex items-center gap-1.5 py-0.5 text-[9px] text-left leading-none ${act.checked ? 'text-stone-600 line-through' : 'text-[#e5e2e1]'}`}>
-                                            <div className={`w-1.5 h-1.5 border shrink-0 ${act.checked ? `bg-${clr} border-${clr}` : 'border-stone-500'}`} />
-                                            <span className="truncate">{act.text}</span>
-                                          </button>
-                                        );
-                                     })}
-                                   </div>
-                                 )}
-                                 {task.validations && task.validations.length > 0 && (
-                                   <div className="space-y-0.5">
-                                     <span className="text-[6px] text-stone-600 font-mono tracking-widest uppercase block mb-1">Validations</span>
-                                     {task.validations.map(act => {
-                                        const obj = getTaskObjective(task);
-                                        const clr = obj?.author === 'ella' ? 'user-a' : 'user-b';
-                                        return (
-                                          <button key={act.id} onClick={() => toggleChecklistInCard(task.id, 'validations', act.id)} className={`w-full flex items-center gap-1.5 py-0.5 text-[9px] text-left leading-none ${act.checked ? 'text-stone-600 line-through' : 'text-[#e5e2e1]'}`}>
-                                            <div className={`w-1.5 h-1.5 border shrink-0 ${act.checked ? `bg-${clr} border-${clr}` : 'border-stone-500'}`} />
-                                            <span className="truncate">{act.text}</span>
-                                          </button>
-                                        );
-                                     })}
-                                   </div>
-                                 )}
-                               </motion.div>
-                            )}
-                          </AnimatePresence>
-
-                          {/* Footer Controls */}
-                          <div className="mt-auto flex justify-between items-center border-t border-white/5 pt-2 h-7">
-                             {/* Initials block representing author/system like [JD] in reference */}
-                             <div className="text-[7px] font-mono font-bold uppercase border border-white/10 px-2 py-0.5 text-stone-500 tracking-widest bg-white/5">
-                                {task.assignee === 'el' ? 'SANTI' : 'MILENA'}
-                             </div>
-                             
-                             <div className="flex items-center gap-[1px] bg-white/[0.08] brutal-border pl-[1px] pt-[1px]">
-                               {task.status !== 'done' && task.status !== 'skipped' && (
-                                 <button onClick={() => deleteTask(task.id)} className="h-6 w-6 bg-[#0a0a0a] text-stone-500 hover:text-red-500 transition-colors flex items-center justify-center !min-h-0">
-                                   <Trash2 size={10} strokeWidth={1.5} />
-                                 </button>
-                               )}
-                               {task.status !== 'done' && task.status !== 'skipped' && (
-                                 <button onClick={() => handleEditStart(task)} className="h-6 w-6 bg-[#0a0a0a] text-stone-500 hover:text-white transition-colors flex items-center justify-center !min-h-0">
-                                   <Pencil size={10} strokeWidth={1.5} />
-                                 </button>
-                               )}
-                               {task.status === 'todo' && (
-                                 <button onClick={() => updateTaskStatus(task.id, 'in_progress')} className="h-6 w-6 bg-[#0a0a0a] text-stone-500 hover:text-emerald-500 transition-colors flex items-center justify-center !min-h-0">
-                                   <Check size={11} strokeWidth={1.5} />
-                                 </button>
-                               )}
-                               {task.status === 'in_progress' && (
-                                 <button onClick={() => updateTaskStatus(task.id, 'done')} className="h-6 w-6 bg-[#0a0a0a] text-stone-500 hover:text-emerald-500 transition-colors flex items-center justify-center !min-h-0">
-                                   <Check size={11} strokeWidth={1.5} />
-                                 </button>
-                               )}
-                               {(task.status === 'done' || task.status === 'skipped') && (
-                                 <button onClick={() => updateTaskStatus(task.id, 'in_progress')} className="h-6 w-6 bg-[#0a0a0a] text-stone-500 hover:text-white transition-colors flex items-center justify-center !min-h-0" title="Retomar">
-                                   <Pencil size={10} strokeWidth={1.5} />
-                                 </button>
-                               )}
-                             </div>
-                          </div>
-                        </div>
+                          );
+                        })()
                       )}
                     </motion.div>
                   )})}
                 </AnimatePresence>
-
-                {col.status === 'todo' && (
-                  <button className={`mt-1 flex w-full items-center justify-center gap-1.5 border border-dashed border-white/15 py-2 text-[9px] tracking-[0.15em] text-stone-600 transition-colors hover:border-white/40 hover:text-white`} onClick={() => setIsTaskFormOpen(true)}>
-                    <Plus size={10} /> CREAR
-                  </button>
-                )}
               </div>
             </div>
           );

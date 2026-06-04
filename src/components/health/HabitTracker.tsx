@@ -204,9 +204,9 @@ export function HabitTracker() {
                                     <div className="space-y-2">
                                         <label className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e] font-mono">Impacto (Salud y finanzas)</label>
                                         <div className="flex gap-2">
-                                            <button type="button" onClick={() => setSeverity('low')} className={`flex-1 py-2 text-[9px] uppercase font-bold border transition-colors rounded-none ${severity === 'low' ? 'border-[#c3f400] text-[#c3f400] bg-[#c3f400]/10' : 'border-white/10 text-white/30'}`}>Baja</button>
-                                            <button type="button" onClick={() => setSeverity('medium')} className={`flex-1 py-2 text-[9px] uppercase font-bold border transition-colors rounded-none ${severity === 'medium' ? 'border-[#ffb595] text-[#ffb595] bg-[#ffb595]/10' : 'border-white/10 text-white/30'}`}>Media</button>
-                                            <button type="button" onClick={() => setSeverity('high')} className={`flex-1 py-2 text-[9px] uppercase font-bold border transition-colors rounded-none ${severity === 'high' ? 'border-[#ff003c] text-[#ff003c] bg-[#ff003c]/10' : 'border-white/10 text-white/30'}`}>Alta</button>
+                                            <button type="button" onClick={() => setSeverity('low')} className={`flex-1 py-2 text-[9px] uppercase font-bold border transition-colors rounded-none ${severity === 'low' ? 'border-[#c3f400] text-[#c3f400] bg-[#c3f400]/10' : 'border-white/10 text-white/30'} font-mono`}>Baja</button>
+                                            <button type="button" onClick={() => setSeverity('medium')} className={`flex-1 py-2 text-[9px] uppercase font-bold border transition-colors rounded-none ${severity === 'medium' ? 'border-[#ffb595] text-[#ffb595] bg-[#ffb595]/10' : 'border-white/10 text-white/30'} font-mono`}>Media</button>
+                                            <button type="button" onClick={() => setSeverity('high')} className={`flex-1 py-2 text-[9px] uppercase font-bold border transition-colors rounded-none ${severity === 'high' ? 'border-[#ff003c] text-[#ff003c] bg-[#ff003c]/10' : 'border-white/10 text-white/30'} font-mono`}>Alta</button>
                                         </div>
                                     </div>
 

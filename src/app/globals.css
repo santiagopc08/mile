@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Anta&family=Bruno+Ace+SC&family=Quantico:ital,wght@0,400;0,700;1,400;1,700&display=swap');
 @import "tailwindcss";
 
 @theme {
@@ -27,8 +28,12 @@
   --color-border-subtle: rgba(172, 135, 143, 0.1);
 
   --spacing: 0.25rem;
-  --font-sans: var(--font-space-grotesk), "Space Grotesk", sans-serif;
-  --font-mono: var(--font-space-grotesk), "Space Grotesk", monospace;
+  --font-sans: var(--font-anta), var(--font-space-grotesk), sans-serif;
+  --font-mono: var(--font-quantico), monospace;
+  
+  --font-anta: var(--font-anta), sans-serif;
+  --font-bruno: "Bruno Ace SC", sans-serif;
+  --font-quantico: var(--font-quantico), sans-serif;
 
   /* High-Tech Brutalism Signature */
   --color-geometric-accent: var(--color-user-a);
@@ -56,6 +61,14 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+}
+
+.font-sans {
+  font-family: var(--font-anta), var(--font-space-grotesk), sans-serif !important;
+}
+
+.font-mono {
+  font-family: var(--font-quantico), monospace !important;
 }
 
 /* High-tech Brutalism Global Override */
@@ -89,13 +102,21 @@ body {
 }
 
 /* Touch targets */
-button, input, select {
+button {
   min-height: 44px;
+  font-family: inherit;
+}
+input, select, textarea {
+  min-height: 34px !important;
+  font-family: inherit;
+  padding-top: 0.35rem !important;
+  padding-bottom: 0.35rem !important;
 }
 
 /* Custom Scrollbar for inner components */
 .custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
+  width: 2px;
+  height: 2px;
 }
 .custom-scrollbar::-webkit-scrollbar-track {
   background: transparent;
@@ -106,6 +127,10 @@ button, input, select {
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.2);
+}
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
 }
 
 @keyframes pulse-green {
@@ -435,4 +460,117 @@ button, input, select {
 
 .habit-btn:active {
   transform: scale(0.98);
+}
+
+/* Reduce general input/select/textarea padding and min-height */
+input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]), select, textarea {
+  padding-top: 0.35rem !important;
+  padding-bottom: 0.35rem !important;
+  min-height: 34px !important;
+}
+
+/* GPU-Accelerated Shatter Ripple and Ripping pieces */
+.shatter-container {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 500;
+  overflow: visible;
+}
+
+.ripple-wave {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  translate: -50% -50%;
+  border: 3px solid var(--ripple-color, #c3f400);
+  background: transparent;
+  animation: ripple-shockwave 0.5s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+}
+
+.ripple-core {
+  position: absolute;
+  inset: 0;
+  background: var(--ripple-color, #c3f400);
+  opacity: 0.7;
+  animation: ripple-flash 0.4s ease-out forwards;
+}
+
+.shard {
+  position: absolute;
+  inset: 0;
+  background: #111;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  animation-duration: 0.55s;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.25, 1, 0.5, 1);
+  overflow: hidden;
+}
+
+.shard-top {
+  clip-path: polygon(50% 50%, 0 0, 100% 0);
+  animation-name: shard-fly-top;
+}
+
+.shard-right {
+  clip-path: polygon(50% 50%, 100% 0, 100% 100%);
+  animation-name: shard-fly-right;
+}
+
+.shard-bottom {
+  clip-path: polygon(50% 50%, 100% 100%, 0 100%);
+  animation-name: shard-fly-bottom;
+}
+
+.shard-left {
+  clip-path: polygon(50% 50%, 0 100%, 0 0);
+  animation-name: shard-fly-left;
+}
+
+@keyframes ripple-shockwave {
+  0% {
+    scale: 0.6;
+    opacity: 1;
+    border-width: 4px;
+    rotate: 0deg;
+  }
+  100% {
+    scale: 2.2;
+    opacity: 0;
+    border-width: 1px;
+    rotate: 45deg;
+  }
+}
+
+@keyframes ripple-flash {
+  0% {
+    scale: 0.8;
+    opacity: 0.8;
+  }
+  100% {
+    scale: 1.6;
+    opacity: 0;
+  }
+}
+
+@keyframes shard-fly-top {
+  0% { translate: 0 0; rotate: 0deg; scale: 1; opacity: 1; }
+  100% { translate: 0 -50px; rotate: -20deg; scale: 0.2; opacity: 0; }
+}
+
+@keyframes shard-fly-right {
+  0% { translate: 0 0; rotate: 0deg; scale: 1; opacity: 1; }
+  100% { translate: 50px 0; rotate: 25deg; scale: 0.2; opacity: 0; }
+}
+
+@keyframes shard-fly-bottom {
+  0% { translate: 0 0; rotate: 0deg; scale: 1; opacity: 1; }
+  100% { translate: 0 50px; rotate: -15deg; scale: 0.2; opacity: 0; }
+}
+
+@keyframes shard-fly-left {
+  0% { translate: 0 0; rotate: 0deg; scale: 1; opacity: 1; }
+  100% { translate: -50px 0; rotate: -30deg; scale: 0.2; opacity: 0; }
 }

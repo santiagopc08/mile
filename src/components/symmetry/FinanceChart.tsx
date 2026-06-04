@@ -111,13 +111,13 @@ export const FinanceChart = ({ allocationsElla, allocationsEl }: { allocationsEl
             dataKey="name"
             axisLine={false}
             tickLine={false}
-            tick={{ fontSize: 7, fontWeight: 'bold', fill: '#555', letterSpacing: '0.1em' }}
+            tick={{ fontSize: 7, fontWeight: 'bold', fill: '#555', letterSpacing: '0.1em', fontFamily: 'var(--font-mono)' }}
           />
           <YAxis
             axisLine={false}
             tickLine={false}
             tickFormatter={(val) => new Intl.NumberFormat('es-CO', { notation: "compact", compactDisplay: "short" }).format(val)}
-            tick={{ fontSize: 7, fontWeight: 'bold', fill: '#555' }}
+            tick={{ fontSize: 7, fontWeight: 'bold', fill: '#555', fontFamily: 'var(--font-mono)' }}
           />
           <Tooltip
             cursor={{ fill: 'rgba(255, 112, 32, 0.05)' }}
@@ -129,7 +129,8 @@ export const FinanceChart = ({ allocationsElla, allocationsEl }: { allocationsEl
               textTransform: 'uppercase',
               fontWeight: 'bold',
               padding: '10px',
-              boxShadow: '0 10px 20px rgba(0,0,0,0.5)'
+              boxShadow: '0 10px 20px rgba(0,0,0,0.5)',
+              fontFamily: 'var(--font-mono)'
             }}
             itemStyle={{ padding: '2px 0' }}
             formatter={(value: unknown, name: unknown) => [formatCOP(Number(value || 0)), `[ ${String(name)} ]`]}
@@ -145,7 +146,8 @@ export const FinanceChart = ({ allocationsElla, allocationsEl }: { allocationsEl
                 fontWeight: 'black', 
                 paddingBottom: '20px', 
                 letterSpacing: '0.2em',
-                opacity: 0.6
+                opacity: 0.6,
+                fontFamily: 'var(--font-mono)'
               }} 
             />
           )}

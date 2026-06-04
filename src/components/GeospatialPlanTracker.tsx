@@ -107,10 +107,10 @@ export function GeospatialPlanTracker() {
       <div className="w-full space-y-6">
         <div className="flex min-h-[300px] flex-col items-center justify-center gap-4 border border-dashed border-white/10 bg-black/60 p-8">
           <AlertTriangle className="h-8 w-8 text-[#ff7020]" />
-          <p className="text-center text-[10px] font-black uppercase tracking-[0.24em] text-[#a88a7e]">
+          <p className="text-center text-[10px] font-mono font-black uppercase tracking-[0.24em] text-[#a88a7e]">
             API Key de Google Maps no configurada
           </p>
-          <p className="max-w-xs text-center text-[8px] uppercase tracking-[0.2em] text-white/35">
+          <p className="max-w-xs text-center text-[8px] font-mono uppercase tracking-[0.2em] text-white/35">
             Agrega NEXT_PUBLIC_GOOGLE_MAPS_API_KEY a tu archivo .env.local para habilitar el mapa
           </p>
         </div>
@@ -163,27 +163,27 @@ export function GeospatialPlanTracker() {
                   position={{ lat: selectedLocation.latitud, lng: selectedLocation.longitud }}
                   onCloseClick={() => setSelectedId(null)}
                 >
-                  <div className="min-w-[150px] p-2">
-                    <h4 className="mb-2 border-b border-stone-100 pb-1 text-[10px] font-black uppercase tracking-widest">
+                  <div className="min-w-[150px] p-2 font-mono">
+                    <h4 className="mb-2 border-b border-stone-100 pb-1 text-[10px] font-mono font-black uppercase tracking-widest">
                       {selectedLocation.nombre}
                     </h4>
                     <div className="flex flex-col gap-2">
                       <button
                         onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${selectedLocation.latitud},${selectedLocation.longitud}`, '_blank')}
-                        className="flex h-8 items-center justify-center gap-2 bg-stone-900 p-2 text-[8px] font-bold uppercase tracking-normal text-white"
+                        className="flex h-8 items-center justify-center gap-2 bg-stone-900 p-2 text-[8px] font-mono font-bold uppercase tracking-normal text-white"
                       >
                         <Navigation className="w-3 h-3" /> Navegar
                       </button>
                       <div className="flex gap-1">
                         <button
                           onClick={() => toggleStatus(selectedLocation.id, selectedLocation.status)}
-                          className="h-8 flex-1 border border-stone-200 p-2 text-[8px] font-bold uppercase"
+                          className="h-8 flex-1 border border-stone-200 p-2 text-[8px] font-mono font-bold uppercase"
                         >
                           {selectedLocation.status === 'visited' ? 'Pendiente' : 'Visitado'}
                         </button>
                         <button
                           onClick={() => deleteLocation(selectedLocation.id)}
-                          className="h-8 border border-stone-200 px-2 text-red-500"
+                          className="h-8 border border-stone-200 px-2 text-red-500 flex items-center justify-center"
                         >
                           <Trash2 className="w-3 h-3" />
                         </button>
@@ -219,7 +219,7 @@ function LocationLists({ locations, onSelect, onDelete, onToggle }: {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
       <div className="space-y-4">
-        <h4 className="mb-2 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.24em] text-[#a88a7e]">
+        <h4 className="mb-2 flex items-center gap-2 text-[10px] font-mono font-black uppercase tracking-[0.24em] text-[#a88a7e]">
           <Circle className="h-3 w-3 text-[#00dbe9]" /> Próximos Destinos
         </h4>
         <div className="max-h-[450px] overflow-y-auto custom-scrollbar pr-2">
@@ -243,7 +243,7 @@ function LocationLists({ locations, onSelect, onDelete, onToggle }: {
       </div>
 
       <div className="space-y-4">
-        <h4 className="mb-2 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.24em] text-[#a88a7e]">
+        <h4 className="mb-2 flex items-center gap-2 text-[10px] font-mono font-black uppercase tracking-[0.24em] text-[#a88a7e]">
           <CheckCircle className="h-3 w-3 text-[#a100f0]" /> Memorias Visitadas
         </h4>
         <div className="max-h-[450px] overflow-y-auto custom-scrollbar pr-2">

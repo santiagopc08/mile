@@ -44,7 +44,7 @@ export default function RefugioPage() {
 
   return (
     <PrivateRoute>
-      <main className="relative z-10 min-h-screen w-full overflow-hidden bg-black px-4 pb-24 pt-6 text-[#e5e2e1] md:px-8 md:pt-8">
+      <main className="relative z-10 min-h-screen w-full overflow-hidden bg-black px-4 pb-24 pt-6 text-[#e5e2e1] md:px-8 md:pt-8 font-sans">
         <div className="pointer-events-none fixed inset-0 -z-10 bg-mosaic opacity-70" />
         <div className="pointer-events-none fixed inset-x-0 top-0 -z-10 h-64 opacity-20" style={{ backgroundImage: `linear-gradient(180deg, ${accentColor}, transparent)` }} />
 
@@ -52,21 +52,9 @@ export default function RefugioPage() {
           <div className="border-y border-white/10 bg-[#0a0a0a]/92">
             <div className="relative p-5 sm:p-8 md:p-10">
               <div className={`absolute left-0 top-0 h-full w-px bg-${accentClass}`} style={{ backgroundColor: accentColor }} />
-              <div className="mb-8 flex flex-wrap items-center gap-3 text-[10px] font-bold uppercase tracking-[0.28em] text-[#a88a7e]">
-                <span className={`border border-${accentClass}/50 px-2 py-1 text-${accentClass}`} style={{ borderColor: `${accentColor}80`, color: accentColor }}>NUESTRO REFUGIO // MEMORIA</span>
-                <span className="flex items-center gap-2">
-                  <span className={`h-2 w-2 bg-${secondaryClass}`} style={{ backgroundColor: secondaryColor }} />
-                  CONECTADOS
-                </span>
-              </div>
-              <h1 className="max-w-4xl text-5xl font-black uppercase leading-[0.92] tracking-normal text-white sm:text-7xl lg:text-8xl">
+              <h1 className="max-w-4xl text-3xl sm:text-4xl md:text-5xl font-mono font-bold uppercase leading-[0.92] tracking-tight text-white">
                 El Refugio
               </h1>
-              <div className="mt-6 grid max-w-3xl gap-4 border-t border-white/10 pt-5 md:grid-cols-[1fr_auto] md:items-end">
-                <p className="max-w-2xl text-sm leading-6 tracking-normal text-[#e1bfb2] md:text-base">
-                  Espacio de preservación emocional y conexión activa, presentado como un diario privado de recuerdos, música, bebés y cuidado.
-                </p>
-              </div>
             </div>
           </div>
 
@@ -75,7 +63,7 @@ export default function RefugioPage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`group relative flex min-h-20 items-center justify-between border-r border-white/10 px-4 py-4 transition-all last:border-r-0 ${activeTab === tab.id
+                className={`group relative font-mono flex min-h-20 items-center justify-between border-r border-white/10 px-4 py-4 transition-all last:border-r-0 ${activeTab === tab.id
                   ? 'text-black'
                   : 'bg-[#0a0a0a] text-[#a88a7e] hover:bg-[#121212] hover:text-white'
                   }`}
@@ -83,9 +71,9 @@ export default function RefugioPage() {
               >
                 <span className="flex flex-col items-start gap-2">
                   <tab.icon className="h-4 w-4" />
-                  <span className="text-[10px] font-black uppercase tracking-[0.22em]">{tab.label}</span>
+                  <span className="text-[10px] font-black uppercase tracking-[0.22em] font-mono">{tab.label}</span>
                 </span>
-                <span className={`text-[9px] font-bold uppercase tracking-[0.2em] ${activeTab === tab.id ? 'text-black/55' : `text-white/20 group-hover:text-${secondaryClass}`}`} style={activeTab !== tab.id ? { '--tw-hover-text-opacity': 1 } as any : {}}>
+                <span className={`text-[9px] font-bold uppercase tracking-[0.2em] font-mono ${activeTab === tab.id ? 'text-black/55' : `text-white/20 group-hover:text-${secondaryClass}`}`} style={activeTab !== tab.id ? { '--tw-hover-text-opacity': 1 } as any : {}}>
                   0{tabs.findIndex((item) => item.id === tab.id) + 1}
                 </span>
                 {activeTab === tab.id && (

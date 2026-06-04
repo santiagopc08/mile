@@ -25,7 +25,7 @@ export default function PlanesPage() {
 
   return (
     <PrivateRoute>
-      <main className="relative z-10 min-h-screen w-full overflow-hidden bg-black px-4 pb-24 pt-6 text-[#e5e2e1] md:px-8 md:pt-8">
+      <main className="relative z-10 min-h-screen w-full overflow-hidden bg-black px-4 pb-24 pt-6 text-[#e5e2e1] md:px-8 md:pt-8 font-sans">
         <div className="pointer-events-none fixed inset-0 -z-10 bg-mosaic opacity-65" />
         <div className="pointer-events-none fixed inset-x-0 top-0 -z-10 h-64 opacity-20" style={{ backgroundImage: `linear-gradient(180deg, ${accentColor}, transparent)` }} />
         <div className="pointer-events-none fixed inset-0 -z-10 planes-warm-glow opacity-40" />
@@ -34,21 +34,9 @@ export default function PlanesPage() {
           <div className="border-y border-white/10 bg-[#0a0a0a]/95">
             <div className="relative p-5 sm:p-8 md:p-10">
               <div className={`absolute left-0 top-0 h-full w-px bg-${accentClass}`} style={{ backgroundColor: accentColor }} />
-              <div className="mb-8 flex flex-wrap items-center gap-3 text-[10px] font-black uppercase tracking-[0.28em] text-[#a88a7e]">
-                <span className={`border border-${accentClass}/60 px-2 py-1 text-${accentClass}`} style={{ borderColor: `${accentColor}99`, color: accentColor }}>NUESTROS PLANES // DESEOS Y METAS</span>
-                <span className="flex items-center gap-2">
-                  <span className={`h-2 w-2 bg-${secondaryClass}`} style={{ backgroundColor: secondaryColor }} />
-                  MAPA LISTO
-                </span>
-              </div>
-              <h1 className="max-w-4xl text-5xl font-mono font-black uppercase leading-[0.92] tracking-tighter text-white sm:text-7xl lg:text-8xl">
+              <h1 className="max-w-4xl text-3xl sm:text-4xl md:text-5xl font-mono font-bold uppercase leading-[0.92] tracking-tight text-white">
                 Planes
               </h1>
-              <div className="mt-6 max-w-4xl border-t border-white/10 pt-5">
-                <p className="max-w-2xl text-sm leading-6 tracking-normal text-[#d9c1e8] md:text-base font-mono uppercase tracking-wider text-xs">
-                  Antojos, metas de ahorro y experiencias organizadas como una bitácora compartida de intención y deseo.
-                </p>
-              </div>
             </div>
           </div>
 

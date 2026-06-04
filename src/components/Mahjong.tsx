@@ -16,29 +16,6 @@ const MAHJONG_UNICODE = [
     "🀙", "🀚", "🀛", "🀜", "🀝", "🀞", "🀟", "🀠", "🀡"
 ];
 
-interface ShatterFragment {
-    id: number;
-    dx: number;
-    dy: number;
-    rot: number;
-    clipPath: string;
-}
-
-function createShatterFragments(): ShatterFragment[] {
-    const numFragments = 16;
-    return Array.from({ length: numFragments }).map((_, i) => {
-        const angle = (i * (360 / numFragments) + (Math.random() * 10 - 5)) * (Math.PI / 180);
-        const power = 100 + Math.random() * 200;
-        return {
-            id: i,
-            dx: power * Math.cos(angle),
-            dy: power * Math.sin(angle),
-            rot: Math.random() * 720 - 360,
-            clipPath: `polygon(50% 50%, ${50 + Math.cos(angle - 0.35) * 75}% ${50 + Math.sin(angle - 0.35) * 75}%, ${50 + Math.cos(angle + 0.35) * 75}% ${50 + Math.sin(angle + 0.35) * 75}%)`
-        };
-    });
-}
-
 type LayoutType = 'turtle' | 'fortress' | 'peaks' | 'mobile' | 'random';
 
 const LAYOUT_INFO: Record<LayoutType, { name: string; description: string; tiles: number }> = {
@@ -49,14 +26,14 @@ const LAYOUT_INFO: Record<LayoutType, { name: string; description: string; tiles
     mobile: { name: 'Modo Móvil', description: 'Diseño optimizado para tu pantalla.', tiles: 72 }
 };
 
-function generateCoordinates(type: LayoutType, isMobile: boolean = false) {
+function generateCoordinates(type: LayoutType) {
     const coords: { x: number, y: number, z: number }[] = [];
+    const target = LAYOUT_INFO[type].tiles;
 
-    if (type === 'random' || (isMobile && type !== 'mobile')) {
-        const target = isMobile ? 72 : 144;
-        const maxLayers = isMobile ? 3 : 5;
-        const width = isMobile ? 12 : 20;
-        const height = isMobile ? 14 : 16;
+    if (type === 'random') {
+        const maxLayers = 5;
+        const width = 20;
+        const height = 16;
         for (let x = 0; x < width; x += 2) {
             for (let y = 0; y < height; y += 2) {
                 if (Math.random() > 0.4 && coords.length < target * 0.6) {
@@ -146,7 +123,6 @@ function generateCoordinates(type: LayoutType, isMobile: boolean = false) {
         return true;
     });
 
-    const target = isMobile ? 72 : 144;
     return deduped.slice(0, target);
 }
 
@@ -234,7 +210,7 @@ export function Mahjong() {
     const { profile } = useProfile();
     const accentColor = profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)';
     const accentClass = profile === 'ella' ? 'user-a' : 'user-b';
-    
+
     const [tiles, setTiles] = useState<TileState[]>([]);
     const [currentLayout, setCurrentLayout] = useState<LayoutType>('turtle');
     const [isLoaded, setIsLoaded] = useState(false);
@@ -249,7 +225,7 @@ export function Mahjong() {
     const [timerActive, setTimerActive] = useState(false);
     const [leaderboard, setLeaderboard] = useState<{ el: LeaderboardEntry[]; ella: LeaderboardEntry[] }>({ el: [], ella: [] });
     const [scoreSaved, setScoreSaved] = useState(false);
-    const [shatteringTiles, setShatteringTiles] = useState<Map<string, { tile: TileState; fragments: ShatterFragment[]; dockIndex?: number }>>(new Map());
+    const [shatteringTiles, setShatteringTiles] = useState<Map<string, { tile: TileState; dockIndex?: number }>>(new Map());
     const [isNewRecord, setIsNewRecord] = useState(false);
 
     const isProcessingRef = useRef(false);
@@ -289,7 +265,7 @@ export function Mahjong() {
                     tiles.length
                 ).then(() => {
                     StoreService.getMahjongLeaderboard().then(setLeaderboard).catch(() => { });
-                    
+
                     // Notificar a la pareja si es récord
                     if (isRecord) {
                         const target = profile === 'el' ? 'ella' : 'el';
@@ -301,16 +277,59 @@ export function Mahjong() {
         }
     }, [matchedCount, tiles.length, timerActive, profile, scoreSaved, currentLayout, leaderboard]);
 
-    const initializeGame = async () => {
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [scale, setScale] = useState(1);
+
+    const boardSpanX = useMemo(() => {
+        if (tiles.length === 0) return 18;
+        const xs = tiles.map(t => t.x);
+        return Math.max(...xs) - Math.min(...xs);
+    }, [tiles]);
+
+    const boardSpanY = useMemo(() => {
+        if (tiles.length === 0) return 14;
+        const ys = tiles.map(t => t.y);
+        return Math.max(...ys) - Math.min(...ys);
+    }, [tiles]);
+
+    const centerX = useMemo(() => {
+        if (tiles.length === 0) return 9;
+        const xs = tiles.map(t => t.x);
+        return (Math.min(...xs) + Math.max(...xs)) / 2;
+    }, [tiles]);
+
+    useEffect(() => {
+        const updateScale = () => {
+            if (!containerRef.current) return;
+            const containerWidth = containerRef.current.clientWidth;
+            const spacingX = isMobile ? 1.5 : 2.0;
+            const tileWidth = isMobile ? 3.2 : 3.5;
+            const boardWidthRem = boardSpanX * spacingX + tileWidth;
+            const boardWidthPx = boardWidthRem * 16;
+            
+            if (boardWidthPx > containerWidth) {
+                setScale((containerWidth - 10) / boardWidthPx);
+            } else {
+                setScale(1);
+            }
+        };
+
+        updateScale();
+        window.addEventListener('resize', updateScale);
+        const timeoutId = setTimeout(updateScale, 150);
+        return () => {
+            window.removeEventListener('resize', updateScale);
+            clearTimeout(timeoutId);
+        };
+    }, [isMobile, boardSpanX, tiles]);
+
+    const initializeGame = async (layoutParam?: LayoutType) => {
         const mobileState = window.innerWidth <= 768;
         const imageUrls = shuffleArray(await StoreService.getMahjongImages());
 
-        let selectedLayout: LayoutType;
-        if (mobileState) {
-            selectedLayout = 'mobile';
-        } else {
-            const possibleLayouts: LayoutType[] = ['turtle', 'fortress', 'peaks', 'random'];
-            selectedLayout = possibleLayouts[Math.floor(Math.random() * possibleLayouts.length)];
+        let selectedLayout = layoutParam || currentLayout;
+        if (!selectedLayout) {
+            selectedLayout = mobileState ? 'mobile' : 'turtle';
         }
         setCurrentLayout(selectedLayout);
 
@@ -325,7 +344,7 @@ export function Mahjong() {
             pairs.push({ type: 'traditional', value: MAHJONG_UNICODE[emojiIdx % MAHJONG_UNICODE.length] });
             emojiIdx++;
         }
-        const rawCoords = generateCoordinates(selectedLayout, mobileState);
+        const rawCoords = generateCoordinates(selectedLayout);
         let initialTiles = generateSolvableBoard(rawCoords, pairs);
         if (!initialTiles) {
             const fullDeck = shuffleArray([...pairs, ...pairs]);
@@ -385,11 +404,10 @@ export function Mahjong() {
     }, [tiles, dockIds]);
 
     const triggerShatter = useCallback((tileA: TileState, tileB: TileState, dockIndex?: number) => {
-        const fragments = createShatterFragments();
         setShatteringTiles(prev => {
             const next = new Map(prev);
-            next.set(tileA.id, { tile: tileA, fragments, dockIndex });
-            next.set(tileB.id, { tile: tileB, fragments, dockIndex });
+            next.set(tileA.id, { tile: tileA, dockIndex });
+            next.set(tileB.id, { tile: tileB, dockIndex });
             return next;
         });
         setTimeout(() => {
@@ -399,7 +417,7 @@ export function Mahjong() {
                 next.delete(tileB.id);
                 return next;
             });
-        }, 1500);
+        }, 700);
     }, []);
 
     const handleTilePointerDown = useCallback((id: string) => {
@@ -428,7 +446,7 @@ export function Mahjong() {
                 return t;
             }));
         } else {
-            if (dockIds.length >= 3) {
+            if (dockIds.length >= 2) {
                 setGameLost(true);
                 setDockIds(prev => [...prev, id]);
                 setUndoStack(us => [...us, [id]]);
@@ -510,7 +528,7 @@ export function Mahjong() {
         const halfWidth = isMobile ? 1.6 : 1.75;
         const width = isMobile ? '3.2rem' : '3.5rem';
         const height = isMobile ? '4.0rem' : '4.2rem';
-        const xRem = (tile.x - (isMobile ? 5 : 9)) * spacingX;
+        const xRem = (tile.x - centerX) * spacingX;
         const yRem = tile.y * spacingY;
         return {
             left: `calc(50% - ${halfWidth}rem + ${xRem}rem + ${pxShift}px)`, top: `calc(${yRem}rem + ${pxShift}px)`,
@@ -518,11 +536,10 @@ export function Mahjong() {
             width,
             height
         };
-    }, [isMobile]);
-
+    }, [isMobile, centerX]);
     const getBestForProfile = (p: 'el' | 'ella') => {
         const scores = leaderboard[p];
-        return scores.length > 0 ? scores[0] : null;
+return scores.length > 0 ? scores[0] : null;
     };
 
     const gameWon = matchedCount === tiles.length && tiles.length > 0;
@@ -530,55 +547,74 @@ export function Mahjong() {
     return (
         <div className="relative flex w-full flex-col items-center justify-center overflow-hidden">
 
-            <div className="relative z-10 mb-5 grid w-full gap-4 border border-white/10 bg-black/60 p-4 lg:grid-cols-[1fr_auto_auto] lg:items-center">
-                <div className="flex flex-col items-start">
-                    <div className="mb-2 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.24em] text-[#a88a7e]">
-                        <Layers3 className={`h-4 w-4 text-${accentClass}`} style={{ color: accentColor }} />
-                        Tablero {currentLayout}
-                    </div>
-                    <h2 className="text-3xl font-black uppercase leading-none tracking-normal text-white md:text-5xl">Memorias</h2>
-                    <p className="mt-2 max-w-xl text-xs leading-5 tracking-normal text-[#a88a7e]">
-                        {LAYOUT_INFO[currentLayout].name} · {LAYOUT_INFO[currentLayout].description}
-                    </p>
-                </div>
-
-                <div className="flex w-full items-stretch gap-3 sm:w-auto">
-                    <MahjongTimer isActive={timerActive} formatTime={formatTime} ref={timerRef} />
-                    <div className="relative flex min-w-32 flex-1 flex-col items-center border border-white/10 bg-black/70 px-5 py-3 sm:flex-none">
-                        <span className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Pares</span>
-                        <div className="flex items-baseline gap-1 font-mono tracking-normal">
-                            <span className={`text-3xl font-bold tabular-nums text-${accentClass}`} style={{ color: accentColor }}>{matchedCount}</span>
-                            <span className="text-xs text-white/40">/ {tiles.length}</span>
+            <div className="relative z-10 mb-5 flex flex-col w-full gap-4 border border-white/10 bg-black/60 p-4">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="flex flex-col items-start">
+                        <div className="mb-2 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.24em] text-[#a88a7e]">
+                            <Layers3 className={`h-4 w-4 text-${accentClass}`} style={{ color: accentColor }} />
+                            Tablero Activo: {LAYOUT_INFO[currentLayout]?.name || currentLayout}
                         </div>
-                        <div className={`absolute bottom-0 right-0 h-2 w-2 border-b border-r border-${accentClass}/50`} style={{ borderColor: `${accentColor}80` }} />
+                        <div className="flex flex-wrap gap-2">
+                            {(Object.keys(LAYOUT_INFO) as LayoutType[]).map((layout) => (
+                                <button
+                                    key={layout}
+                                    onClick={() => {
+                                        setCurrentLayout(layout);
+                                        initializeGame(layout);
+                                    }}
+                                    className={`!min-h-0 px-2.5 py-1 text-[8px] font-mono font-bold uppercase border transition-all ${
+                                        currentLayout === layout
+                                            ? `bg-${accentClass} text-black border-${accentClass}`
+                                            : 'bg-[#0a0a0a] text-[#a88a7e] border-white/10 hover:border-white/20'
+                                    }`}
+                                    style={currentLayout === layout ? { backgroundColor: accentColor, borderColor: accentColor } : {}}
+                                >
+                                    {LAYOUT_INFO[layout].name}
+                                </button>
+                            ))}
+                        </div>
                     </div>
-                </div>
 
-                <div className="grid w-full grid-cols-3 gap-2 lg:w-auto">
-                    <button
-                        onClick={handleUndo}
-                        disabled={undoStack.length === 0}
-                        className={`flex min-h-12 items-center justify-center gap-2 border border-white/10 bg-[#0a0a0a] px-3 py-2 text-[10px] font-bold uppercase tracking-[0.16em] text-[#a88a7e] transition-colors hover:border-${accentClass} hover:text-white active:scale-95 disabled:opacity-35`}
-                        title="Deshacer"
-                    >
-                        <Undo2 className="h-4 w-4" /> <span className="hidden sm:inline">Deshacer</span>
-                    </button>
-                    <button
-                        onClick={handleHint}
-                        className={`flex min-h-12 items-center justify-center gap-2 border border-${accentClass}/50 bg-${accentClass}/10 px-3 py-2 text-[10px] font-bold uppercase tracking-[0.16em] transition-colors hover:bg-${accentClass} hover:text-black active:scale-95`}
-                        style={{ borderColor: `${accentColor}80`, backgroundColor: `${accentColor}1a`, color: accentColor }}
-                        title="Pista"
-                    >
-                        <Lightbulb className="h-4 w-4" /> <span className="hidden sm:inline">Pista</span>
-                    </button>
-                    <button
-                        onClick={handleRestart}
-                        className={`flex min-h-12 items-center justify-center gap-2 border border-${accentClass} bg-${accentClass} px-3 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-black transition-all hover:opacity-80 active:scale-95`}
-                        style={{ borderColor: accentColor, backgroundColor: accentColor }}
-                        title="Reiniciar"
-                    >
-                        <RotateCcw className="h-4 w-4" /> <span className="hidden sm:inline">Reiniciar</span>
-                    </button>
+                    <div className="flex flex-wrap items-center gap-4">
+                        <div className="flex items-stretch gap-3">
+                            <MahjongTimer isActive={timerActive} formatTime={formatTime} ref={timerRef} />
+                            <div className="relative flex min-w-32 flex-col items-center border border-white/10 bg-black/70 px-5 py-3">
+                                <span className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Pares</span>
+                                <div className="flex items-baseline gap-1 font-mono tracking-normal">
+                                    <span className={`text-3xl font-bold tabular-nums text-${accentClass}`} style={{ color: accentColor }}>{matchedCount}</span>
+                                    <span className="text-xs text-white/40">/ {tiles.length}</span>
+                                </div>
+                                <div className={`absolute bottom-0 right-0 h-2 w-2 border-b border-r border-${accentClass}/50`} style={{ borderColor: `${accentColor}80` }} />
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-3 gap-2 w-full sm:w-auto">
+                            <button
+                                onClick={handleUndo}
+                                disabled={undoStack.length === 0}
+                                className={`flex min-h-12 items-center justify-center gap-2 border border-white/10 bg-[#0a0a0a] px-3 py-2 text-[10px] font-bold uppercase tracking-[0.16em] text-[#a88a7e] transition-colors hover:border-${accentClass} hover:text-white active:scale-95 disabled:opacity-35`}
+                                title="Deshacer"
+                            >
+                                <Undo2 className="h-4 w-4" /> <span className="hidden sm:inline">Deshacer</span>
+                            </button>
+                            <button
+                                onClick={handleHint}
+                                className={`flex min-h-12 items-center justify-center gap-2 border border-${accentClass}/50 bg-${accentClass}/10 px-3 py-2 text-[10px] font-bold uppercase tracking-[0.16em] transition-colors hover:bg-${accentClass} hover:text-black active:scale-95`}
+                                style={{ borderColor: `${accentColor}80`, backgroundColor: `${accentColor}1a`, color: accentColor }}
+                                title="Pista"
+                            >
+                                <Lightbulb className="h-4 w-4" /> <span className="hidden sm:inline">Pista</span>
+                            </button>
+                            <button
+                                onClick={handleRestart}
+                                className={`flex min-h-12 items-center justify-center gap-2 border border-${accentClass} bg-${accentClass} px-3 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-black transition-all hover:opacity-80 active:scale-95`}
+                                style={{ borderColor: accentColor, backgroundColor: accentColor }}
+                                title="Reiniciar"
+                            >
+                                <RotateCcw className="h-4 w-4" /> <span className="hidden sm:inline">Reiniciar</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -589,10 +625,10 @@ export function Mahjong() {
                             <Sparkles className={`h-3 w-3 text-${accentClass}`} style={{ color: accentColor }} />
                             Dock
                         </div>
-                        {[0, 1, 2, 3].map((idx) => {
+                        {[0, 1, 2].map((idx) => {
                             const dId = dockIds[idx];
                             const tile = dId ? tiles.find(t => t.id === dId) : null;
-                            const isShattering = dId && shatteringTiles.has(dId) && shatteringTiles.get(dId)?.dockIndex !== undefined;
+                            const isShattering = dId && shatteringTiles.has(dId);
 
                             return (
                                 <div key={idx} className="relative flex h-18 w-14 items-center justify-center border border-dashed border-white/15 bg-[#050505] md:h-20 md:w-16">
@@ -605,34 +641,16 @@ export function Mahjong() {
                                         </motion.div>
                                     )}
 
-                                    {isShattering && (
+                                    {isShattering && tile && (
                                         <div className="absolute inset-0 z-50 pointer-events-none">
-                                            {shatteringTiles.get(dId!)?.fragments.map((frag) => (
-                                                <motion.div
-                                                    key={frag.id}
-                                                    initial={{ x: 0, y: 0, opacity: 1, scale: 1, rotate: 0 }}
-                                                    animate={{
-                                                        x: frag.dx * 0.4,
-                                                        y: frag.dy * 0.4,
-                                                        opacity: 0,
-                                                        scale: 0.2,
-                                                        rotate: frag.rot
-                                                    }}
-                                                    transition={{ duration: 1, ease: 'easeOut' }}
-                                                    className="absolute inset-0 rounded-none shadow-none"
-                                                    style={{
-                                                        clipPath: frag.clipPath,
-                                                        background: `linear-gradient(${frag.rot}deg, #b8860b, #daa520, #f8d48e)`,
-                                                        border: '1px solid rgba(184, 134, 11, 0.5)'
-                                                    }}
-                                                />
-                                            ))}
-                                            <motion.div
-                                                initial={{ opacity: 1, scale: 0.8 }}
-                                                animate={{ opacity: 0, scale: 2 }}
-                                                transition={{ duration: 0.6 }}
-                                                className="absolute inset-0 bg-amber-400/30 blur-sm rounded-none"
-                                            />
+                                            <div className="shatter-container" style={{ '--ripple-color': accentColor } as React.CSSProperties}>
+                                                <div className="ripple-wave" />
+                                                <div className="ripple-core" />
+                                                <div className="shard shard-top"><TileVisual tile={tile} /></div>
+                                                <div className="shard shard-right"><TileVisual tile={tile} /></div>
+                                                <div className="shard shard-bottom"><TileVisual tile={tile} /></div>
+                                                <div className="shard shard-left"><TileVisual tile={tile} /></div>
+                                            </div>
                                         </div>
                                     )}
                                 </div>
@@ -737,73 +755,65 @@ export function Mahjong() {
                 </motion.div>
             )}
 
-            <div className="relative flex min-h-[600px] w-full max-w-[880px] justify-center overflow-hidden border border-white/10 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.05),transparent_42%),linear-gradient(180deg,rgba(255,255,255,0.03),transparent)] md:min-h-[700px]">
+            <div
+                className="relative flex w-full max-w-[880px] justify-center overflow-hidden border border-white/10 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.05),transparent_42%),linear-gradient(180deg,rgba(255,255,255,0.03),transparent)] transition-all duration-200"
+                style={{
+                    height: `${Math.max(600, (boardSpanY * (isMobile ? 1.8 : 2.2) + (isMobile ? 4.0 : 4.2)) * scale * 16 + 40)}px`
+                }}
+                ref={containerRef}
+            >
                 <div className="pointer-events-none absolute inset-0 bg-dot-matrix opacity-70" />
                 <AnimatedBrutalistCorners color={accentColor} size={12} thickness={1.5} />
-                <AnimatePresence>
-                    {tiles.map(tile => {
-                        if (tile.isMatched || dockIds.includes(tile.id)) return null;
+                
+                <div
+                    className="relative w-full transition-transform duration-200 ease-out"
+                    style={{
+                        transform: `scale(${scale})`,
+                        transformOrigin: 'top center',
+                        height: `${(boardSpanY * (isMobile ? 1.8 : 2.2) + (isMobile ? 4.0 : 4.2)) * 16}px`
+                    }}
+                >
+                    <AnimatePresence>
+                        {tiles.map(tile => {
+                            if (tile.isMatched || dockIds.includes(tile.id)) return null;
 
+                            return (
+                                <MahjongTile
+                                    key={tile.id}
+                                    tile={tile}
+                                    isFree={!!freeTilesMap.get(tile.id)}
+                                    onPointerDown={handleTilePointerDown}
+                                    positionStyle={getTileStyle(tile)}
+                                />
+                            );
+                        })}
+                    </AnimatePresence>
+
+                    {Array.from(shatteringTiles.entries()).map(([tileId, { tile, dockIndex }]) => {
+                        if (dockIndex !== undefined) return null;
+                        const pos = getTileStyle(tile);
                         return (
-                            <MahjongTile
-                                key={tile.id}
-                                tile={tile}
-                                isFree={!!freeTilesMap.get(tile.id)}
-                                onPointerDown={handleTilePointerDown}
-                                positionStyle={getTileStyle(tile)}
-                            />
+                            <div
+                                key={`shatter-${tileId}`}
+                                style={{
+                                    position: 'absolute',
+                                    ...pos,
+                                    zIndex: pos.zIndex + 200,
+                                }}
+                                className="tile-item pointer-events-none"
+                            >
+                                <div className="shatter-container" style={{ '--ripple-color': accentColor } as React.CSSProperties}>
+                                    <div className="ripple-wave" />
+                                    <div className="ripple-core" />
+                                    <div className="shard shard-top"><TileVisual tile={tile} /></div>
+                                    <div className="shard shard-right"><TileVisual tile={tile} /></div>
+                                    <div className="shard shard-bottom"><TileVisual tile={tile} /></div>
+                                    <div className="shard shard-left"><TileVisual tile={tile} /></div>
+                                </div>
+                            </div>
                         );
                     })}
-                </AnimatePresence>
-
-                {Array.from(shatteringTiles.entries()).map(([tileId, { tile, fragments, dockIndex }]) => {
-                    if (dockIndex !== undefined) return null;
-                    const pos = getTileStyle(tile);
-                    return (
-                        <div
-                            key={`shatter-${tileId}`}
-                            style={{
-                                position: 'absolute',
-                                ...pos,
-                                zIndex: pos.zIndex + 200,
-                            }}
-                            className="tile-item pointer-events-none"
-                        >
-                            {fragments.map((frag) => (
-                                <motion.div
-                                    key={frag.id}
-                                    initial={{ x: 0, y: 0, opacity: 1, scale: 1.1, rotate: 0 }}
-                                    animate={{
-                                        x: frag.dx,
-                                        y: frag.dy,
-                                        opacity: [1, 0.9, 0.6, 0],
-                                        scale: [1.1, 0.8, 0.4],
-                                        rotate: frag.rot,
-                                    }}
-                                    transition={{ duration: 1.5, ease: 'easeOut' }}
-                                    className="absolute inset-0 rounded-none shadow-lg"
-                                    style={{
-                                        clipPath: frag.clipPath,
-                                        background: `linear-gradient(${frag.rot}deg, #b8860b, #d4a853, #f5e6c8)`,
-                                        border: '1px solid rgba(180, 130, 50, 0.6)',
-                                    }}
-                                />
-                            ))}
-                            <motion.div
-                                initial={{ opacity: 1, scale: 0.8 }}
-                                animate={{ opacity: 0, scale: 3 }}
-                                transition={{ duration: 0.6, ease: 'easeOut' }}
-                                className="absolute inset-0 bg-amber-400/40 rounded-none blur-md"
-                            />
-                            <motion.div
-                                initial={{ opacity: 0.6, scale: 1 }}
-                                animate={{ opacity: 0, scale: 2 }}
-                                transition={{ duration: 0.8, ease: 'easeOut', delay: 0.1 }}
-                                className="absolute inset-0 ring-2 ring-amber-300/50 rounded-none"
-                            />
-                        </div>
-                    );
-                })}
+                </div>
             </div>
         </div>
     );

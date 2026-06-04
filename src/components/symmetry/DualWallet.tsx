@@ -345,8 +345,8 @@ export const DualWallet = ({
 
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-white/5 pb-4 relative z-10">
           <div>
-            <p className="text-[9px] font-black uppercase tracking-[0.26em]" style={{ color: balanceTone }}>Resumen General</p>
-            <h3 className="mt-1 text-2xl font-black uppercase tracking-normal text-white">Estado financiero general</h3>
+            <p className="text-[9px] font-mono font-black uppercase tracking-[0.26em]" style={{ color: balanceTone }}>Resumen General</p>
+            <h3 className="mt-1 text-2xl font-mono font-black uppercase tracking-normal text-white">Estado financiero general</h3>
           </div>
           <span className="border px-2 py-1 text-[8px] font-black uppercase tracking-[0.2em]" style={{ borderColor: balanceTone, color: balanceTone }}>
             {totalAvailable < 0 ? 'Estado: En Rojo' : 'Estado: Todo Bien'}
@@ -515,7 +515,7 @@ export const DualWallet = ({
           onClick={() => setIsBudgetsOpen(!isBudgetsOpen)} 
           className="w-full px-5 py-4 flex items-center justify-between bg-black/40 hover:bg-black/60 transition-colors text-left"
         >
-          <span className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.24em] text-white">
+          <span className="flex items-center gap-3 text-[10px] font-mono font-black uppercase tracking-[0.24em] text-white">
             <Target size={14} className="stroke-[1.5]" style={{ color: accentHex }} />
             PRESUPUESTOS Y LÍMITES DE GASTOS
           </span>
@@ -533,8 +533,8 @@ export const DualWallet = ({
               exit={{ height: 0, opacity: 0 }}
               className="border-t border-white/10 p-4"
             >
-              <h3 className="mb-4 flex items-center justify-between border-b border-white/10 pb-3 text-[10px] font-black uppercase tracking-[0.22em] text-[#a88a7e]">
-                <span className="flex items-center gap-2">
+              <h3 className="mb-4 flex items-center justify-between border-b border-white/10 pb-3 text-[10px] font-mono font-black uppercase tracking-[0.22em] text-[#a88a7e]">
+                <span className="flex items-center gap-2 font-mono">
                   Presupuestos de Gastos
                 </span>
                 <button
@@ -588,7 +588,7 @@ export const DualWallet = ({
           onClick={() => setIsIncomeOpen(!isIncomeOpen)} 
           className="w-full px-5 py-4 flex items-center justify-between bg-black/40 hover:bg-black/60 transition-colors text-left"
         >
-          <span className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.24em] text-white">
+          <span className="flex items-center gap-3 text-[10px] font-mono font-black uppercase tracking-[0.24em] text-white">
             <CircleDollarSign size={14} className="stroke-[1.5]" style={{ color: accentHex }} />
             INGRESOS Y PROYECCIONES MENSUALES
           </span>
@@ -623,7 +623,7 @@ export const DualWallet = ({
           onClick={() => setIsHabitsOpen(!isHabitsOpen)} 
           className="w-full px-5 py-4 flex items-center justify-between bg-black/40 hover:bg-black/60 transition-colors text-left"
         >
-          <span className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.24em] text-white">
+          <span className="flex items-center gap-3 text-[10px] font-mono font-black uppercase tracking-[0.24em] text-white">
             <Activity size={14} className="stroke-[1.5]" style={{ color: accentHex }} />
             ANÁLISIS DE HÁBITOS, ALERTAS Y SUGERENCIAS
           </span>
@@ -643,7 +643,7 @@ export const DualWallet = ({
             >
               <div className="grid gap-4 xl:grid-cols-[0.82fr_1.18fr]">
                 <div className="border border-white/10 bg-black/20 p-4">
-                  <h4 className="mb-4 border-b border-white/10 pb-3 text-[10px] font-black uppercase tracking-[0.22em] text-[#a88a7e]">
+                  <h4 className="mb-4 border-b border-white/10 pb-3 text-[10px] font-mono font-black uppercase tracking-[0.22em] text-[#a88a7e]">
                     Resumen de Hábitos
                   </h4>
                   <div className="grid gap-2 sm:grid-cols-2">
@@ -666,7 +666,7 @@ export const DualWallet = ({
                 </div>
 
                 <div className="border border-white/10 bg-black/20 p-4">
-                  <h4 className="mb-4 border-b border-white/10 pb-3 text-[10px] font-black uppercase tracking-[0.22em] text-[#a88a7e]">
+                  <h4 className="mb-4 border-b border-white/10 pb-3 text-[10px] font-mono font-black uppercase tracking-[0.22em] text-[#a88a7e]">
                     Sugerencias y Alertas
                   </h4>
                   <div className="space-y-2">
@@ -688,7 +688,7 @@ export const DualWallet = ({
       </div>
 
       <section className="border border-white/10 bg-black/40 p-4">
-        <h3 className="mb-4 flex items-center justify-between border-b border-white/10 pb-3 text-[10px] font-black uppercase tracking-[0.22em] text-[#a88a7e]">
+        <h3 className="mb-4 flex items-center justify-between border-b border-white/10 pb-3 text-[10px] font-mono font-black uppercase tracking-[0.22em] text-[#a88a7e]">
           <span>Historial de Movimientos</span>
           <span>{movements.length.toString().padStart(2, '0')} registros</span>
         </h3>
@@ -714,7 +714,7 @@ export const DualWallet = ({
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-white">{movement.description}</span>
+                        <span className="text-[10px] font-mono font-black uppercase tracking-widest text-white">{movement.description}</span>
                         <span className="border px-1.5 py-0.5 text-[7px] font-mono tracking-widest uppercase" style={{ borderColor: meta.color, color: meta.color }}>
                           {meta.tag}
                         </span>

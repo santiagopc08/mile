@@ -192,8 +192,8 @@ export const BloodPressureTracker = () => {
                     <span className="text-[8px] opacity-40">ESTADO: ACTIVO</span>
                 </h2>
 
-                <form onSubmit={handleAddEntry} className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-10 items-end relative z-10 bg-black/20 p-4 border border-white/5 rounded-none">
-                    <div className="md:col-span-3 space-y-2">
+                <form onSubmit={handleAddEntry} className="grid grid-cols-2 md:grid-cols-12 gap-4 mb-10 items-end relative z-10 bg-black/20 p-4 border border-white/5 rounded-none">
+                    <div className="col-span-1 md:col-span-3 space-y-2">
                         <label className="text-[7px] uppercase font-bold text-stone-500 tracking-widest flex items-center gap-1">
                             <Activity size={8} className="stroke-[1.5]" /> PRESIÓN MÁXIMA (Sistólica)
                         </label>
@@ -209,7 +209,7 @@ export const BloodPressureTracker = () => {
                             <span className="absolute right-3 top-3 text-[7px] font-bold text-stone-600">mmHg</span>
                         </div>
                     </div>
-                    <div className="md:col-span-3 space-y-2">
+                    <div className="col-span-1 md:col-span-3 space-y-2">
                         <label className="text-[7px] uppercase font-bold text-stone-500 tracking-widest flex items-center gap-1">
                             <Activity size={8} className="stroke-[1.5]" /> PRESIÓN MÍNIMA (Diastólica)
                         </label>
@@ -225,7 +225,7 @@ export const BloodPressureTracker = () => {
                             <span className="absolute right-3 top-3 text-[7px] font-bold text-stone-600">mmHg</span>
                         </div>
                     </div>
-                    <div className="md:col-span-2 space-y-2">
+                    <div className="col-span-1 md:col-span-2 space-y-2">
                         <label className="text-[7px] uppercase font-bold text-stone-500 tracking-widest flex items-center gap-1">
                             <Heart size={8} className="stroke-[1.5]" /> PULSO
                         </label>
@@ -241,7 +241,7 @@ export const BloodPressureTracker = () => {
                             <span className="absolute right-3 top-3 text-[7px] font-bold text-stone-600">BPM</span>
                         </div>
                     </div>
-                    <div className="md:col-span-2 space-y-2">
+                    <div className="col-span-1 md:col-span-2 space-y-2">
                         <label className="text-[7px] uppercase font-bold text-stone-500 tracking-widest">POSICIÓN AL MEDIR</label>
                         <select
                             value={position}
@@ -256,7 +256,7 @@ export const BloodPressureTracker = () => {
                     <button
                         type="submit"
                         disabled={loading}
-                        className={`md:col-span-2 py-3.5 text-[9px] uppercase font-black tracking-[0.25em] transition-all flex items-center justify-center gap-2 border rounded-none cursor-pointer ${loading
+                        className={`col-span-2 md:col-span-2 py-3.5 text-[9px] uppercase font-black tracking-[0.25em] transition-all flex items-center justify-center gap-2 border rounded-none cursor-pointer ${loading
                             ? 'bg-stone-800 text-stone-500 border-stone-800 cursor-not-allowed'
                             : `bg-${accentClass} text-black border-${accentClass} hover:opacity-90`
                             }`}

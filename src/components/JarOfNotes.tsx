@@ -8,6 +8,21 @@ import { useProfile } from '@/context/ProfileContext';
 
 type AnimState = 'idle' | 'img1' | 'img2' | 'video' | 'popup' | 'reverse-video' | 'reverse-img2' | 'reverse-img1';
 
+const renderTextWithHashtags = (text: string) => {
+    if (!text) return null;
+    const parts = text.split(/(#[\w\dÀ-ÿ\u00f1\u00d1]+)/g);
+    return parts.map((part, index) => {
+        if (part.startsWith('#')) {
+            return (
+                <span key={index} className="font-mono text-user-c font-bold tracking-wider mx-0.5">
+                    {part}
+                </span>
+            );
+        }
+        return part;
+    });
+};
+
 export function JarOfNotes() {
     const { data, updateData } = useStore();
     const { profile } = useProfile();
@@ -245,7 +260,7 @@ export function JarOfNotes() {
                                     </button>
                                 </div>
                                 <p className="relative z-10 px-2 py-4 text-center text-2xl font-medium leading-relaxed tracking-normal text-white md:text-3xl">
-                                    &quot;{currentNote}&quot;
+                                    &quot;{renderTextWithHashtags(currentNote)}&quot;
                                 </p>
 
                                 <div className={`absolute bottom-0 left-0 right-0 h-1 opacity-80`} style={{ background: `linear-gradient(90deg, ${secondaryColor}, ${accentColor}, ${secondaryColor})` }} />

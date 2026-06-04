@@ -155,6 +155,21 @@ function SpotifyEmbed({ url, track }: { url: string, track?: AudioTrack }) {
     );
 }
 
+const renderTextWithHashtags = (text: string) => {
+    if (!text) return null;
+    const parts = text.split(/(#[\w\dÀ-ÿ\u00f1\u00d1]+)/g);
+    return parts.map((part, index) => {
+        if (part.startsWith('#')) {
+            return (
+                <span key={index} className="font-mono text-user-c font-bold tracking-wider mx-0.5">
+                    {part}
+                </span>
+            );
+        }
+        return part;
+    });
+};
+
 export function AudioSection() {
     const { data, updateData } = useStore();
     const { profile } = useProfile();
@@ -221,7 +236,7 @@ export function AudioSection() {
     };
 
     return (
-        <div id="audio" className="mx-auto w-full max-w-5xl space-y-10 bg-mosaic px-1 py-6 font-mono">
+        <div id="audio" className="mx-auto w-full max-w-5xl space-y-10 bg-mosaic px-1 py-6">
             <div className="relative border border-white/10 bg-[#0a0a0a] p-8 text-center rounded-none">
                 <div className={`absolute left-1/2 top-0 h-[1px] w-24 -translate-x-1/2 bg-${accentClass}`} style={{ backgroundColor: accentColor }} />
                 <h2 className="mb-3 flex items-center justify-center gap-3 pt-4 text-3xl font-black uppercase tracking-normal text-white font-sans">
@@ -236,11 +251,11 @@ export function AudioSection() {
             <div className="grid lg:grid-cols-5 gap-8">
                 {/* Playlist Sidebar */}
                 <div className="lg:col-span-2 space-y-4">
-                    <div className="mb-4 flex items-center justify-between border-b border-white/10 px-2 pb-3">
+                    <div className="mb-4 flex items-center justify-between border-b border-white/10 px-2 pb-3 font-mono">
                         <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Playlist</h3>
                         <button
                             onClick={() => setIsAddingTrack(!isAddingTrack)}
-                            className={`flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-${accentClass} transition-colors hover:text-white`}
+                            className={`flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-${accentClass} transition-colors hover:text-white font-mono`}
                         >
                             {isAddingTrack ? <X className="w-3 h-3 stroke-[1.5]" /> : <Plus className="w-3 h-3 stroke-[1.5]" />}
                             {isAddingTrack ? 'Cancelar' : 'Añadir'}
@@ -317,11 +332,11 @@ export function AudioSection() {
                                 </div>
 
                                 <div className="flex-1 flex flex-col z-10">
-                                    <h4 className="mb-6 flex items-center gap-2 border-b border-white/10 pb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">
+                                    <h4 className="mb-6 flex items-center gap-2 border-b border-white/10 pb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-[#a88a7e] font-mono">
                                         <MessageSquare className={`h-3 w-3 text-${secondaryClass} stroke-[1.5]`} style={{ color: secondaryColor }} />
                                         Lo que me hace sentir esta canción
                                     </h4>
-
+ 
                                     <div className="flex-1 space-y-4 mb-6 max-h-[250px] overflow-y-auto pr-2 custom-scrollbar">
                                         {currentTrack.comments && currentTrack.comments.length > 0 ? (
                                             currentTrack.comments.map((comment: TrackComment) => {
@@ -333,12 +348,12 @@ export function AudioSection() {
                                                         <div className="absolute left-0 top-0 bottom-0 w-[4px]" style={{ backgroundColor: commentColor }} />
                                                         
                                                         <div className="flex justify-between items-center mb-1">
-                                                            <span className={`text-[9px] font-bold uppercase tracking-widest ${commentAuthorIsElla ? 'text-user-a' : 'text-user-b'}`}>
+                                                            <span className={`text-[9px] font-bold uppercase tracking-widest font-mono ${commentAuthorIsElla ? 'text-user-a' : 'text-user-b'}`}>
                                                                 {comment.author}
                                                             </span>
                                                         </div>
-                                                        <p className="text-sm font-light tracking-normal text-[#e5e2e1]">
-                                                            &quot;{comment.text}&quot;
+                                                        <p className="text-sm font-light tracking-normal text-[#e5e2e1] text-left">
+                                                            &quot;{renderTextWithHashtags(comment.text)}&quot;
                                                         </p>
                                                     </div>
                                                 );
@@ -364,7 +379,7 @@ export function AudioSection() {
                                             <button
                                                 onClick={handleAddComment}
                                                 disabled={!newComment.trim()}
-                                                className={`bg-${accentClass} px-6 py-3 text-xs font-bold uppercase tracking-widest text-black transition-colors hover:opacity-80 disabled:opacity-50 rounded-none`} style={{ backgroundColor: accentColor }}
+                                                className={`bg-${accentClass} px-6 py-3 text-xs font-bold uppercase tracking-widest text-black transition-colors hover:opacity-80 disabled:opacity-50 rounded-none font-mono`} style={{ backgroundColor: accentColor }}
                                             >
                                                 Enviar
                                             </button>

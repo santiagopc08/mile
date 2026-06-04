@@ -697,15 +697,15 @@ export function PetSpaceHub() {
   };
 
   return (
-    <div className="space-y-6 font-mono">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-wrap items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">
+      <div className="flex flex-wrap items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-[#a88a7e] font-mono">
         <span className="text-[#594137]">Nuestro Refugio</span>
         <h2 className="text-2xl font-black uppercase tracking-[0.08em] text-white font-sans">Los Consentidos</h2>
-        <span className="ml-auto flex items-center gap-2">
+        <span className="ml-auto flex items-center gap-2 font-mono">
           STATUS: <span style={{ color: accentColor }}>ONLINE</span>
         </span>
-        <span className="text-[#594137]">Bebés: {String(PETS.length).padStart(2, '0')}</span>
+        <span className="text-[#594137] font-mono">Bebés: {String(PETS.length).padStart(2, '0')}</span>
       </div>
 
       {/* Pet Selector */}
