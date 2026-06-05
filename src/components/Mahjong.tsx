@@ -507,8 +507,9 @@ export function Mahjong() {
             seenValues.set(value, tile.id);
         }
 
+        const tilesById = new Map(tiles.map(t => [t.id, t]));
         for (const dId of dockIds) {
-            const dockTile = tiles.find(t => t.id === dId);
+            const dockTile = tilesById.get(dId);
             if (!dockTile) continue;
             const match = freeOnBoard.find(t => t.content.value === dockTile.content.value);
             if (match) {
