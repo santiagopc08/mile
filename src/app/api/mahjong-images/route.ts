@@ -13,19 +13,25 @@ export async function GET() {
             
             // Asynchronously read all subdirectories in public/img
             const categories = await fs.readdir(directoryPath, { withFileTypes: true });
-            for (const category of categories) {
+
+            const resultsArrays = await Promise.all(categories.map(async (category) => {
                 if (category.isDirectory()) {
                     const subDirPath = path.join(directoryPath, category.name);
                     const files = await fs.readdir(subDirPath);
+                    const validFiles: string[] = [];
                     for (const file of files) {
                         if (file.endsWith('.png') || file.endsWith('.jpg') || file.endsWith('.jpeg')) {
-                            results.push(`/img/${category.name}/${file}`);
+                            validFiles.push(`/img/${category.name}/${file}`);
                         }
                     }
+                    return validFiles;
                 } else if (category.name.endsWith('.png') || category.name.endsWith('.jpg') || category.name.endsWith('.jpeg')) {
-                    results.push(`/img/${category.name}`);
+                    return [`/img/${category.name}`];
                 }
-            }
+                return [];
+            }));
+
+            results.push(...resultsArrays.flat());
         } catch (error) {
             // Folder not found or not accessible
             console.warn('img directory is not accessible:', error);
