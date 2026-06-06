@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { useProfile } from '@/context/ProfileContext';
 import { StoreService } from '@/services/storeService';
+import { v4 as uuidv4 } from 'uuid';
 
 // --- Type Definitions ---
 export type SessionCategory = 
@@ -192,11 +193,11 @@ export function MovementTracker() {
         setSessionType(isElla ? 'strength' : 'physical_therapy');
     }, [isElla]);
 
-    // Fallback ID generator
+    // Secure ID generator
     const generateId = () => {
         return typeof crypto !== 'undefined' && crypto.randomUUID 
             ? crypto.randomUUID() 
-            : Math.random().toString(36).substring(2, 9) + '-' + Date.now().toString(36);
+            : uuidv4();
     };
 
     // Load data from Supabase or LocalStorage
