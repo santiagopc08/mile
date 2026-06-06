@@ -119,7 +119,7 @@ export function JarOfNotes() {
         e.preventDefault();
         if (newNoteText.trim()) {
             const newNote = {
-                // eslint-disable-next-line react-hooks/purity
+
                 id: Date.now().toString(),
                 text: newNoteText.trim(),
                 author: profile || 'el'
