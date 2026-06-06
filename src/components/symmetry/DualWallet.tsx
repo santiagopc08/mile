@@ -378,15 +378,20 @@ export const DualWallet = ({
 
   const setQuickAction = (nextType: TransactionType) => {
     setType(nextType);
-    if (nextType === 'income') {
-      setCategory('salary');
-      setRelatedBudget('');
-    } else if (nextType === 'transfer') {
-      setCategory('internal_transfer');
-      setRelatedBudget('Savings');
-    } else if (nextType === 'expense') {
-      setCategory('Food');
-      setRelatedBudget('Food');
+    switch (nextType) {
+      case 'income':
+        setCategory('salary');
+        setRelatedBudget('');
+        break;
+      case 'transfer':
+        setCategory('internal_transfer');
+        setRelatedBudget('Savings');
+        break;
+      case 'expense':
+      default:
+        setCategory('Food');
+        setRelatedBudget('Food');
+        break;
     }
   };
 
