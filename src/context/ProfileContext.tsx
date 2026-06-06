@@ -18,43 +18,6 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     const [profile, setProfile] = useState<Profile>(null);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-    useEffect(() => {
-        const checkSession = async () => {
-            // 1. Instant check localStorage for immediate UI paint and zero-latency load
-            const savedProfile = typeof window !== 'undefined' ? localStorage.getItem('mile_profile') as Profile : null;
-            const authStatus = typeof window !== 'undefined' ? localStorage.getItem('mile_auth') : null;
-            if (authStatus === 'true' && (savedProfile === 'el' || savedProfile === 'ella')) {
-                setProfile(savedProfile);
-                setIsAuthenticated(true);
-            }
-
-            try {
-                // 2. Query Supabase Auth for backend session verification
-                const { data: { session } } = await supabase.auth.getSession();
-                const email = session?.user?.email;
-                if (email === 'el@mile.app') {
-                    setProfile('el');
-                    setIsAuthenticated(true);
-                } else if (email === 'ella@mile.app') {
-                    setProfile('ella');
-                    setIsAuthenticated(true);
-                } else if (authStatus === 'true' && (savedProfile === 'el' || savedProfile === 'ella')) {
-                    // No backend session exists but we have local session, auto-login silently
-                    await login(savedProfile);
-                }
-            } catch (err) {
-                console.error('Session load error:', err);
-                // Ensure we don't break local auth state if backend check throws
-                if (authStatus === 'true' && (savedProfile === 'el' || savedProfile === 'ella')) {
-                    setProfile(savedProfile);
-                    setIsAuthenticated(true);
-                }
-            }
-        };
-
-        checkSession();
-    }, []);
-
     const login = async (selectedProfile: 'el' | 'ella', password?: string) => {
         try {
             if (!password) {
@@ -121,6 +84,43 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
             return false;
         }
     };
+
+    useEffect(() => {
+        const checkSession = async () => {
+            // 1. Instant check localStorage for immediate UI paint and zero-latency load
+            const savedProfile = typeof window !== 'undefined' ? localStorage.getItem('mile_profile') as Profile : null;
+            const authStatus = typeof window !== 'undefined' ? localStorage.getItem('mile_auth') : null;
+            if (authStatus === 'true' && (savedProfile === 'el' || savedProfile === 'ella')) {
+                setProfile(savedProfile);
+                setIsAuthenticated(true);
+            }
+
+            try {
+                // 2. Query Supabase Auth for backend session verification
+                const { data: { session } } = await supabase.auth.getSession();
+                const email = session?.user?.email;
+                if (email === 'el@mile.app') {
+                    setProfile('el');
+                    setIsAuthenticated(true);
+                } else if (email === 'ella@mile.app') {
+                    setProfile('ella');
+                    setIsAuthenticated(true);
+                } else if (authStatus === 'true' && (savedProfile === 'el' || savedProfile === 'ella')) {
+                    // No backend session exists but we have local session, auto-login silently
+                    await login(savedProfile);
+                }
+            } catch (err) {
+                console.error('Session load error:', err);
+                // Ensure we don't break local auth state if backend check throws
+                if (authStatus === 'true' && (savedProfile === 'el' || savedProfile === 'ella')) {
+                    setProfile(savedProfile);
+                    setIsAuthenticated(true);
+                }
+            }
+        };
+
+        checkSession();
+    }, []);
 
     const logout = async () => {
         try {
