@@ -2,11 +2,26 @@
 
 import { PrivateRoute } from "@/components/PrivateRoute";
 import { WishlistModule } from "@/components/WishlistModule";
-import { GeospatialPlanTracker } from "@/components/GeospatialPlanTracker";
 import { useProfile } from "@/context/ProfileContext";
 import { useStore } from "@/context/StoreContext";
 import { Activity, Compass, Radio } from "lucide-react";
 import { useMemo, useEffect } from "react";
+import dynamic from "next/dynamic";
+
+const GeospatialPlanTracker = dynamic(
+  () => import("@/components/GeospatialPlanTracker").then((m) => m.GeospatialPlanTracker),
+  {
+    loading: () => (
+      <div className="flex min-h-[400px] flex-col items-center justify-center gap-4 border border-dashed border-white/10 bg-black/60 p-8">
+        <Compass className="h-8 w-8 text-[#00dbe9] animate-pulse" />
+        <p className="text-center text-[10px] font-mono font-black uppercase tracking-[0.24em] text-[#a88a7e]">
+          Iniciando Mapa Satelital...
+        </p>
+      </div>
+    ),
+    ssr: false,
+  }
+);
 
 export default function PlanesPage() {
   const { profile } = useProfile();

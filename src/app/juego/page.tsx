@@ -1,8 +1,20 @@
 'use client';
 
 import { PrivateRoute } from "@/components/PrivateRoute";
-import { Mahjong } from "@/components/Mahjong";
 import { useProfile } from "@/context/ProfileContext";
+import dynamic from "next/dynamic";
+
+const Mahjong = dynamic(
+  () => import("@/components/Mahjong").then((m) => m.Mahjong),
+  {
+    loading: () => (
+      <div className="flex h-[400px] w-full items-center justify-center border border-dashed border-white/10 bg-black/40 font-mono text-xs uppercase text-[#a88a7e] tracking-widest animate-pulse">
+        Cargando Tablero Mahjong...
+      </div>
+    ),
+    ssr: false,
+  }
+);
 
 export default function JuegoPage() {
   const { profile } = useProfile();

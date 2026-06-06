@@ -63,12 +63,27 @@ export function LiveLinkPreview({ url, label = 'VISTA PREVIA EN VIVO' }: LiveLin
         }
 
         const fetchPreview = async () => {
+            const cacheKey = `link-preview:${debouncedUrl}`;
             setLoading(true);
             try {
+                const cached = localStorage.getItem(cacheKey);
+                if (cached) {
+                    const parsed = JSON.parse(cached);
+                    if (Date.now() - parsed.timestamp < 86400000) {
+                        setPreview(parsed.data);
+                        setLoading(false);
+                        return;
+                    }
+                }
+
                 const res = await fetch(`/api/link-preview?url=${encodeURIComponent(debouncedUrl)}`);
                 if (res.ok) {
                     const data = await res.json();
                     setPreview(data);
+                    localStorage.setItem(cacheKey, JSON.stringify({
+                        data: data,
+                        timestamp: Date.now()
+                    }));
                 } else {
                     setPreview(null);
                 }

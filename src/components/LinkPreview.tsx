@@ -24,12 +24,28 @@ export function LinkPreview({ url, category, variant = 'default' }: LinkPreviewP
 
     useEffect(() => {
         const fetchPreview = async () => {
+            if (!url) return;
+            const cacheKey = `link-preview:${url}`;
             try {
                 setLoading(true);
+                const cached = localStorage.getItem(cacheKey);
+                if (cached) {
+                    const parsed = JSON.parse(cached);
+                    if (Date.now() - parsed.timestamp < 86400000) {
+                        setData(parsed.data);
+                        setLoading(false);
+                        return;
+                    }
+                }
+
                 const res = await fetch(`/api/link-preview?url=${encodeURIComponent(url)}`);
                 if (res.ok) {
                     const json = await res.json();
                     setData(json);
+                    localStorage.setItem(cacheKey, JSON.stringify({
+                        data: json,
+                        timestamp: Date.now()
+                    }));
                 } else {
                     setError(true);
                 }
@@ -40,7 +56,7 @@ export function LinkPreview({ url, category, variant = 'default' }: LinkPreviewP
             }
         };
 
-        if (url) fetchPreview();
+        fetchPreview();
     }, [url]);
 
     if (loading) {
