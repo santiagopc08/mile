@@ -287,7 +287,7 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
   };
 
   const importSuggestion = (text: string, field: 'actions' | 'validations') => {
-    const item: ChecklistItem = { id: Date.now().toString() + Math.random(), text, checked: false };
+    const item: ChecklistItem = { id: crypto.randomUUID(), text, checked: false };
     if (editingTaskId) {
       if (field === 'actions') setEditActions(prev => [...prev, item]);
       else setEditValidations(prev => [...prev, item]);
@@ -551,11 +551,11 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
                           <input
                             value={newActionText}
                             onChange={e => setNewActionText(e.target.value)}
-                            onKeyDown={e => { if (e.key === 'Enter') { setNewActions([...newActions, { id: Date.now().toString(), text: newActionText, checked: false }]); setNewActionText(''); } }}
+                            onKeyDown={e => { if (e.key === 'Enter') { setNewActions([...newActions, { id: crypto.randomUUID(), text: newActionText, checked: false }]); setNewActionText(''); } }}
                             placeholder="Nueva acción..."
                             className="flex-1 border border-white/10 bg-black px-2 py-1 text-[9px] text-white outline-none placeholder:text-[#594137] font-mono"
                           />
-                          <button onClick={() => { if (newActionText) { setNewActions([...newActions, { id: Date.now().toString(), text: newActionText, checked: false }]); setNewActionText(''); } }} className={`!min-h-0 border border-white/10 px-2 hover:border-${accentClass} hover:bg-white/5`}><Plus size={10} /></button>
+                          <button onClick={() => { if (newActionText) { setNewActions([...newActions, { id: crypto.randomUUID(), text: newActionText, checked: false }]); setNewActionText(''); } }} className={`!min-h-0 border border-white/10 px-2 hover:border-${accentClass} hover:bg-white/5`}><Plus size={10} /></button>
                         </div>
                         <div className="space-y-1 font-mono">
                           {newActions.map(act => (
@@ -592,11 +592,11 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
                           <input
                             value={newValidationText}
                             onChange={e => setNewValidationText(e.target.value)}
-                            onKeyDown={e => { if (e.key === 'Enter') { setNewValidations([...newValidations, { id: Date.now().toString(), text: newValidationText, checked: false }]); setNewValidationText(''); } }}
+                            onKeyDown={e => { if (e.key === 'Enter') { setNewValidations([...newValidations, { id: crypto.randomUUID(), text: newValidationText, checked: false }]); setNewValidationText(''); } }}
                             placeholder="Nueva validación..."
                             className="flex-1 border border-white/10 bg-black px-2 py-1 text-[9px] text-white outline-none placeholder:text-[#594137] font-mono"
                           />
-                          <button onClick={() => { if (newValidationText) { setNewValidations([...newValidations, { id: Date.now().toString(), text: newValidationText, checked: false }]); setNewValidationText(''); } }} className="!min-h-0 border border-white/10 px-2 hover:border-emerald-500 hover:bg-white/5"><Plus size={10} /></button>
+                          <button onClick={() => { if (newValidationText) { setNewValidations([...newValidations, { id: crypto.randomUUID(), text: newValidationText, checked: false }]); setNewValidationText(''); } }} className="!min-h-0 border border-white/10 px-2 hover:border-emerald-500 hover:bg-white/5"><Plus size={10} /></button>
                         </div>
                         <div className="space-y-1 font-mono">
                           {newValidations.map(val => (
