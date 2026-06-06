@@ -23,6 +23,12 @@ export default function RefugioPage() {
       const tab = params.get('tab') as RefugioTab;
       if (tab && ['notas', 'escucha', 'musica', 'bebes', 'historia'].includes(tab)) {
         setActiveTab(tab);
+        setTimeout(() => {
+          const el = document.getElementById('refugio-content');
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 100);
       }
     }
   }, []);
@@ -87,7 +93,7 @@ export default function RefugioPage() {
             ))}
           </div>
 
-          <div className="bg-[#050505] p-3 sm:p-5 md:p-8">
+          <div id="refugio-content" className="bg-[#050505] p-3 sm:p-5 md:p-8">
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeTab}

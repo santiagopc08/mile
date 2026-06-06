@@ -6,7 +6,7 @@ import { GeospatialPlanTracker } from "@/components/GeospatialPlanTracker";
 import { useProfile } from "@/context/ProfileContext";
 import { useStore } from "@/context/StoreContext";
 import { Activity, Compass, Radio } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 
 export default function PlanesPage() {
   const { profile } = useProfile();
@@ -22,6 +22,22 @@ export default function PlanesPage() {
     const completed = items.filter((i: any) => i.state === 'COMPLETED').length;
     return { total: items.length, active, completed };
   }, [data?.wishlist]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const action = params.get('action');
+      const scroll = params.get('scroll');
+      if (action === 'add' || scroll === 'wishlist') {
+        setTimeout(() => {
+          const el = document.getElementById('wishlist-section');
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 150);
+      }
+    }
+  }, []);
 
   return (
     <PrivateRoute>
@@ -42,7 +58,7 @@ export default function PlanesPage() {
 
           <section className="bg-[#050505] p-3 sm:p-5 md:p-8 space-y-8">
             <GeospatialPlanTracker />
-            <div className="border-t border-white/10 pt-4" />
+            <div id="wishlist-section" className="border-t border-white/10 pt-4" />
             <WishlistModule />
           </section>
         </div>

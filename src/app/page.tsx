@@ -5,17 +5,17 @@ import { useProfile } from "@/context/ProfileContext";
 import { useStore } from "@/context/StoreContext";
 import Link from 'next/link';
 import { useMemo } from 'react';
-import { 
-  LayoutDashboard, 
-  MapPin, 
-  ShieldCheck, 
-  Heart, 
-  Gamepad2, 
-  ArrowRight, 
-  Sparkles, 
-  Compass, 
-  Music, 
-  Activity, 
+import {
+  LayoutDashboard,
+  MapPin,
+  ShieldCheck,
+  Heart,
+  Gamepad2,
+  ArrowRight,
+  Sparkles,
+  Compass,
+  Music,
+  Activity,
   CheckSquare,
   PlusCircle,
   FileText,
@@ -35,20 +35,19 @@ export default function Home() {
   // Active theme accent styling variables
   const accentColorValue = profile === 'ella' ? '#ff4b89' : '#c3f400';
   const accentHoverBg = profile === 'ella' ? 'rgba(255, 75, 137, 0.15)' : 'rgba(195, 244, 0, 0.15)';
-  const partnerName = profile === 'ella' ? 'Santi' : 'Mile';
 
   // Compute live statistics for custom indicators
   const tasks = useMemo(() => (data?.tasks || []) as any[], [data?.tasks]);
   const pendingTasks = useMemo(() => tasks.filter(t => t.status !== 'done' && t.status !== 'skipped'), [tasks]);
   const assigneeTasks = useMemo(() => pendingTasks.filter(t => !t.assignee || t.assignee === profile), [pendingTasks, profile]);
-  
+
   const wishlist = useMemo(() => (data?.wishlist || []) as any[], [data?.wishlist]);
   const activePlansCount = wishlist.length;
   const savingPlansCount = useMemo(() => wishlist.filter(item => item.state === 'SAVING').length, [wishlist]);
-  
+
   const playlist = useMemo(() => data?.audioPlaylist || [], [data?.audioPlaylist]);
   const songsCount = playlist.length;
-  
+
   const reflections = useMemo(() => data?.persistentListening || [], [data?.persistentListening]);
   const reflectionsCount = reflections.length;
 
@@ -66,13 +65,13 @@ export default function Home() {
 
   const greetingSubtitle = useMemo(() => {
     if (profile === 'ella') {
-      return `Qué alegría tenerte de vuelta en nuestro rincón compartido. Todo está en orden por aquí. ¿Qué te gustaría coordinar o registrar hoy con ${partnerName}?`;
+      return `Qué lindo tenerte aquí. Todo listo para compartir hoy con Santi.`;
     }
     if (profile === 'el') {
-      return `Listo para la acción. Todo en marcha en tu panel de control compartido con ${partnerName}. ¿Qué misión u objetivo conquistaremos hoy?`;
+      return `Qué lindo tenerte aquí. Todo listo para compartir hoy con Mile.`;
     }
-    return 'Seleccione el módulo operativo requerido para esta sesión.';
-  }, [profile, partnerName]);
+    return 'Seleccione el módulo operativo para esta sesión.';
+  }, [profile]);
 
   return (
     <PrivateRoute>
@@ -85,7 +84,6 @@ export default function Home() {
         <div className="absolute inset-0 bg-dot-matrix opacity-30 pointer-events-none" />
       </div>
 
-      {/* CHANGED: Changed justify-center to justify-start and added vertical padding cushion to allow scrolling and prevent card clipping */}
       <main
         className="w-full min-h-screen flex flex-col items-center justify-start py-8 sm:py-12 md:py-16 px-4 sm:px-6 relative z-10 text-[#e5e2e1] overflow-y-auto"
         style={{ '--color-profile-accent': accentColorValue } as React.CSSProperties}
@@ -96,47 +94,15 @@ export default function Home() {
 
           {/* Header Section */}
           <div className="border-b border-white/10 p-6 sm:p-8 lg:p-10 relative">
-             <div className="absolute left-0 top-0 h-full w-[4px]" style={{ backgroundColor: accentColorValue }} />
-             
-             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-               {/* Greeting block */}
-                <div className="lg:col-span-7 space-y-3">
-                  <h1 className="text-2xl sm:text-3xl md:text-4xl font-mono font-bold uppercase tracking-tight text-white leading-none">
-                    {greetingTitle}
-                  </h1>
-                 <p className="text-sm tracking-normal text-[#e1bfb2] font-medium leading-relaxed max-w-xl font-sans">
-                   {greetingSubtitle}
-                 </p>
-               </div>
-
-               {/* Quick Sync HUD */}
-               <div className="lg:col-span-5 border border-white/10 bg-black/40 p-4 font-mono text-[9px] text-[#a88a7e] space-y-2 relative rounded-none">
-                 <div className="absolute top-0 right-0 p-1 text-[7px] text-white/20 border-b border-l border-white/10 uppercase bg-[#121212]">
-                   HUD-01
-                 </div>
-                 <div className="text-[8px] font-black text-white/50 border-b border-white/5 pb-1 uppercase tracking-wider">
-                   ● BITÁCORA DE SINCRONÍA
-                 </div>
-                 <div className="space-y-1 text-white/80">
-                   <div className="flex justify-between">
-                     <span>TAREAS ACTIVAS:</span>
-                     <span className="font-bold text-white font-mono">{assigneeTasks.length} pendientes por ti</span>
-                   </div>
-                   <div className="flex justify-between">
-                     <span>PLANES EN CURSO:</span>
-                     <span className="font-bold text-white font-mono">{savingPlansCount} en ahorro activo</span>
-                   </div>
-                   <div className="flex justify-between">
-                     <span>REFLEXIONES COMPARTIDAS:</span>
-                     <span className="font-bold text-white font-mono">{reflectionsCount} registradas</span>
-                   </div>
-                   <div className="flex justify-between">
-                     <span>TEMAS MUSICALES:</span>
-                     <span className="font-bold text-white font-mono">{songsCount} recomendados</span>
-                   </div>
-                 </div>
-               </div>
-             </div>
+            <div className="absolute left-0 top-0 h-full w-[4px]" style={{ backgroundColor: accentColorValue }} />
+            <div className="space-y-3">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-mono font-bold uppercase tracking-tight text-white leading-none">
+                {greetingTitle}
+              </h1>
+              <p className="text-sm tracking-normal text-[#e1bfb2] font-medium leading-relaxed max-w-xl font-sans">
+                {greetingSubtitle}
+              </p>
+            </div>
           </div>
 
           {/* Body Section */}
@@ -145,91 +111,77 @@ export default function Home() {
             {/* Primary Modules - 2 Columns */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-[1px] bg-white/10 border border-white/10 p-[1px]">
 
-               {/* Día a Día */}
-               <div className="group relative bg-[#0a0a0a] p-8 flex flex-col gap-6 transition-all duration-300 hover:bg-[#121212]">
-                  <div className="absolute inset-0 border-2 border-transparent group-hover:border-[var(--color-profile-accent)] transition-colors pointer-events-none" />
-                  <div className="flex justify-between items-start">
-                     <Link href="/dashboard" className="p-4 border border-white/10 bg-[#121212] group-hover:bg-[#1a1a1a] transition-colors group-hover:shadow-[0_0_15px_var(--color-profile-accent)] text-[var(--color-profile-accent)]" style={{ color: accentColorValue }}>
-                        <LayoutDashboard size={32} strokeWidth={1.5} />
-                     </Link>
-                     <span className="text-[9px] font-mono font-bold text-white/30 group-hover:text-white/70 transition-colors border border-white/10 px-2 py-1">MOD-01</span>
-                  </div>
-                  <div>
+              {/* Día a Día */}
+              <div className="group relative bg-[#0a0a0a] p-8 flex flex-col gap-5 transition-all duration-300 hover:bg-[#121212]">
+                <div className="absolute inset-0 border-2 border-transparent group-hover:border-[var(--color-profile-accent)] transition-colors pointer-events-none" />
+                
+                {/* Title and stats in same row */}
+                <div className="flex flex-wrap items-center justify-between gap-3 w-full">
+                  <div className="flex items-center gap-3">
+                    <span className="text-[var(--color-profile-accent)] shrink-0" style={{ color: accentColorValue }}>
+                      <LayoutDashboard size={24} strokeWidth={1.5} />
+                    </span>
                     <Link href="/dashboard" className="inline-block">
-                      <h2 className="text-2xl font-black uppercase mb-2 group-hover:text-[var(--color-profile-accent)] transition-colors">Día a Día</h2>
+                      <h2 className="text-xl font-black uppercase group-hover:text-[var(--color-profile-accent)] transition-colors">Día a Día</h2>
                     </Link>
-                    <p className="text-xs text-[#a88a7e] leading-relaxed mb-6 font-sans">
-                      Nuestras tareas cotidianas y finanzas compartidas. Revisa pendientes del hogar, objetivos y el balance de nuestros bolsillos.
-                    </p>
-
-                    {/* Specific Action Buttons & Live Indicator */}
-                    <div className="flex flex-col gap-2 pt-2 border-t border-white/5 relative z-20">
-                      <div className="inline-flex items-center gap-1.5 self-start bg-black/40 px-2.5 py-1 text-[8px] font-mono uppercase tracking-wider text-stone-400 border border-white/5">
-                        <CheckSquare size={10} className="text-user-c" />
-                        <span>{assigneeTasks.length} Tareas Pendientes</span>
-                      </div>
-                      <div className="flex flex-wrap gap-1.5 mt-1">
-                        <Link href="/dashboard?tab=tasks" className="inline-flex items-center gap-1 border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2.5 py-1.5 text-[8px] font-mono uppercase tracking-wider text-white transition-all">
-                          <CheckSquare size={8} />
-                          <span>Ver mis tareas</span>
-                        </Link>
-                        <Link href="/dashboard?tab=finances" className="inline-flex items-center gap-1 border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2.5 py-1.5 text-[8px] font-mono uppercase tracking-wider text-white transition-all">
-                          <PlusCircle size={8} />
-                          <span>Registrar Gastos</span>
-                        </Link>
-                        <Link href="/dashboard?tab=finances" className="inline-flex items-center gap-1 border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2.5 py-1.5 text-[8px] font-mono uppercase tracking-wider text-white transition-all">
-                          <FileText size={8} />
-                          <span>Ver Presupuestos</span>
-                        </Link>
-                      </div>
-                    </div>
                   </div>
-                  <Link href="/dashboard" className="mt-auto flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.2em] opacity-50 group-hover:opacity-100 transition-opacity" style={{ color: accentColorValue }}>
-                     <span>Ingresar al panel</span>
-                     <ArrowRight size={12} />
-                  </Link>
-               </div>
-
-               {/* Antojos */}
-               <div className="group relative bg-[#0a0a0a] p-8 flex flex-col gap-6 transition-all duration-300 hover:bg-[#121212]">
-                  <div className="absolute inset-0 border-2 border-transparent group-hover:border-[var(--color-profile-accent)] transition-colors pointer-events-none" />
-                  <div className="flex justify-between items-start">
-                     <Link href="/planes" className="p-4 border border-white/10 bg-[#121212] group-hover:bg-[#1a1a1a] transition-colors group-hover:shadow-[0_0_15px_var(--color-profile-accent)] text-[var(--color-profile-accent)]" style={{ color: accentColorValue }}>
-                        <MapPin size={32} strokeWidth={1.5} />
-                     </Link>
-                     <span className="text-[9px] font-mono font-bold text-white/30 group-hover:text-white/70 transition-colors border border-white/10 px-2 py-1">MOD-02</span>
+                  {/* Statistics block */}
+                  <div className="inline-flex items-center gap-1.5 bg-black/40 px-2 py-0.5 text-[8px] font-mono uppercase tracking-wider text-[#a88a7e] border border-white/5 shrink-0">
+                    <CheckSquare size={10} className="text-[#a88a7e]" />
+                    <span>{assigneeTasks.length} Tareas Pendientes</span>
                   </div>
-                  <div>
+                </div>
+
+                {/* Specific Action Buttons */}
+                <div className="flex flex-col gap-2 pt-2 border-t border-white/5 relative z-20">
+                  <div className="flex flex-wrap gap-1.5">
+                    <Link href="/dashboard?tab=tasks" className="inline-flex items-center gap-1 border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2.5 py-1.5 text-[8px] font-mono uppercase tracking-wider text-white transition-all">
+                      <CheckSquare size={8} />
+                      <span>Ver mis tareas</span>
+                    </Link>
+                    <Link href="/dashboard?tab=finances" className="inline-flex items-center gap-1 border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2.5 py-1.5 text-[8px] font-mono uppercase tracking-wider text-white transition-all">
+                      <PlusCircle size={8} />
+                      <span>Registrar Gastos</span>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+
+              {/* Antojos */}
+              <div className="group relative bg-[#0a0a0a] p-8 flex flex-col gap-5 transition-all duration-300 hover:bg-[#121212]">
+                <div className="absolute inset-0 border-2 border-transparent group-hover:border-[var(--color-profile-accent)] transition-colors pointer-events-none" />
+                
+                {/* Title and stats in same row */}
+                <div className="flex flex-wrap items-center justify-between gap-3 w-full">
+                  <div className="flex items-center gap-3">
+                    <span className="text-[var(--color-profile-accent)] shrink-0" style={{ color: accentColorValue }}>
+                      <MapPin size={24} strokeWidth={1.5} />
+                    </span>
                     <Link href="/planes" className="inline-block">
-                      <h2 className="text-2xl font-black uppercase mb-2 group-hover:text-[var(--color-profile-accent)] transition-colors">Antojos</h2>
+                      <h2 className="text-xl font-black uppercase group-hover:text-[var(--color-profile-accent)] transition-colors">Antojos</h2>
                     </Link>
-                    <p className="text-xs text-[#a88a7e] leading-relaxed mb-6 font-sans">
-                      Nuestro mapa de planes en común y lista de deseos. Rastrea los viajes que soñamos, restaurantes pendientes y compras en camino.
-                    </p>
-
-                    {/* Specific Action Buttons & Live Indicator */}
-                    <div className="flex flex-col gap-2 pt-2 border-t border-white/5 relative z-20">
-                      <div className="inline-flex items-center gap-1.5 self-start bg-black/40 px-2.5 py-1 text-[8px] font-mono uppercase tracking-wider text-stone-400 border border-white/5">
-                        <Compass size={10} className="text-user-c" />
-                        <span>{activePlansCount} Planes Guardados</span>
-                      </div>
-                      <div className="flex flex-wrap gap-1.5 mt-1">
-                        <Link href="/planes" className="inline-flex items-center gap-1 border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2.5 py-1.5 text-[8px] font-mono uppercase tracking-wider text-white transition-all">
-                          <Compass size={8} />
-                          <span>Ver planes guardados</span>
-                        </Link>
-                        <Link href="/planes" className="inline-flex items-center gap-1 border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2.5 py-1.5 text-[8px] font-mono uppercase tracking-wider text-white transition-all">
-                          <PlusCircle size={8} />
-                          <span>Agregar nuevo plan</span>
-                        </Link>
-                      </div>
-                    </div>
                   </div>
-                  <Link href="/planes" className="mt-auto flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.2em] opacity-50 group-hover:opacity-100 transition-opacity" style={{ color: accentColorValue }}>
-                     <span>Explorar deseos</span>
-                     <ArrowRight size={12} />
-                  </Link>
-               </div>
+                  {/* Statistics block */}
+                  <div className="inline-flex items-center gap-1.5 bg-black/40 px-2 py-0.5 text-[8px] font-mono uppercase tracking-wider text-[#a88a7e] border border-white/5 shrink-0">
+                    <Compass size={10} className="text-[#a88a7e]" />
+                    <span>{activePlansCount} Planes Guardados</span>
+                  </div>
+                </div>
+
+                {/* Specific Action Buttons */}
+                <div className="flex flex-col gap-2 pt-2 border-t border-white/5 relative z-20">
+                  <div className="flex flex-wrap gap-1.5">
+                    <Link href="/planes?scroll=wishlist" className="inline-flex items-center gap-1 border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2.5 py-1.5 text-[8px] font-mono uppercase tracking-wider text-white transition-all">
+                      <Compass size={8} />
+                      <span>Ver planes guardados</span>
+                    </Link>
+                    <Link href="/planes?action=add" className="inline-flex items-center gap-1 border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2.5 py-1.5 text-[8px] font-mono uppercase tracking-wider text-white transition-all">
+                      <PlusCircle size={8} />
+                      <span>Agregar nuevo plan</span>
+                    </Link>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Secondary Modules Header */}
@@ -242,123 +194,125 @@ export default function Home() {
             {/* Secondary Modules - 3 Columns */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-[1px] bg-white/10 border border-white/10 p-[1px]">
 
-               {/* Refugio */}
-               <div className="group relative bg-[#0a0a0a] p-6 flex flex-col items-center text-center gap-4 transition-all duration-300 hover:bg-[#121212] justify-between h-full">
-                  <div className="absolute inset-0 border border-transparent group-hover:border-[var(--color-profile-accent)] transition-colors pointer-events-none" />
-                  <Link href="/refugio" className="p-3 border border-white/10 text-white/50 group-hover:text-[var(--color-profile-accent)] group-hover:bg-white/5 transition-colors">
-                     <ShieldCheck size={24} strokeWidth={1.5} />
-                  </Link>
-                  <div className="w-full flex flex-col items-center">
+              {/* Refugio */}
+              <div className="group relative bg-[#0a0a0a] p-6 flex flex-col items-start gap-5 transition-all duration-300 hover:bg-[#121212] justify-between h-full">
+                <div className="absolute inset-0 border border-transparent group-hover:border-[var(--color-profile-accent)] transition-colors pointer-events-none" />
+                
+                {/* Title and stats in same row */}
+                <div className="flex flex-wrap items-center justify-between gap-3 w-full">
+                  <div className="flex items-center gap-3">
+                    <span className="text-white/50 group-hover:text-[var(--color-profile-accent)] transition-colors shrink-0" style={{ color: accentColorValue }}>
+                      <ShieldCheck size={20} strokeWidth={1.5} />
+                    </span>
                     <Link href="/refugio">
-                      <h3 className="text-sm font-black uppercase mb-1 group-hover:text-[var(--color-profile-accent)] transition-colors">Refugio</h3>
+                      <h3 className="text-sm font-black uppercase group-hover:text-[var(--color-profile-accent)] transition-colors">Refugio</h3>
                     </Link>
-                    <p className="text-[10px] font-sans text-stone-400 leading-normal mb-4">
-                      Bitácora íntima, playlist compartida, recuerdos y cuidados de las mascotas.
-                    </p>
-
-                    {/* Specific Action Buttons & Live Indicator */}
-                    <div className="w-full flex flex-col gap-2 pt-2 border-t border-white/5 relative z-20 items-center">
-                      <div className="inline-flex items-center gap-1 bg-black/60 px-2 py-0.5 text-[7px] font-mono uppercase text-stone-400 border border-white/5">
-                        <Music size={8} />
-                        <span>{songsCount} canciones recomendadas</span>
-                      </div>
-                      <div className="flex flex-col gap-1 w-full mt-1">
-                        <Link href="/refugio?tab=escucha" className="inline-flex items-center justify-center gap-1 border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 py-1 text-[7.5px] font-mono uppercase tracking-wider text-white transition-all">
-                          <FileText size={8} />
-                          <span>Escribir en bitácora</span>
-                        </Link>
-                        <Link href="/refugio?tab=musica" className="inline-flex items-center justify-center gap-1 border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 py-1 text-[7.5px] font-mono uppercase tracking-wider text-white transition-all">
-                          <Music size={8} />
-                          <span>Recomendar canción</span>
-                        </Link>
-                        <Link href="/refugio?tab=bebes" className="inline-flex items-center justify-center gap-1 border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 py-1 text-[7.5px] font-mono uppercase tracking-wider text-white transition-all">
-                          <PawPrint size={8} />
-                          <span>Diario de bebés</span>
-                        </Link>
-                        <Link href="/refugio?tab=historia" className="inline-flex items-center justify-center gap-1 border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 py-1 text-[7.5px] font-mono uppercase tracking-wider text-white transition-all">
-                          <Clock size={8} />
-                          <span>Nuestra historia</span>
-                        </Link>
-                      </div>
-                    </div>
                   </div>
-               </div>
+                  {/* Statistics block */}
+                  <div className="inline-flex items-center gap-1.5 bg-black/40 px-2 py-0.5 text-[7px] font-mono uppercase tracking-wider text-[#a88a7e] border border-white/5 shrink-0">
+                    <Music size={8} className="text-[#a88a7e]" />
+                    <span>{songsCount} temas / {reflectionsCount} reflexiones</span>
+                  </div>
+                </div>
 
-               {/* Salud */}
-               <div className="group relative bg-[#0a0a0a] p-6 flex flex-col items-center text-center gap-4 transition-all duration-300 hover:bg-[#121212] justify-between h-full">
-                  <div className="absolute inset-0 border border-transparent group-hover:border-[var(--color-profile-accent)] transition-colors pointer-events-none" />
-                  <Link href="/salud" className="p-3 border border-white/10 text-white/50 group-hover:text-[var(--color-profile-accent)] group-hover:bg-white/5 transition-colors">
-                     <Heart size={24} strokeWidth={1.5} />
-                  </Link>
-                  <div className="w-full flex flex-col items-center">
+                {/* Specific Action Buttons */}
+                <div className="w-full flex flex-col gap-2 pt-2 border-t border-white/5 relative z-20 items-center">
+                  <div className="flex flex-col gap-1 w-full">
+                    <Link href="/refugio?tab=escucha" className="inline-flex items-center justify-center gap-1 border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 py-1 text-[7.5px] font-mono uppercase tracking-wider text-white transition-all">
+                      <FileText size={8} />
+                      <span>Escribir en bitácora</span>
+                    </Link>
+                    <Link href="/refugio?tab=musica" className="inline-flex items-center justify-center gap-1 border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 py-1 text-[7.5px] font-mono uppercase tracking-wider text-white transition-all">
+                      <Music size={8} />
+                      <span>Recomendar canción</span>
+                    </Link>
+                    <Link href="/refugio?tab=bebes" className="inline-flex items-center justify-center gap-1 border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 py-1 text-[7.5px] font-mono uppercase tracking-wider text-white transition-all">
+                      <PawPrint size={8} />
+                      <span>Diario de bebés</span>
+                    </Link>
+                    <Link href="/refugio?tab=historia" className="inline-flex items-center justify-center gap-1 border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 py-1 text-[7.5px] font-mono uppercase tracking-wider text-white transition-all">
+                      <Clock size={8} />
+                      <span>Nuestra historia</span>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+
+              {/* Salud */}
+              <div className="group relative bg-[#0a0a0a] p-6 flex flex-col items-start gap-5 transition-all duration-300 hover:bg-[#121212] justify-between h-full">
+                <div className="absolute inset-0 border border-transparent group-hover:border-[var(--color-profile-accent)] transition-colors pointer-events-none" />
+                
+                {/* Title and stats in same row */}
+                <div className="flex flex-wrap items-center justify-between gap-3 w-full">
+                  <div className="flex items-center gap-3">
+                    <span className="text-white/50 group-hover:text-[var(--color-profile-accent)] transition-colors shrink-0" style={{ color: accentColorValue }}>
+                      <Heart size={20} strokeWidth={1.5} />
+                    </span>
                     <Link href="/salud">
-                      <h3 className="text-sm font-black uppercase mb-1 group-hover:text-[var(--color-profile-accent)] transition-colors">Salud</h3>
+                      <h3 className="text-sm font-black uppercase group-hover:text-[var(--color-profile-accent)] transition-colors">Salud</h3>
                     </Link>
-                    <p className="text-[10px] font-sans text-stone-400 leading-normal mb-4">
-                      Bitácora de presión arterial, hábitos diarios, diario biométrico y movilidad.
-                    </p>
-
-                    {/* Specific Action Buttons & Live Indicator */}
-                    <div className="w-full flex flex-col gap-2 pt-2 border-t border-white/5 relative z-20 items-center">
-                      <div className="inline-flex items-center gap-1 bg-black/60 px-2 py-0.5 text-[7px] font-mono uppercase text-stone-400 border border-white/5">
-                        <Activity size={8} />
-                        <span>Signos vitales al día</span>
-                      </div>
-                      <div className="flex flex-col gap-1 w-full mt-1">
-                        <Link href="/salud?tab=vitals" className="inline-flex items-center justify-center gap-1 border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 py-1 text-[7.5px] font-mono uppercase tracking-wider text-white transition-all">
-                          <HeartPulse size={8} />
-                          <span>Presión Arterial</span>
-                        </Link>
-                        <Link href="/salud?tab=habits" className="inline-flex items-center justify-center gap-1 border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 py-1 text-[7.5px] font-mono uppercase tracking-wider text-white transition-all">
-                          <Activity size={8} />
-                          <span>Registrar Hábitos</span>
-                        </Link>
-                        <Link href="/salud?tab=movement" className="inline-flex items-center justify-center gap-1 border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 py-1 text-[7.5px] font-mono uppercase tracking-wider text-white transition-all">
-                          <Flame size={8} />
-                          <span>Entreno o terapia</span>
-                        </Link>
-                        <Link href="/salud?tab=biometric" className="inline-flex items-center justify-center gap-1 border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 py-1 text-[7.5px] font-mono uppercase tracking-wider text-white transition-all">
-                          <Shield size={8} />
-                          <span>Diario biométrico</span>
-                        </Link>
-                      </div>
-                    </div>
                   </div>
-               </div>
+                  {/* Statistics block */}
+                  <div className="inline-flex items-center gap-1.5 bg-black/40 px-2 py-0.5 text-[7px] font-mono uppercase tracking-wider text-[#a88a7e] border border-white/5 shrink-0">
+                    <Activity size={8} className="text-[#a88a7e]" />
+                    <span>Bitácora clínica activa</span>
+                  </div>
+                </div>
 
-               {/* Juego */}
-               <div className="group relative bg-[#0a0a0a] p-6 flex flex-col items-center text-center gap-4 transition-all duration-300 hover:bg-[#121212] justify-between h-full">
-                  <div className="absolute inset-0 border-2 border-transparent group-hover:border-[var(--color-profile-accent)] transition-colors pointer-events-none" />
-                  <Link href="/juego" className="p-3 border border-white/10 text-white/50 group-hover:text-[var(--color-profile-accent)] group-hover:bg-white/5 transition-colors">
-                     <Gamepad2 size={24} strokeWidth={1.5} />
-                  </Link>
-                  <div className="w-full flex flex-col items-center">
+                {/* Specific Action Buttons */}
+                <div className="w-full flex flex-col gap-2 pt-2 border-t border-white/5 relative z-20 items-center">
+                  <div className="flex flex-col gap-1 w-full">
+                    <Link href="/salud?tab=vitals" className="inline-flex items-center justify-center gap-1 border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 py-1 text-[7.5px] font-mono uppercase tracking-wider text-white transition-all">
+                      <HeartPulse size={8} />
+                      <span>Presión Arterial</span>
+                    </Link>
+                    <Link href="/salud?tab=habits" className="inline-flex items-center justify-center gap-1 border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 py-1 text-[7.5px] font-mono uppercase tracking-wider text-white transition-all">
+                      <Activity size={8} />
+                      <span>Registrar Hábitos</span>
+                    </Link>
+                    <Link href="/salud?tab=movement" className="inline-flex items-center justify-center gap-1 border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 py-1 text-[7.5px] font-mono uppercase tracking-wider text-white transition-all">
+                      <Flame size={8} />
+                      <span>Entreno o terapia</span>
+                    </Link>
+                    <Link href="/salud?tab=biometric" className="inline-flex items-center justify-center gap-1 border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 py-1 text-[7.5px] font-mono uppercase tracking-wider text-white transition-all">
+                      <Shield size={8} />
+                      <span>Diario biométrico</span>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+
+              {/* Juego */}
+              <div className="group relative bg-[#0a0a0a] p-6 flex flex-col items-start gap-5 transition-all duration-300 hover:bg-[#121212] justify-between h-full">
+                <div className="absolute inset-0 border-2 border-transparent group-hover:border-[var(--color-profile-accent)] transition-colors pointer-events-none" />
+                
+                {/* Title and stats in same row */}
+                <div className="flex flex-wrap items-center justify-between gap-3 w-full">
+                  <div className="flex items-center gap-3">
+                    <span className="text-white/50 group-hover:text-[var(--color-profile-accent)] transition-colors shrink-0" style={{ color: accentColorValue }}>
+                      <Gamepad2 size={20} strokeWidth={1.5} />
+                    </span>
                     <Link href="/juego">
-                      <h3 className="text-sm font-black uppercase mb-1 group-hover:text-[var(--color-profile-accent)] transition-colors">Juego</h3>
+                      <h3 className="text-sm font-black uppercase group-hover:text-[var(--color-profile-accent)] transition-colors">Juego</h3>
                     </Link>
-                    <p className="text-[10px] font-sans text-stone-400 leading-normal mb-4">
-                      Juego de Mahjong con nuestros recuerdos y clasificaciones en tiempo real.
-                    </p>
-
-                    {/* Specific Action Buttons & Live Indicator */}
-                    <div className="w-full flex flex-col gap-2 pt-2 border-t border-white/5 relative z-20 items-center">
-                      <div className="inline-flex items-center gap-1 bg-black/60 px-2 py-0.5 text-[7px] font-mono uppercase text-stone-400 border border-white/5">
-                        <Sparkles size={8} />
-                        <span>Tabla de récords activa</span>
-                      </div>
-                      <div className="flex flex-col gap-1 w-full mt-1">
-                        <Link href="/juego" className="inline-flex items-center justify-center gap-1 border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 py-1 text-[7.5px] font-mono uppercase tracking-wider text-white transition-all">
-                          <Gamepad2 size={8} />
-                          <span>Jugar Mahjong</span>
-                        </Link>
-                        <Link href="/juego" className="inline-flex items-center justify-center gap-1 border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 py-1 text-[7.5px] font-mono uppercase tracking-wider text-white transition-all">
-                          <Sparkles size={8} />
-                          <span>Tabla de Récords</span>
-                        </Link>
-                      </div>
-                    </div>
                   </div>
-               </div>
+                  {/* Statistics block */}
+                  <div className="inline-flex items-center gap-1.5 bg-black/40 px-2 py-0.5 text-[7px] font-mono uppercase tracking-wider text-[#a88a7e] border border-white/5 shrink-0">
+                    <Sparkles size={8} className="text-[#a88a7e]" />
+                    <span>Récords de memoria</span>
+                  </div>
+                </div>
+
+                {/* Specific Action Buttons */}
+                <div className="w-full flex flex-col gap-2 pt-2 border-t border-white/5 relative z-20 items-center">
+                  <div className="flex flex-col gap-1 w-full">
+                    <Link href="/juego" className="inline-flex items-center justify-center gap-1 border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 py-1 text-[7.5px] font-mono uppercase tracking-wider text-white transition-all">
+                      <Gamepad2 size={8} />
+                      <span>Jugar Mahjong</span>
+                    </Link>
+                  </div>
+                </div>
+              </div>
             </div>
 
           </div>

@@ -22,6 +22,12 @@ export default function SaludPage() {
             const tab = params.get('tab') as SaludTab;
             if (tab && ['vitals', 'biometric', 'fiscal', 'habits', 'movement'].includes(tab)) {
                 setActiveTab(tab);
+                setTimeout(() => {
+                    const el = document.getElementById('salud-content');
+                    if (el) {
+                        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }, 100);
             }
         }
     }, []);
@@ -112,7 +118,7 @@ export default function SaludPage() {
                         ))}
                     </div>
 
-                    <div className="bg-[#050505] p-3 sm:p-5 md:p-8">
+                    <div id="salud-content" className="bg-[#050505] p-3 sm:p-5 md:p-8">
 
                         <AnimatePresence mode="wait">
                             <motion.div

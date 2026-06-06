@@ -130,6 +130,12 @@ export const SymmetryDashboard = () => {
       const tab = params.get('tab');
       if (tab === 'tasks' || tab === 'finances') {
         setActiveTab(tab);
+        setTimeout(() => {
+          const el = document.getElementById('dashboard-content');
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 100);
       }
     }
   }, []);
@@ -190,31 +196,33 @@ export const SymmetryDashboard = () => {
         </div>
       </div>
 
-      <AnimatePresence mode="wait">
-        {activeTab === 'tasks' ? (
-          <TasksTab
-            tasks={tasks}
-            objectives={objectives}
-            profile={profile || ''}
-            accentColorValue={accentColorValue}
-            focusScore={focusScore}
-            activeTasks={activeTasks}
-            handleTasksUpdate={handleTasksUpdate}
-          />
-        ) : (
-          <FinancesTab
-            profile={profile || ''}
-            userAllocations={userAllocations}
-            allocationsA={allocationsA}
-            allocationsB={allocationsB}
-            totalSpent={totalSpent}
-            combinedTotalSpent={combinedTotalSpent}
-            handleAllocationsChange={handleAllocationsChange}
-            mode={mode}
-            accentColorValue={accentColorValue}
-          />
-        )}
-      </AnimatePresence>
+      <div id="dashboard-content">
+        <AnimatePresence mode="wait">
+          {activeTab === 'tasks' ? (
+            <TasksTab
+              tasks={tasks}
+              objectives={objectives}
+              profile={profile || ''}
+              accentColorValue={accentColorValue}
+              focusScore={focusScore}
+              activeTasks={activeTasks}
+              handleTasksUpdate={handleTasksUpdate}
+            />
+          ) : (
+            <FinancesTab
+              profile={profile || ''}
+              userAllocations={userAllocations}
+              allocationsA={allocationsA}
+              allocationsB={allocationsB}
+              totalSpent={totalSpent}
+              combinedTotalSpent={combinedTotalSpent}
+              handleAllocationsChange={handleAllocationsChange}
+              mode={mode}
+              accentColorValue={accentColorValue}
+            />
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 };

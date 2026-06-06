@@ -112,6 +112,16 @@ export function WishlistModule() {
             .join('||');
     }, [items]);
 
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const params = new URLSearchParams(window.location.search);
+            const action = params.get('action');
+            if (action === 'add') {
+                setIsAdding(true);
+            }
+        }
+    }, []);
+
     // Auto-backfill and sync routine for Google Maps items
     useEffect(() => {
         if (items.length === 0) return;
