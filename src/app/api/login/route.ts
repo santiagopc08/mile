@@ -3,6 +3,17 @@ import { createServerClient } from '@/lib/supabase';
 import { cookies } from 'next/headers';
 import crypto from 'crypto';
 
+// Helper to perform a constant-time comparison to prevent timing attacks.
+function secureCompare(a: string | undefined, b: string | undefined): boolean {
+    if (!a || !b) return false;
+
+    // Hash both strings first so they are guaranteed to be the same length (required by timingSafeEqual)
+    const hashA = crypto.createHash('sha256').update(a).digest();
+    const hashB = crypto.createHash('sha256').update(b).digest();
+
+    return crypto.timingSafeEqual(hashA, hashB);
+}
+
 export async function POST(request: Request) {
     try {
         const { profile, password } = await request.json();
@@ -18,10 +29,10 @@ export async function POST(request: Request) {
         let isValid = false;
         let email = '';
 
-        if (profile === 'el' && password === elPassword) {
+        if (profile === 'el' && secureCompare(password, elPassword)) {
             isValid = true;
             email = 'el@mile.app';
-        } else if (profile === 'ella' && password === ellaPassword) {
+        } else if (profile === 'ella' && secureCompare(password, ellaPassword)) {
             isValid = true;
             email = 'ella@mile.app';
         }
