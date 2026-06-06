@@ -23,20 +23,10 @@ export const TaskAnalytics = ({ tasks, objectives }: { tasks: Task[], objectives
   const stats = useMemo(() => {
     if (!tasks || tasks.length === 0) return null;
 
-    const totalActual = tasks.reduce((sum, t) => sum + (t.actual_time || 0), 0);
-    const totalEstimated = tasks.reduce((sum, t) => sum + (t.estimated_time || 0), 0);
-
-    const tasksWithTime = tasks.filter(t => (t.actual_time || 0) > 0);
-
-    const mostWorked = tasksWithTime.length > 0
-      ? [...tasksWithTime].sort((a, b) => b.actual_time - a.actual_time)[0]
-      : null;
-
-    const leastWorked = tasksWithTime.length > 0
-      ? [...tasksWithTime].sort((a, b) => a.actual_time - b.actual_time)[0]
-      : null;
-
-    const efficiency = totalEstimated > 0 ? (totalActual / totalEstimated) : 0;
+    let totalActual = 0;
+    let totalEstimated = 0;
+    let mostWorked: Task | null = null;
+    let leastWorked: Task | null = null;
 
     const categories = ['work', 'home', 'personal'];
     const catStatsMap = new Map<string, number>([
@@ -45,11 +35,27 @@ export const TaskAnalytics = ({ tasks, objectives }: { tasks: Task[], objectives
       ['personal', 0]
     ]);
 
+    // ⚡ Bolt Optimization: Replace multiple .reduce(), .filter(), and .sort() with single pass O(N) loop
     for (const t of tasks) {
+      const actTime = t.actual_time || 0;
+      totalActual += actTime;
+      totalEstimated += t.estimated_time || 0;
+
+      if (actTime > 0) {
+        if (!mostWorked || actTime > (mostWorked.actual_time || 0)) {
+          mostWorked = t;
+        }
+        if (!leastWorked || actTime < (leastWorked.actual_time || 0)) {
+          leastWorked = t;
+        }
+      }
+
       if (catStatsMap.has(t.category)) {
-        catStatsMap.set(t.category, (catStatsMap.get(t.category) || 0) + (t.actual_time || 0));
+        catStatsMap.set(t.category, (catStatsMap.get(t.category) || 0) + actTime);
       }
     }
+
+    const efficiency = totalEstimated > 0 ? (totalActual / totalEstimated) : 0;
 
     const catStats = categories.map(cat => ({
       name: cat,

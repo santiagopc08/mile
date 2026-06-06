@@ -50,7 +50,7 @@ export function HabitTracker() {
         const profileHabits = habits.filter(h => h.profile === profile);
         if (profileHabits.length > 0) {
             const todayStr = now.toISOString().split('T')[0];
-            let checkDate = new Date(now);
+            const checkDate = new Date(now);
             
             // Find oldest habit date to avoid looping indefinitely
             const oldestHabitTime = Math.min(...profileHabits.map(h => new Date(h.date || h.createdAt).getTime()));
