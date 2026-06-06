@@ -240,30 +240,89 @@ export const DualWallet = ({
     [allocations]
   );
 
-  const monthMovements = useMemo(() => movements.filter((movement) => isThisMonth(movement.date)), [movements]);
-  const incomeThisMonth = useMemo(() => monthMovements.filter((m) => m.type === 'income').reduce((sum, m) => sum + m.amount, 0), [monthMovements]);
-  const expensesThisMonth = useMemo(() => monthMovements.filter((m) => m.type === 'expense').reduce((sum, m) => sum + m.amount, 0), [monthMovements]);
-  const savingsTotal = useMemo(() => movements
-    .filter((m) => m.type === 'income' || normalizeCategory(m.category) === 'Savings' || m.related_budget === 'Savings')
-    .reduce((sum, m) => sum + signedAmount(m), 0), [movements]);
-  const totalAvailable = useMemo(() => movements.reduce((sum, movement) => sum + signedAmount(movement), 0), [movements]);
+  // ⚡ Bolt Optimization: Replace O(N*M) budget filtering inside map and multiple O(N) array loops
+  // with a single O(N) pass over movements. We pre-calculate totals and group expenses into a Map.
+  const {
+    monthMovements,
+    incomeThisMonth,
+    expensesThisMonth,
+    savingsTotal,
+    totalAvailable,
+    weeklySpending,
+    budgetExpensesMap
+  } = useMemo(() => {
+    const result = {
+      monthMovements: [] as typeof movements,
+      incomeThisMonth: 0,
+      expensesThisMonth: 0,
+      savingsTotal: 0,
+      totalAvailable: 0,
+      weeklySpending: 0,
+      budgetExpensesMap: new Map<string, number>()
+    };
+
+    for (const m of movements) {
+      const isThisMonthDate = isThisMonth(m.date);
+      const mAmount = m.amount;
+      const mSignedAmount = signedAmount(m);
+      const isExpense = m.type === 'expense';
+      const isIncome = m.type === 'income';
+      const normCat = normalizeCategory(m.category);
+
+      // Accumulate totals across all movements
+      result.totalAvailable += mSignedAmount;
+      if (isIncome || normCat === 'Savings' || m.related_budget === 'Savings') {
+        result.savingsTotal += mSignedAmount;
+      }
+      if (isExpense && isWithinDays(m.date, 7)) {
+        result.weeklySpending += mAmount;
+      }
+
+      // Process monthly specific totals
+      if (isThisMonthDate) {
+        result.monthMovements.push(m);
+        if (isIncome) {
+          result.incomeThisMonth += mAmount;
+        } else if (isExpense) {
+          result.expensesThisMonth += mAmount;
+
+          // Accumulate expenses for budget rows into an O(1) hash map.
+          // Note: The original logic allowed matching either related_budget OR normalized category.
+          // We must add the amount to both keys if they exist and are distinct to ensure accurate budget tracking.
+          if (m.related_budget) {
+            result.budgetExpensesMap.set(
+              m.related_budget,
+              (result.budgetExpensesMap.get(m.related_budget) || 0) + mAmount
+            );
+          }
+          if (normCat && normCat !== m.related_budget) {
+            result.budgetExpensesMap.set(
+              normCat,
+              (result.budgetExpensesMap.get(normCat) || 0) + mAmount
+            );
+          }
+        }
+      }
+    }
+
+    return result;
+  }, [movements]);
+
   const totalBudget = useMemo(() => Object.values(budgets).reduce((sum, limit) => sum + limit, 0), [budgets]);
   const spentAgainstBudget = expensesThisMonth;
   const budgetRemaining = totalBudget - spentAgainstBudget;
   const savingsRate = incomeThisMonth > 0 ? ((incomeThisMonth - expensesThisMonth) / incomeThisMonth) * 100 : 0;
-  const weeklySpending = useMemo(() => movements.filter((m) => m.type === 'expense' && isWithinDays(m.date, 7)).reduce((sum, m) => sum + m.amount, 0), [movements]);
   const averageDailySpending = weeklySpending / 7;
 
   const budgetRows = useMemo(() => BUDGET_CATEGORIES.map((budget) => {
-    const spent = monthMovements
-      .filter((m) => m.type === 'expense' && (m.related_budget === budget || normalizeCategory(m.category) === budget))
-      .reduce((sum, m) => sum + m.amount, 0);
+    // ⚡ Bolt Optimization: Use O(1) Map lookup instead of O(N) filtering inside the map loop
+    const spent = budgetExpensesMap.get(budget) || 0;
     const limit = budgets[budget];
     const percent = limit > 0 ? (spent / limit) * 100 : 0;
     const status = percent >= 100 ? 'OVERLOAD' : percent >= 80 ? 'CAUTION' : 'STABLE';
     const color = status === 'OVERLOAD' ? '#ffb4ab' : status === 'CAUTION' ? '#a178ff' : '#c3f400';
     return { budget, spent, limit, remaining: limit - spent, percent, status, color };
-  }), [monthMovements, budgets]);
+  }), [budgetExpensesMap, budgets]);
 
   const topCategories = useMemo(() => [...budgetRows]
     .sort((a, b) => b.spent - a.spent)

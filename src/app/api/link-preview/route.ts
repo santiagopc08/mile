@@ -42,7 +42,7 @@ export async function GET(request: Request) {
             if (!isNaN(parsed)) estimatedPrice = parsed;
         }
 
-        // Fallback: try common price patterns in HTML (COP format: $XX.XXX or $X.XXX.XXX)
+        // Fallback: try common price patterns in HTML (COP format: $10.000 or $1.000.000)
         if (!estimatedPrice) {
             const priceCOPMatch = html.match(/\$\s?([\d]{1,3}(?:\.[\d]{3})+)/);
             if (priceCOPMatch) {

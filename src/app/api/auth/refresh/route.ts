@@ -23,8 +23,7 @@ export async function POST(request: Request) {
 
         let matchedUser = null;
         for (const user of usersData.users) {
-            const tokens = user.user_metadata?.device_tokens || [];
-            if (tokens.includes(deviceToken)) {
+            if (user.user_metadata?.device_tokens?.includes(deviceToken)) {
                 matchedUser = user;
                 break;
             }

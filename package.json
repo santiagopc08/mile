@@ -24,7 +24,8 @@
     "recharts": "^3.8.1",
     "serwist": "^9.5.7",
     "tailwind-merge": "^3.5.0",
-    "web-push": "^3.6.7"
+    "web-push": "^3.6.7",
+    "uuid": "^14.0.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.59.1",
@@ -33,6 +34,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/web-push": "^3.6.4",
+    "@types/uuid": "^10.0.0",
     "eslint": "^9.0.0",
     "eslint-config-next": "16.1.6",
     "playwright": "^1.59.1",
