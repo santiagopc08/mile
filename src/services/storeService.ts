@@ -726,11 +726,25 @@ export const StoreService = {
     },
 
     async addNotification(target: string, type: string, message: string, supabase: SupabaseClient = defaultSupabase): Promise<void> {
-        await supabase.from('notifications').insert({
+        const { data, error } = await supabase.from('notifications').insert({
             target_profile: target,
             type,
             message
-        });
+        }).select().single();
+
+        if (!error && typeof window !== 'undefined') {
+            fetch('/api/push/send', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    target,
+                    message,
+                    type
+                })
+            }).catch(err => console.error('Failed to dispatch background push:', err));
+        }
     },
 
     async saveMahjongScore(

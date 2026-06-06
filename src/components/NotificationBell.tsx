@@ -20,6 +20,69 @@ export function NotificationBell({ align = 'right' }: { align?: 'left' | 'right'
     const profileLabel = profile === 'ella' ? 'Milena' : 'Santiago';
 
     // Request permissions for desktop notifications
+    const urlBase64ToUint8Array = (base64String: string) => {
+        const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+        const base64 = (base64String + padding)
+            .replace(/\-/g, '+')
+            .replace(/_/g, '/');
+
+        const rawData = window.atob(base64);
+        const outputArray = new Uint8Array(rawData.length);
+
+        for (let i = 0; i < rawData.length; ++i) {
+            outputArray[i] = rawData.charCodeAt(i);
+        }
+        return outputArray;
+    };
+
+    const subscribeToPushNotifications = async () => {
+        if (typeof window === 'undefined' || !('serviceWorker' in navigator) || !('PushManager' in window)) {
+            console.warn('Push notifications are not supported in this browser.');
+            return;
+        }
+
+        try {
+            const registration = await navigator.serviceWorker.ready;
+            
+            // Get current push subscription
+            let subscription = await registration.pushManager.getSubscription();
+            
+            // If no subscription exists, create one
+            if (!subscription) {
+                const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+                if (!vapidPublicKey) {
+                    console.warn('VAPID public key is not set in environment variables.');
+                    return;
+                }
+                
+                subscription = await registration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
+                });
+            }
+            
+            // Send subscription details to Supabase table 'push_subscriptions'
+            const { error } = await supabase
+                .from('push_subscriptions')
+                .upsert({
+                    profile: profile,
+                    subscription: subscription.toJSON(),
+                    endpoint: subscription.endpoint
+                }, {
+                    onConflict: 'endpoint'
+                });
+                
+            if (error) {
+                console.error('Failed to save push subscription to Supabase:', error);
+            } else {
+                console.log('Push subscription saved successfully.');
+            }
+        } catch (err) {
+            console.error('Failed to subscribe to push notifications:', err);
+        }
+    };
+
+    // Request permissions for desktop notifications
     const requestPermission = async () => {
         if (typeof window !== 'undefined' && 'Notification' in window) {
             if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
@@ -66,7 +129,14 @@ export function NotificationBell({ align = 'right' }: { align?: 'left' | 'right'
     useEffect(() => {
         if (!profile) return;
         
-        requestPermission();
+        const initNotifications = async () => {
+            await requestPermission();
+            if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+                await subscribeToPushNotifications();
+            }
+        };
+
+        initNotifications();
         fetchNotifications();
         
         // --- SUPABASE REAL-TIME SUBSCRIPTION ---
