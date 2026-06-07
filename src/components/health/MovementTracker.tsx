@@ -487,8 +487,8 @@ export function MovementTracker() {
         
         const activeDaysCount = activeDates.size;
         
-        // Target: Combined 8 sessions a week
-        const combinedTarget = 8;
+        // Target: Combined 7 sessions a week
+        const combinedTarget = 7;
         const goalProgressPercentage = Math.min(100, Math.round((totalCompleted / combinedTarget) * 100));
 
         return {
@@ -628,9 +628,9 @@ export function MovementTracker() {
                         </p>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-4">
+                    <div className="grid grid-cols-2 gap-4 w-full sm:flex sm:flex-wrap sm:items-center">
                         {/* Streak Box */}
-                        <div className="border border-white/10 bg-[#070707] p-4 text-center min-w-[120px] relative rounded-none">
+                        <div className="border border-white/10 bg-[#070707] p-4 text-center min-w-0 w-full sm:min-w-[120px] relative rounded-none">
                             <div className="absolute top-0 right-0 w-1.5 h-1.5 bg-[#c3f400]" style={{ backgroundColor: accentColor }} />
                             <Flame 
                                 className="w-5 h-5 mx-auto mb-1 animate-pulse stroke-[1.5]" 
@@ -645,10 +645,10 @@ export function MovementTracker() {
                         </div>
 
                         {/* Combined Weekly Metrics */}
-                        <div className="border border-white/10 bg-[#070707] p-4 min-w-[200px] flex-1 lg:flex-none rounded-none">
+                        <div className="border border-white/10 bg-[#070707] p-4 min-w-0 w-full sm:min-w-[200px] flex-1 lg:flex-none rounded-none">
                             <div className="flex justify-between items-center text-[8px] font-bold text-[#a88a7e] uppercase tracking-wider mb-2">
                                 <span>Progreso Semanal</span>
-                                <span className="font-mono tabular-nums text-white">{weeklyStats.totalCompleted}/8 Sesiones</span>
+                                <span className="font-mono tabular-nums text-white">{weeklyStats.totalCompleted}/7 Sesiones</span>
                             </div>
                             {renderChunkedBar(weeklyStats.goalProgressPercentage, bothActiveToday ? '#ff4b89' : accentColor)}
                             
@@ -694,7 +694,7 @@ export function MovementTracker() {
                         <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-white/30" />
 
                         {/* Panel de "ÉL" */}
-                        <div className="p-5 pl-8 flex flex-col justify-between min-h-[170px] relative rounded-none">
+                        <div className="p-5 pl-8 flex flex-col justify-between min-h-[120px] relative rounded-none">
                             {/* Left accent stripe */}
                             <div className="absolute left-0 top-0 bottom-0 w-[4px] bg-[#c3f400]" />
                             <div className="absolute top-2 right-2 flex items-center gap-1.5 text-[8px] font-bold text-[#c3f400] uppercase tracking-wider bg-[#c3f400]/5 px-2 py-0.5 border border-[#c3f400]/20 rounded-none font-mono">
@@ -709,14 +709,10 @@ export function MovementTracker() {
                                     Terapia física, terapia ocupacional, estiramiento táctico y movilidad articular.
                                 </p>
                             </div>
-                            <div className="border-t border-white/5 pt-3 flex justify-between items-center text-[9px] font-bold uppercase tracking-wider text-[#a88a7e] font-mono">
-                                <span>Sesiones (7 días)</span>
-                                <span className="text-[#c3f400] font-black text-xs font-mono">{weeklyStats.elSessions}</span>
-                            </div>
                         </div>
 
                         {/* Panel de "ELLA" */}
-                        <div className="p-5 pl-8 flex flex-col justify-between min-h-[170px] relative rounded-none">
+                        <div className="p-5 pl-8 flex flex-col justify-between min-h-[120px] relative rounded-none">
                             {/* Left accent stripe */}
                             <div className="absolute left-0 top-0 bottom-0 w-[4px] bg-[#ff4b89]" />
                             <div className="absolute top-2 right-2 flex items-center gap-1.5 text-[8px] font-bold text-[#ff4b89] uppercase tracking-wider bg-[#ff4b89]/5 px-2 py-0.5 border border-[#ff4b89]/20 rounded-none font-mono">
@@ -730,10 +726,6 @@ export function MovementTracker() {
                                 <p className="text-[10px] text-white/50 leading-relaxed mb-4 font-mono">
                                     Entrenamiento de potencia, fuerza muscular, cardio funcional y core.
                                 </p>
-                            </div>
-                            <div className="border-t border-white/5 pt-3 flex justify-between items-center text-[9px] font-bold uppercase tracking-wider text-[#a88a7e] font-mono">
-                                <span>Sesiones (7 días)</span>
-                                <span className="text-[#ff4b89] font-black text-xs font-mono">{weeklyStats.ellaSessions}</span>
                             </div>
                         </div>
                     </div>
@@ -1150,10 +1142,10 @@ export function MovementTracker() {
                                                                 {session.profile === 'ella' ? 'Ella' : 'Él'}
                                                             </span>
                                                         </div>
-                                                        <div className="flex items-center gap-3 text-[7px] text-white/30 font-bold mt-1 font-mono uppercase">
+                                                        <div className="grid grid-cols-2 gap-x-2 gap-y-1 sm:flex sm:items-center sm:gap-3 text-[7px] text-white/30 font-bold mt-1 font-mono uppercase">
                                                             <span className="flex items-center gap-1"><Clock className="w-2.5 h-2.5 stroke-[1.5]" /> {session.duration} MIN</span>
                                                             <span>DIF: {session.difficulty}</span>
-                                                            <span>ENERGÍA: {session.energy_level}</span>
+                                                            <span className="col-span-2 sm:col-span-1">ENERGÍA: {session.energy_level}</span>
                                                         </div>
                                                     </div>
                                                 </div>
