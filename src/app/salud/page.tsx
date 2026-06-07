@@ -54,7 +54,7 @@ export default function SaludPage() {
 
     const tabs: Array<{ id: SaludTab; label: string; icon: typeof Activity }> = [
         { id: 'vitals', label: 'Signos Vitales', icon: HeartPulse },
-        { id: 'biometric', label: 'Bóveda Biométrica', icon: Shield },
+        { id: 'biometric', label: 'Ella', icon: Shield },
         { id: 'habits', label: 'Hábitos', icon: Activity },
         { id: 'movement', label: 'Movimiento', icon: Flame },
     ];
@@ -89,7 +89,7 @@ export default function SaludPage() {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 border-b border-white/10 bg-black sm:grid-cols-4 rounded-none">
+                    <div className="grid grid-cols-2 border-b border-white/10 bg-black sm:grid-cols-4 rounded-none">
                         {tabs.map((tab) => (
                             <button
                                 key={tab.id}
