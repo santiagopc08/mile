@@ -34,3 +34,6 @@
 ## 2024-06-05 - Eliminate Redundant Array Iterations in TaskAnalytics
 **Learning:** `TaskAnalytics.tsx` had an O(N log N) + O(k*N) performance bottleneck within its `stats` `useMemo` block. It was calling `.reduce()`, `.filter()`, and `.sort()` sequentially on the `tasks` array on every render, unnecessarily creating intermediate arrays and increasing GC pressure.
 **Action:** Replaced sequential array operations and sorting logic with a single-pass O(N) `for...of` loop. This consolidates data aggregation and condition checks, eliminating array spreads and extra iterations, thereby improving render speeds.
+## 2024-06-06 - Eliminate Redundant Array Iterations in SavingsOverview
+**Learning:** `SavingsOverview.tsx` had multiple O(k*N) performance bottlenecks within its `stats` `useMemo` block. It was calling `.filter()` and `.reduce()` sequentially on the `items` array on every render, unnecessarily creating intermediate arrays and increasing GC pressure.
+**Action:** Replaced sequential array operations with a single-pass O(N) `for...of` loop. This consolidates data aggregation and condition checks, eliminating array spreads and extra iterations, thereby improving render speeds.

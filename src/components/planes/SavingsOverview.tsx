@@ -7,16 +7,34 @@ import { TrendingUp } from 'lucide-react';
 
 export function SavingsOverview({ items }: { items: WishlistItem[] }) {
     const stats = useMemo(() => {
-        const totalSaved = items.reduce((s, i) => s + (i.savedAmount || 0), 0);
-        const totalGoal = items.filter(i => i.state !== 'ARCHIVED' && i.state !== 'COMPLETED').reduce((s, i) => s + (i.price || 0), 0);
-        const completed = items.filter(i => i.state === 'COMPLETED').length;
-        const active = items.filter(i => i.state === 'SAVING' || i.state === 'DISCOVERED').length;
-        const ready = items.filter(i => i.state === 'READY_TO_DEPLOY').length;
-
+        let totalSaved = 0;
+        let totalGoal = 0;
+        let completed = 0;
+        let active = 0;
+        let ready = 0;
         const byCategory: Record<string, number> = {};
-        items.filter(i => i.state !== 'ARCHIVED').forEach(i => {
-            byCategory[i.goalCategory] = (byCategory[i.goalCategory] || 0) + (i.savedAmount || 0);
-        });
+
+        // ⚡ Bolt Optimization: Single-pass O(N) calculation replacing multiple filter/reduce
+        for (const item of items) {
+            const saved = item.savedAmount || 0;
+            totalSaved += saved;
+
+            if (item.state === 'COMPLETED') {
+                completed++;
+            } else if (item.state === 'SAVING' || item.state === 'DISCOVERED') {
+                active++;
+            } else if (item.state === 'READY_TO_DEPLOY') {
+                ready++;
+            }
+
+            if (item.state !== 'ARCHIVED' && item.state !== 'COMPLETED') {
+                totalGoal += (item.price || 0);
+            }
+
+            if (item.state !== 'ARCHIVED') {
+                byCategory[item.goalCategory] = (byCategory[item.goalCategory] || 0) + saved;
+            }
+        }
 
         return { totalSaved, totalGoal, completed, active, ready, byCategory };
     }, [items]);
