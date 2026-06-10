@@ -37,3 +37,6 @@
 ## 2024-06-06 - Eliminate Redundant Array Iterations in SavingsOverview
 **Learning:** `SavingsOverview.tsx` had multiple O(k*N) performance bottlenecks within its `stats` `useMemo` block. It was calling `.filter()` and `.reduce()` sequentially on the `items` array on every render, unnecessarily creating intermediate arrays and increasing GC pressure.
 **Action:** Replaced sequential array operations with a single-pass O(N) `for...of` loop. This consolidates data aggregation and condition checks, eliminating array spreads and extra iterations, thereby improving render speeds.
+## 2024-06-07 - Eliminate O(C*N) Render Loops in TaskModule Kanban Columns
+**Learning:** `TaskModule.tsx` rendered its 4 Kanban columns by calling `.filter()` on the full `tasks` array (length N) four separate times (C=4) on *every single render*. It also used another `.filter()` in a `useEffect` for the focus score. This created severe O(5*N) redundant work on every render cycle.
+**Action:** Centralized the grouping into a single O(N) `useMemo` called `groupedTasksByStatus` which returns a dictionary `Record<string, Task[]>`. The components and effects now perform simple O(1) property lookups instead of scanning the array. Also learned to never commit throwaway patch scripts.
