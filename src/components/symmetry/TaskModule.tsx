@@ -42,6 +42,22 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
     const allTasks = (data?.tasks as Task[]) || [];
     return allTasks.filter(t => !t.assignee || t.assignee === profile);
   }, [data?.tasks, profile]);
+
+  // ⚡ Bolt Optimization: Replace multiple .filter() calls across renders with a single O(N) pass
+  const groupedTasksByStatus = useMemo(() => {
+    const grouped: Record<string, Task[]> = {
+      todo: [],
+      in_progress: [],
+      done: [],
+      skipped: []
+    };
+    for (const t of tasks) {
+      if (grouped[t.status]) {
+        grouped[t.status].push(t);
+      }
+    }
+    return grouped;
+  }, [tasks]);
   const objectives = useMemo(() => (data?.objectives as Objective[]) || [], [data?.objectives]);
   const visibleObjectives = useMemo(() => objectives.filter(o => o.author === profile), [objectives, profile]);
 
@@ -116,13 +132,13 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
 
   useEffect(() => {
     if (tasks.length > 0) {
-      const completedCount = tasks.filter(t => t.status === 'done').length;
+      const completedCount = (groupedTasksByStatus['done'] || []).length;
       const focusScore = (completedCount / tasks.length) * 100;
       onTasksUpdate(focusScore);
     } else {
       onTasksUpdate(0);
     }
-  }, [tasks, onTasksUpdate]);
+  }, [tasks, groupedTasksByStatus, onTasksUpdate]);
 
   useEffect(() => {
     if (!profile || !tasks || typeof window === 'undefined') return;
@@ -630,7 +646,7 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
           { status: 'done' as const, title: 'HECHO', accent: 'text-stone-600', bgAccent: 'bg-stone-600', opacity: 'opacity-50' },
           { status: 'skipped' as const, title: 'SKIP', accent: 'text-red-900', bgAccent: 'bg-red-900', opacity: 'opacity-40' }
         ].map((col) => {
-          const colTasks = tasks.filter(t => t.status === col.status);
+          const colTasks = groupedTasksByStatus[col.status] || [];
           return (
             <div key={col.status} className={`flex h-full flex-col border border-white/10 bg-black/30 p-2 md:p-3 ${col.opacity || ''}`}>
               <h4 className={`mb-2 md:mb-3 flex items-center justify-between text-[9px] md:text-[10px] font-mono tracking-tighter uppercase ${col.accent}`}>
