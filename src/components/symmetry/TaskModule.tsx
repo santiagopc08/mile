@@ -7,6 +7,8 @@ import { useStore } from '@/context/StoreContext';
 import { useProfile } from '@/context/ProfileContext';
 import { StoreService, type ChecklistItem } from '@/services/storeService';
 import { LiveLinkPreview } from '@/components/LiveLinkPreview';
+import { sound } from '@/lib/sound';
+import { haptics } from '@/lib/haptics';
 
 interface Task {
   id: string;
@@ -114,6 +116,9 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
     const list = task[listType] || [];
     const newList = list.map(i => i.id === itemId ? { ...i, checked: !i.checked } : i);
     updateData({ tasks: tasks.map(t => t.id === taskId ? { ...t, [listType]: newList } : t) as any });
+    
+    sound.playTick();
+    haptics.triggerTick();
   };
 
   // Edit state
@@ -164,7 +169,11 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
   }, [tasks, profile]);
 
   const addTask = () => {
-    if (!newTask.trim()) return;
+    if (!newTask.trim()) {
+      sound.playError();
+      haptics.triggerError();
+      return;
+    }
     const task: Task = {
       id: crypto.randomUUID(),
       objective_id: selectedObjectiveId || undefined,
@@ -182,6 +191,8 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
       updated_at: new Date().toISOString(),
     };
     updateData({ tasks: [task, ...tasks] as any });
+    sound.playSave();
+    haptics.triggerSave();
     setNewTask('');
     setNewDueDate('');
     setNewTaskAssignee(profile || 'el');
@@ -197,7 +208,11 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
   };
 
   const addObjective = () => {
-    if (!newObjective.trim()) return;
+    if (!newObjective.trim()) {
+      sound.playError();
+      haptics.triggerError();
+      return;
+    }
     const obj: Objective = {
       id: crypto.randomUUID(),
       title: newObjective,
@@ -205,6 +220,8 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
       is_complete: false
     };
     updateData({ objectives: [...objectives, obj] as any });
+    sound.playSave();
+    haptics.triggerSave();
     setNewObjective('');
   };
 
@@ -221,6 +238,17 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
     }
 
     updateData({ tasks: tasks.map(t => t.id === id ? { ...t, status: finalStatus, updated_at: new Date().toISOString() } : t) as any });
+
+    if (finalStatus === 'done') {
+      sound.playSuccess();
+      haptics.triggerSuccess();
+    } else if (finalStatus === 'skipped') {
+      sound.playError();
+      haptics.triggerError();
+    } else {
+      sound.playTick();
+      haptics.triggerTick();
+    }
   };
 
   const deleteTask = (id: string) => {
@@ -275,16 +303,25 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
 
   const toggleObjectiveComplete = (id: string) => {
     const hasPending = tasks.some(t => t.objective_id === id && t.status !== 'done' && t.status !== 'skipped');
-    if (hasPending) return;
+    if (hasPending) {
+      sound.playError();
+      haptics.triggerError();
+      return;
+    }
     const obj = objectives.find(o => o.id === id);
     if (!obj) return;
     const nextComplete = !obj.is_complete;
     updateData({ objectives: objectives.map(o => o.id === id ? { ...o, is_complete: nextComplete } : o) as any });
 
     if (nextComplete) {
+      sound.playSuccess();
+      haptics.triggerSuccess();
       const partner = profile === 'ella' ? 'el' : 'ella';
       const authorName = profile === 'el' ? 'Santiago' : 'Milena';
       StoreService.addNotification(partner, 'objective', `¡${authorName} completó el objetivo: "${obj.title}"! 🎯`).catch(err => console.error(err));
+    } else {
+      sound.playTick();
+      haptics.triggerTick();
     }
   };
 

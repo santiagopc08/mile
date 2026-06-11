@@ -10,6 +10,8 @@ import {
 import { useProfile } from '@/context/ProfileContext';
 import { StoreService } from '@/services/storeService';
 import { v4 as uuidv4 } from 'uuid';
+import { sound } from '@/lib/sound';
+import { haptics } from '@/lib/haptics';
 
 // --- Type Definitions ---
 export type SessionCategory = 
@@ -319,6 +321,8 @@ export function MovementTracker() {
             }
 
             // Success feedback
+            sound.playSave();
+            haptics.triggerSave();
             setFeedbackMessage(message);
             setTimeout(() => setFeedbackMessage(null), 3000);
 
@@ -332,6 +336,8 @@ export function MovementTracker() {
             setCompletionStatus('completed');
         } catch (err) {
             console.error('Failed to log movement session', err);
+            sound.playError();
+            haptics.triggerError();
         } finally {
             setIsSubmitting(false);
         }
@@ -403,8 +409,12 @@ export function MovementTracker() {
                 localStorage.setItem('movement_sessions', JSON.stringify(updated));
                 setSessions(updated);
             }
+            sound.playSave();
+            haptics.triggerSave();
         } catch (err) {
             console.error('Failed to add support reaction', err);
+            sound.playError();
+            haptics.triggerError();
         }
     };
 

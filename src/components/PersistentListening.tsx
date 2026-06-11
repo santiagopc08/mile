@@ -5,6 +5,8 @@ import { useProfile } from '@/context/ProfileContext';
 import { Ear, Calendar } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useState } from 'react';
+import { sound } from '@/lib/sound';
+import { haptics } from '@/lib/haptics';
 
 interface ListeningNote {
     id: string;
@@ -52,11 +54,19 @@ export function PersistentListening() {
                 date,
                 author: profile || 'el'
             };
-            await updateData({ persistentListening: [newItem, ...listeningNotes] });
-            setIsAdding(false);
-            setTopic('');
-            setReflection('');
-            setDate('');
+            try {
+                await updateData({ persistentListening: [newItem, ...listeningNotes] });
+                sound.playSave();
+                haptics.triggerSave();
+                setIsAdding(false);
+                setTopic('');
+                setReflection('');
+                setDate('');
+            } catch (err) {
+                console.error(err);
+                sound.playError();
+                haptics.triggerError();
+            }
         }
     };
 
@@ -77,7 +87,7 @@ export function PersistentListening() {
             {profile === 'el' && (
                 <div className="flex justify-center mb-8">
                     {!isAdding ? (
-                        <button onClick={() => setIsAdding(true)} className={`border border-${accentClass} bg-${accentClass}/10 px-10 py-4 text-xs font-bold uppercase tracking-[0.3em] text-${accentClass} transition-all hover:bg-${accentClass} hover:text-black rounded-none font-mono`} style={{ borderColor: accentColor, color: accentColor }}>
+                        <button onClick={() => { setIsAdding(true); sound.playTick(); haptics.triggerTick(); }} className={`border border-${accentClass} bg-${accentClass}/10 px-10 py-4 text-xs font-bold uppercase tracking-[0.3em] text-${accentClass} transition-all hover:bg-${accentClass} hover:text-black rounded-none font-mono`} style={{ borderColor: accentColor, color: accentColor }}>
                             INICIAR NUEVA ENTRADA
                         </button>
                     ) : (
@@ -98,7 +108,7 @@ export function PersistentListening() {
                                 <textarea required value={reflection} onChange={e => setReflection(e.target.value)} placeholder="CONTENIDO DE LA REFLEXIÓN..." className={`min-h-[140px] w-full resize-none border border-white/10 bg-black px-4 py-4 text-xs uppercase tracking-widest text-white outline-none placeholder:text-[#594137] focus:border-${accentClass} rounded-none`} style={{ '--tw-ring-color': accentColor } as any} />
                             </div>
                             <div className="flex gap-4">
-                                <button type="button" onClick={() => setIsAdding(false)} className="flex-1 border border-white/10 py-4 text-[10px] font-bold uppercase tracking-[0.2em] text-[#a88a7e] transition-all hover:border-white/30 hover:text-white rounded-none font-mono">Abortar</button>
+                                <button type="button" onClick={() => { setIsAdding(false); sound.playTick(); haptics.triggerTick(); }} className="flex-1 border border-white/10 py-4 text-[10px] font-bold uppercase tracking-[0.2em] text-[#a88a7e] transition-all hover:border-white/30 hover:text-white rounded-none font-mono">Abortar</button>
                                 <button type="submit" disabled={!topic || !reflection || !date} className={`flex-1 bg-${accentClass} py-4 text-[10px] font-bold uppercase tracking-[0.2em] text-black transition-all hover:opacity-80 disabled:opacity-30 rounded-none font-mono`} style={{ backgroundColor: accentColor }}>Publicar Entrada</button>
                             </div>
                         </form>

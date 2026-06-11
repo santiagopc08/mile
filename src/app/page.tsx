@@ -24,7 +24,8 @@ import {
   Flame,
   Shield,
   PawPrint,
-  Clock
+  Clock,
+  Camera
 } from 'lucide-react';
 import { AnimatedBrutalistCorners } from "@/components/ui/AnimatedBrutalistCorners";
 

@@ -7,6 +7,8 @@ import { Activity, Heart, Plus, TrendingUp, TrendingDown, Clipboard, User, Clock
 import { useProfile } from '@/context/ProfileContext';
 import { StoreService } from '@/services/storeService';
 import { AnimatedBrutalistCorners } from '@/components/ui/AnimatedBrutalistCorners';
+import { sound } from '@/lib/sound';
+import { haptics } from '@/lib/haptics';
 import {
     LineChart,
     Line,
@@ -98,7 +100,11 @@ export const BloodPressureTracker = () => {
 
         if (error) {
             console.error('Error saving blood pressure entry:', error);
+            sound.playError();
+            haptics.triggerError();
         } else {
+            sound.playSave();
+            haptics.triggerSave();
             const sys = Number(systolic);
             const dia = Number(diastolic);
             const hr = Number(heartRate);

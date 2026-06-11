@@ -9,13 +9,13 @@ import { PetSpaceHub } from "@/components/PetSpaceHub";
 import { Timeline } from "@/components/Timeline";
 import { useStore } from "@/context/StoreContext";
 import { useProfile } from "@/context/ProfileContext";
-import { MessageCircleHeart, Mic, Music, PawPrint, Clock, Activity, Radio } from 'lucide-react';
+import { MessageCircleHeart, Mic, Music, PawPrint, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function RefugioPage() {
   type RefugioTab = 'notas' | 'escucha' | 'musica' | 'bebes' | 'historia';
 
-  const [activeTab, setActiveTab] = useState<RefugioTab>('notas');
+  const [activeTab, setActiveTab] = useState<RefugioTab>('historia');
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -41,11 +41,11 @@ export default function RefugioPage() {
   const events = data?.events || [];
 
   const tabs: Array<{ id: RefugioTab; label: string; icon: typeof MessageCircleHeart }> = [
+    { id: 'historia', label: 'Historia', icon: Clock },
     { id: 'notas', label: 'Notas', icon: MessageCircleHeart },
     { id: 'escucha', label: 'Escucha', icon: Mic },
     { id: 'musica', label: 'Música', icon: Music },
     { id: 'bebes', label: 'Bebés', icon: PawPrint },
-    { id: 'historia', label: 'Historia', icon: Clock },
   ];
 
   return (
@@ -64,7 +64,7 @@ export default function RefugioPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 border-b border-white/10 bg-black sm:grid-cols-5">
+          <div className="grid grid-cols-2 border-b border-white/10 bg-black sm:grid-cols-3 lg:grid-cols-5">
             {tabs.map((tab) => (
               <button
                 key={tab.id}

@@ -5,10 +5,13 @@ import { usePathname } from 'next/navigation';
 import { LayoutDashboard, ShieldCheck, Gamepad2, MapPin, Heart } from 'lucide-react';
 import { useProfile } from '@/context/ProfileContext';
 import { NotificationBell } from './NotificationBell';
+import { SystemSettings } from './SystemSettings';
+import { useOnlineStatus } from '@/hooks/useOnlineStatus';
 
 export function AppNav() {
   const pathname = usePathname();
   const { profile } = useProfile();
+  const isOnline = useOnlineStatus();
   const profileAccent = profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)';
 
   const navItems = [
@@ -29,10 +32,11 @@ export function AppNav() {
           MILE & SANTI
         </Link>
         <div className="flex items-center gap-4">
+          <SystemSettings align="right" />
           <NotificationBell align="right" />
           <div className="flex items-center gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-user-c animate-pulse" />
-            <span className="text-[7px] font-mono uppercase tracking-[0.22em] text-[#a88a7e] opacity-70">EN LÍNEA</span>
+            <div className={`w-1.5 h-1.5 rounded-none ${isOnline ? 'bg-user-c animate-pulse' : 'bg-red-500'}`} style={!isOnline ? { backgroundColor: '#ef4444' } : undefined} />
+            <span className="text-[7px] font-mono uppercase tracking-[0.22em] text-[#a88a7e] opacity-70">{isOnline ? 'EN LÍNEA' : 'OFFLINE'}</span>
           </div>
         </div>
       </header>
@@ -81,6 +85,7 @@ export function AppNav() {
       {/* Desktop Sidebar (Placeholder structure as per design) */}
       <aside className="hidden lg:flex flex-col fixed left-0 top-0 h-full w-20 border-r border-white/10 bg-[#120d0e] z-40 items-center py-10 gap-8">
         <Link href="/" className="font-mono text-sm font-bold tracking-widest border border-white/20 p-2 hover:bg-white/5 transition-all mb-2" style={{ color: profileAccent }}>OC</Link>
+        <SystemSettings align="left" />
         <NotificationBell align="left" />
         
         {navItems.map((item) => {
@@ -117,6 +122,12 @@ export function AppNav() {
             </Link>
           );
         })}
+
+        {/* Connection Status indicator at bottom of sidebar */}
+        <div className="mt-auto flex flex-col items-center gap-1.5">
+          <div className={`w-2 h-2 rounded-none ${isOnline ? 'animate-pulse' : ''}`} style={{ backgroundColor: isOnline ? profileAccent : '#ef4444' }} />
+          <span className="text-[6.5px] font-mono tracking-wider opacity-60 uppercase">{isOnline ? 'ONLINE' : 'OFFLINE'}</span>
+        </div>
       </aside>
     </>
   );

@@ -2,10 +2,14 @@ import { NextResponse } from 'next/server';
 import { StoreService } from '@/services/storeService';
 import { createServerClient } from '@/lib/supabase';
 
-export async function GET() {
+export async function GET(request: Request) {
     try {
+        const { searchParams } = new URL(request.url);
+        const tablesStr = searchParams.get('tables');
+        const tables = tablesStr ? tablesStr.split(',') : null;
+
         const supabase = createServerClient();
-        const data = await StoreService.getStore(supabase);
+        const data = await StoreService.getStore(supabase, tables);
         return NextResponse.json(data);
     } catch (error) {
         return NextResponse.json({ error: 'Failed to fetch store data' }, { status: 500 });

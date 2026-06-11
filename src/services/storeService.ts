@@ -136,6 +136,14 @@ export interface AudioTrack {
     comments?: TrackComment[];
 }
 
+export interface EventComment {
+    id: string;
+    eventId: string;
+    author: 'el' | 'ella';
+    text: string;
+    createdAt: string;
+}
+
 export interface AppData {
     events: {
         id: string;
@@ -144,6 +152,9 @@ export interface AppData {
         description: string;
         imageUrl?: string;
         author?: string;
+        tags?: string[];
+        reactions?: Record<string, string[]>;
+        comments?: EventComment[];
     }[];
     notes: {
         id: string;
@@ -187,38 +198,102 @@ export interface AppData {
 
 // Data Access Abstraction - Now using Supabase
 export const StoreService = {
-    async getStore(supabase: SupabaseClient = defaultSupabase): Promise<AppData> {
+    async getStore(supabase: SupabaseClient = defaultSupabase, tables: string[] | null = null): Promise<AppData> {
         try {
-            const [eventsRes, notesRes, commitmentsRes, victoriesRes, settingsRes, playlistRes, commentsRes, listeningRes, tasksRes, wishlistRes, objectivesRes, contribRes, reactionsRes, activityRes, habitsRes, allocationsRes] = await Promise.all([
-                supabase.from('events').select('*').order('date', { ascending: false }),
-                supabase.from('notes').select('*').order('created_at', { ascending: false }),
-                supabase.from('commitments').select('*').order('created_at', { ascending: true }),
-                supabase.from('victories').select('*').order('created_at', { ascending: false }),
-                supabase.from('app_settings').select('*').eq('id', 1).single(),
-                supabase.from('audio_track').select('*').order('display_order', { ascending: true }),
-                supabase.from('audio_comments').select('*').order('created_at', { ascending: true }),
-                supabase.from('persistent_listening').select('*').order('date', { ascending: false }),
-                supabase.from('tasks').select('*').order('created_at', { ascending: false }),
-                supabase.from('wishlist').select('*').order('created_at', { ascending: false }),
-                supabase.from('objectives').select('*').order('created_at', { ascending: true }),
-                supabase.from('wishlist_contributions').select('*').order('created_at', { ascending: false }),
-                supabase.from('wishlist_reactions').select('*'),
-                supabase.from('wishlist_activity').select('*').order('created_at', { ascending: false }).limit(50),
-                supabase.from('health_habits').select('*').order('created_at', { ascending: false }),
-                supabase.from('allocations').select('*').order('created_at', { ascending: false })
+            const shouldFetch = (name: string) => !tables || tables.includes(name);
+
+            // Fetch table promises dynamically
+            const eventsPromise = shouldFetch('events') 
+                ? supabase.from('events').select('*').order('date', { ascending: false }) 
+                : Promise.resolve({ data: null });
+            
+            const notesPromise = shouldFetch('notes')
+                ? supabase.from('notes').select('*').order('created_at', { ascending: false })
+                : Promise.resolve({ data: null });
+
+            const commitmentsPromise = shouldFetch('commitments')
+                ? supabase.from('commitments').select('*').order('created_at', { ascending: true })
+                : Promise.resolve({ data: null });
+
+            const victoriesPromise = shouldFetch('victories')
+                ? supabase.from('victories').select('*').order('created_at', { ascending: false })
+                : Promise.resolve({ data: null });
+
+            const settingsPromise = shouldFetch('app_settings')
+                ? supabase.from('app_settings').select('*').eq('id', 1).single()
+                : Promise.resolve({ data: null });
+
+            const playlistPromise = shouldFetch('audio_track')
+                ? supabase.from('audio_track').select('*').order('display_order', { ascending: true })
+                : Promise.resolve({ data: null });
+
+            const commentsPromise = shouldFetch('audio_comments')
+                ? supabase.from('audio_comments').select('*').order('created_at', { ascending: true })
+                : Promise.resolve({ data: null });
+
+            const listeningPromise = shouldFetch('persistent_listening')
+                ? supabase.from('persistent_listening').select('*').order('date', { ascending: false })
+                : Promise.resolve({ data: null });
+
+            const tasksPromise = shouldFetch('tasks')
+                ? supabase.from('tasks').select('*').order('created_at', { ascending: false })
+                : Promise.resolve({ data: null });
+
+            const wishlistPromise = shouldFetch('wishlist')
+                ? supabase.from('wishlist').select('*').order('created_at', { ascending: false })
+                : Promise.resolve({ data: null });
+
+            const objectivesPromise = shouldFetch('objectives')
+                ? supabase.from('objectives').select('*').order('created_at', { ascending: true })
+                : Promise.resolve({ data: null });
+
+            const contribPromise = shouldFetch('wishlist_contributions')
+                ? supabase.from('wishlist_contributions').select('*').order('created_at', { ascending: false })
+                : Promise.resolve({ data: null });
+
+            const reactionsPromise = shouldFetch('wishlist_reactions')
+                ? supabase.from('wishlist_reactions').select('*')
+                : Promise.resolve({ data: null });
+
+            const activityPromise = shouldFetch('wishlist_activity')
+                ? supabase.from('wishlist_activity').select('*').order('created_at', { ascending: false }).limit(50)
+                : Promise.resolve({ data: null });
+
+            const habitsPromise = shouldFetch('health_habits')
+                ? supabase.from('health_habits').select('*').order('created_at', { ascending: false })
+                : Promise.resolve({ data: null });
+
+            const allocationsPromise = shouldFetch('allocations')
+                ? supabase.from('allocations').select('*').order('created_at', { ascending: false })
+                : Promise.resolve({ data: null });
+
+            const eventCommentsPromise = shouldFetch('event_comments')
+                ? supabase.from('event_comments').select('*').order('created_at', { ascending: true })
+                : Promise.resolve({ data: null });
+
+            const [
+                eventsRes, notesRes, commitmentsRes, victoriesRes, settingsRes,
+                playlistRes, commentsRes, listeningRes, tasksRes, wishlistRes,
+                objectivesRes, contribRes, reactionsRes, activityRes, habitsRes,
+                allocationsRes, eventCommentsRes
+            ] = await Promise.all([
+                eventsPromise, notesPromise, commitmentsPromise, victoriesPromise, settingsPromise,
+                playlistPromise, commentsPromise, listeningPromise, tasksPromise, wishlistPromise,
+                objectivesPromise, contribPromise, reactionsPromise, activityPromise, habitsPromise,
+                allocationsPromise, eventCommentsPromise
             ]);
 
-            const settings = settingsRes.data || { connection_date: new Date().toISOString(), last_update: new Date().toISOString() };
+            const settings = settingsRes?.data || { connection_date: new Date().toISOString(), last_update: new Date().toISOString() };
             const trackingDays = Math.floor((new Date().getTime() - new Date(settings.connection_date).getTime()) / (1000 * 60 * 60 * 24));
 
-            const rawPlaylist = playlistRes.data || [];
-            const commentsByTrackId = (commentsRes.data || []).reduce((acc: Record<string, any[]>, c: any) => {
+            const rawPlaylist = playlistRes?.data || [];
+            const commentsByTrackId = (commentsRes?.data || []).reduce((acc: Record<string, any[]>, c: any) => {
                 if (!acc[c.track_id]) acc[c.track_id] = [];
                 acc[c.track_id].push(c);
                 return acc;
             }, {});
 
-            const audioPlaylist = rawPlaylist.map(track => ({
+            const audioPlaylist = rawPlaylist.map((track: any) => ({
                 ...track,
                 spotifyUrl: track.spotify_url || null,
                 comments: commentsByTrackId[track.id] || []
@@ -226,7 +301,7 @@ export const StoreService = {
 
             const formattedDate = new Intl.DateTimeFormat('es-CO', { dateStyle: 'long', timeStyle: 'short' }).format(new Date(settings.last_update));
 
-            const finalCommitments = commitmentsRes.data || [];
+            const finalCommitments = commitmentsRes?.data || [];
 
             // Daily Tracking Logic
             const timeZoneOffset = (new Date()).getTimezoneOffset() * 60000;
@@ -236,30 +311,37 @@ export const StoreService = {
             const yesterdayDate = new Date(localDate.getTime() - 24 * 60 * 60 * 1000);
             const yesterdayStr = yesterdayDate.toISOString().split('T')[0];
 
-            const trackingRes = await supabase.from('daily_tracking').select('*').in('date', [todayStr, yesterdayStr]);
-            const trackingData = trackingRes.data || [];
+            let trackingData: any[] = [];
+            if (shouldFetch('daily_tracking')) {
+                const trackingRes = await supabase.from('daily_tracking').select('*').in('date', [todayStr, yesterdayStr]);
+                trackingData = trackingRes.data || [];
+            }
 
             const todayTracking = trackingData.find((t: any) => t.date === todayStr);
             const yesterdayTracking = trackingData.find((t: any) => t.date === yesterdayStr);
 
-            const allVictories = victoriesRes.data || [];
+            const allVictories = victoriesRes?.data || [];
 
-            const allContributions = (contribRes.data || []) as any[];
+            const allContributions = (contribRes?.data || []) as any[];
             const contribsByWishlistId = allContributions.reduce((acc: Record<string, any[]>, c: any) => {
                 if (!acc[c.wishlist_item_id]) acc[c.wishlist_item_id] = [];
                 acc[c.wishlist_item_id].push(c);
                 return acc;
             }, {});
 
-            const allReactions = (reactionsRes.data || []) as any[];
+            const allReactions = (reactionsRes?.data || []) as any[];
             const reactionsByWishlistId = allReactions.reduce((acc: Record<string, any[]>, r: any) => {
                 if (!acc[r.wishlist_item_id]) acc[r.wishlist_item_id] = [];
                 acc[r.wishlist_item_id].push(r);
                 return acc;
             }, {});
 
-            return {
-                wishlist: (wishlistRes.data || []).map(w => {
+
+
+            const result: any = {};
+
+            if (shouldFetch('wishlist')) {
+                result.wishlist = (wishlistRes?.data || []).map(w => {
                     const itemContribs = contribsByWishlistId[w.id] || [];
                     const itemReactions = reactionsByWishlistId[w.id] || [];
                     return {
@@ -281,9 +363,15 @@ export const StoreService = {
                         reactions: itemReactions.map((r: any) => ({ id: r.id, wishlistItemId: r.wishlist_item_id, reactor: r.reactor, type: r.type })),
                         contributions: itemContribs.map((c: any) => ({ id: c.id, wishlistItemId: c.wishlist_item_id, contributor: c.contributor, amount: c.amount, note: c.note, createdAt: c.created_at })),
                     } as WishlistItem;
-                }),
-                wishlistActivity: (activityRes.data || []).map((a: any) => ({ id: a.id, wishlistItemId: a.wishlist_item_id, actor: a.actor, action: a.action, detail: a.detail, createdAt: a.created_at })),
-                healthHabits: (habitsRes.data || []).map((h: any) => ({
+                });
+            }
+
+            if (shouldFetch('wishlist_activity')) {
+                result.wishlistActivity = (activityRes?.data || []).map((a: any) => ({ id: a.id, wishlistItemId: a.wishlist_item_id, actor: a.actor, action: a.action, detail: a.detail, createdAt: a.created_at }));
+            }
+
+            if (shouldFetch('health_habits')) {
+                result.healthHabits = (habitsRes?.data || []).map((h: any) => ({
                     id: h.id,
                     profile: h.profile,
                     date: h.date,
@@ -292,8 +380,11 @@ export const StoreService = {
                     severity: h.severity,
                     note: h.note,
                     createdAt: h.created_at
-                })),
-                tasks: (tasksRes.data || []).map((t) => ({
+                }));
+            }
+
+            if (shouldFetch('tasks')) {
+                result.tasks = (tasksRes?.data || []).map((t) => ({
                     id: t.id,
                     text: t.text || t.title,
                     status: t.status === 'pending' ? 'todo' : (t.status === 'skipped' ? 'skipped' : (t.status === 'done' ? 'done' : (t.status === 'in_progress' ? 'in_progress' : 'todo'))),
@@ -308,75 +399,123 @@ export const StoreService = {
                     validations: t.validations || [],
                     detail: t.detail || undefined,
                     assignee: t.assignee || undefined,
-                })),
-                objectives: (objectivesRes.data || []).map(o => ({
+                }));
+            }
+
+            if (shouldFetch('objectives')) {
+                result.objectives = (objectivesRes?.data || []).map(o => ({
                     id: o.id,
                     title: o.title,
                     author: o.author,
                     last_active: o.last_active,
                     created_at: o.created_at,
                     is_complete: o.is_complete || false,
-                })),
-                events: (eventsRes.data || []).map((e: any) => ({
+                }));
+            }
+
+            if (shouldFetch('events')) {
+                const rawEvents = eventsRes?.data || [];
+                const commentsByEventId = (eventCommentsRes?.data || []).reduce((acc: Record<string, any[]>, c: any) => {
+                    if (!acc[c.event_id]) acc[c.event_id] = [];
+                    acc[c.event_id].push({
+                        id: c.id,
+                        eventId: c.event_id,
+                        author: c.author,
+                        text: c.text,
+                        createdAt: c.created_at
+                    });
+                    return acc;
+                }, {});
+
+                result.events = rawEvents.map((e: any) => ({
                     id: e.id,
                     title: e.title,
                     date: e.date,
                     description: e.description,
                     imageUrl: e.image_url,
-                    author: e.author || 'el'
-                })),
-                notes: (notesRes.data || []).map((n: any) => ({
+                    author: e.author || 'el',
+                    tags: e.tags || [],
+                    reactions: e.reactions || {},
+                    comments: commentsByEventId[e.id] || []
+                }));
+            }
+
+            if (shouldFetch('notes')) {
+                result.notes = (notesRes?.data || []).map((n: any) => ({
                     id: n.id,
                     text: n.text,
                     author: n.author || 'el'
-                })),
-                commitments: finalCommitments.map((c: any) => ({
+                }));
+            }
+
+            if (shouldFetch('commitments')) {
+                result.commitments = finalCommitments.map((c: any) => ({
                     id: c.id,
                     text: c.text,
                     completed: !c.is_active,
                     author: c.author || 'el'
-                })),
-                victoriesEl: allVictories.filter((v: any) => v.author === 'el').map((v: any) => ({
-                    id: v.id,
-                    text: v.text,
-                    author: v.author,
-                    created_at: v.created_at || v.createdAt,
-                    createdAt: v.created_at || v.createdAt
-                })),
-                victoriesElla: allVictories.filter((v: any) => v.author === 'ella').map((v: any) => ({
-                    id: v.id,
-                    text: v.text,
-                    author: v.author,
-                    created_at: v.created_at || v.createdAt,
-                    createdAt: v.created_at || v.createdAt
-                })),
-                audioStats: {
-                    daysTracking: trackingDays,
-                    lastUpdate: formattedDate
-                },
-                audioPlaylist, lastPulseAt: settings.last_pulse_at,
-                dailyProgress: {
+                }));
+                result.dailyProgress = {
                     yesterdayTotal: finalCommitments.length,
                     yesterdayCompleted: yesterdayTracking ? yesterdayTracking.completed_count : 0,
                     todayTotal: finalCommitments.length,
                     todayCompleted: todayTracking ? todayTracking.completed_count : 0
-                },
-                persistentListening: (listeningRes.data || []).map((l: any) => ({
+                };
+            }
+
+            if (shouldFetch('victories')) {
+                result.victoriesEl = allVictories.filter((v: any) => v.author === 'el').map((v: any) => ({
+                    id: v.id,
+                    text: v.text,
+                    author: v.author,
+                    created_at: v.created_at || v.createdAt,
+                    createdAt: v.created_at || v.createdAt
+                }));
+                result.victoriesElla = allVictories.filter((v: any) => v.author === 'ella').map((v: any) => ({
+                    id: v.id,
+                    text: v.text,
+                    author: v.author,
+                    created_at: v.created_at || v.createdAt,
+                    createdAt: v.created_at || v.createdAt
+                }));
+            }
+
+            if (shouldFetch('app_settings')) {
+                result.audioStats = {
+                    daysTracking: trackingDays,
+                    lastUpdate: formattedDate
+                };
+                result.lastPulseAt = settings.last_pulse_at;
+            }
+
+            if (shouldFetch('audio_track')) {
+                result.audioPlaylist = audioPlaylist;
+            }
+
+            if (shouldFetch('persistent_listening')) {
+                result.persistentListening = (listeningRes?.data || []).map((l: any) => ({
                     id: l.id,
                     topic: l.topic,
                     reflection: l.reflection,
                     date: l.date,
                     author: l.author || 'el'
-                })),
-                allocations: (allocationsRes.data || []).map((a: any) => ({
+                }));
+            }
+
+            if (shouldFetch('allocations')) {
+                result.allocations = (allocationsRes?.data || []).map((a: any) => ({
                     id: a.id,
                     amount: a.amount,
                     description: a.description,
                     category: a.category,
                     date: a.date,
                     profile: a.profile
-                }))
-            };
+                }));
+            }
+
+
+
+            return result as AppData;
         } catch (error) {
             console.error('Failed to fetch from Supabase', error);
             throw new Error('Could not read from data store.');
@@ -492,7 +631,9 @@ export const StoreService = {
                     date: e.date,
                     description: e.description,
                     image_url: e.imageUrl,
-                    author: e.author || 'el'
+                    author: e.author || 'el',
+                    tags: e.tags || [],
+                    reactions: e.reactions || {}
                 })));
             }
 
@@ -934,5 +1075,36 @@ export const StoreService = {
 
     async deleteHealthHabit(id: string, supabase: SupabaseClient = defaultSupabase): Promise<void> {
         await supabase.from('health_habits').delete().eq('id', id);
+    },
+
+    // === TIMELINE ===
+
+    async addEventComment(
+        comment: { eventId: string; author: 'el' | 'ella'; text: string },
+        supabase: SupabaseClient = defaultSupabase
+    ): Promise<void> {
+        const { error } = await supabase.from('event_comments').insert({
+            event_id: comment.eventId,
+            author: comment.author,
+            text: comment.text
+        });
+        if (error) throw error;
+    },
+
+    async deleteEventComment(id: string, supabase: SupabaseClient = defaultSupabase): Promise<void> {
+        const { error } = await supabase.from('event_comments').delete().eq('id', id);
+        if (error) throw error;
+    },
+
+    async reactToEvent(
+        id: string,
+        reactions: Record<string, string[]>,
+        supabase: SupabaseClient = defaultSupabase
+    ): Promise<void> {
+        const { error } = await supabase
+            .from('events')
+            .update({ reactions })
+            .eq('id', id);
+        if (error) throw error;
     }
 };

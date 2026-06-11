@@ -18,13 +18,18 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const [isLoading, setIsLoading] = useState(true);
     const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    const fetchData = async () => {
+    const fetchData = async (tables?: string[]) => {
         try {
             setIsLoading(true);
-            const res = await fetch('/api/store');
+            const query = tables && tables.length > 0 ? `?tables=${tables.join(',')}` : '';
+            const res = await fetch(`/api/store${query}`);
             if (res.ok) {
                 const json = await res.json();
-                setData(json);
+                if (tables && tables.length > 0) {
+                    setData(current => current ? { ...current, ...json } : json);
+                } else {
+                    setData(json);
+                }
             }
         } catch (e) {
             console.error('Failed to fetch store data', e);
@@ -68,10 +73,32 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         fetchData();
         
-        const handleDbChange = () => {
+        const pendingSlices = new Set<string>();
+
+        const handleDbChange = (payload: any) => {
+            const tableName = payload.table;
+            
+            const getTablesToFetch = (supabaseTable: string): string[] => {
+                if (['wishlist', 'wishlist_contributions', 'wishlist_reactions'].includes(supabaseTable)) {
+                    return ['wishlist', 'wishlist_contributions', 'wishlist_reactions'];
+                }
+                if (['audio_track', 'audio_comments'].includes(supabaseTable)) {
+                    return ['audio_track', 'audio_comments'];
+                }
+                if (['events', 'event_comments'].includes(supabaseTable)) {
+                    return ['events', 'event_comments'];
+                }
+                return [supabaseTable];
+            };
+
+            const slices = getTablesToFetch(tableName);
+            slices.forEach(s => pendingSlices.add(s));
+
             if (fetchTimeoutRef.current) clearTimeout(fetchTimeoutRef.current);
             fetchTimeoutRef.current = setTimeout(() => {
-                fetchData();
+                const tablesArray = Array.from(pendingSlices);
+                pendingSlices.clear();
+                fetchData(tablesArray);
             }, 600);
         };
 
@@ -82,6 +109,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             .on('postgres_changes', { event: '*', schema: 'public', table: 'wishlist_reactions' }, handleDbChange)
             .on('postgres_changes', { event: '*', schema: 'public', table: 'objectives' }, handleDbChange)
             .on('postgres_changes', { event: '*', schema: 'public', table: 'allocations' }, handleDbChange)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'events' }, handleDbChange)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'event_comments' }, handleDbChange)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'notes' }, handleDbChange)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'commitments' }, handleDbChange)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'victories' }, handleDbChange)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'audio_track' }, handleDbChange)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'audio_comments' }, handleDbChange)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'persistent_listening' }, handleDbChange)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'health_habits' }, handleDbChange)
             .subscribe();
 
         return () => {

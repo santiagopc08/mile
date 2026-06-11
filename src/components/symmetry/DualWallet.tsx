@@ -24,6 +24,8 @@ import {
 import { useProfile } from '@/context/ProfileContext';
 import { StoreService } from '@/services/storeService';
 import { AnimatedBrutalistCorners } from '@/components/ui/AnimatedBrutalistCorners';
+import { sound } from '@/lib/sound';
+import { haptics } from '@/lib/haptics';
 
 type TransactionType = 'expense' | 'income' | 'transfer' | 'budget_adjustment';
 type BudgetCategory = 'Food' | 'Transport' | 'Health' | 'Entertainment' | 'Wishlist' | 'Savings';
@@ -340,7 +342,11 @@ export const DualWallet = ({
 
   const addMovement = () => {
     const parsedAmount = parseFloat(amount);
-    if (!parsedAmount || parsedAmount <= 0 || !description.trim()) return;
+    if (!parsedAmount || parsedAmount <= 0 || !description.trim()) {
+      sound.playError();
+      haptics.triggerError();
+      return;
+    }
 
     const movement: FinancialMovement = {
       id: Date.now().toString(),
@@ -355,6 +361,8 @@ export const DualWallet = ({
     };
 
     onAllocationsChange([movement, ...allocations]);
+    sound.playSave();
+    haptics.triggerSave();
 
     // Enviar notificación a la pareja si es un ahorro (discreto)
     const isSavings = category === 'Savings' || relatedBudget === 'Savings' || account === 'savings_vault';
@@ -435,7 +443,11 @@ export const DualWallet = ({
               <button
                 key={quickType}
                 type="button"
-                onClick={() => setQuickAction(quickType)}
+                onClick={() => {
+                  setQuickAction(quickType);
+                  sound.playTick();
+                  haptics.triggerTick();
+                }}
                 className="flex items-center justify-center gap-2 px-3 py-3 text-[9px] font-mono tracking-widest uppercase transition-all bg-[#0a0a0a] hover:bg-white/5 !min-h-0"
                 style={{
                   color: active ? meta.color : '#a88a7e',
@@ -576,7 +588,11 @@ export const DualWallet = ({
       <div className="border border-white/10 bg-[#0a0a0a] rounded-none overflow-hidden transition-all duration-300 relative">
         <AnimatedBrutalistCorners color={accentHex} size={8} thickness={1} />
         <button 
-          onClick={() => setIsBudgetsOpen(!isBudgetsOpen)} 
+          onClick={() => {
+            setIsBudgetsOpen(!isBudgetsOpen);
+            sound.playTick();
+            haptics.triggerTick();
+          }} 
           className="w-full px-5 py-4 flex items-center justify-between bg-black/40 hover:bg-black/60 transition-colors text-left"
         >
           <span className="flex items-center gap-3 text-[10px] font-mono font-black uppercase tracking-[0.24em] text-white">
@@ -603,7 +619,16 @@ export const DualWallet = ({
                 </span>
                 <button
                   type="button"
-                  onClick={() => setIsEditingBudgets(!isEditingBudgets)}
+                  onClick={() => {
+                    setIsEditingBudgets(!isEditingBudgets);
+                    if (isEditingBudgets) {
+                      sound.playSave();
+                      haptics.triggerSave();
+                    } else {
+                      sound.playTick();
+                      haptics.triggerTick();
+                    }
+                  }}
                   className="ml-2 border border-white/10 bg-black px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-widest text-[#a88a7e] hover:border-white/30 hover:text-white"
                   style={isEditingBudgets ? { borderColor: accentHex, color: accentHex } : undefined}
                 >
@@ -649,7 +674,11 @@ export const DualWallet = ({
       <div className="border border-white/10 bg-[#0a0a0a] rounded-none overflow-hidden transition-all duration-300 relative">
         <AnimatedBrutalistCorners color={accentHex} size={8} thickness={1} />
         <button 
-          onClick={() => setIsIncomeOpen(!isIncomeOpen)} 
+          onClick={() => {
+            setIsIncomeOpen(!isIncomeOpen);
+            sound.playTick();
+            haptics.triggerTick();
+          }} 
           className="w-full px-5 py-4 flex items-center justify-between bg-black/40 hover:bg-black/60 transition-colors text-left"
         >
           <span className="flex items-center gap-3 text-[10px] font-mono font-black uppercase tracking-[0.24em] text-white">
@@ -684,7 +713,11 @@ export const DualWallet = ({
       <div className="border border-white/10 bg-[#0a0a0a] rounded-none overflow-hidden transition-all duration-300 relative">
         <AnimatedBrutalistCorners color={accentHex} size={8} thickness={1} />
         <button 
-          onClick={() => setIsHabitsOpen(!isHabitsOpen)} 
+          onClick={() => {
+            setIsHabitsOpen(!isHabitsOpen);
+            sound.playTick();
+            haptics.triggerTick();
+          }} 
           className="w-full px-5 py-4 flex items-center justify-between bg-black/40 hover:bg-black/60 transition-colors text-left"
         >
           <span className="flex items-center gap-3 text-[10px] font-mono font-black uppercase tracking-[0.24em] text-white">
