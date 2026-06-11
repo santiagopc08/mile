@@ -324,12 +324,20 @@ export const DualWallet = ({
     return { budget, spent, limit, remaining: limit - spent, percent, status, color };
   }), [budgetExpensesMap, budgets]);
 
-  const topCategories = useMemo(() => [...budgetRows]
+  // ⚡ Bolt Optimization: Filter before sort and slice to minimize intermediate operations
+  const topCategories = useMemo(() => budgetRows
+    .filter(row => row.spent > 0)
     .sort((a, b) => b.spent - a.spent)
-    .slice(0, 3)
-    .filter((row) => row.spent > 0), [budgetRows]);
+    .slice(0, 3), [budgetRows]);
 
-  const recurringIncome = useMemo(() => movements.filter((m) => m.type === 'income' && m.recurring).reduce((sum, m) => sum + m.amount, 0), [movements]);
+  // ⚡ Bolt Optimization: Single O(N) pass to avoid intermediate array creation
+  const recurringIncome = useMemo(() => {
+    let sum = 0;
+    for (const m of movements) {
+      if (m.type === 'income' && m.recurring) sum += m.amount;
+    }
+    return sum;
+  }, [movements]);
   const projectedIncome = incomeThisMonth + recurringIncome;
   const wishlistBudget = budgetRows.find((row) => row.budget === 'Wishlist');
   const wishlistAffordability = Math.max(0, Math.min(wishlistBudget?.remaining || 0, Math.max(totalAvailable, 0) * 0.18));
