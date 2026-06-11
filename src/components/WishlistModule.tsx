@@ -221,15 +221,20 @@ export function WishlistModule() {
     }, [mapItemsHash]);
 
     const filteredItems = useMemo(() => {
-        return items
-            .filter(i => catFilter === 'ALL' || i.goalCategory === catFilter)
-            .filter(i => stateFilter === 'ALL' || i.state === stateFilter)
-            .sort((a, b) => {
-                if (a.isPriority && !b.isPriority) return -1;
-                if (!a.isPriority && b.isPriority) return 1;
-                const stateOrder: Record<string, number> = { READY_TO_DEPLOY: 0, SAVING: 1, DISCOVERED: 2, COMPLETED: 3, ARCHIVED: 4 };
-                return (stateOrder[a.state] ?? 5) - (stateOrder[b.state] ?? 5);
-            });
+        // ⚡ Bolt Optimization: Single O(N) loop to replace chained .filter()s, minimizing intermediate arrays
+        const filtered: typeof items = [];
+        for (const i of items) {
+            if (catFilter !== 'ALL' && i.goalCategory !== catFilter) continue;
+            if (stateFilter !== 'ALL' && i.state !== stateFilter) continue;
+            filtered.push(i);
+        }
+
+        return filtered.sort((a, b) => {
+            if (a.isPriority && !b.isPriority) return -1;
+            if (!a.isPriority && b.isPriority) return 1;
+            const stateOrder: Record<string, number> = { READY_TO_DEPLOY: 0, SAVING: 1, DISCOVERED: 2, COMPLETED: 3, ARCHIVED: 4 };
+            return (stateOrder[a.state] ?? 5) - (stateOrder[b.state] ?? 5);
+        });
     }, [items, catFilter, stateFilter]);
 
     const resetForm = useCallback(() => {

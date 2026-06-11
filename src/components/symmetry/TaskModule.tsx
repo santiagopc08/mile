@@ -61,6 +61,15 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
   const objectives = useMemo(() => (data?.objectives as Objective[]) || [], [data?.objectives]);
   const visibleObjectives = useMemo(() => objectives.filter(o => o.author === profile), [objectives, profile]);
 
+  // ⚡ Bolt Optimization: Pre-calculate O(1) hash map for objective lookups
+  const objectiveMap = useMemo(() => {
+    const map = new Map<string, Objective>();
+    for (const obj of objectives) {
+      map.set(obj.id, obj);
+    }
+    return map;
+  }, [objectives]);
+
   const objectiveStats = useMemo(() => {
     const statsMap = new Map();
     for (const obj of visibleObjectives) {
@@ -325,7 +334,7 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
 
   const isTaskLate = (task: Task) => task.due_date && new Date() > new Date(task.due_date) && task.status !== 'done' && task.status !== 'skipped';
   const isTaskOverflowed = (task: Task) => task.estimated_time > 0 && task.actual_time > task.estimated_time;
-  const getTaskObjective = (task: Task) => objectives.find(o => o.id === task.objective_id);
+  const getTaskObjective = (task: Task) => task.objective_id ? objectiveMap.get(task.objective_id) : undefined;
   const categoryStyles: Record<Task['category'], { label: string; chip: string; active: string; stripe: string }> = {
     work: {
       label: 'TRABAJO',

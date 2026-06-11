@@ -40,3 +40,7 @@
 ## 2024-06-07 - Eliminate O(C*N) Render Loops in TaskModule Kanban Columns
 **Learning:** `TaskModule.tsx` rendered its 4 Kanban columns by calling `.filter()` on the full `tasks` array (length N) four separate times (C=4) on *every single render*. It also used another `.filter()` in a `useEffect` for the focus score. This created severe O(5*N) redundant work on every render cycle.
 **Action:** Centralized the grouping into a single O(N) `useMemo` called `groupedTasksByStatus` which returns a dictionary `Record<string, Task[]>`. The components and effects now perform simple O(1) property lookups instead of scanning the array. Also learned to never commit throwaway patch scripts.
+
+## 2026-06-10 - Eliminate O(N*M) Object Mapping Render Bottleneck
+**Learning:** `TaskModule.tsx` had an O(N*M) bottleneck during task rendering due to the `getTaskObjective` function using `objectives.find()` repeatedly within the `task.actions.map` and `task.validations.map` render loops. Finding an object inside a large mapping loop results in quadratic-like overhead.
+**Action:** Created an O(1) `objectiveMap` hash map wrapped in a `useMemo` hook, and updated `getTaskObjective` to use a `.get()` lookup instead. Always pre-calculate mapping dictionaries before rendering when cross-referencing collections.
