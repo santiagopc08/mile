@@ -61,26 +61,45 @@ export const SymmetryDashboard = () => {
   }, []);
 
   // Update fragmentation state
+  // ⚡ Bolt Optimization: Single O(N) pass instead of multiple array iterations
   useEffect(() => {
-    const total = allocationsA.reduce((sum, e) => sum + e.amount, 0);
-    const miscTotal = allocationsA.filter(e => e.category === '🎲 Otros').reduce((sum, e) => sum + e.amount, 0);
+    let total = 0;
+    let miscTotal = 0;
+    for (const e of allocationsA) {
+      total += e.amount;
+      if (e.category === '🎲 Otros') miscTotal += e.amount;
+    }
     const miscPercent = total > 0 ? (miscTotal / total) * 100 : 0;
     if (profile === 'el') setIsFragmented(miscPercent > 20);
   }, [allocationsA, profile]);
 
+  // ⚡ Bolt Optimization: Single O(N) pass instead of multiple array iterations
   useEffect(() => {
-    const total = allocationsB.reduce((sum, e) => sum + e.amount, 0);
-    const miscTotal = allocationsB.filter(e => e.category === '🎲 Otros').reduce((sum, e) => sum + e.amount, 0);
+    let total = 0;
+    let miscTotal = 0;
+    for (const e of allocationsB) {
+      total += e.amount;
+      if (e.category === '🎲 Otros') miscTotal += e.amount;
+    }
     const miscPercent = total > 0 ? (miscTotal / total) * 100 : 0;
     if (profile === 'ella') setIsFragmented(miscPercent > 20);
   }, [allocationsB, profile]);
 
   // Update categories based on tasks
   useEffect(() => {
+    // ⚡ Bolt Optimization: Single O(N) pass to group tasks by category instead of calling .filter() repeatedly
+    const catStats = new Map<string, { total: number; done: number }>();
+    for (const t of tasks) {
+      const stats = catStats.get(t.category) || { total: 0, done: 0 };
+      stats.total++;
+      if (t.status === 'done') stats.done++;
+      catStats.set(t.category, stats);
+    }
+
     const calculateCategoryScore = (cat: string) => {
-      const catTasks = tasks.filter(t => t.category === cat);
-      if (catTasks.length === 0) return 50;
-      return (catTasks.filter((t: any) => t.status === 'done').length / catTasks.length) * 100;
+      const stats = catStats.get(cat);
+      if (!stats || stats.total === 0) return 50;
+      return (stats.done / stats.total) * 100;
     };
 
     const updateScores = (prev: any) => ({
