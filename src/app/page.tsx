@@ -120,7 +120,7 @@ export default function Home() {
                 <div className="flex flex-wrap items-center justify-between gap-3 w-full">
                   <div className="flex items-center gap-3">
                     <span className="text-[var(--color-profile-accent)] shrink-0" style={{ color: accentColorValue }}>
-                      <LayoutDashboard className="w-5 h-5 sm:w-6 sm:h-6 animate-icon-pulse-0" strokeWidth={1.5} />
+                      <LayoutDashboard className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={1.5} />
                     </span>
                     <Link href="/dashboard" className="inline-block">
                       <h2 className="text-lg sm:text-xl font-black uppercase group-hover:text-[var(--color-profile-accent)] transition-colors">Día a Día</h2>
@@ -158,7 +158,7 @@ export default function Home() {
                 <div className="flex flex-wrap items-center justify-between gap-3 w-full">
                   <div className="flex items-center gap-3">
                     <span className="text-[var(--color-profile-accent)] shrink-0" style={{ color: accentColorValue }}>
-                      <MapPin className="w-5 h-5 sm:w-6 sm:h-6 animate-icon-pulse-1" strokeWidth={1.5} />
+                      <MapPin className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={1.5} />
                     </span>
                     <Link href="/planes" className="inline-block">
                       <h2 className="text-lg sm:text-xl font-black uppercase group-hover:text-[var(--color-profile-accent)] transition-colors">Antojos</h2>
@@ -209,7 +209,7 @@ export default function Home() {
                 <div className="flex flex-wrap items-center justify-between gap-3 w-full">
                   <div className="flex items-center gap-3">
                     <span className="text-white/50 group-hover:text-[var(--color-profile-accent)] transition-colors shrink-0" style={{ color: accentColorValue }}>
-                      <ShieldCheck className="w-5 h-5 sm:w-5.5 sm:h-5.5 animate-icon-pulse-2" strokeWidth={1.5} />
+                      <ShieldCheck className="w-5 h-5 sm:w-5.5 sm:h-5.5" strokeWidth={1.5} />
                     </span>
                     <Link href="/refugio">
                       <h3 className="text-sm sm:text-base font-black uppercase group-hover:text-[var(--color-profile-accent)] transition-colors">Refugio</h3>
@@ -263,7 +263,7 @@ export default function Home() {
                 <div className="flex flex-wrap items-center justify-between gap-3 w-full">
                   <div className="flex items-center gap-3">
                     <span className="text-white/50 group-hover:text-[var(--color-profile-accent)] transition-colors shrink-0" style={{ color: accentColorValue }}>
-                      <Heart className="w-5 h-5 sm:w-5.5 sm:h-5.5 animate-icon-pulse-3" strokeWidth={1.5} />
+                      <Heart className="w-5 h-5 sm:w-5.5 sm:h-5.5" strokeWidth={1.5} />
                     </span>
                     <Link href="/salud">
                       <h3 className="text-sm sm:text-base font-black uppercase group-hover:text-[var(--color-profile-accent)] transition-colors">Salud</h3>
@@ -317,7 +317,7 @@ export default function Home() {
                 <div className="flex flex-wrap items-center justify-between gap-3 w-full">
                   <div className="flex items-center gap-3">
                     <span className="text-white/50 group-hover:text-[var(--color-profile-accent)] transition-colors shrink-0" style={{ color: accentColorValue }}>
-                      <Gamepad2 className="w-5 h-5 sm:w-5.5 sm:h-5.5 animate-icon-pulse-4" strokeWidth={1.5} />
+                      <Gamepad2 className="w-5 h-5 sm:w-5.5 sm:h-5.5" strokeWidth={1.5} />
                     </span>
                     <Link href="/juego">
                       <h3 className="text-sm sm:text-base font-black uppercase group-hover:text-[var(--color-profile-accent)] transition-colors">Juego</h3>
