@@ -34,6 +34,10 @@ export function PomodoroTimer() {
     const [selectedTaskId, setSelectedTaskId] = useState<string>('');
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
+    const activeTask = useMemo(() => {
+        return selectedTaskId ? tasks.find(t => t.id === selectedTaskId) : undefined;
+    }, [tasks, selectedTaskId]);
+
     const timerRef = useRef<NodeJS.Timeout | null>(null);
 
     const sessionPlan = useMemo(() => {
@@ -92,7 +96,7 @@ export function PomodoroTimer() {
             }
 
             if (selectedTaskId) {
-                const task = tasks.find(t => t.id === selectedTaskId);
+                const task = activeTask;
                 if (task && task.status === 'todo') {
                     try {
                         const updatedTasks = (data?.tasks || []).map((t: any) =>
@@ -222,7 +226,7 @@ export function PomodoroTimer() {
                             className="flex min-h-[44px] w-full items-center justify-between border border-white/10 bg-black/40 px-4 py-2 transition-all hover:border-user-a disabled:opacity-50"
                         >
                             <span className={`truncate text-[11px] font-bold uppercase tracking-widest ${selectedTaskId ? 'text-white' : 'text-[#594137]'}`}>
-                                {selectedTaskId ? tasks.find(t => t.id === selectedTaskId)?.text : 'SELECCIONAR_OBJETIVO...'}
+                                {selectedTaskId ? activeTask?.text : 'SELECCIONAR_OBJETIVO...'}
                             </span>
                             <ChevronDown size={12} className="text-[#a88a7e]" />
                         </button>
@@ -360,7 +364,7 @@ export function PomodoroTimer() {
                                         [ :: {mode === 'work' ? 'SESIÓN_DE_ENFOQUE' : 'RECUPERACIÓN'} ]
                                     </div>
                                     <div className="text-[8px] tracking-[0.2em] text-[#a88a7e]">
-                                        BLOQUE {currentSession} / {totalSessions} • {selectedTaskId ? tasks.find(t => t.id === selectedTaskId)?.text : 'NO_TARGET'}
+                                        BLOQUE {currentSession} / {totalSessions} • {selectedTaskId ? activeTask?.text : 'NO_TARGET'}
                                     </div>
                                 </div>
                                 <button
@@ -402,7 +406,6 @@ export function PomodoroTimer() {
                             {selectedTaskId && mode === 'work' && (
                                 <div className="mx-auto max-w-2xl space-y-6">
                                     {(() => {
-                                        const activeTask = tasks.find(t => t.id === selectedTaskId);
                                         if (!activeTask) return null;
                                         const hasActions = activeTask.actions && activeTask.actions.length > 0;
                                         const hasValidations = activeTask.validations && activeTask.validations.length > 0;
