@@ -9,10 +9,18 @@ interface LiveLinkPreviewProps {
     label?: string;
 }
 
+export interface LinkPreviewData {
+    url?: string;
+    image?: string;
+    siteName?: string;
+    title?: string;
+    description?: string;
+}
+
 export function LiveLinkPreview({ url, label = 'VISTA PREVIA EN VIVO' }: LiveLinkPreviewProps) {
     const [debouncedUrl, setDebouncedUrl] = useState('');
     const [loading, setLoading] = useState(false);
-    const [preview, setPreview] = useState<any>(null);
+    const [preview, setPreview] = useState<LinkPreviewData | null>(null);
     const [isValid, setIsValid] = useState(false);
 
     // 1. Client-Side Sanitization & Debounce Keystrokes
