@@ -165,21 +165,31 @@ export function WishlistModule() {
                 const itemsToUpdate = Array.from(itemsToUpdateMap.values());
 
                 if (itemsToFetch.length > 0) {
+                    // ⚡ Bolt Optimization: Use an in-memory Promise cache to deduplicate concurrent requests
+                    // for the same URL within the backfill batch.
+                    const urlCache = new Map<string, Promise<any>>();
+
                     const fetchResults = await Promise.all(
                         itemsToFetch.map(async ({ item, url, expectedStatus }) => {
                             try {
-                                const res = await fetch(`/api/link-preview?url=${encodeURIComponent(url)}`);
-                                if (res.ok) {
-                                    const resData = await res.json();
-                                    if (resData.coords && typeof resData.coords.lat === 'number' && typeof resData.coords.lng === 'number') {
-                                        return {
-                                            nombre: item.title,
-                                            latitud: resData.coords.lat,
-                                            longitud: resData.coords.lng,
-                                            created_by: item.author || 'el',
-                                            status: expectedStatus
-                                        };
-                                    }
+                                let fetchPromise = urlCache.get(url);
+                                if (!fetchPromise) {
+                                    fetchPromise = fetch(`/api/link-preview?url=${encodeURIComponent(url)}`).then(res => {
+                                        if (!res.ok) throw new Error('Network response was not ok');
+                                        return res.json();
+                                    });
+                                    urlCache.set(url, fetchPromise);
+                                }
+
+                                const resData = await fetchPromise;
+                                if (resData.coords && typeof resData.coords.lat === 'number' && typeof resData.coords.lng === 'number') {
+                                    return {
+                                        nombre: item.title,
+                                        latitud: resData.coords.lat,
+                                        longitud: resData.coords.lng,
+                                        created_by: item.author || 'el',
+                                        status: expectedStatus
+                                    };
                                 }
                             } catch (e) {
                                 console.error(`Error fetching coordinates for ${item.title}:`, e);
