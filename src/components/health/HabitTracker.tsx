@@ -31,16 +31,36 @@ export function HabitTracker() {
     // Analysis
     const stats = useMemo(() => {
         const now = new Date();
-        const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        const thirtyDaysAgoTime = now.getTime() - 30 * 24 * 60 * 60 * 1000;
         
-        const recentHabits = habits.filter(h => new Date(h.createdAt) >= thirtyDaysAgo && h.profile === profile);
-        
-        const totalSpent = recentHabits.reduce((acc, h) => acc + (h.cost || 0), 0);
-        
-        const byType = recentHabits.reduce((acc, h) => {
-            acc[h.habitType] = (acc[h.habitType] || 0) + (h.cost || 0);
-            return acc;
-        }, {} as Record<string, number>);
+        // ⚡ Bolt Optimization: Replace multiple .filter(), .reduce(), .map(), and .some()
+        // with single pass O(N) loop and O(1) Set lookup.
+        let totalSpent = 0;
+        const byType: Record<string, number> = {};
+        let oldestHabitTime = Infinity;
+        let hasProfileHabits = false;
+        const habitDates = new Set<string>();
+
+        for (const h of habits) {
+            if (h.profile === profile) {
+                hasProfileHabits = true;
+                const cost = h.cost || 0;
+
+                if (new Date(h.createdAt).getTime() >= thirtyDaysAgoTime) {
+                    totalSpent += cost;
+                    byType[h.habitType] = (byType[h.habitType] || 0) + cost;
+                }
+
+                if (h.date) {
+                    habitDates.add(h.date);
+                }
+
+                const time = new Date(h.date || h.createdAt).getTime();
+                if (time < oldestHabitTime) {
+                    oldestHabitTime = time;
+                }
+            }
+        }
 
         // Calculate score
         let score: 'STABLE' | 'UNBALANCED' | 'CRITICAL_CONSUMPTION' = 'STABLE';
@@ -49,20 +69,15 @@ export function HabitTracker() {
 
         // Streak: consecutive days without any habit logged
         let streak = 0;
-        const profileHabits = habits.filter(h => h.profile === profile);
-        if (profileHabits.length > 0) {
+        if (hasProfileHabits) {
             const todayStr = now.toISOString().split('T')[0];
             const checkDate = new Date(now);
-            
-            // Find oldest habit date to avoid looping indefinitely
-            const oldestHabitTime = Math.min(...profileHabits.map(h => new Date(h.date || h.createdAt).getTime()));
             const oldestHabitDate = new Date(oldestHabitTime);
             oldestHabitDate.setHours(0, 0, 0, 0);
 
             while (checkDate >= oldestHabitDate) {
                 const dateStr = checkDate.toISOString().split('T')[0];
-                const hasHabit = habits.some(h => h.profile === profile && h.date === dateStr);
-                if (!hasHabit) {
+                if (!habitDates.has(dateStr)) {
                     if (dateStr !== todayStr || streak > 0) streak++; // don't count today if it's the only one
                     checkDate.setDate(checkDate.getDate() - 1);
                 } else {
