@@ -6,6 +6,8 @@ import { Plus, Trash2, Check, Pencil, X, ChevronDown, Sparkles, Clock, Target } 
 import { useStore } from '@/context/StoreContext';
 import { useProfile } from '@/context/ProfileContext';
 import { StoreService, type ChecklistItem } from '@/services/storeService';
+import { NotificationService } from '@/services/notificationService';
+import { TaskService } from '@/services/taskService';
 import { LiveLinkPreview } from '@/components/LiveLinkPreview';
 import { sound } from '@/lib/sound';
 import { haptics } from '@/lib/haptics';
@@ -327,7 +329,7 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
       haptics.triggerSuccess();
       const partner = profile === 'ella' ? 'el' : 'ella';
       const authorName = profile === 'el' ? 'Santiago' : 'Milena';
-      StoreService.addNotification(partner, 'objective', `¡${authorName} completó el objetivo: "${obj.title}"! 🎯`).catch(err => console.error(err));
+      NotificationService.addNotification(partner, 'objective', `¡${authorName} completó el objetivo: "${obj.title}"! 🎯`).catch(err => console.error(err));
     } else {
       sound.playTick();
       haptics.triggerTick();

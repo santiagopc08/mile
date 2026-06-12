@@ -3,6 +3,7 @@ import { useProfile } from '@/context/ProfileContext';
 import { ShieldAlert, Database, Lock, Fingerprint, Activity, AlertTriangle } from 'lucide-react';
 import { format, differenceInDays, addDays, parseISO } from 'date-fns';
 import { StoreService } from '@/services/storeService';
+import { NotificationService } from '@/services/notificationService';
 import { AnimatedBrutalistCorners } from '@/components/ui/AnimatedBrutalistCorners';
 
 type CycleEntry = {
@@ -183,7 +184,7 @@ export const BiometricVault = () => {
             const bioMsg = hasMoodSymptoms 
                 ? '¡Diario de Bienestar!: Se registró un cambio de ánimo hoy.'
                 : '¡Diario de Bienestar!: Hay un nuevo registro en el diario.';
-            StoreService.addNotification(target, 'biometrics', bioMsg).catch(err => console.error(err));
+            NotificationService.addNotification(target, 'biometrics', bioMsg).catch(err => console.error(err));
         }
 
         setSelectedSymptoms([]);

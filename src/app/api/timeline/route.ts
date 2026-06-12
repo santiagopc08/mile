@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { StoreService } from '@/services/storeService';
+import { TimelineService } from '@/services/timelineService';
 import { createServerClient } from '@/lib/supabase';
 
 export async function POST(request: Request) {
@@ -9,7 +10,7 @@ export async function POST(request: Request) {
         const supabase = createServerClient();
 
         if (action === 'comment') {
-            await StoreService.addEventComment(
+            await TimelineService.addEventComment(
                 {
                     eventId: payload.eventId,
                     author: payload.author,
@@ -21,7 +22,7 @@ export async function POST(request: Request) {
         }
 
         if (action === 'react') {
-            await StoreService.reactToEvent(
+            await TimelineService.reactToEvent(
                 payload.id,
                 payload.reactions,
                 supabase
@@ -48,7 +49,7 @@ export async function DELETE(request: Request) {
         }
 
         if (type === 'comment') {
-            await StoreService.deleteEventComment(id, supabase);
+            await TimelineService.deleteEventComment(id, supabase);
         } else {
             return NextResponse.json({ error: 'Invalid type' }, { status: 400 });
         }

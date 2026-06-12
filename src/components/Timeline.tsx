@@ -6,6 +6,8 @@ import { useState } from 'react';
 import { useStore } from '@/context/StoreContext';
 import { useProfile } from '@/context/ProfileContext';
 import { StoreService } from '@/services/storeService';
+import { TimelineService } from '@/services/timelineService';
+import { NotificationService } from '@/services/notificationService';
 import type { EventComment } from '@/services/storeService';
 
 export interface TimelineEvent {
@@ -79,7 +81,7 @@ export function Timeline({ events }: TimelineProps) {
             let imageUrl = undefined;
             if (file) {
                 try {
-                    imageUrl = await StoreService.uploadTimelineImage(file);
+                    imageUrl = await TimelineService.uploadTimelineImage(file);
                 } catch (err) {
                     alert(`Error al subir la imagen: ${err instanceof Error ? err.message : 'Error desconocido'}`);
                     setIsUploading(false);
@@ -102,7 +104,7 @@ export function Timeline({ events }: TimelineProps) {
             // Send discrete notification to partner
             const target = profile === 'el' ? 'ella' : 'el';
             const authorName = profile === 'el' ? 'Santiago' : 'Milena';
-            StoreService.addNotification(target, 'history', `¡${authorName} agregó un nuevo recuerdo a nuestra Historia! ✨`).catch(() => {});
+            NotificationService.addNotification(target, 'history', `¡${authorName} agregó un nuevo recuerdo a nuestra Historia! ✨`).catch(e => console.error(e));
 
             setIsUploading(false);
             setIsAdding(false);
@@ -132,7 +134,7 @@ export function Timeline({ events }: TimelineProps) {
         if (file) {
             setIsEditUploading(true);
             try {
-                finalImageUrl = await StoreService.uploadTimelineImage(file);
+                finalImageUrl = await TimelineService.uploadTimelineImage(file);
             } catch (err) {
                 alert(`Error al subir la imagen: ${err instanceof Error ? err.message : 'Error desconocido'}`);
                 setIsEditUploading(false);
