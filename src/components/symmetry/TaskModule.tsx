@@ -126,7 +126,7 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
     if (!task) return;
     const list = task[listType] || [];
     const newList = list.map(i => i.id === itemId ? { ...i, checked: !i.checked } : i);
-    updateData({ tasks: tasks.map(t => t.id === taskId ? { ...t, [listType]: newList } : t) as any });
+    updateData({ tasks: tasks.map((t): Task => t.id === taskId ? { ...t, [listType]: newList } : t) });
     
     sound.playTick();
     haptics.triggerTick();
