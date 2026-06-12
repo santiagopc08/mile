@@ -1,10 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { AppData, Task, TaskStatus } from '@/services/storeService';
+import { Task, TaskStatus } from '@/services/storeService';
 import { useStore } from '@/context/StoreContext';
 import { useProfile } from '@/context/ProfileContext';
-import { CheckCircle2, Circle, AlertCircle, Plus, Trash2, Pencil, X, Check } from 'lucide-react';
+import { CheckCircle2, Plus, Trash2, Pencil, X, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export function PendingTasks() {
@@ -194,7 +194,7 @@ export function PendingTasks() {
                                                 task.priority === 'medium' ? 'bg-amber-500' : 'bg-stone-600'
                                             }`} />
                                             <span className="text-[9px] uppercase font-bold tracking-[0.2em] text-stone-500">
-                                                P{task.priority === 'high' ? '01' : task.priority === 'medium' ? '02' : '03'} // {task.priority === 'high' ? 'ALTA' : task.priority === 'medium' ? 'MEDIA' : 'BAJA'}
+                                                P{task.priority === 'high' ? '01' : task.priority === 'medium' ? '02' : '03'} {'//'} {task.priority === 'high' ? 'ALTA' : task.priority === 'medium' ? 'MEDIA' : 'BAJA'}
                                             </span>
                                         </div>
                                     </>
