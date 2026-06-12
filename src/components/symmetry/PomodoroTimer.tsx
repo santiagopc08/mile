@@ -3,16 +3,8 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { Play, Pause, RotateCcw, Coffee, Focus, Target, ChevronDown, Check, Maximize2, Minimize2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { StoreService } from '@/services/storeService';
+import { StoreService, Task } from '@/services/storeService';
 import { useStore } from '@/context/StoreContext';
-
-interface Task {
-    id: string;
-    text: string;
-    status: string;
-    actions?: { id: string, text: string, checked: boolean }[];
-    validations?: { id: string, text: string, checked: boolean }[];
-}
 
 const FOCUS_DURATION = 25; // minutes
 const BREAK_DURATION = 5;  // minutes
@@ -99,10 +91,10 @@ export function PomodoroTimer() {
                 const task = activeTask;
                 if (task && task.status === 'todo') {
                     try {
-                        const updatedTasks = (data?.tasks || []).map((t: any) =>
+                        const updatedTasks = (data?.tasks || []).map((t: Task): Task =>
                             t.id === selectedTaskId ? { ...t, status: 'in_progress', updated_at: new Date().toISOString() } : t
                         );
-                        await updateData({ tasks: updatedTasks as any });
+                        await updateData({ tasks: updatedTasks });
                     } catch (e) {
                         console.error("Failed to update status", e);
                     }
@@ -128,13 +120,13 @@ export function PomodoroTimer() {
         const minutesToDeposit = Math.floor(elapsedSeconds / 60);
         if (minutesToDeposit > 0 && selectedTaskId) {
             try {
-                const updatedTasks = (data?.tasks || []).map((t: any) => {
+                const updatedTasks = (data?.tasks || []).map((t: Task) => {
                     if (t.id === selectedTaskId) {
                         return { ...t, actual_time: (t.actual_time || 0) + minutesToDeposit, updated_at: new Date().toISOString() };
                     }
                     return t;
                 });
-                await updateData({ tasks: updatedTasks as any });
+                await updateData({ tasks: updatedTasks });
                 setElapsedSeconds(s => s % 60);
             } catch (e) {
                 console.error("Failed to deposit time", e);
@@ -192,7 +184,7 @@ export function PomodoroTimer() {
     const toggleTaskChecklist = async (taskId: string, listType: 'actions' | 'validations', itemId: string) => {
         if (!data?.tasks) return;
 
-        const updatedTasks = data.tasks.map(t => {
+        const updatedTasks = data.tasks.map((t): Task => {
             if (t.id === taskId) {
                 const list = (t[listType] || []) as any[];
                 const newList = list.map(i => i.id === itemId ? { ...i, checked: !i.checked } : i);
@@ -202,7 +194,7 @@ export function PomodoroTimer() {
         });
 
         try {
-            await updateData({ tasks: updatedTasks as any });
+            await updateData({ tasks: updatedTasks });
         } catch (e) {
             console.error("Failed to update checklist", e);
         }
