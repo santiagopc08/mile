@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PawPrint, Plus, Calendar, Edit2, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
 import { StoreService } from '@/services/storeService';
+import { TimelineService } from '@/services/timelineService';
 import { supabase } from '@/lib/supabase';
 import { useProfile } from '@/context/ProfileContext';
 
@@ -502,7 +503,7 @@ function GalleryStrip({ pet, photos, currentIndex, onSelect, onUploadComplete }:
     try {
       setIsUploading(true);
       
-      const url = await StoreService.uploadTimelineImage(file);
+      const url = await TimelineService.uploadTimelineImage(file);
 
       const { error: insertError } = await supabase
         .from('pet_gallery')

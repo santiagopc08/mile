@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { useProfile } from '@/context/ProfileContext';
 import { StoreService } from '@/services/storeService';
+import { NotificationService } from '@/services/notificationService';
 import { sound } from '@/lib/sound';
 import { haptics } from '@/lib/haptics';
 
@@ -304,7 +305,7 @@ export function MovementTracker() {
                 noteMsg = `${whoName} registró un día de descanso operativo`;
             }
 
-            StoreService.addNotification(partner, 'movement', noteMsg).catch(err => {
+            NotificationService.addNotification(partner, 'movement', noteMsg).catch(err => {
                 console.error('Failed to trigger movement notification', err);
             });
 
@@ -312,7 +313,7 @@ export function MovementTracker() {
             const partnerLogs = sessions.filter(s => s.profile === partner && s.date === todayStr && s.completion_status === 'completed');
             if (partnerLogs.length > 0 && completionStatus === 'completed') {
                 const syncMsg = `¡Sincronía de Movimiento Completada! Ambos están activos hoy.`;
-                StoreService.addNotification(partner, 'movement_sync', syncMsg).catch(err => {
+                NotificationService.addNotification(partner, 'movement_sync', syncMsg).catch(err => {
                     console.error('Failed to trigger sync notification', err);
                 });
             }

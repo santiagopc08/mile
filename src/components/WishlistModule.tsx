@@ -7,6 +7,8 @@ import { Link2, MapPin, Plus, X, Rss } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
 import { StoreService } from '@/services/storeService';
+import { WishlistService } from '@/services/wishlistService';
+import { NotificationService } from '@/services/notificationService';
 import type { WishlistItem, WishlistState, GoalCategory } from '@/services/storeService';
 import { GOAL_CATEGORIES } from './planes/constants';
 import { SavingsOverview } from './planes/SavingsOverview';
@@ -277,7 +279,7 @@ export function WishlistModule() {
             if (fShared) {
                 const target = profile === 'el' ? 'ella' : 'el';
                 const authorName = profile === 'el' ? 'Santiago' : 'Milena';
-                try { await StoreService.addNotification(target, 'wishlist', `¡${authorName} editó el plan!: "${fTitle.trim()}"`, supabase); } catch {}
+                try { await NotificationService.addNotification(target, 'wishlist', `¡${authorName} editó el plan!: "${fTitle.trim()}"`, supabase); } catch {}
             }
         } else {
             const newItem: WishlistItem = {
@@ -290,13 +292,13 @@ export function WishlistModule() {
             await updateData({ wishlist: [newItem, ...items] });
             // Log activity
             try {
-                await StoreService.logWishlistActivity(null, profile || 'el', 'added', fTitle.trim(), supabase);
+                await WishlistService.logWishlistActivity(null, profile || 'el', 'added', fTitle.trim(), supabase);
             } catch {}
             // Notify other profile if shared
             if (fShared) {
                 const target = profile === 'el' ? 'ella' : 'el';
                 const authorName = profile === 'el' ? 'Santiago' : 'Milena';
-                try { await StoreService.addNotification(target, 'wishlist', `¡${authorName} agregó un nuevo plan!: "${fTitle.trim()}"`, supabase); } catch {}
+                try { await NotificationService.addNotification(target, 'wishlist', `¡${authorName} agregó un nuevo plan!: "${fTitle.trim()}"`, supabase); } catch {}
             }
         }
 
@@ -326,7 +328,7 @@ export function WishlistModule() {
             if (itemToDelete.shared) {
                 const target = profile === 'el' ? 'ella' : 'el';
                 const authorName = profile === 'el' ? 'Santiago' : 'Milena';
-                try { await StoreService.addNotification(target, 'wishlist', `${authorName} eliminó un plan de la lista.`, supabase); } catch {}
+                try { await NotificationService.addNotification(target, 'wishlist', `${authorName} eliminó un plan de la lista.`, supabase); } catch {}
             }
         }
         await updateData({ wishlist: items.filter(i => i.id !== id) });

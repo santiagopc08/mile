@@ -6,6 +6,8 @@ import { formatCOP, STATE_CONFIG, REACTION_CONFIG, GOAL_CATEGORIES } from './con
 import { ExternalLink, Trash2, Pencil, MapPin, ChevronRight, Heart, Zap, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { StoreService } from '@/services/storeService';
+import { WishlistService } from '@/services/wishlistService';
+import { NotificationService } from '@/services/notificationService';
 import { supabase } from '@/lib/supabase';
 import { LinkPreview } from '@/components/LinkPreview';
 
@@ -50,14 +52,14 @@ export function WishlistCard({ item, profile, onRefresh, onEdit, onDelete }: Wis
         if (amount <= 0) return;
         setSubmitting(true);
         try {
-            await StoreService.addContribution(item.id, profile || 'el', amount, contribNote, supabase);
+            await WishlistService.addContribution(item.id, profile || 'el', amount, contribNote, supabase);
             // Auto-transition to SAVING if still DISCOVERED
             if (item.state === 'DISCOVERED') {
-                await StoreService.updateWishlistState(item.id, 'SAVING', profile || 'el', supabase);
+                await WishlistService.updateWishlistState(item.id, 'SAVING', profile || 'el', supabase);
             }
             // Check if ready
             if (item.savedAmount + amount >= item.price && item.price > 0 && item.state === 'SAVING') {
-                await StoreService.updateWishlistState(item.id, 'READY_TO_DEPLOY', profile || 'el', supabase);
+                await WishlistService.updateWishlistState(item.id, 'READY_TO_DEPLOY', profile || 'el', supabase);
             }
 
             // Notificar a la pareja si el plan es compartido
@@ -65,7 +67,7 @@ export function WishlistCard({ item, profile, onRefresh, onEdit, onDelete }: Wis
                 const target = profile === 'el' ? 'ella' : 'el';
                 const authorName = profile === 'el' ? 'Santiago' : 'Milena';
                 const amountFormatted = formatCOP(amount);
-                await StoreService.addNotification(target, 'wishlist', `¡${authorName} aportó ${amountFormatted} al plan: "${item.title}"! 💰`, supabase);
+                await NotificationService.addNotification(target, 'wishlist', `¡${authorName} aportó ${amountFormatted} al plan: "${item.title}"! 💰`, supabase);
             }
 
             setContribAmount('');
@@ -78,7 +80,7 @@ export function WishlistCard({ item, profile, onRefresh, onEdit, onDelete }: Wis
 
     const handleReaction = async (type: string) => {
         try {
-            await StoreService.toggleReaction(item.id, profile || 'el', type, supabase);
+            await WishlistService.toggleReaction(item.id, profile || 'el', type, supabase);
             onRefresh();
         } catch (e) { console.error(e); }
     };
@@ -87,17 +89,17 @@ export function WishlistCard({ item, profile, onRefresh, onEdit, onDelete }: Wis
         if (!stateConfig.next) return;
         if (stateConfig.next === 'READY_TO_DEPLOY' && item.savedAmount < item.price && item.price > 0) return;
         try {
-            await StoreService.updateWishlistState(item.id, stateConfig.next, profile || 'el', supabase);
+            await WishlistService.updateWishlistState(item.id, stateConfig.next, profile || 'el', supabase);
             
             // Notificar a la pareja si el plan es compartido
             if (item.shared) {
                 const target = profile === 'el' ? 'ella' : 'el';
                 const authorName = profile === 'el' ? 'Santiago' : 'Milena';
                 if (stateConfig.next === 'COMPLETED') {
-                    await StoreService.addNotification(target, 'wishlist', `¡Objetivo Cumplido! Completamos el plan: "${item.title}" 🎉`, supabase);
+                    await NotificationService.addNotification(target, 'wishlist', `¡Objetivo Cumplido! Completamos el plan: "${item.title}" 🎉`, supabase);
                 } else {
                     const stateLabel = STATE_CONFIG[stateConfig.next]?.label || stateConfig.next;
-                    await StoreService.addNotification(target, 'wishlist', `¡${authorName} actualizó el plan "${item.title}" a estado: ${stateLabel}!`, supabase);
+                    await NotificationService.addNotification(target, 'wishlist', `¡${authorName} actualizó el plan "${item.title}" a estado: ${stateLabel}!`, supabase);
                 }
             }
             
