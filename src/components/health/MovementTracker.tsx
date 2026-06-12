@@ -9,7 +9,6 @@ import {
 } from 'lucide-react';
 import { useProfile } from '@/context/ProfileContext';
 import { StoreService } from '@/services/storeService';
-import { v4 as uuidv4 } from 'uuid';
 import { sound } from '@/lib/sound';
 import { haptics } from '@/lib/haptics';
 
@@ -197,9 +196,7 @@ export function MovementTracker() {
 
     // Secure ID generator
     const generateId = () => {
-        return typeof crypto !== 'undefined' && crypto.randomUUID 
-            ? crypto.randomUUID() 
-            : uuidv4();
+        return crypto.randomUUID();
     };
 
     // Load data from Supabase or LocalStorage
