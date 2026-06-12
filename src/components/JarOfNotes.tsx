@@ -254,7 +254,7 @@ export function JarOfNotes() {
                                     <button
                                         onClick={closeSequence}
                                         className={`-mr-4 -mt-4 p-2 text-[#a88a7e] transition-colors hover:text-${accentClass}`}
-                                        style={{ '--tw-hover-text-opacity': 1 } as any}
+                                        style={{ '--tw-hover-text-opacity': 1 } as React.CSSProperties}
                                     >
                                         <X className="w-6 h-6" />
                                     </button>
@@ -281,7 +281,7 @@ export function JarOfNotes() {
                         <button
                             onClick={() => setIsAddingMode(true)}
                             className={`flex w-full items-center justify-center gap-2 border border-white/10 bg-black/80 py-4 text-[#a88a7e] backdrop-blur-sm transition-all hover:border-${accentClass} hover:text-${accentClass}`}
-                            style={{ '--tw-hover-text-opacity': 1, '--tw-hover-border-opacity': 1 } as any}
+                            style={{ '--tw-hover-text-opacity': 1, '--tw-hover-border-opacity': 1 } as React.CSSProperties}
                         >
                             <MessageCircleHeart className="w-5 h-5" />
                             <span className="uppercase text-xs font-bold tracking-widest font-mono">Añadir Nueva Nota</span>
@@ -293,7 +293,7 @@ export function JarOfNotes() {
                                 onChange={(e) => setNewNoteText(e.target.value)}
                                 placeholder="Escribe un pensamiento para el futuro..."
                                 className={`mb-4 min-h-[100px] w-full resize-none border border-white/10 bg-black p-4 text-sm tracking-normal text-white outline-none transition-colors placeholder:text-[#594137] focus:border-${accentClass}`}
-                                style={{ '--tw-ring-color': accentColor } as any}
+                                style={{ '--tw-ring-color': accentColor } as React.CSSProperties}
                                 autoFocus
                             />
                             <div className="flex gap-3">
