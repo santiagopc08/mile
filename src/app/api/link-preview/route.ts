@@ -11,6 +11,23 @@ export async function GET(request: Request) {
         return NextResponse.json({ error: 'URL is required' }, { status: 400 });
     }
 
+    // SSRF Protection: Validate URL scheme and hostname
+    try {
+        const url = new URL(targetUrl);
+        if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+            return NextResponse.json({ error: 'Invalid URL scheme' }, { status: 400 });
+        }
+        const hostname = url.hostname;
+        const isLocalhost = hostname === 'localhost' || hostname === '[::1]';
+        const isPrivateIPv4 = /^(127\.\d{1,3}\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2[0-9]|3[0-1])\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|169\.254\.\d{1,3}\.\d{1,3}|0\.0\.0\.0)$/i.test(hostname);
+
+        if (isLocalhost || isPrivateIPv4) {
+            return NextResponse.json({ error: 'Private or local addresses are not allowed' }, { status: 400 });
+        }
+    } catch {
+        return NextResponse.json({ error: 'Invalid URL format' }, { status: 400 });
+    }
+
     try {
         const response = await fetch(targetUrl, {
             headers: {
