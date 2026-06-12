@@ -81,8 +81,7 @@ export function Timeline({ events }: TimelineProps) {
                 try {
                     imageUrl = await StoreService.uploadTimelineImage(file);
                 } catch (err) {
-                    console.error("Upload failed", err);
-                    alert("Error al subir la imagen.");
+                    alert(`Error al subir la imagen: ${err instanceof Error ? err.message : 'Error desconocido'}`);
                     setIsUploading(false);
                     return;
                 }
@@ -103,7 +102,7 @@ export function Timeline({ events }: TimelineProps) {
             // Send discrete notification to partner
             const target = profile === 'el' ? 'ella' : 'el';
             const authorName = profile === 'el' ? 'Santiago' : 'Milena';
-            StoreService.addNotification(target, 'history', `¡${authorName} agregó un nuevo recuerdo a nuestra Historia! ✨`).catch(e => console.error(e));
+            StoreService.addNotification(target, 'history', `¡${authorName} agregó un nuevo recuerdo a nuestra Historia! ✨`).catch(() => {});
 
             setIsUploading(false);
             setIsAdding(false);
@@ -135,8 +134,7 @@ export function Timeline({ events }: TimelineProps) {
             try {
                 finalImageUrl = await StoreService.uploadTimelineImage(file);
             } catch (err) {
-                console.error("Upload failed", err);
-                alert("Error al subir la imagen.");
+                alert(`Error al subir la imagen: ${err instanceof Error ? err.message : 'Error desconocido'}`);
                 setIsEditUploading(false);
                 return;
             }
@@ -188,7 +186,7 @@ export function Timeline({ events }: TimelineProps) {
                 body: JSON.stringify({ action: 'react', id: eventId, reactions })
             });
         } catch (err) {
-            console.error("Failed to react to event:", err);
+            alert(`Error al reaccionar: ${err instanceof Error ? err.message : 'Error desconocido'}`);
         }
     };
 
@@ -213,7 +211,7 @@ export function Timeline({ events }: TimelineProps) {
             });
             form.reset();
         } catch (err) {
-            console.error("Failed to post comment:", err);
+            alert(`Error al publicar el comentario: ${err instanceof Error ? err.message : 'Error desconocido'}`);
         }
     };
 
@@ -223,7 +221,7 @@ export function Timeline({ events }: TimelineProps) {
                 method: 'DELETE'
             });
         } catch (err) {
-            console.error("Failed to delete comment:", err);
+            alert(`Error al eliminar el comentario: ${err instanceof Error ? err.message : 'Error desconocido'}`);
         }
     };
 
