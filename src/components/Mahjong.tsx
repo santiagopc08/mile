@@ -428,12 +428,12 @@ export function Mahjong() {
         isProcessingRef.current = true;
         requestAnimationFrame(() => { isProcessingRef.current = false; });
         if (!timerActive && matchedCount < tiles.length) { setTimerActive(true); }
-        const matchingDockId = dockIds.find(dId => {
-            const dockTile = tiles.find(t => t.id === dId);
-            return dockTile && dockTile.content.value === tile.content.value;
-        });
-        if (matchingDockId) {
-            const matchingDockTile = tiles.find(t => t.id === matchingDockId)!;
+        const matchingDockTile = tiles.find(t =>
+            t.content.value === tile.content.value && dockIds.includes(t.id)
+        );
+        const matchingDockId = matchingDockTile?.id;
+
+        if (matchingDockId && matchingDockTile) {
             const dockIndex = dockIds.indexOf(matchingDockId);
             setUndoStack(us => [...us, [matchingDockTile.id, tile.id]]);
             setMatchedCount(mc => mc + 2);
