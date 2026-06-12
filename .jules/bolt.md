@@ -44,3 +44,6 @@
 ## 2026-06-10 - Eliminate O(N*M) Object Mapping Render Bottleneck
 **Learning:** `TaskModule.tsx` had an O(N*M) bottleneck during task rendering due to the `getTaskObjective` function using `objectives.find()` repeatedly within the `task.actions.map` and `task.validations.map` render loops. Finding an object inside a large mapping loop results in quadratic-like overhead.
 **Action:** Created an O(1) `objectiveMap` hash map wrapped in a `useMemo` hook, and updated `getTaskObjective` to use a `.get()` lookup instead. Always pre-calculate mapping dictionaries before rendering when cross-referencing collections.
+## 2026-06-12 - Replace O(N*D) date loop scanning with O(1) Set lookups
+**Learning:** Checking for habit presence on consecutive dates using `.some()` inside a `while` loop triggers an O(N * D) nested iteration which kills performance on datasets with extensive historical data.
+**Action:** When calculating consecutive day streaks or doing date-based presence checks across loops, pre-compute a `Set` of formatted date strings from the dataset to enable O(1) existence lookups, reducing overall complexity to O(N + D).
