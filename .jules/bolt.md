@@ -47,3 +47,6 @@
 ## 2026-06-12 - Replace O(N*D) date loop scanning with O(1) Set lookups
 **Learning:** Checking for habit presence on consecutive dates using `.some()` inside a `while` loop triggers an O(N * D) nested iteration which kills performance on datasets with extensive historical data.
 **Action:** When calculating consecutive day streaks or doing date-based presence checks across loops, pre-compute a `Set` of formatted date strings from the dataset to enable O(1) existence lookups, reducing overall complexity to O(N + D).
+## 2024-06-13 - Eliminate Redundant Array Filtering in Progress Analytics Heatmap
+**Learning:** `ProgressAnalytics.tsx` had an O(D*N) performance bottleneck where the `sessions` array was filtered 14 times (2 filters x 7 days) and then `.some()` was called 42 times within an `Array.from({length: 7}).map(...)` loop. This caused excessive redundant iteration during rendering.
+**Action:** Replaced the in-loop array filtering with a single O(N) `for...of` pass inside a `useMemo` hook to build a `dailyStatusMap` (a nested dictionary caching the state for each day/user). The mapping loop now relies on O(1) property lookups, drastically reducing rendering complexity.

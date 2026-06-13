@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Target, TrendingDown, Clock, Activity } from 'lucide-react';
 import { MovementSession } from './types';
 
@@ -11,6 +11,28 @@ interface ProgressAnalyticsProps {
 }
 
 export function ProgressAnalytics({ isElla, weeklyStats, sessions, accentColor, painAnalytics }: ProgressAnalyticsProps) {
+    // ⚡ Bolt Optimization: Replace multiple .filter() and .some() with single pass O(N) loop
+    const dailyStatusMap = useMemo(() => {
+        const map = new Map<string, { el: Record<string, boolean>; ella: Record<string, boolean> }>();
+        for (const s of sessions) {
+            if (!s.date || !s.profile || !s.completion_status) continue;
+
+            let dateEntry = map.get(s.date);
+            if (!dateEntry) {
+                dateEntry = {
+                    el: { completed: false, recovery: false, rest_day: false },
+                    ella: { completed: false, recovery: false, rest_day: false }
+                };
+                map.set(s.date, dateEntry);
+            }
+
+            if (s.profile === 'el' || s.profile === 'ella') {
+                dateEntry[s.profile][s.completion_status] = true;
+            }
+        }
+        return map;
+    }, [sessions]);
+
     return (
         <>
                     {/* CAPA 4: PROGRESS ANALYTICS */}
@@ -62,16 +84,15 @@ export function ProgressAnalytics({ isElla, weeklyStats, sessions, accentColor, 
                                     const dStr = d.toISOString().split('T')[0];
                                     const label = d.toLocaleDateString('es-ES', { weekday: 'short' });
 
-                                    const userElLogs = sessions.filter(s => s.profile === 'el' && s.date === dStr);
-                                    const userEllaLogs = sessions.filter(s => s.profile === 'ella' && s.date === dStr);
+                                    const dateStats = dailyStatusMap.get(dStr);
 
-                                    const isElActive = userElLogs.some(s => s.completion_status === 'completed');
-                                    const isElRecovery = userElLogs.some(s => s.completion_status === 'recovery');
-                                    const isElRest = userElLogs.some(s => s.completion_status === 'rest_day');
+                                    const isElActive = dateStats?.el?.completed || false;
+                                    const isElRecovery = dateStats?.el?.recovery || false;
+                                    const isElRest = dateStats?.el?.rest_day || false;
 
-                                    const isEllaActive = userEllaLogs.some(s => s.completion_status === 'completed');
-                                    const isEllaRecovery = userEllaLogs.some(s => s.completion_status === 'recovery');
-                                    const isEllaRest = userEllaLogs.some(s => s.completion_status === 'rest_day');
+                                    const isEllaActive = dateStats?.ella?.completed || false;
+                                    const isEllaRecovery = dateStats?.ella?.recovery || false;
+                                    const isEllaRest = dateStats?.ella?.rest_day || false;
 
                                     return (
                                         <div key={index} className="flex flex-col gap-1">
