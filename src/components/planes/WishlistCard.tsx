@@ -242,7 +242,7 @@ export function WishlistCard({ item, profile, onRefresh, onEdit, onDelete }: Wis
                         {item.contributions.length > 0 && (
                             <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 border-t border-white/[0.04] pt-1.5">
                                 {item.contributions.slice(0, 2).map(c => (
-                                    <span className="text-[8px] uppercase tracking-wider font-mono">
+                                    <span key={c.id} className="text-[8px] uppercase tracking-wider font-mono">
                                         <span className={c.contributor === 'el' ? 'text-user-b' : 'text-user-a'}>{c.contributor === 'el' ? 'S' : 'M'}</span>
                                         <span className="text-white/40 ml-1">aportó</span>
                                         <span className="font-bold text-user-b ml-1">{formatCOP(c.amount)}</span>
