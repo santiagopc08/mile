@@ -143,7 +143,7 @@ export function NotificationBell({ align = 'right' }: { align?: 'left' | 'right'
         // --- SUPABASE REAL-TIME SUBSCRIPTION ---
         // Instantly catches all new notification records matching this user's profile
         const channel = supabase
-            .channel(`realtime-notifications-${profile}`)
+            .channel(`realtime-notifications-${profile}-${crypto.randomUUID()}`)
             .on(
                 'postgres_changes',
                 {

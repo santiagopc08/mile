@@ -34,7 +34,7 @@ export function NotificationsFeed() {
 
         // Subscribe to real-time events to push alerts instantly into the feed log
         const channel = supabase
-            .channel(`feed-realtime-notifications-${profile}`)
+            .channel(`feed-realtime-notifications-${profile}-${crypto.randomUUID()}`)
             .on(
                 'postgres_changes',
                 {
