@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { useProfile } from '@/context/ProfileContext';
 import { StoreService } from '@/services/storeService';
+import { NotificationService } from '@/services/notificationService';
 import { AnimatedBrutalistCorners } from '@/components/ui/AnimatedBrutalistCorners';
 import { sound } from '@/lib/sound';
 import { haptics } from '@/lib/haptics';
@@ -379,7 +380,7 @@ export const DualWallet = ({
       const authorName = profile === 'el' ? 'Santiago' : 'Milena';
       const amountFormatted = formatCOP(parsedAmount);
       const alertMsg = `¡${authorName} registró un nuevo ahorro de ${amountFormatted}! 💰`;
-      StoreService.addNotification(target, 'wallet', alertMsg).catch(err => {
+      NotificationService.addNotification(target, 'wallet', alertMsg).catch(err => {
         console.error('Failed to trigger wallet notification:', err);
       });
     }

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Bell, CheckSquare, Trash2, ShieldAlert } from 'lucide-react';
 import { StoreService } from '@/services/storeService';
+import { NotificationService } from '@/services/notificationService';
 import { useProfile } from '@/context/ProfileContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
@@ -98,7 +99,7 @@ export function NotificationBell({ align = 'right' }: { align?: 'left' | 'right'
     const fetchNotifications = async () => {
         if (!profile) return;
         try {
-            const data = await StoreService.getNotifications(profile);
+            const data = await NotificationService.getNotifications(profile);
             setNotifications(data);
 
             // Populate notified IDs list initially to avoid spamming historical push notifications
@@ -142,7 +143,7 @@ export function NotificationBell({ align = 'right' }: { align?: 'left' | 'right'
         // --- SUPABASE REAL-TIME SUBSCRIPTION ---
         // Instantly catches all new notification records matching this user's profile
         const channel = supabase
-            .channel(`realtime-notifications-${profile}`)
+            .channel(`realtime-notifications-${profile}-${crypto.randomUUID()}`)
             .on(
                 'postgres_changes',
                 {
@@ -183,7 +184,7 @@ export function NotificationBell({ align = 'right' }: { align?: 'left' | 'right'
 
     const handleRead = async (id: string) => {
         try {
-            await StoreService.markNotificationRead(id);
+            await NotificationService.markNotificationRead(id);
             setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
         } catch (err) {
             console.error('Failed to mark read:', err);

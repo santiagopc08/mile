@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Activity, Check, CheckSquare, Trash2 } from 'lucide-react';
 import { StoreService } from '@/services/storeService';
+import { NotificationService } from '@/services/notificationService';
 import { useProfile } from '@/context/ProfileContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
@@ -17,7 +18,7 @@ export function NotificationsFeed() {
     const fetchNotifications = async () => {
         if (!profile) return;
         try {
-            const data = await StoreService.getNotifications(profile);
+            const data = await NotificationService.getNotifications(profile);
             setNotifications(data);
         } catch (err) {
             console.error('Failed to fetch notifications in feed:', err);
@@ -33,7 +34,7 @@ export function NotificationsFeed() {
 
         // Subscribe to real-time events to push alerts instantly into the feed log
         const channel = supabase
-            .channel(`feed-realtime-notifications-${profile}`)
+            .channel(`feed-realtime-notifications-${profile}-${crypto.randomUUID()}`)
             .on(
                 'postgres_changes',
                 {
@@ -67,7 +68,7 @@ export function NotificationsFeed() {
 
     const handleRead = async (id: string) => {
         try {
-            await StoreService.markNotificationRead(id);
+            await NotificationService.markNotificationRead(id);
             setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
         } catch (err) {
             console.error('Failed to mark read:', err);

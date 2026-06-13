@@ -102,7 +102,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             }, 600);
         };
 
-        const channel = supabase.channel('global-store-changes')
+        const channel = supabase.channel(`global-store-changes-${crypto.randomUUID()}`)
             .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, handleDbChange)
             .on('postgres_changes', { event: '*', schema: 'public', table: 'wishlist' }, handleDbChange)
             .on('postgres_changes', { event: '*', schema: 'public', table: 'wishlist_contributions' }, handleDbChange)

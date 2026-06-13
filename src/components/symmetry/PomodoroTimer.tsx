@@ -1,18 +1,10 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { Play, Pause, RotateCcw, Coffee, Focus, Target, ChevronDown, Check, Maximize2, Minimize2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { StoreService } from '@/services/storeService';
+import { StoreService, Task } from '@/services/storeService';
 import { useStore } from '@/context/StoreContext';
-
-interface Task {
-    id: string;
-    text: string;
-    status: string;
-    actions?: { id: string, text: string, checked: boolean }[];
-    validations?: { id: string, text: string, checked: boolean }[];
-}
 
 const FOCUS_DURATION = 25; // minutes
 const BREAK_DURATION = 5;  // minutes
@@ -33,6 +25,10 @@ export function PomodoroTimer() {
 
     const [selectedTaskId, setSelectedTaskId] = useState<string>('');
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+    const activeTask = useMemo(() => {
+        return selectedTaskId ? tasks.find(t => t.id === selectedTaskId) : undefined;
+    }, [tasks, selectedTaskId]);
 
     const timerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -92,13 +88,13 @@ export function PomodoroTimer() {
             }
 
             if (selectedTaskId) {
-                const task = tasks.find(t => t.id === selectedTaskId);
+                const task = activeTask;
                 if (task && task.status === 'todo') {
                     try {
-                        const updatedTasks = (data?.tasks || []).map((t: any) =>
+                        const updatedTasks = (data?.tasks || []).map((t: Task): Task =>
                             t.id === selectedTaskId ? { ...t, status: 'in_progress', updated_at: new Date().toISOString() } : t
                         );
-                        await updateData({ tasks: updatedTasks as any });
+                        await updateData({ tasks: updatedTasks });
                     } catch (e) {
                         console.error("Failed to update status", e);
                     }
@@ -124,13 +120,13 @@ export function PomodoroTimer() {
         const minutesToDeposit = Math.floor(elapsedSeconds / 60);
         if (minutesToDeposit > 0 && selectedTaskId) {
             try {
-                const updatedTasks = (data?.tasks || []).map((t: any) => {
+                const updatedTasks = (data?.tasks || []).map((t: Task) => {
                     if (t.id === selectedTaskId) {
                         return { ...t, actual_time: (t.actual_time || 0) + minutesToDeposit, updated_at: new Date().toISOString() };
                     }
                     return t;
                 });
-                await updateData({ tasks: updatedTasks as any });
+                await updateData({ tasks: updatedTasks });
                 setElapsedSeconds(s => s % 60);
             } catch (e) {
                 console.error("Failed to deposit time", e);
@@ -188,7 +184,7 @@ export function PomodoroTimer() {
     const toggleTaskChecklist = async (taskId: string, listType: 'actions' | 'validations', itemId: string) => {
         if (!data?.tasks) return;
 
-        const updatedTasks = data.tasks.map(t => {
+        const updatedTasks = data.tasks.map((t): Task => {
             if (t.id === taskId) {
                 const list = (t[listType] || []) as any[];
                 const newList = list.map(i => i.id === itemId ? { ...i, checked: !i.checked } : i);
@@ -198,7 +194,7 @@ export function PomodoroTimer() {
         });
 
         try {
-            await updateData({ tasks: updatedTasks as any });
+            await updateData({ tasks: updatedTasks });
         } catch (e) {
             console.error("Failed to update checklist", e);
         }
@@ -222,7 +218,7 @@ export function PomodoroTimer() {
                             className="flex min-h-[44px] w-full items-center justify-between border border-white/10 bg-black/40 px-4 py-2 transition-all hover:border-user-a disabled:opacity-50"
                         >
                             <span className={`truncate text-[11px] font-bold uppercase tracking-widest ${selectedTaskId ? 'text-white' : 'text-[#594137]'}`}>
-                                {selectedTaskId ? tasks.find(t => t.id === selectedTaskId)?.text : 'SELECCIONAR_OBJETIVO...'}
+                                {selectedTaskId ? activeTask?.text : 'SELECCIONAR_OBJETIVO...'}
                             </span>
                             <ChevronDown size={12} className="text-[#a88a7e]" />
                         </button>
@@ -360,7 +356,7 @@ export function PomodoroTimer() {
                                         [ :: {mode === 'work' ? 'SESIÓN_DE_ENFOQUE' : 'RECUPERACIÓN'} ]
                                     </div>
                                     <div className="text-[8px] tracking-[0.2em] text-[#a88a7e]">
-                                        BLOQUE {currentSession} / {totalSessions} • {selectedTaskId ? tasks.find(t => t.id === selectedTaskId)?.text : 'NO_TARGET'}
+                                        BLOQUE {currentSession} / {totalSessions} • {selectedTaskId ? activeTask?.text : 'NO_TARGET'}
                                     </div>
                                 </div>
                                 <button
@@ -402,7 +398,6 @@ export function PomodoroTimer() {
                             {selectedTaskId && mode === 'work' && (
                                 <div className="mx-auto max-w-2xl space-y-6">
                                     {(() => {
-                                        const activeTask = tasks.find(t => t.id === selectedTaskId);
                                         if (!activeTask) return null;
                                         const hasActions = activeTask.actions && activeTask.actions.length > 0;
                                         const hasValidations = activeTask.validations && activeTask.validations.length > 0;

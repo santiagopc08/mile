@@ -7,6 +7,8 @@ import { Link2, MapPin, Plus, X, Rss } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
 import { StoreService } from '@/services/storeService';
+import { WishlistService } from '@/services/wishlistService';
+import { NotificationService } from '@/services/notificationService';
 import type { WishlistItem, WishlistState, GoalCategory } from '@/services/storeService';
 import { GOAL_CATEGORIES } from './planes/constants';
 import { SavingsOverview } from './planes/SavingsOverview';
@@ -165,21 +167,31 @@ export function WishlistModule() {
                 const itemsToUpdate = Array.from(itemsToUpdateMap.values());
 
                 if (itemsToFetch.length > 0) {
+                    // ⚡ Bolt Optimization: Use an in-memory Promise cache to deduplicate concurrent requests
+                    // for the same URL within the backfill batch.
+                    const urlCache = new Map<string, Promise<any>>();
+
                     const fetchResults = await Promise.all(
                         itemsToFetch.map(async ({ item, url, expectedStatus }) => {
                             try {
-                                const res = await fetch(`/api/link-preview?url=${encodeURIComponent(url)}`);
-                                if (res.ok) {
-                                    const resData = await res.json();
-                                    if (resData.coords && typeof resData.coords.lat === 'number' && typeof resData.coords.lng === 'number') {
-                                        return {
-                                            nombre: item.title,
-                                            latitud: resData.coords.lat,
-                                            longitud: resData.coords.lng,
-                                            created_by: item.author || 'el',
-                                            status: expectedStatus
-                                        };
-                                    }
+                                let fetchPromise = urlCache.get(url);
+                                if (!fetchPromise) {
+                                    fetchPromise = fetch(`/api/link-preview?url=${encodeURIComponent(url)}`).then(res => {
+                                        if (!res.ok) throw new Error('Network response was not ok');
+                                        return res.json();
+                                    });
+                                    urlCache.set(url, fetchPromise);
+                                }
+
+                                const resData = await fetchPromise;
+                                if (resData.coords && typeof resData.coords.lat === 'number' && typeof resData.coords.lng === 'number') {
+                                    return {
+                                        nombre: item.title,
+                                        latitud: resData.coords.lat,
+                                        longitud: resData.coords.lng,
+                                        created_by: item.author || 'el',
+                                        status: expectedStatus
+                                    };
                                 }
                             } catch (e) {
                                 console.error(`Error fetching coordinates for ${item.title}:`, e);
@@ -267,7 +279,7 @@ export function WishlistModule() {
             if (fShared) {
                 const target = profile === 'el' ? 'ella' : 'el';
                 const authorName = profile === 'el' ? 'Santiago' : 'Milena';
-                try { await StoreService.addNotification(target, 'wishlist', `¡${authorName} editó el plan!: "${fTitle.trim()}"`, supabase); } catch {}
+                try { await NotificationService.addNotification(target, 'wishlist', `¡${authorName} editó el plan!: "${fTitle.trim()}"`, supabase); } catch {}
             }
         } else {
             const newItem: WishlistItem = {
@@ -280,13 +292,13 @@ export function WishlistModule() {
             await updateData({ wishlist: [newItem, ...items] });
             // Log activity
             try {
-                await StoreService.logWishlistActivity(null, profile || 'el', 'added', fTitle.trim(), supabase);
+                await WishlistService.logWishlistActivity(null, profile || 'el', 'added', fTitle.trim(), supabase);
             } catch {}
             // Notify other profile if shared
             if (fShared) {
                 const target = profile === 'el' ? 'ella' : 'el';
                 const authorName = profile === 'el' ? 'Santiago' : 'Milena';
-                try { await StoreService.addNotification(target, 'wishlist', `¡${authorName} agregó un nuevo plan!: "${fTitle.trim()}"`, supabase); } catch {}
+                try { await NotificationService.addNotification(target, 'wishlist', `¡${authorName} agregó un nuevo plan!: "${fTitle.trim()}"`, supabase); } catch {}
             }
         }
 
@@ -316,7 +328,7 @@ export function WishlistModule() {
             if (itemToDelete.shared) {
                 const target = profile === 'el' ? 'ella' : 'el';
                 const authorName = profile === 'el' ? 'Santiago' : 'Milena';
-                try { await StoreService.addNotification(target, 'wishlist', `${authorName} eliminó un plan de la lista.`, supabase); } catch {}
+                try { await NotificationService.addNotification(target, 'wishlist', `${authorName} eliminó un plan de la lista.`, supabase); } catch {}
             }
         }
         await updateData({ wishlist: items.filter(i => i.id !== id) });

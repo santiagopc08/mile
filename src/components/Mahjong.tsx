@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { StoreService } from '@/services/storeService';
+import { MahjongService } from '@/services/mahjongService';
+import { NotificationService } from '@/services/notificationService';
 import { useProfile } from '@/context/ProfileContext';
 import { Undo2, Trophy, RotateCcw, Lightbulb, Layers3, Sparkles } from 'lucide-react';
 import { AnimatedBrutalistCorners } from '@/components/ui/AnimatedBrutalistCorners';
@@ -238,7 +240,7 @@ export function Mahjong() {
     }, []);
 
     useEffect(() => {
-        StoreService.getMahjongLeaderboard().then(setLeaderboard).catch(() => { });
+        MahjongService.getMahjongLeaderboard().then(setLeaderboard).catch(() => { });
     }, []);
 
     const formatTime = (seconds: number) => {
@@ -258,19 +260,19 @@ export function Mahjong() {
 
             if (profile && !scoreSaved) {
                 setScoreSaved(true);
-                StoreService.saveMahjongScore(
+                MahjongService.saveMahjongScore(
                     profile as 'el' | 'ella',
                     time,
                     currentLayout,
                     tiles.length
                 ).then(() => {
-                    StoreService.getMahjongLeaderboard().then(setLeaderboard).catch(() => { });
+                    MahjongService.getMahjongLeaderboard().then(setLeaderboard).catch(() => { });
 
                     // Notificar a la pareja si es récord
                     if (isRecord) {
                         const target = profile === 'el' ? 'ella' : 'el';
                         const authorName = profile === 'el' ? 'Santiago' : 'Milena';
-                        StoreService.addNotification(target, 'mahjong_record', `¡Récord Superado!: ${authorName} batió el récord en el juego con un tiempo de ${formatTime(time)}! 🏆`).catch(e => console.error(e));
+                        NotificationService.addNotification(target, 'mahjong_record', `¡Récord Superado!: ${authorName} batió el récord en el juego con un tiempo de ${formatTime(time)}! 🏆`).catch(e => console.error(e));
                     }
                 });
             }
@@ -325,7 +327,7 @@ export function Mahjong() {
 
     const initializeGame = async (layoutParam?: LayoutType) => {
         const mobileState = window.innerWidth <= 768;
-        const imageUrls = shuffleArray(await StoreService.getMahjongImages());
+        const imageUrls = shuffleArray(await MahjongService.getMahjongImages());
 
         let selectedLayout = layoutParam || currentLayout;
         if (!selectedLayout) {
@@ -428,12 +430,12 @@ export function Mahjong() {
         isProcessingRef.current = true;
         requestAnimationFrame(() => { isProcessingRef.current = false; });
         if (!timerActive && matchedCount < tiles.length) { setTimerActive(true); }
-        const matchingDockId = dockIds.find(dId => {
-            const dockTile = tiles.find(t => t.id === dId);
-            return dockTile && dockTile.content.value === tile.content.value;
-        });
-        if (matchingDockId) {
-            const matchingDockTile = tiles.find(t => t.id === matchingDockId)!;
+        const matchingDockTile = tiles.find(t =>
+            t.content.value === tile.content.value && dockIds.includes(t.id)
+        );
+        const matchingDockId = matchingDockTile?.id;
+
+        if (matchingDockId && matchingDockTile) {
             const dockIndex = dockIds.indexOf(matchingDockId);
             setUndoStack(us => [...us, [matchingDockTile.id, tile.id]]);
             setMatchedCount(mc => mc + 2);

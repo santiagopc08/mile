@@ -6,6 +6,8 @@ import { Pizza, Coffee, Bike, CreditCard, Activity, TrendingDown, Flame, CircleD
 import { useStore } from '@/context/StoreContext';
 import { useProfile } from '@/context/ProfileContext';
 import { StoreService } from '@/services/storeService';
+import { HealthService } from '@/services/healthService';
+import { NotificationService } from '@/services/notificationService';
 import type { HealthHabitType, HealthHabit } from '@/services/storeService';
 import { supabase } from '@/lib/supabase';
 import { sound } from '@/lib/sound';
@@ -103,11 +105,11 @@ export function HabitTracker() {
         const cost = parseFloat(costInput) || 0;
         
         try {
-            await StoreService.logHealthHabit(profile, selectedHabit, cost, severity, '', supabase);
+            await HealthService.logHealthHabit(profile, selectedHabit, cost, severity, '', supabase);
             
             // Disparar notificación discreta a la pareja
             const target = profile === 'el' ? 'ella' : 'el';
-            await StoreService.addNotification(target, 'habits', 'Se guardó un registro en la lista de hábitos.', supabase);
+            await NotificationService.addNotification(target, 'habits', 'Se guardó un registro en la lista de hábitos.', supabase);
 
             sound.playSave();
             haptics.triggerSave();
@@ -130,7 +132,7 @@ export function HabitTracker() {
 
     const handleDelete = async (id: string) => {
         try {
-            await StoreService.deleteHealthHabit(id, supabase);
+            await HealthService.deleteHealthHabit(id, supabase);
             sound.playTick();
             haptics.triggerTick();
             onRefresh();
