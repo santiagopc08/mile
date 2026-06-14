@@ -50,3 +50,6 @@
 ## 2024-06-13 - Eliminate Redundant Array Filtering in Progress Analytics Heatmap
 **Learning:** `ProgressAnalytics.tsx` had an O(D*N) performance bottleneck where the `sessions` array was filtered 14 times (2 filters x 7 days) and then `.some()` was called 42 times within an `Array.from({length: 7}).map(...)` loop. This caused excessive redundant iteration during rendering.
 **Action:** Replaced the in-loop array filtering with a single O(N) `for...of` pass inside a `useMemo` hook to build a `dailyStatusMap` (a nested dictionary caching the state for each day/user). The mapping loop now relies on O(1) property lookups, drastically reducing rendering complexity.
+## 2024-06-14 - Eliminate Multiple Array Iterations in FiscalAuditor
+**Learning:** `FiscalAuditor.tsx` contained multiple performance bottlenecks where `.filter()` and `.reduce()` were called repeatedly on the `allocations` and `vices` arrays during render. This created unnecessary intermediate arrays and triggered O(3*N) and O(2*M) operations in `useMemo` hooks.
+**Action:** Replaced multiple sequential array operations on both sets of data with single-pass `for...of` loops, consolidating logic and significantly reducing array iterations and memory allocation overhead.

@@ -49,25 +49,50 @@ export const FiscalAuditor: React.FC<FiscalAuditorProps> = ({ allocations, onAdd
         localStorage.setItem(storageKey, JSON.stringify(vices));
     }, [vices, storageKey]);
 
-    const rollingVices = useMemo(() => {
+    const { rollingVices, junkCount, snackCount, viceSpending } = useMemo(() => {
         const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-        return vices.filter(v => v.timestamp > sevenDaysAgo);
-    }, [vices]);
+        const recentVices = [];
+        let junk = 0;
+        let snack = 0;
+        let spending = 0;
 
-    const junkCount = rollingVices.filter(v => v.type === 'junk_food').length;
-    const snackCount = rollingVices.filter(v => v.type === 'snack').length;
+        // ⚡ Bolt Optimization: Replace multiple .filter() and .reduce() with a single pass O(N) loop
+        for (const v of vices) {
+            if (v.timestamp > sevenDaysAgo) {
+                recentVices.push(v);
+                spending += v.amount;
+                if (v.type === 'junk_food') {
+                    junk++;
+                } else if (v.type === 'snack') {
+                    snack++;
+                }
+            }
+        }
+
+        return {
+            rollingVices: recentVices,
+            junkCount: junk,
+            snackCount: snack,
+            viceSpending: spending
+        };
+    }, [vices]);
 
     const thresholdsExceeded = junkCount > 3 || snackCount > 5;
 
     const totalWeeklySpending = useMemo(() => {
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-        return allocations
-            .filter(a => new Date(a.date) > sevenDaysAgo)
-            .reduce((sum, a) => sum + a.amount, 0);
+        let sum = 0;
+
+        // ⚡ Bolt Optimization: Single pass O(N) loop instead of .filter().reduce()
+        for (const a of allocations) {
+            if (new Date(a.date) > sevenDaysAgo) {
+                sum += a.amount;
+            }
+        }
+        return sum;
     }, [allocations]);
 
-    const viceSpending = rollingVices.reduce((sum, v) => sum + v.amount, 0);
     const betrayalPercentage = totalWeeklySpending > 0 ? (viceSpending / totalWeeklySpending) * 100 : 0;
 
     const addVice = (type: 'junk_food' | 'snack') => {
