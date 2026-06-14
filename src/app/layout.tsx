@@ -38,9 +38,6 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: "Nuestro Espacio Seguro",
   description: "Un diario y registro privado para nosotros.",
-  icons: {
-    apple: "/icon-192x192.png",
-  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",

@@ -756,7 +756,7 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
                         (() => {
                           const isCollapsed = task.status === 'done' || task.status === 'skipped';
                           return (
-                            <div className="flex flex-col relative pt-1 pl-6 pr-3 pb-3">
+                            <div className="flex flex-col relative pt-1 pl-5 pr-2.5 pb-2.5">
                               {/* Lateral priority stripe */}
                               <div className={`absolute left-0 top-0 bottom-0 w-[5px] ${priorityBg}`} />
                               <div className={`absolute left-[5px] top-0 h-1 w-12 ${categoryStyle.stripe}`} />
@@ -791,7 +791,7 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
                               })()}
 
                               {/* Title and Detail */}
-                              <div className="flex flex-col gap-1 pt-3 md:pt-4 pb-1 mt-1 font-mono">
+                              <div className="flex flex-col gap-1 pt-2 pb-0.5 mt-0.5 font-mono">
                                  <p className={`text-[12px] md:text-[13px] uppercase font-semibold leading-tight tracking-tight text-white text-center w-full font-mono ${task.status === 'skipped' ? 'line-through opacity-50' : ''}`}>{task.text}</p>
                                  {!isCollapsed && task.detail && <p className="text-[9px] leading-tight text-[#a88a7e] line-clamp-2 mt-0.5 text-left font-mono">{task.detail}</p>}
                               </div>
@@ -804,7 +804,7 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
                                       taskPriority === 'medium' ? '#f59e0b' : 
                                       '#0ea5e9';
                                   return (
-                                    <div className="mt-2.5 mb-1.5 font-mono">
+                                    <div className="mt-1.5 mb-1 font-mono">
                                       <div className="flex items-center justify-between mb-1">
                                         <span className="text-[7px] font-mono text-stone-500 tracking-wider">PRG</span>
                                         <span className="text-[7.5px] font-mono text-stone-500 tabular-nums">
@@ -820,26 +820,54 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
                                 })()
                               )}
 
-                              {/* Actions / Validations Toggle */}
-                              {!isCollapsed && ((task.actions && task.actions.length > 0) || (task.validations && task.validations.length > 0)) && (
-                                <div className={`flex justify-start gap-3 mb-2 ${task.estimated_time > 0 ? '' : 'mt-2'}`}>
-                                  {task.actions && task.actions.length > 0 && (
-                                    <button onClick={() => setExpandedTaskId(expandedTaskId === task.id ? null : task.id)} className={`text-[7px] font-mono uppercase font-bold hover:text-${accentClass} transition-colors leading-none flex items-center gap-1 text-stone-500`}>
-                                      ACT · ✓ {task.actions.filter(a => a.checked).length}/{task.actions.length}
-                                    </button>
-                                  )}
-                                  {task.validations && task.validations.length > 0 && (
-                                    <button onClick={() => setExpandedTaskId(expandedTaskId === task.id ? null : task.id)} className={`text-[7px] font-mono uppercase font-bold hover:text-${accentClass} transition-colors leading-none flex items-center gap-1 text-stone-500`}>
-                                      VLD · ✓ {task.validations.filter(v => v.checked).length}/{task.validations.length}
-                                    </button>
-                                  )}
-                                </div>
-                              )}
+                              {/* Footer Controls & Counters Row */}
+                              <div className="mt-2 pt-1.5 border-t border-white/5 flex items-center justify-between">
+                                 <div className="flex items-center gap-2">
+                                   {!isCollapsed && task.actions && task.actions.length > 0 && (
+                                     <button onClick={() => setExpandedTaskId(expandedTaskId === task.id ? null : task.id)} className={`text-[7px] font-mono uppercase font-bold hover:text-${accentClass} transition-colors leading-none flex items-center gap-1 text-stone-500`}>
+                                       ACT · ✓ {task.actions.filter(a => a.checked).length}/{task.actions.length}
+                                     </button>
+                                   )}
+                                   {!isCollapsed && task.validations && task.validations.length > 0 && (
+                                     <button onClick={() => setExpandedTaskId(expandedTaskId === task.id ? null : task.id)} className={`text-[7px] font-mono uppercase font-bold hover:text-${accentClass} transition-colors leading-none flex items-center gap-1 text-stone-500`}>
+                                       VLD · ✓ {task.validations.filter(v => v.checked).length}/{task.validations.length}
+                                     </button>
+                                   )}
+                                 </div>
+
+                                 <div className="flex items-center gap-[1px] bg-white/[0.08] brutal-border pl-[1px] pt-[1px]">
+                                   {task.status !== 'done' && task.status !== 'skipped' && (
+                                     <button onClick={() => deleteTask(task.id)} className="h-4.5 w-4.5 bg-[#0a0a0a] text-stone-500 hover:text-red-500 transition-colors flex items-center justify-center !min-h-0">
+                                       <Trash2 size={10} strokeWidth={1.5} />
+                                     </button>
+                                   )}
+                                   {task.status !== 'done' && task.status !== 'skipped' && (
+                                     <button onClick={() => handleEditStart(task)} className="h-4.5 w-4.5 bg-[#0a0a0a] text-stone-500 hover:text-white transition-colors flex items-center justify-center !min-h-0">
+                                       <Pencil size={10} strokeWidth={1.5} />
+                                     </button>
+                                   )}
+                                   {task.status === 'todo' && (
+                                     <button onClick={() => updateTaskStatus(task.id, 'in_progress')} className="h-4.5 w-4.5 bg-[#0a0a0a] text-stone-500 hover:text-emerald-500 transition-colors flex items-center justify-center !min-h-0">
+                                       <Check size={11} strokeWidth={1.5} />
+                                     </button>
+                                   )}
+                                   {task.status === 'in_progress' && (
+                                     <button onClick={() => updateTaskStatus(task.id, 'done')} className="h-4.5 w-4.5 bg-[#0a0a0a] text-stone-500 hover:text-emerald-500 transition-colors flex items-center justify-center !min-h-0">
+                                       <Check size={11} strokeWidth={1.5} />
+                                     </button>
+                                   )}
+                                   {(task.status === 'done' || task.status === 'skipped') && (
+                                     <button onClick={() => updateTaskStatus(task.id, 'in_progress')} className="h-4.5 w-4.5 bg-[#0a0a0a] text-stone-500 hover:text-white transition-colors flex items-center justify-center !min-h-0" title="Retomar">
+                                       <Pencil size={10} strokeWidth={1.5} />
+                                     </button>
+                                   )}
+                                 </div>
+                              </div>
 
                               {/* Actions / Validations Collapsible */}
                               <AnimatePresence>
                                 {!isCollapsed && expandedTaskId === task.id && ((task.actions && task.actions.length > 0) || (task.validations && task.validations.length > 0)) && (
-                                   <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden space-y-2 border-t border-white/5 pt-2 mb-2">
+                                   <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden space-y-2 border-t border-white/5 pt-2 mt-2">
                                      {task.actions && task.actions.length > 0 && (
                                        <div className="space-y-0.5">
                                          <span className="text-[6px] text-stone-600 font-mono tracking-widest uppercase block mb-1">Actions</span>
@@ -873,37 +901,6 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
                                    </motion.div>
                                 )}
                               </AnimatePresence>
-
-                              {/* Footer Controls */}
-                              <div className="mt-auto flex justify-start items-center border-t border-white/5 pt-2 h-7">
-                                 <div className="flex items-center gap-[1px] bg-white/[0.08] brutal-border pl-[1px] pt-[1px]">
-                                   {task.status !== 'done' && task.status !== 'skipped' && (
-                                     <button onClick={() => deleteTask(task.id)} className="h-5 w-5 bg-[#0a0a0a] text-stone-500 hover:text-red-500 transition-colors flex items-center justify-center !min-h-0">
-                                       <Trash2 size={10} strokeWidth={1.5} />
-                                     </button>
-                                   )}
-                                   {task.status !== 'done' && task.status !== 'skipped' && (
-                                     <button onClick={() => handleEditStart(task)} className="h-5 w-5 bg-[#0a0a0a] text-stone-500 hover:text-white transition-colors flex items-center justify-center !min-h-0">
-                                       <Pencil size={10} strokeWidth={1.5} />
-                                     </button>
-                                   )}
-                                   {task.status === 'todo' && (
-                                     <button onClick={() => updateTaskStatus(task.id, 'in_progress')} className="h-5 w-5 bg-[#0a0a0a] text-stone-500 hover:text-emerald-500 transition-colors flex items-center justify-center !min-h-0">
-                                       <Check size={11} strokeWidth={1.5} />
-                                     </button>
-                                   )}
-                                   {task.status === 'in_progress' && (
-                                     <button onClick={() => updateTaskStatus(task.id, 'done')} className="h-5 w-5 bg-[#0a0a0a] text-stone-500 hover:text-emerald-500 transition-colors flex items-center justify-center !min-h-0">
-                                       <Check size={11} strokeWidth={1.5} />
-                                     </button>
-                                   )}
-                                   {(task.status === 'done' || task.status === 'skipped') && (
-                                     <button onClick={() => updateTaskStatus(task.id, 'in_progress')} className="h-5 w-5 bg-[#0a0a0a] text-stone-500 hover:text-white transition-colors flex items-center justify-center !min-h-0" title="Retomar">
-                                       <Pencil size={10} strokeWidth={1.5} />
-                                     </button>
-                                   )}
-                                 </div>
-                              </div>
                             </div>
                           );
                         })()

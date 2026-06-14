@@ -12,25 +12,28 @@
   --color-stone-50: #fafaf9;
 
   /* User Accents - From design.md */
-  --color-user-a: #ff4b89; /* Ella (Vibrant Pink) */
-  --color-user-b: #c3f400; /* Yo (Neon Green) */
-  --color-user-c: #a178ff; /* Tertiary (Deep Purple) */
+  --color-user-a: #ff4b89;
+  /* Ella (Vibrant Pink) */
+  --color-user-b: #c3f400;
+  /* Yo (Neon Green) */
+  --color-user-c: #a178ff;
+  /* Tertiary (Deep Purple) */
 
   --color-surface: #1f0e13;
   --color-surface-dim: #19090d;
   --color-surface-bright: #493338;
   --color-surface-container: #2d1a1f;
-  
+
   --color-on-surface: #fbdae0;
   --color-on-surface-variant: #e5bcc4;
-  
+
   --color-outline: #ac878f;
   --color-border-subtle: rgba(172, 135, 143, 0.1);
 
   --spacing: 0.25rem;
   --font-sans: var(--font-anta), var(--font-space-grotesk), sans-serif;
   --font-mono: var(--font-quantico), monospace;
-  
+
   --font-anta: var(--font-anta), sans-serif;
   --font-bruno: "Bruno Ace SC", sans-serif;
   --font-quantico: var(--font-quantico), sans-serif;
@@ -80,7 +83,8 @@ body {
 .geometric-card {
   background: var(--color-surface-dim);
   border: 1px solid var(--color-border-subtle);
-  border-radius: 0px; /* Minimalist Brutalism Signature */
+  border-radius: 0px;
+  /* Minimalist Brutalism Signature */
   position: relative;
   overflow: hidden;
 }
@@ -103,10 +107,12 @@ body {
 
 /* Touch targets */
 button {
-  min-height: 44px;
   font-family: inherit;
 }
-input, select, textarea {
+
+input,
+select,
+textarea {
   min-height: 34px !important;
   font-family: inherit;
   padding-top: 0.35rem !important;
@@ -118,25 +124,32 @@ input, select, textarea {
   width: 2px;
   height: 2px;
 }
+
 .custom-scrollbar::-webkit-scrollbar-track {
   background: transparent;
 }
+
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 10px;
 }
+
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.2);
 }
+
 .custom-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
 }
 
 @keyframes pulse-green {
-  0%, 100% {
+
+  0%,
+  100% {
     box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
   }
+
   50% {
     box-shadow: 0 0 15px 2px rgba(34, 197, 94, 0.4);
   }
@@ -173,13 +186,11 @@ input, select, textarea {
 }
 
 .bg-diagonal-stripes {
-  background-image: repeating-linear-gradient(
-    45deg,
-    transparent,
-    transparent 10px,
-    rgba(255, 255, 255, 0.1) 10px,
-    rgba(255, 255, 255, 0.1) 20px
-  );
+  background-image: repeating-linear-gradient(45deg,
+      transparent,
+      transparent 10px,
+      rgba(255, 255, 255, 0.1) 10px,
+      rgba(255, 255, 255, 0.1) 20px);
 }
 
 /* Input latency optimizations */
@@ -188,18 +199,37 @@ input, select, textarea {
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes holo-float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-8px); }
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
 }
 
 @keyframes holo-glow {
-  0%, 100% { filter: brightness(1) drop-shadow(0 0 8px var(--color-profile-accent-alpha)); }
-  50% { filter: brightness(1.1) drop-shadow(0 0 16px var(--color-profile-accent-alpha)); }
+
+  0%,
+  100% {
+    filter: brightness(1) drop-shadow(0 0 8px var(--color-profile-accent-alpha));
+  }
+
+  50% {
+    filter: brightness(1.1) drop-shadow(0 0 16px var(--color-profile-accent-alpha));
+  }
 }
 
 /* ============================================================
@@ -261,8 +291,15 @@ input, select, textarea {
 }
 
 @keyframes savings-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(195, 244, 0, 0); }
-  50% { box-shadow: 0 0 8px 1px rgba(195, 244, 0, 0.35); }
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(195, 244, 0, 0);
+  }
+
+  50% {
+    box-shadow: 0 0 8px 1px rgba(195, 244, 0, 0.35);
+  }
 }
 
 .savings-chunk-latest {
@@ -304,8 +341,15 @@ input, select, textarea {
 
 /* Activity Feed */
 @keyframes activity-slide-in {
-  from { opacity: 0; transform: translateX(-12px); }
-  to { opacity: 1; transform: translateX(0); }
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 .activity-line {
@@ -314,12 +358,10 @@ input, select, textarea {
 
 /* Warm Gradient Glow for Planes Module */
 .planes-warm-glow {
-  background-image: linear-gradient(
-    135deg,
-    rgba(255, 181, 149, 0.06) 0%,
-    rgba(217, 193, 232, 0.04) 50%,
-    rgba(161, 120, 255, 0.03) 100%
-  );
+  background-image: linear-gradient(135deg,
+      rgba(255, 181, 149, 0.06) 0%,
+      rgba(217, 193, 232, 0.04) 50%,
+      rgba(161, 120, 255, 0.03) 100%);
 }
 
 /* ============================================================
@@ -429,16 +471,24 @@ input, select, textarea {
 }
 
 @keyframes nav-brand-scan {
-  0% { transform: translateX(-90%); }
-  100% { transform: translateX(90%); }
+  0% {
+    transform: translateX(-90%);
+  }
+
+  100% {
+    transform: translateX(90%);
+  }
 }
 
 @keyframes nav-color-pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: scale(0.76);
     opacity: 0.2;
     box-shadow: 0 0 0 0 color-mix(in srgb, var(--nav-accent, #ff4b89) 0%, transparent);
   }
+
   50% {
     transform: scale(1.12);
     opacity: 0.72;
@@ -447,10 +497,13 @@ input, select, textarea {
 }
 
 @keyframes nav-status-pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: scale(0.9);
     box-shadow: 0 0 0 0 color-mix(in srgb, var(--nav-accent, #ff4b89) 42%, transparent);
   }
+
   50% {
     transform: scale(1.16);
     box-shadow: 0 0 14px 2px color-mix(in srgb, var(--nav-accent, #ff4b89) 58%, transparent);
@@ -458,6 +511,7 @@ input, select, textarea {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .nav-brand:hover::before,
   .nav-brand:focus-visible::before,
   .nav-mobile-item.is-active .nav-icon-pulse,
@@ -486,18 +540,51 @@ input, select, textarea {
   border: 1px solid;
 }
 
-.state-discovered { border-color: rgba(255, 181, 149, 0.4); color: #ffb595; }
-.state-saving { border-color: rgba(195, 244, 0, 0.4); color: #c3f400; }
-.state-ready { border-color: rgba(0, 219, 233, 0.4); color: #00dbe9; }
-.state-completed { border-color: rgba(161, 120, 255, 0.4); color: #a178ff; }
-.state-archived { border-color: rgba(255, 255, 255, 0.15); color: rgba(255, 255, 255, 0.3); }
+.state-discovered {
+  border-color: rgba(255, 181, 149, 0.4);
+  color: #ffb595;
+}
+
+.state-saving {
+  border-color: rgba(195, 244, 0, 0.4);
+  color: #c3f400;
+}
+
+.state-ready {
+  border-color: rgba(0, 219, 233, 0.4);
+  color: #00dbe9;
+}
+
+.state-completed {
+  border-color: rgba(161, 120, 255, 0.4);
+  color: #a178ff;
+}
+
+.state-archived {
+  border-color: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.3);
+}
 
 /* State Background Utilities (Lateral Indicators) */
-.state-discovered-bg { background-color: #ffb595 !important; }
-.state-saving-bg { background-color: var(--color-user-b) !important; }
-.state-ready-bg { background-color: #00dbe9 !important; }
-.state-completed-bg { background-color: var(--color-user-c) !important; }
-.state-archived-bg { background-color: rgba(255, 255, 255, 0.3) !important; }
+.state-discovered-bg {
+  background-color: #ffb595 !important;
+}
+
+.state-saving-bg {
+  background-color: var(--color-user-b) !important;
+}
+
+.state-ready-bg {
+  background-color: #00dbe9 !important;
+}
+
+.state-completed-bg {
+  background-color: var(--color-user-c) !important;
+}
+
+.state-archived-bg {
+  background-color: rgba(255, 255, 255, 0.3) !important;
+}
 
 /* Responsive Mahjong Tile Sizes */
 @media (max-width: 768px) {
@@ -506,6 +593,7 @@ input, select, textarea {
     height: 4.0rem;
   }
 }
+
 @media (min-width: 769px) {
   .tile-item {
     width: 3.5rem;
@@ -590,23 +678,40 @@ input, select, textarea {
 }
 
 @keyframes critical-glitch {
-  0% { transform: translate(0) }
-  20% { transform: translate(-1px, 1px) }
-  40% { transform: translate(-1px, -1px) }
-  60% { transform: translate(1px, 1px) }
-  80% { transform: translate(1px, -1px) }
-  100% { transform: translate(0) }
+  0% {
+    transform: translate(0)
+  }
+
+  20% {
+    transform: translate(-1px, 1px)
+  }
+
+  40% {
+    transform: translate(-1px, -1px)
+  }
+
+  60% {
+    transform: translate(1px, 1px)
+  }
+
+  80% {
+    transform: translate(1px, -1px)
+  }
+
+  100% {
+    transform: translate(0)
+  }
 }
 
 .habit-btn {
-  border: 1px solid rgba(255,255,255,0.1);
-  background: rgba(0,0,0,0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.4);
   transition: all 0.2s;
 }
 
 .habit-btn:hover {
-  border-color: rgba(255,255,255,0.3);
-  background: rgba(255,255,255,0.05);
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .habit-btn:active {
@@ -614,7 +719,9 @@ input, select, textarea {
 }
 
 /* Reduce general input/select/textarea padding and min-height */
-input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]), select, textarea {
+input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]),
+select,
+textarea {
   padding-top: 0.35rem !important;
   padding-bottom: 0.35rem !important;
   min-height: 34px !important;
@@ -687,6 +794,7 @@ input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]), select, t
     border-width: 4px;
     rotate: 0deg;
   }
+
   100% {
     scale: 2.2;
     opacity: 0;
@@ -700,6 +808,7 @@ input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]), select, t
     scale: 0.8;
     opacity: 0.8;
   }
+
   100% {
     scale: 1.6;
     opacity: 0;
@@ -707,30 +816,77 @@ input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]), select, t
 }
 
 @keyframes shard-fly-top {
-  0% { translate: 0 0; rotate: 0deg; scale: 1; opacity: 1; }
-  100% { translate: 0 -50px; rotate: -20deg; scale: 0.2; opacity: 0; }
+  0% {
+    translate: 0 0;
+    rotate: 0deg;
+    scale: 1;
+    opacity: 1;
+  }
+
+  100% {
+    translate: 0 -50px;
+    rotate: -20deg;
+    scale: 0.2;
+    opacity: 0;
+  }
 }
 
 @keyframes shard-fly-right {
-  0% { translate: 0 0; rotate: 0deg; scale: 1; opacity: 1; }
-  100% { translate: 50px 0; rotate: 25deg; scale: 0.2; opacity: 0; }
+  0% {
+    translate: 0 0;
+    rotate: 0deg;
+    scale: 1;
+    opacity: 1;
+  }
+
+  100% {
+    translate: 50px 0;
+    rotate: 25deg;
+    scale: 0.2;
+    opacity: 0;
+  }
 }
 
 @keyframes shard-fly-bottom {
-  0% { translate: 0 0; rotate: 0deg; scale: 1; opacity: 1; }
-  100% { translate: 0 50px; rotate: -15deg; scale: 0.2; opacity: 0; }
+  0% {
+    translate: 0 0;
+    rotate: 0deg;
+    scale: 1;
+    opacity: 1;
+  }
+
+  100% {
+    translate: 0 50px;
+    rotate: -15deg;
+    scale: 0.2;
+    opacity: 0;
+  }
 }
 
 @keyframes shard-fly-left {
-  0% { translate: 0 0; rotate: 0deg; scale: 1; opacity: 1; }
-  100% { translate: -50px 0; rotate: -30deg; scale: 0.2; opacity: 0; }
+  0% {
+    translate: 0 0;
+    rotate: 0deg;
+    scale: 1;
+    opacity: 1;
+  }
+
+  100% {
+    translate: -50px 0;
+    rotate: -30deg;
+    scale: 0.2;
+    opacity: 0;
+  }
 }
 
 @keyframes slide-right-left {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateX(0);
     opacity: 0.4;
   }
+
   50% {
     transform: translateX(3px);
     opacity: 0.95;
@@ -759,43 +915,124 @@ input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]), select, t
 /* Cybernetic Glowing & Pulsing Module Icons */
 /* Option Icons Cascading Dance & Color Painting */
 @keyframes option-dance-color {
-  0%, 50%, 100% {
+
+  0%,
+  50%,
+  100% {
     transform: rotate(0deg) scale(1);
     color: #a88a7e;
     filter: drop-shadow(0 0 0px transparent);
   }
+
   12.5% {
     transform: rotate(-6deg) scale(1.3);
-    color: #ff4b89; /* Vibrant Pink */
+    color: #ff4b89;
+    /* Vibrant Pink */
     filter: drop-shadow(0 0 4px rgba(255, 75, 137, 0.6));
   }
+
   25% {
     transform: rotate(0deg) scale(1.1);
-    color: #a178ff; /* Deep Purple */
+    color: #a178ff;
+    /* Deep Purple */
     filter: drop-shadow(0 0 2px rgba(161, 120, 255, 0.4));
   }
+
   37.5% {
     transform: rotate(6deg) scale(1.3);
-    color: #c3f400; /* Neon Green */
+    color: #c3f400;
+    /* Neon Green */
     filter: drop-shadow(0 0 4px rgba(195, 244, 0, 0.6));
   }
 }
 
-.animate-opt-dance-0  { animation: option-dance-color 10s ease-in-out infinite; animation-delay: 0.0s; transform-origin: center; display: inline-block; }
-.animate-opt-dance-1  { animation: option-dance-color 10s ease-in-out infinite; animation-delay: 0.4s; transform-origin: center; display: inline-block; }
-.animate-opt-dance-2  { animation: option-dance-color 10s ease-in-out infinite; animation-delay: 0.8s; transform-origin: center; display: inline-block; }
-.animate-opt-dance-3  { animation: option-dance-color 10s ease-in-out infinite; animation-delay: 1.2s; transform-origin: center; display: inline-block; }
-.animate-opt-dance-4  { animation: option-dance-color 10s ease-in-out infinite; animation-delay: 1.6s; transform-origin: center; display: inline-block; }
-.animate-opt-dance-5  { animation: option-dance-color 10s ease-in-out infinite; animation-delay: 2.0s; transform-origin: center; display: inline-block; }
-.animate-opt-dance-6  { animation: option-dance-color 10s ease-in-out infinite; animation-delay: 2.4s; transform-origin: center; display: inline-block; }
-.animate-opt-dance-7  { animation: option-dance-color 10s ease-in-out infinite; animation-delay: 2.8s; transform-origin: center; display: inline-block; }
-.animate-opt-dance-8  { animation: option-dance-color 10s ease-in-out infinite; animation-delay: 3.2s; transform-origin: center; display: inline-block; }
-.animate-opt-dance-9  { animation: option-dance-color 10s ease-in-out infinite; animation-delay: 3.6s; transform-origin: center; display: inline-block; }
-.animate-opt-dance-10 { animation: option-dance-color 10s ease-in-out infinite; animation-delay: 4.0s; transform-origin: center; display: inline-block; }
-.animate-opt-dance-11 { animation: option-dance-color 10s ease-in-out infinite; animation-delay: 4.4s; transform-origin: center; display: inline-block; }
-.animate-opt-dance-12 { animation: option-dance-color 10s ease-in-out infinite; animation-delay: 4.8s; transform-origin: center; display: inline-block; }
+.animate-opt-dance-0 {
+  animation: option-dance-color 10s ease-in-out infinite;
+  animation-delay: 0.0s;
+  transform-origin: center;
+  display: inline-block;
+}
 
+.animate-opt-dance-1 {
+  animation: option-dance-color 10s ease-in-out infinite;
+  animation-delay: 0.4s;
+  transform-origin: center;
+  display: inline-block;
+}
 
+.animate-opt-dance-2 {
+  animation: option-dance-color 10s ease-in-out infinite;
+  animation-delay: 0.8s;
+  transform-origin: center;
+  display: inline-block;
+}
 
+.animate-opt-dance-3 {
+  animation: option-dance-color 10s ease-in-out infinite;
+  animation-delay: 1.2s;
+  transform-origin: center;
+  display: inline-block;
+}
 
+.animate-opt-dance-4 {
+  animation: option-dance-color 10s ease-in-out infinite;
+  animation-delay: 1.6s;
+  transform-origin: center;
+  display: inline-block;
+}
 
+.animate-opt-dance-5 {
+  animation: option-dance-color 10s ease-in-out infinite;
+  animation-delay: 2.0s;
+  transform-origin: center;
+  display: inline-block;
+}
+
+.animate-opt-dance-6 {
+  animation: option-dance-color 10s ease-in-out infinite;
+  animation-delay: 2.4s;
+  transform-origin: center;
+  display: inline-block;
+}
+
+.animate-opt-dance-7 {
+  animation: option-dance-color 10s ease-in-out infinite;
+  animation-delay: 2.8s;
+  transform-origin: center;
+  display: inline-block;
+}
+
+.animate-opt-dance-8 {
+  animation: option-dance-color 10s ease-in-out infinite;
+  animation-delay: 3.2s;
+  transform-origin: center;
+  display: inline-block;
+}
+
+.animate-opt-dance-9 {
+  animation: option-dance-color 10s ease-in-out infinite;
+  animation-delay: 3.6s;
+  transform-origin: center;
+  display: inline-block;
+}
+
+.animate-opt-dance-10 {
+  animation: option-dance-color 10s ease-in-out infinite;
+  animation-delay: 4.0s;
+  transform-origin: center;
+  display: inline-block;
+}
+
+.animate-opt-dance-11 {
+  animation: option-dance-color 10s ease-in-out infinite;
+  animation-delay: 4.4s;
+  transform-origin: center;
+  display: inline-block;
+}
+
+.animate-opt-dance-12 {
+  animation: option-dance-color 10s ease-in-out infinite;
+  animation-delay: 4.8s;
+  transform-origin: center;
+  display: inline-block;
+}
