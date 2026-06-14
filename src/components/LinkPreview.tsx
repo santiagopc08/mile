@@ -25,6 +25,15 @@ export function LinkPreview({ url, category, variant = 'default' }: LinkPreviewP
     useEffect(() => {
         const fetchPreview = async () => {
             if (!url) return;
+            
+            // Validate URL format before fetching
+            const isUrl = url.startsWith('http://') || url.startsWith('https://');
+            if (!isUrl) {
+                setError(true);
+                setLoading(false);
+                return;
+            }
+
             const cacheKey = `link-preview:${url}`;
             try {
                 setLoading(true);

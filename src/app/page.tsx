@@ -46,8 +46,7 @@ export default function Home() {
   const activePlansCount = wishlist.length;
   const savingPlansCount = useMemo(() => wishlist.filter(item => item.state === 'SAVING').length, [wishlist]);
 
-  const playlist = useMemo(() => data?.audioPlaylist || [], [data?.audioPlaylist]);
-  const songsCount = playlist.length;
+
 
   const reflections = useMemo(() => data?.persistentListening || [], [data?.persistentListening]);
   const reflectionsCount = reflections.length;
@@ -217,26 +216,19 @@ export default function Home() {
                   </div>
                   {/* Statistics block */}
                   <div className="inline-flex items-center gap-1.5 bg-black/40 px-2 py-0.5 text-[7px] font-mono uppercase tracking-wider text-[#a88a7e] border border-white/5 shrink-0">
-                    <Music size={8} className="text-[#a88a7e]" />
-                    <span>{songsCount} T / {reflectionsCount} R</span>
+                    <FileText size={8} className="text-[#a88a7e]" />
+                    <span>{reflectionsCount} R</span>
                   </div>
                 </div>
 
                 {/* Specific Action Buttons */}
                 <div className="w-full grid grid-cols-2 gap-2 pt-3 border-t border-white/5 relative z-20">
-                  <Link href="/refugio?tab=escucha" className="group/link flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2 py-2 text-[9.5px] sm:text-xs font-mono uppercase tracking-wider text-white transition-all rounded-none w-full min-w-0">
+                  <Link href="/refugio?tab=escucha" className="col-span-2 group/link flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2.5 py-2 text-[9.5px] sm:text-xs font-mono uppercase tracking-wider text-white transition-all rounded-none w-full min-w-0">
                     <span className="flex items-center gap-1.5 min-w-0">
                       <FileText className="w-3.5 h-3.5 text-[#a88a7e] group-hover/link:text-[var(--color-profile-accent)] transition-colors shrink-0 animate-opt-dance-4" />
                       <span className="truncate">Bitácora</span>
                     </span>
                     <ArrowRight className="w-3 h-3 animate-slide-loop shrink-0" />
-                  </Link>
-                  <Link href="/refugio?tab=musica" className="group/link flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2 py-2 text-[9.5px] sm:text-xs font-mono uppercase tracking-wider text-white transition-all rounded-none w-full min-w-0">
-                    <span className="flex items-center gap-1.5 min-w-0">
-                      <Music className="w-3.5 h-3.5 text-[#a88a7e] group-hover/link:text-[var(--color-profile-accent)] transition-colors shrink-0 animate-opt-dance-5" />
-                      <span className="truncate">Música</span>
-                    </span>
-                    <ArrowRight className="w-3 h-3 animate-slide-loop-delay-1 shrink-0" />
                   </Link>
                   <Link href="/refugio?tab=bebes" className="group/link flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2 py-2 text-[9.5px] sm:text-xs font-mono uppercase tracking-wider text-white transition-all rounded-none w-full min-w-0">
                     <span className="flex items-center gap-1.5 min-w-0">

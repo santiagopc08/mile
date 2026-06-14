@@ -69,8 +69,7 @@ test.describe('StoreService.getStore success', () => {
             events: [{ id: 'evt1', title: 'Test Event', date: '2025-01-01', description: 'desc' }],
             notes: [{ id: 'note1', text: 'Test Note', author: 'el' }],
             app_settings: { id: 1, connection_date: '2023-01-01T00:00:00Z', last_update: '2025-01-02T00:00:00Z' }, // Keep as single object
-            audio_track: [{ id: 'trk1', title: 'Song', artist: 'Artist', spotify_url: 'http://spoti.fi/123' }],
-            audio_comments: [{ id: 'cmt1', track_id: 'trk1', text: 'Nice song', author: 'ella' }],
+
             tasks: [{ id: 'tsk1', text: 'Do laundry', status: 'todo', category: 'home', estimated_time: 30, actual_time: 0 }],
             daily_tracking: [{ date: new Date().toISOString().split('T')[0], total: 5, completed: 3 }],
         };
@@ -86,16 +85,12 @@ test.describe('StoreService.getStore success', () => {
         expect(appData.notes.length).toBe(1);
         expect(appData.notes[0].text).toBe('Test Note');
 
-        expect(appData.audioPlaylist.length).toBe(1);
-        expect(appData.audioPlaylist[0].spotifyUrl).toBe('http://spoti.fi/123');
-        expect(appData.audioPlaylist[0].comments?.length).toBe(1);
-        expect(appData.audioPlaylist[0].comments?.[0].text).toBe('Nice song');
+
 
         expect(appData.tasks.length).toBe(1);
         expect(appData.tasks[0].text).toBe('Do laundry');
 
-        // Settings / Pulse check
-        expect(appData.audioStats.daysTracking).toBeGreaterThan(0);
+
     });
 });
 

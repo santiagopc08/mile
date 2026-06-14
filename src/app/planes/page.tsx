@@ -71,9 +71,9 @@ export default function PlanesPage() {
             </div>
           </div>
 
-          <section className="bg-[#050505] p-3 sm:p-5 md:p-8 space-y-8">
+          <section className="bg-[#050505] p-3 sm:p-5 md:p-8 space-y-4">
             <GeospatialPlanTracker />
-            <div id="wishlist-section" className="border-t border-white/10 pt-4" />
+            <div id="wishlist-section" className="border-t border-white/10" />
             <WishlistModule />
           </section>
         </div>

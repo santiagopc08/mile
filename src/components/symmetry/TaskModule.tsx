@@ -11,6 +11,7 @@ import { TaskService } from '@/services/taskService';
 import { LiveLinkPreview } from '@/components/LiveLinkPreview';
 import { sound } from '@/lib/sound';
 import { haptics } from '@/lib/haptics';
+import { FuturisticProgressBar } from '@/components/ui/FuturisticProgressBar';
 
 interface Task {
   id: string;
@@ -797,19 +798,26 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
 
                               {/* Progress Bar (Conditional) */}
                               {!isCollapsed && task.estimated_time > 0 && (
-                                <div className="mt-3 mb-2 flex items-center justify-between gap-1.5">
-                                  <span className="text-[6px] font-mono text-stone-500 tracking-wider">PRG</span>
-                                  <div className="flex-1 flex gap-[1px] h-1.5">
-                                    {Array.from({ length: 10 }).map((_, i) => {
-                                        const progress = task.actual_time / task.estimated_time;
-                                        const filled = i < (progress * 10);
-                                        return <div key={i} className={`h-full flex-1 ${filled ? priorityBg : 'bg-white/10'}`} />;
-                                    })}
-                                  </div>
-                                  <span className="text-[6px] font-mono text-stone-500 shrink-0 text-right">
-                                    {task.actual_time}/{task.estimated_time}M · {Math.round((task.actual_time/task.estimated_time)*100)}%
-                                  </span>
-                                </div>
+                                (() => {
+                                  const progressColor = 
+                                      taskPriority === 'high' ? '#f43f5e' : 
+                                      taskPriority === 'medium' ? '#f59e0b' : 
+                                      '#0ea5e9';
+                                  return (
+                                    <div className="mt-2.5 mb-1.5 font-mono">
+                                      <div className="flex items-center justify-between mb-1">
+                                        <span className="text-[7px] font-mono text-stone-500 tracking-wider">PRG</span>
+                                        <span className="text-[7.5px] font-mono text-stone-500 tabular-nums">
+                                          {task.actual_time}/{task.estimated_time}M · {Math.round((task.actual_time/task.estimated_time)*100)}%
+                                        </span>
+                                      </div>
+                                      <FuturisticProgressBar 
+                                        progress={(task.actual_time / task.estimated_time) * 100}
+                                        color={progressColor}
+                                      />
+                                    </div>
+                                  );
+                                })()
                               )}
 
                               {/* Actions / Validations Toggle */}

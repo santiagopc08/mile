@@ -6,6 +6,7 @@ import { useStore } from '@/context/StoreContext';
 import { useProfile } from '@/context/ProfileContext';
 import { CheckCircle2, Plus, Trash2, Pencil, X, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { FuturisticProgressBar } from './ui/FuturisticProgressBar';
 
 export function PendingTasks() {
     const { data, updateData } = useStore();
@@ -197,6 +198,14 @@ export function PendingTasks() {
                                                 P{task.priority === 'high' ? '01' : task.priority === 'medium' ? '02' : '03'} {'//'} {task.priority === 'high' ? 'ALTA' : task.priority === 'medium' ? 'MEDIA' : 'BAJA'}
                                             </span>
                                         </div>
+                                        {task.estimated_time > 0 && task.status !== 'done' && (
+                                            <div className="mt-2.5">
+                                                <FuturisticProgressBar 
+                                                    progress={Math.min((task.actual_time / task.estimated_time) * 100, 100)} 
+                                                    color={task.priority === 'high' ? '#f43f5e' : task.priority === 'medium' ? '#f59e0b' : '#0ea5e9'}
+                                                />
+                                            </div>
+                                        )}
                                     </>
                                 )}
                             </div>

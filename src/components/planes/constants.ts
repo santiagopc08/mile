@@ -4,9 +4,9 @@ export const GOAL_CATEGORIES = [
     { id: 'Food', label: 'Comida', icon: Utensils, emoji: '🍕' },
     { id: 'Travel', label: 'Viajes', icon: Plane, emoji: '✈️' },
     { id: 'Gaming', label: 'Juegos', icon: Gamepad2, emoji: '🎮' },
-    { id: 'Tech', label: 'Tecnología', icon: Cpu, emoji: '💻' },
+    { id: 'Tech', label: 'Tecno', icon: Cpu, emoji: '💻' },
     { id: 'Experiences', label: 'Experiencias', icon: Sparkles, emoji: '🎭' },
-    { id: 'Home', label: 'Hogar', icon: Home, emoji: '🏠' },
+    { id: 'Home', label: 'Compras', icon: Home, emoji: '🏠' },
 ] as const;
 
 export const STATE_CONFIG = {

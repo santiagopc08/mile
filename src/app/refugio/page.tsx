@@ -4,16 +4,15 @@ import { useState, useEffect } from 'react';
 import { PrivateRoute } from "@/components/PrivateRoute";
 import { JarOfNotes } from "@/components/JarOfNotes";
 import { PersistentListening } from "@/components/PersistentListening";
-import { AudioSection } from "@/components/AudioSection";
 import { PetSpaceHub } from "@/components/PetSpaceHub";
 import { Timeline } from "@/components/Timeline";
 import { useStore } from "@/context/StoreContext";
 import { useProfile } from "@/context/ProfileContext";
-import { MessageCircleHeart, Mic, Music, PawPrint, Clock } from 'lucide-react';
+import { MessageCircleHeart, Mic, PawPrint, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function RefugioPage() {
-  type RefugioTab = 'notas' | 'escucha' | 'musica' | 'bebes' | 'historia';
+  type RefugioTab = 'notas' | 'escucha' | 'bebes' | 'historia';
 
   const [activeTab, setActiveTab] = useState<RefugioTab>('historia');
 
@@ -21,7 +20,7 @@ export default function RefugioPage() {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const tab = params.get('tab') as RefugioTab;
-      if (tab && ['notas', 'escucha', 'musica', 'bebes', 'historia'].includes(tab)) {
+      if (tab && ['notas', 'escucha', 'bebes', 'historia'].includes(tab)) {
         setActiveTab(tab);
         setTimeout(() => {
           const el = document.getElementById('refugio-content');
@@ -44,7 +43,6 @@ export default function RefugioPage() {
     { id: 'historia', label: 'Historia', icon: Clock },
     { id: 'notas', label: 'Notas', icon: MessageCircleHeart },
     { id: 'escucha', label: 'Escucha', icon: Mic },
-    { id: 'musica', label: 'Música', icon: Music },
     { id: 'bebes', label: 'Bebés', icon: PawPrint },
   ];
 
@@ -64,7 +62,7 @@ export default function RefugioPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 border-b border-white/10 bg-black sm:grid-cols-3 lg:grid-cols-5">
+          <div className="grid grid-cols-2 border-b border-white/10 bg-black sm:grid-cols-4 lg:grid-cols-4">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
@@ -105,7 +103,6 @@ export default function RefugioPage() {
               >
                 {activeTab === 'notas' && <JarOfNotes />}
                 {activeTab === 'escucha' && <PersistentListening />}
-                {activeTab === 'musica' && <AudioSection />}
                 {activeTab === 'bebes' && <PetSpaceHub />}
                 {activeTab === 'historia' && <Timeline events={events} />}
               </motion.div>

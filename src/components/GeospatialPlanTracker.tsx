@@ -9,8 +9,6 @@ import {
   useMap
 } from '@vis.gl/react-google-maps';
 import { supabase } from '@/lib/supabase';
-import { useProfile } from '@/context/ProfileContext';
-import { useVisibility } from '@/context/VisibilityContext';
 import { Navigation, Trash2, CheckCircle, Circle, AlertTriangle } from 'lucide-react';
 import { AnimatedBrutalistCorners } from '@/components/ui/AnimatedBrutalistCorners';
 
@@ -38,17 +36,11 @@ const MapController = ({ selectedLocation }: { selectedLocation?: Ubicacion }) =
 };
 
 export function GeospatialPlanTracker() {
-  const { profile } = useProfile();
-  const { mode } = useVisibility();
   const [locations, setLocations] = useState<Ubicacion[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const fetchLocations = useCallback(async () => {
     let query = supabase.from('ubicaciones').select('*');
-
-    if (mode === 'me' && profile) {
-      query = query.eq('created_by', profile);
-    }
 
     const { data, error } = await query.order('created_at', { ascending: false });
     if (!error && data) {
@@ -58,7 +50,7 @@ export function GeospatialPlanTracker() {
         longitud: Number(loc.longitud)
       })));
     }
-  }, [mode, profile]);
+  }, []);
 
   useEffect(() => {
     fetchLocations();
@@ -117,18 +109,16 @@ export function GeospatialPlanTracker() {
         <LocationLists
           locations={locations}
           onSelect={setSelectedId}
-          onDelete={deleteLocation}
-          onToggle={toggleStatus}
         />
       </div>
     );
   }
 
   return (
-    <div className="w-full space-y-6">
+    <div className="w-full space-y-4">
       <div className="relative border border-white/10 bg-black p-2">
         <AnimatedBrutalistCorners color="#00dbe9" />
-        <div className="h-[400px] w-full overflow-hidden border border-white/10 bg-[#111] md:h-[500px]">
+        <div className="h-[220px] w-full overflow-hidden border border-white/10 bg-[#111] md:h-[260px]">
           <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
             <Map
               defaultCenter={mapCenter}
@@ -200,24 +190,20 @@ export function GeospatialPlanTracker() {
       <LocationLists
         locations={locations}
         onSelect={setSelectedId}
-        onDelete={deleteLocation}
-        onToggle={toggleStatus}
       />
     </div>
   );
 }
 
-function LocationLists({ locations, onSelect, onDelete, onToggle }: {
+function LocationLists({ locations, onSelect }: {
   locations: Ubicacion[],
-  onSelect: (id: string) => void,
-  onDelete: (id: string) => void,
-  onToggle: (id: string, status: string) => void
+  onSelect: (id: string) => void
 }) {
   const toVisitList = locations.filter(l => l.status === 'to-visit');
   const visitedList = locations.filter(l => l.status === 'visited');
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-8">
       <div className="space-y-4">
         <h4 className="mb-2 flex items-center gap-2 text-[10px] font-mono font-black uppercase tracking-[0.24em] text-[#a88a7e]">
           <Circle className="h-3 w-3 text-[#00dbe9]" /> Próximos Destinos
@@ -229,8 +215,6 @@ function LocationLists({ locations, onSelect, onDelete, onToggle }: {
                 key={loc.id}
                 loc={loc}
                 onSelect={() => onSelect(loc.id)}
-                onDelete={() => onDelete(loc.id)}
-                onToggle={() => onToggle(loc.id, loc.status)}
               />
             ))}
           </div>
@@ -244,7 +228,7 @@ function LocationLists({ locations, onSelect, onDelete, onToggle }: {
 
       <div className="space-y-4">
         <h4 className="mb-2 flex items-center gap-2 text-[10px] font-mono font-black uppercase tracking-[0.24em] text-[#a88a7e]">
-          <CheckCircle className="h-3 w-3 text-[#a100f0]" /> Memorias Visitadas
+          <CheckCircle className="h-3 w-3 text-[#a100f0]" /> Planes con lugares visitados
         </h4>
         <div className="max-h-[450px] overflow-y-auto custom-scrollbar pr-2">
           <div className="grid grid-cols-2 gap-2">
@@ -253,8 +237,6 @@ function LocationLists({ locations, onSelect, onDelete, onToggle }: {
                 key={loc.id}
                 loc={loc}
                 onSelect={() => onSelect(loc.id)}
-                onDelete={() => onDelete(loc.id)}
-                onToggle={() => onToggle(loc.id, loc.status)}
               />
             ))}
           </div>
@@ -269,44 +251,23 @@ function LocationLists({ locations, onSelect, onDelete, onToggle }: {
   );
 }
 
-function LocationListItem({ loc, onSelect, onDelete, onToggle }: {
+function LocationListItem({ loc, onSelect }: {
   loc: Ubicacion,
-  onSelect: () => void,
-  onDelete: () => void,
-  onToggle: () => void
+  onSelect: () => void
 }) {
   const isVisited = loc.status === 'visited';
-  // Use bg colors for the strip instead of border
   const isElla = loc.created_by === 'ella';
   const stripColor = isVisited ? 'bg-white/10' : (isElla ? 'bg-[#a100f0]' : 'bg-[#ff7020]');
 
   return (
-    <article className="group relative flex min-h-[64px] flex-col overflow-hidden border border-white/10 bg-[#050505] hover:border-white/20 transition-colors">
+    <article className="group relative flex min-h-[40px] flex-col overflow-hidden border border-white/10 bg-[#050505] hover:border-white/20 transition-colors">
       <div className={`absolute bottom-0 left-0 top-0 w-[5px] ${stripColor}`} />
 
-      {/* Rigid Action Grid */}
-      <div className="absolute right-0 top-0 flex gap-[1px] bg-white/10 border-b border-l border-white/10">
-        <button
-          onClick={onToggle}
-          className="flex h-8 w-8 !min-h-0 items-center justify-center bg-[#050505] text-white/40 hover:text-[#00dbe9] hover:bg-white/5 transition-colors"
-          title={isVisited ? "Marcar pendiente" : "Marcar visitado"}
-        >
-          {isVisited ? <Circle className="h-3.5 w-3.5" strokeWidth={1.5} /> : <CheckCircle className="h-3.5 w-3.5 text-[#00dbe9]" strokeWidth={1.5} />}
-        </button>
-        <button
-          onClick={onDelete}
-          className="flex h-8 w-8 !min-h-0 items-center justify-center bg-[#050505] text-white/40 hover:text-[#ff4444] hover:bg-white/5 transition-colors"
-          title="Eliminar"
-        >
-          <Trash2 className="h-3.5 w-3.5" strokeWidth={1.5} />
-        </button>
-      </div>
-
-      <div className="flex flex-1 flex-col pl-[14px] pr-[70px] py-3 cursor-pointer" onClick={onSelect} role="button" tabIndex={0} onKeyDown={(e) => { if(e.key === 'Enter') onSelect() }}>
-        <span className={`w-full truncate text-[11px] font-black uppercase tracking-[0.16em] ${isVisited ? 'line-through text-white/40' : 'text-white'}`}>
+      <div className="flex flex-1 flex-col pl-[12px] pr-2 py-1.5 cursor-pointer" onClick={onSelect} role="button" tabIndex={0} onKeyDown={(e) => { if(e.key === 'Enter') onSelect() }}>
+        <span className={`w-full truncate text-[10px] font-black uppercase tracking-[0.16em] ${isVisited ? 'line-through text-white/40' : 'text-white'}`}>
           {loc.nombre}
         </span>
-        <span className="font-mono text-[8px] uppercase tracking-wider text-white/35 mt-1">
+        <span className="font-mono text-[7px] uppercase tracking-wider text-white/35 mt-0.5">
           {loc.created_by} [{new Date(loc.created_at).toLocaleDateString()}]
         </span>
       </div>

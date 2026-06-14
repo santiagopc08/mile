@@ -4,6 +4,7 @@ import React, { useMemo } from 'react';
 import type { WishlistItem } from '@/services/storeService';
 import { formatCOP, GOAL_CATEGORIES } from './constants';
 import { TrendingUp } from 'lucide-react';
+import { FuturisticProgressBar } from '@/components/ui/FuturisticProgressBar';
 
 export function SavingsOverview({ items }: { items: WishlistItem[] }) {
     const stats = useMemo(() => {
@@ -61,54 +62,48 @@ export function SavingsOverview({ items }: { items: WishlistItem[] }) {
 
     return (
         <div className="space-y-4">
-            {/* Stats Grid */}
-            <div className="grid grid-cols-2 gap-1 lg:grid-cols-4">
-                <div className="flex flex-col items-center justify-center border border-white/10 bg-[#120d0e] p-4 text-center">
-                    <div className="font-mono text-xl font-bold text-user-b">{formatCOP(stats.totalSaved)}</div>
-                    <div className="mt-1 font-mono text-[9px] uppercase tracking-widest text-[#a88a7e]">Ahorrado</div>
-                </div>
-                <div className="flex flex-col items-center justify-center border border-white/10 bg-[#120d0e] p-4 text-center">
-                    <div className="font-mono text-xl font-bold text-[#ffb595]">{stats.active}</div>
-                    <div className="mt-1 font-mono text-[9px] uppercase tracking-widest text-[#a88a7e]">En curso</div>
-                </div>
-                <div className="flex flex-col items-center justify-center border border-white/10 bg-[#120d0e] p-4 text-center">
-                    <div className="font-mono text-xl font-bold text-[#00dbe9]">{stats.ready}</div>
-                    <div className="mt-1 font-mono text-[9px] uppercase tracking-widest text-[#a88a7e]">¡Listos!</div>
-                </div>
-                <div className="flex flex-col items-center justify-center border border-white/10 bg-[#120d0e] p-4 text-center">
-                    <div className="font-mono text-xl font-bold text-user-c">{stats.completed}</div>
-                    <div className="mt-1 font-mono text-[9px] uppercase tracking-widest text-[#a88a7e]">¡Logrados!</div>
-                </div>
-            </div>
-
-            {/* General Progress */}
-            <div className="border border-white/10 bg-[#120d0e] p-5 relative overflow-hidden">
+            {/* General Progress & Stats */}
+            <div className="border border-white/10 bg-[#120d0e] py-3.5 px-5 relative overflow-hidden">
                 <div className="absolute top-0 right-0 p-3 opacity-5 pointer-events-none">
                     <TrendingUp size={100} className="text-[#ffb595]" />
                 </div>
                 
                 <div className="flex items-center justify-between mb-3 relative z-10">
                     <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-[#ffb595]">Progreso General</span>
-                    <span className="font-mono text-[12px] font-bold text-user-b">{Math.round(progress)}%</span>
                 </div>
-                <div className="chunked-progress">
-                    {Array.from({ length: chunks }).map((_, i) => (
-                        <div key={i} className={`chunk ${i < filledChunks ? 'filled' : ''}`} />
-                    ))}
-                </div>
+                <FuturisticProgressBar 
+                    progress={progress} 
+                    color="var(--color-user-b)"
+                />
                 {stats.totalGoal > 0 && (
                     <div className="flex justify-between mt-3 font-mono text-[9px] uppercase tracking-widest text-white/35">
-                        <span>{formatCOP(stats.totalSaved)}</span>
+                        <span>{formatCOP(stats.totalSaved)} ({Math.round(progress)}%)</span>
                         <span>Meta Total: {formatCOP(stats.totalGoal)}</span>
                     </div>
                 )}
+
+                {/* Unified Stats Grid */}
+                <div className="grid grid-cols-3 gap-1 mt-4 pt-3 border-t border-white/5 text-center">
+                    <div className="flex flex-col items-center justify-center">
+                        <div className="font-mono text-lg font-bold text-[#ffb595]">{stats.active}</div>
+                        <div className="mt-0.5 font-mono text-[8px] uppercase tracking-widest text-[#a88a7e]">En curso</div>
+                    </div>
+                    <div className="flex flex-col items-center justify-center">
+                        <div className="font-mono text-lg font-bold text-[#00dbe9]">{stats.ready}</div>
+                        <div className="mt-0.5 font-mono text-[8px] uppercase tracking-widest text-[#a88a7e]">¡Listos!</div>
+                    </div>
+                    <div className="flex flex-col items-center justify-center">
+                        <div className="font-mono text-lg font-bold text-user-c">{stats.completed}</div>
+                        <div className="mt-0.5 font-mono text-[8px] uppercase tracking-widest text-[#a88a7e]">¡Logrados!</div>
+                    </div>
+                </div>
             </div>
 
             {/* Category breakdown */}
             {Object.keys(stats.byCategory).length > 0 && (
                 <div className="flex flex-wrap gap-2">
                     {GOAL_CATEGORIES.filter(c => stats.byCategory[c.id]).map(cat => (
-                        <div key={cat.id} className="flex items-center gap-2 border border-white/10 bg-[#120d0e] px-3 py-2">
+                        <div key={cat.id} className="flex items-center gap-2 border border-white/10 bg-[#120d0e] px-2.5 py-1">
                             <span className="text-xs">{cat.emoji}</span>
                             <span className="font-mono text-[9px] uppercase tracking-widest text-white/40">{cat.label}</span>
                             <span className="font-mono text-[10px] font-bold text-user-b">{formatCOP(stats.byCategory[cat.id])}</span>

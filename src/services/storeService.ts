@@ -49,7 +49,7 @@ export type GoalCategory = 'Food' | 'Travel' | 'Gaming' | 'Tech' | 'Experiences'
 export type ReactionType = 'LIKE' | 'PRIORITY' | 'WANT_THIS_WITH_YOU';
 
 export const isMapLink = (url?: string | null) =>
-    Boolean(url && (url.includes('google.com/maps') || url.includes('maps.app.goo.gl') || url.includes('goo.gl/maps')));
+    Boolean(url && (url.includes('google.com/maps') || url.includes('maps.google.com') || url.includes('maps.app.goo.gl') || url.includes('goo.gl/maps') || url.includes('share.google')));
 
 export interface WishlistContribution {
     id: string;
@@ -94,6 +94,7 @@ export interface WishlistItem {
     author: string;
     reactions: WishlistReaction[];
     contributions: WishlistContribution[];
+    createdAt?: string;
 }
 
 export type HealthHabitType = 'junk_food' | 'snacks' | 'delivery' | 'impulse_spending';
@@ -117,24 +118,6 @@ export interface Victory {
     createdAt?: string;
 }
 
-export interface TrackComment {
-    id: string;
-    track_id?: string;
-    author: string;
-    text: string;
-    created_at?: string;
-}
-
-export interface AudioTrack {
-    id: string;
-    title: string;
-    artist: string;
-    spotify_url?: string;
-    spotifyUrl?: string;
-    display_order?: number;
-    added_by?: string;
-    comments?: TrackComment[];
-}
 
 export interface EventComment {
     id: string;
@@ -170,11 +153,7 @@ export interface AppData {
     victoriesEl: Victory[];
     victoriesElla: Victory[];
     lastPulseAt?: string;
-    audioStats: {
-        daysTracking: number;
-        lastUpdate: string;
-    };
-    audioPlaylist: AudioTrack[];
+
     dailyProgress?: {
         yesterdayTotal: number;
         yesterdayCompleted: number;
@@ -223,13 +202,7 @@ export const StoreService = {
                 ? supabase.from('app_settings').select('*').eq('id', 1).single()
                 : Promise.resolve({ data: null });
 
-            const playlistPromise = shouldFetch('audio_track')
-                ? supabase.from('audio_track').select('*').order('display_order', { ascending: true })
-                : Promise.resolve({ data: null });
 
-            const commentsPromise = shouldFetch('audio_comments')
-                ? supabase.from('audio_comments').select('*').order('created_at', { ascending: true })
-                : Promise.resolve({ data: null });
 
             const listeningPromise = shouldFetch('persistent_listening')
                 ? supabase.from('persistent_listening').select('*').order('date', { ascending: false })
@@ -273,12 +246,12 @@ export const StoreService = {
 
             const [
                 eventsRes, notesRes, commitmentsRes, victoriesRes, settingsRes,
-                playlistRes, commentsRes, listeningRes, tasksRes, wishlistRes,
+                listeningRes, tasksRes, wishlistRes,
                 objectivesRes, contribRes, reactionsRes, activityRes, habitsRes,
                 allocationsRes, eventCommentsRes
             ] = await Promise.all([
                 eventsPromise, notesPromise, commitmentsPromise, victoriesPromise, settingsPromise,
-                playlistPromise, commentsPromise, listeningPromise, tasksPromise, wishlistPromise,
+                listeningPromise, tasksPromise, wishlistPromise,
                 objectivesPromise, contribPromise, reactionsPromise, activityPromise, habitsPromise,
                 allocationsPromise, eventCommentsPromise
             ]);
@@ -286,18 +259,7 @@ export const StoreService = {
             const settings = settingsRes?.data || { connection_date: new Date().toISOString(), last_update: new Date().toISOString() };
             const trackingDays = Math.floor((new Date().getTime() - new Date(settings.connection_date).getTime()) / (1000 * 60 * 60 * 24));
 
-            const rawPlaylist = playlistRes?.data || [];
-            const commentsByTrackId = (commentsRes?.data || []).reduce((acc: Record<string, any[]>, c: any) => {
-                if (!acc[c.track_id]) acc[c.track_id] = [];
-                acc[c.track_id].push(c);
-                return acc;
-            }, {});
 
-            const audioPlaylist = rawPlaylist.map((track: any) => ({
-                ...track,
-                spotifyUrl: track.spotify_url || null,
-                comments: commentsByTrackId[track.id] || []
-            }));
 
             const formattedDate = new Intl.DateTimeFormat('es-CO', { dateStyle: 'long', timeStyle: 'short' }).format(new Date(settings.last_update));
 
@@ -362,6 +324,7 @@ export const StoreService = {
                         shared: w.shared || false,
                         reactions: itemReactions.map((r: any) => ({ id: r.id, wishlistItemId: r.wishlist_item_id, reactor: r.reactor, type: r.type })),
                         contributions: itemContribs.map((c: any) => ({ id: c.id, wishlistItemId: c.wishlist_item_id, contributor: c.contributor, amount: c.amount, note: c.note, createdAt: c.created_at })),
+                        createdAt: w.created_at || undefined,
                     } as WishlistItem;
                 });
             }
@@ -481,15 +444,7 @@ export const StoreService = {
             }
 
             if (shouldFetch('app_settings')) {
-                result.audioStats = {
-                    daysTracking: trackingDays,
-                    lastUpdate: formattedDate
-                };
                 result.lastPulseAt = settings.last_pulse_at;
-            }
-
-            if (shouldFetch('audio_track')) {
-                result.audioPlaylist = audioPlaylist;
             }
 
             if (shouldFetch('persistent_listening')) {
@@ -674,97 +629,7 @@ export const StoreService = {
             if (newData.victoriesEl !== undefined) await handleVictories(newData.victoriesEl, 'el');
             if (newData.victoriesElla !== undefined) await handleVictories(newData.victoriesElla, 'ella');
 
-            // Audio Playlist
-            if (newData.audioPlaylist !== undefined) {
-                const { data: existingTracks } = await supabase.from('audio_track').select('id, title');
-                const existingIds = new Set((existingTracks || []).map((r: any) => r.id));
-                const existingTitles = new Set((existingTracks || []).map((r: any) => r.title));
 
-                const toUpsertTracks: any[] = [];
-                const toDeleteCommentsTrackIds: string[] = [];
-                const toInsertComments: any[] = [];
-                const notificationsToInsert: any[] = [];
-
-                for (const track of newData.audioPlaylist) {
-                    const isNew = !existingIds.has(track.id);
-                    if (!isNew) {
-                        toUpsertTracks.push({
-                            id: track.id,
-                            title: track.title,
-                            artist: track.artist,
-                            spotify_url: track.spotifyUrl || track.spotify_url || null,
-                            display_order: track.display_order || 0,
-                            added_by: track.added_by || 'el'
-                        });
-
-                        if (track.comments) {
-                            toDeleteCommentsTrackIds.push(track.id);
-                            if (track.comments.length > 0) {
-                                toInsertComments.push(...track.comments.map((c: any) => ({
-                                    track_id: track.id,
-                                    author: c.author,
-                                    text: c.text
-                                })));
-                            }
-                        }
-                    }
-                }
-
-                if (toUpsertTracks.length > 0) await supabase.from('audio_track').upsert(toUpsertTracks);
-                if (toDeleteCommentsTrackIds.length > 0) await supabase.from('audio_comments').delete().in('track_id', toDeleteCommentsTrackIds);
-                if (toInsertComments.length > 0) await supabase.from('audio_comments').insert(toInsertComments);
-
-                const newTracksToInsert = newData.audioPlaylist.filter((track: any) => !existingIds.has(track.id));
-
-                if (newTracksToInsert.length > 0) {
-                    const insertPayload = newTracksToInsert.map((track: any) => ({
-                        title: track.title,
-                        artist: track.artist,
-                        spotify_url: track.spotifyUrl || track.spotify_url || null,
-                        display_order: track.display_order || 0,
-                        added_by: track.added_by || 'el'
-                    }));
-
-                    const { data: insertedTracks } = await supabase.from('audio_track').insert(insertPayload).select('id, title, artist');
-
-                    const newCommentsToInsert: any[] = [];
-
-                    newTracksToInsert.forEach((track: any, index: number) => {
-                        // Attempt to match by title and artist to be safe, fallback to index
-                        const insertedMatch = insertedTracks?.find((t: any) => t.title === track.title && t.artist === track.artist) || insertedTracks?.[index];
-                        const trackId = insertedMatch?.id || track.id;
-
-                        if (track.added_by === 'el' && !existingTitles.has(track.title)) {
-                            notificationsToInsert.push({
-                                target_profile: 'ella',
-                                type: 'new_song',
-                                message: `Él agregó una nueva canción: ${track.title}`
-                            });
-                        }
-
-                        if (trackId && track.comments && track.comments.length > 0) {
-                            newCommentsToInsert.push(...track.comments.map((c: any) => ({
-                                track_id: trackId,
-                                author: c.author,
-                                text: c.text
-                            })));
-                        }
-                    });
-
-                    if (newCommentsToInsert.length > 0) {
-                        await supabase.from('audio_comments').insert(newCommentsToInsert);
-                    }
-                }
-
-                if (notificationsToInsert.length > 0) {
-                    await supabase.from('notifications').insert(notificationsToInsert);
-                }
-
-                // Delete tracks not in payload
-                const incomingIds = new Set(newData.audioPlaylist.map(t => t.id));
-                const toDelete = (existingTracks || []).filter(r => !incomingIds.has(r.id)).map(r => r.id);
-                if (toDelete.length > 0) await supabase.from('audio_track').delete().in('id', toDelete);
-            }
 
             // Persistent Listening
             if (newData.persistentListening !== undefined) {

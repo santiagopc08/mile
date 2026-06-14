@@ -93,7 +93,22 @@ export async function GET(request: Request) {
 
         // Extract Coordinates from Google Maps URL or HTML
         let coords = null;
-        const isGoogleMaps = finalUrl.includes('google.com/maps') || finalUrl.includes('maps.app.goo.gl') || targetUrl.includes('google.com/maps') || targetUrl.includes('maps.app.goo.gl');
+        const isGoogleMaps = 
+            targetUrl.includes('google.com/maps') || 
+            targetUrl.includes('maps.google.com') ||
+            targetUrl.includes('maps.app.goo.gl') || 
+            targetUrl.includes('goo.gl/maps') || 
+            targetUrl.includes('share.google') ||
+            finalUrl.includes('google.com/maps') || 
+            finalUrl.includes('maps.google.com') ||
+            finalUrl.includes('maps.app.goo.gl') || 
+            finalUrl.includes('goo.gl/maps') || 
+            finalUrl.includes('share.google') ||
+            (finalUrl.includes('google.com/search') && (
+                targetUrl.includes('share.google') || 
+                targetUrl.includes('goo.gl/maps') || 
+                targetUrl.includes('maps.app.goo.gl')
+            ));
 
         if (isGoogleMaps) {
             // 1. Try extracting from URL

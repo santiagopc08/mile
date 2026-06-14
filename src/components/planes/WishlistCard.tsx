@@ -10,6 +10,7 @@ import { WishlistService } from '@/services/wishlistService';
 import { NotificationService } from '@/services/notificationService';
 import { supabase } from '@/lib/supabase';
 import { LinkPreview } from '@/components/LinkPreview';
+import { FuturisticProgressBar } from '@/components/ui/FuturisticProgressBar';
 
 interface WishlistCardProps {
     item: WishlistItem;
@@ -41,6 +42,16 @@ export function WishlistCard({ item, profile, onRefresh, onEdit, onDelete }: Wis
         item.state === 'READY_TO_DEPLOY' ? 'state-ready-bg' :
         item.state === 'COMPLETED' ? 'state-completed-bg' :
         'state-archived-bg';
+
+    const catStripeColors: Record<string, string> = {
+        Food: 'bg-emerald-400',
+        Travel: 'bg-cyan-400',
+        Gaming: 'bg-amber-400',
+        Tech: 'bg-purple-400',
+        Experiences: 'bg-user-b',
+        Home: 'bg-user-a'
+    };
+    const categoryStripeColor = catStripeColors[item.goalCategory] || 'bg-user-c';
 
     const reactionIcons: Record<string, React.ComponentType<{ className?: string; strokeWidth?: number }>> = {
         LIKE: Heart,
@@ -107,84 +118,61 @@ export function WishlistCard({ item, profile, onRefresh, onEdit, onDelete }: Wis
         } catch (e) { console.error(e); }
     };
 
-    const hasDetailLink = !!item.externalLink;
+    const hasDetailLink = !!item.externalLink && (item.externalLink.startsWith('http://') || item.externalLink.startsWith('https://'));
 
     return (
         <motion.div
             layout
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`group relative flex flex-col border bg-[#120d0e] transition-all hover:bg-white/[0.02] ${isCompleted ? 'border-white/10 opacity-60' : `border-white/10 hover:border-white/20`}`}
+            className={`group relative flex flex-col border transition-all ${isCompleted ? 'bg-black/40 border-stone-900 opacity-30 shadow-none' : 'bg-[#0a0a0a] border-white/10 hover:border-white/20'}`}
         >
             {/* Thick left border for state */}
             <div className={`absolute left-0 top-0 bottom-0 w-[5px] z-10 ${stateBgClass}`} />
+
+            {/* Top-left category stripe to match task card visual structure */}
+            <div className={`absolute left-[5px] top-0 h-1 w-12 z-10 ${categoryStripeColor}`} />
+
+            {/* Left Top Corner Indicators (Author & Scope) */}
+            <div className="absolute -top-2 left-[5px] md:-top-3 flex items-center z-10 font-mono">
+                <div className={`px-1.5 py-[3px] text-[6px] md:text-[7px] font-mono uppercase tracking-[0.16em] font-black ${
+                    item.author === 'ella' ? 'bg-user-a text-black' : 'bg-user-b text-black'
+                }`}>
+                    {item.author === 'ella' ? 'Milena' : 'Santiago'}
+                </div>
+                {item.shared && (
+                    <div className="border-y border-r border-white/10 bg-[#050505] px-1.5 py-[3px] text-[6px] md:text-[7px] font-mono tracking-widest uppercase text-white/40">
+                        Para los dos
+                    </div>
+                )}
+            </div>
+
+            {/* Right Top Corner Indicators */}
+            <div className="absolute -top-2 right-0 md:-top-3 flex items-center z-10">
+                <div className="border px-1.5 py-[3px] text-[6px] md:text-[7px] font-mono tracking-widest uppercase border-white/10 bg-black/40 text-[#a88a7e] flex items-center gap-1">
+                    {CatIcon && <CatIcon className="h-2.5 w-2.5 shrink-0" strokeWidth={1.5} />}
+                    <span>{catConfig?.label || item.goalCategory}</span>
+                </div>
+                <div className={`border-y border-r border-white/10 px-1.5 py-[3px] text-[6px] md:text-[7px] font-mono tracking-widest uppercase ${stateConfig.css}`}>
+                    {stateConfig.label}
+                </div>
+                {item.locationUrl ? (
+                    <a href={item.locationUrl} target="_blank" rel="noopener noreferrer"
+                        className="border-b border-r border-white/10 bg-[#050505] px-1.5 py-[3px] text-[#00dbe9] hover:bg-white/5 flex items-center justify-center"
+                        title="Ver ubicación">
+                        <MapPin className="h-2.5 w-2.5" strokeWidth={1.5} />
+                    </a>
+                ) : (
+                    <div className="border-b border-r border-white/10 bg-[#050505] px-1.5 py-[3px] text-white/10 select-none flex items-center justify-center">
+                        <MapPin className="h-2.5 w-2.5" strokeWidth={1.5} />
+                    </div>
+                )}
+            </div>
             
             {/* Card Content Wrapper: nested to have consistent left padding */}
-            <div className="p-4 pl-7 flex flex-col gap-4">
-                {/* Header strip: Category and Badges on left, rigid button group on right */}
-                <div className="flex justify-between items-start flex-wrap gap-2">
-                    <div className="flex items-center gap-2">
-                        {CatIcon && <CatIcon className="h-4 w-4 shrink-0 text-white/40" strokeWidth={1.5} />}
-                        <span className={`state-badge ${stateConfig.css}`}>{stateConfig.label}</span>
-                    </div>
-
-                    <div className="flex gap-[1px] bg-white/[0.08] brutal-border shrink-0">
-                        {/* Reactions Grid */}
-                        {REACTION_CONFIG.map(r => {
-                            const myReaction = item.reactions.find(rx => rx.reactor === profile && rx.type === r.type);
-                            const count = item.reactions.filter(rx => rx.type === r.type).length;
-                            const Icon = reactionIcons[r.type];
-                            
-                            return (
-                                <button
-                                    key={r.type}
-                                    onClick={() => handleReaction(r.type)}
-                                    className={`relative w-8 h-8 !min-h-0 flex items-center justify-center transition-colors hover:bg-white/5 ${
-                                        myReaction ? 'bg-user-a/10 text-user-a' : 'text-white/40 hover:text-white/70'
-                                    }`}
-                                    title={r.label}
-                                >
-                                    {Icon && <Icon className="h-4 w-4" strokeWidth={1.5} />}
-                                    {count > 0 && (
-                                        <span className="absolute bottom-0.5 right-0.5 text-[7px] font-black leading-none bg-[#120d0e] border border-white/10 px-0.5">
-                                            {count}
-                                        </span>
-                                    )}
-                                </button>
-                            );
-                        })}
-
-                        {/* Map pin */}
-                        {item.locationUrl ? (
-                            <a href={item.locationUrl} target="_blank" rel="noopener noreferrer"
-                                className="w-8 h-8 flex items-center justify-center text-[#00dbe9] hover:bg-white/5"
-                                title="Ver ubicación">
-                                <MapPin className="h-4 w-4" strokeWidth={1.5} />
-                            </a>
-                        ) : (
-                            <span className="w-8 h-8 flex items-center justify-center text-white/10 select-none">
-                                <MapPin className="h-4 w-4" strokeWidth={1.5} />
-                            </span>
-                        )}
-
-                        {/* Author letter */}
-                        <div className={`w-8 h-8 flex items-center justify-center font-mono text-[10px] font-black uppercase ${
-                            item.author === 'ella' ? 'bg-user-a/10 text-user-a' : 'bg-user-b/10 text-user-b'
-                        }`}>
-                            {item.author === 'el' ? 'S' : 'M'}
-                        </div>
-
-                        {/* Shared badge */}
-                        {item.shared && (
-                            <div className="px-2 h-8 flex items-center justify-center font-mono text-[8px] text-white/40 border-l border-white/[0.08] select-none uppercase tracking-wider">
-                                Para los dos
-                            </div>
-                        )}
-                    </div>
-                </div>
-
+            <div className="pt-3.5 pl-6 pr-4 pb-3 flex flex-col gap-3">
                 {/* Body content: split columns if detail link exists */}
-                <div className={`w-full ${hasDetailLink ? 'grid grid-cols-[minmax(0,1fr)_100px] sm:grid-cols-[minmax(0,1fr)_120px] gap-4' : ''}`}>
+                <div className={`w-full pt-1.5 ${hasDetailLink ? 'grid grid-cols-[minmax(0,1fr)_100px] sm:grid-cols-[minmax(0,1fr)_120px] gap-4' : ''}`}>
                     {/* Left side */}
                     <div className="min-w-0 flex flex-col gap-2 justify-center">
                         <h4 className={`text-[13px] font-black uppercase leading-tight tracking-[0.08em] font-mono ${isCompleted ? 'line-through text-[#a88a7e]' : 'text-white'}`}>
@@ -201,11 +189,10 @@ export function WishlistCard({ item, profile, onRefresh, onEdit, onDelete }: Wis
                                     <span className="text-[10px] font-mono font-bold text-user-b">{formatCOP(item.savedAmount)}</span>
                                     <span className="text-[10px] font-mono text-white/20">/ {formatCOP(item.price)}</span>
                                 </div>
-                                <div className="chunked-progress h-2">
-                                    {Array.from({ length: chunks }).map((_, i) => (
-                                        <div key={i} className={`chunk ${i < filledChunks ? 'filled' : ''}`} />
-                                    ))}
-                                </div>
+                                <FuturisticProgressBar 
+                                    progress={progress} 
+                                    color={item.owner === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)'}
+                                />
                             </div>
                         )}
 
@@ -218,7 +205,7 @@ export function WishlistCard({ item, profile, onRefresh, onEdit, onDelete }: Wis
                             <div className="mt-2">
                                 {!showContrib ? (
                                     <button onClick={() => setShowContrib(true)}
-                                        className="w-full border border-white/10 py-2 text-[9px] font-mono font-bold uppercase tracking-widest text-user-b transition-colors hover:bg-white/5">
+                                        className="w-full border border-white/10 py-1 text-[9px] font-mono font-bold uppercase tracking-widest text-user-b transition-colors hover:bg-white/5">
                                         + CONTRIBUIR
                                     </button>
                                 ) : (
@@ -256,7 +243,7 @@ export function WishlistCard({ item, profile, onRefresh, onEdit, onDelete }: Wis
 
                     {/* Right side: detail link preview */}
                     {hasDetailLink && (
-                        <div className="border border-white/[0.06] p-1 bg-black/20 flex items-center justify-center">
+                        <div className="flex items-center justify-center shrink-0">
                             <LinkPreview url={item.externalLink!} category="antojo" variant="square" />
                         </div>
                     )}
@@ -268,7 +255,7 @@ export function WishlistCard({ item, profile, onRefresh, onEdit, onDelete }: Wis
                 {stateConfig.next && stateConfig.nextLabel && (
                     <button onClick={handleStateTransition}
                         disabled={stateConfig.next === 'READY_TO_DEPLOY' && item.savedAmount < item.price && item.price > 0}
-                        className={`flex flex-1 items-center justify-center gap-1 py-3 text-[8px] font-mono font-bold uppercase tracking-widest transition-colors disabled:opacity-20 ${
+                        className={`flex flex-1 items-center justify-center gap-1 py-1.5 text-[8px] font-mono font-bold uppercase tracking-widest transition-colors disabled:opacity-20 ${
                             stateConfig.next === 'COMPLETED' ? 'text-user-c hover:bg-white/5' : 'text-[#00dbe9] hover:bg-white/5'
                         }`}>
                         <ChevronRight className="h-3 w-3" />

@@ -43,6 +43,11 @@ export const metadata: Metadata = {
     statusBarStyle: "default",
     title: "Nuestro Espacio Seguro",
   },
+  icons: {
+    icon: "/icon-192x192.png",
+    shortcut: "/icon-192x192.png",
+    apple: "/icon-192x192.png",
+  },
   formatDetection: {
     telephone: false,
   },
