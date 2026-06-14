@@ -2,9 +2,9 @@ import { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Mahjong',
-    short_name: 'Mahjong',
-    description: 'A beautiful Mahjong memory game',
+    name: 'proyecto MS',
+    short_name: 'proyecto MS',
+    description: 'Nuestro espacio seguro',
     start_url: '/',
     display: 'standalone',
     background_color: '#f5f5f4', // stone-100
@@ -14,8 +14,7 @@ export default function manifest(): MetadataRoute.Manifest {
       {
         src: '/icon-192x192.png',
         sizes: '192x192',
-        type: 'image/png',
-        purpose: 'maskable'
+        type: 'image/png'
       },
       {
         src: '/icon-512x512.png',
