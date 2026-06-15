@@ -45,8 +45,21 @@ export function SavingsOverview({ items }: { items: WishlistItem[] }) {
         try {
             const allocA = JSON.parse(localStorage.getItem('symmetry_A_allocations') || '[]');
             const allocB = JSON.parse(localStorage.getItem('symmetry_B_allocations') || '[]');
-            const totalIncome = [...allocA, ...allocB].filter((a: any) => a.amount > 0).reduce((s: number, a: any) => s + a.amount, 0);
-            const totalExpenses = [...allocA, ...allocB].filter((a: any) => a.amount < 0).reduce((s: number, a: any) => s + Math.abs(a.amount), 0);
+
+            // ⚡ Bolt Optimization: Single O(N) pass replacing [...A, ...B].filter().reduce()
+            let totalIncome = 0;
+            let totalExpenses = 0;
+
+            for (const item of allocA) {
+                if (item.amount > 0) totalIncome += item.amount;
+                else if (item.amount < 0) totalExpenses += Math.abs(item.amount);
+            }
+
+            for (const item of allocB) {
+                if (item.amount > 0) totalIncome += item.amount;
+                else if (item.amount < 0) totalExpenses += Math.abs(item.amount);
+            }
+
             const available = totalIncome - totalExpenses;
             if (available > 10000) {
                 const safe = Math.floor(available * 0.15 / 1000) * 1000;
