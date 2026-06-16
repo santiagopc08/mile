@@ -379,13 +379,22 @@ export function Mahjong() {
         if (!isLoaded) { initializeGame(); }
     }, [isLoaded]);
 
-    const freeTilesMap = useMemo(() => {
-        const map = new Map<string, boolean>();
+    const { freeTilesMap, tilesById } = useMemo(() => {
+        const freeMap = new Map<string, boolean>();
+        const idMap = new Map<string, TileState>();
         const dockSet = new Set(dockIds);
-        const activeTiles = tiles.filter(t => !t.isMatched && !dockSet.has(t.id));
+        const activeTiles: TileState[] = [];
+
+        for (const tile of tiles) {
+            idMap.set(tile.id, tile);
+            if (!tile.isMatched && !dockSet.has(tile.id)) {
+                activeTiles.push(tile);
+            }
+        }
+
         tiles.forEach(tile => {
             if (tile.isMatched || dockSet.has(tile.id)) {
-                map.set(tile.id, false);
+                freeMap.set(tile.id, false);
                 return;
             }
             const isTopCovered = activeTiles.some(n =>
@@ -394,15 +403,15 @@ export function Mahjong() {
                 Math.abs(n.y - tile.y) < 2
             );
             if (isTopCovered) {
-                map.set(tile.id, false);
+                freeMap.set(tile.id, false);
                 return;
             }
             const sameLayerRows = activeTiles.filter(n => n.z === tile.z && Math.abs(n.y - tile.y) < 2);
             const hasLeft = sameLayerRows.some(n => tile.x - 2 <= n.x && n.x < tile.x);
             const hasRight = sameLayerRows.some(n => tile.x < n.x && n.x <= tile.x + 2);
-            map.set(tile.id, !(hasLeft && hasRight));
+            freeMap.set(tile.id, !(hasLeft && hasRight));
         });
-        return map;
+        return { freeTilesMap: freeMap, tilesById: idMap };
     }, [tiles, dockIds]);
 
     const triggerShatter = useCallback((tileA: TileState, tileB: TileState, dockIndex?: number) => {
@@ -425,15 +434,23 @@ export function Mahjong() {
     const handleTilePointerDown = useCallback((id: string) => {
         if (isProcessingRef.current || gameLost) return;
         if (dockIds.includes(id)) return;
-        const tile = tiles.find(t => t.id === id);
+        const tile = tilesById.get(id);
         if (!tile || tile.isMatched || !freeTilesMap.get(id)) return;
         isProcessingRef.current = true;
         requestAnimationFrame(() => { isProcessingRef.current = false; });
         if (!timerActive && matchedCount < tiles.length) { setTimerActive(true); }
-        const matchingDockTile = tiles.find(t =>
-            t.content.value === tile.content.value && dockIds.includes(t.id)
-        );
-        const matchingDockId = matchingDockTile?.id;
+
+        // ⚡ Bolt Optimization: Replace find with O(1) dock checks
+        let matchingDockTile: TileState | undefined = undefined;
+        let matchingDockId: string | undefined = undefined;
+        for (const dId of dockIds) {
+            const dt = tilesById.get(dId);
+            if (dt && dt.content.value === tile.content.value) {
+                matchingDockTile = dt;
+                matchingDockId = dt.id;
+                break;
+            }
+        }
 
         if (matchingDockId && matchingDockTile) {
             const dockIndex = dockIds.indexOf(matchingDockId);
@@ -458,7 +475,7 @@ export function Mahjong() {
                 setUndoStack(us => [...us, [id]]);
             }
         }
-    }, [gameLost, dockIds, tiles, freeTilesMap, timerActive, matchedCount, triggerShatter]);
+    }, [tilesById, gameLost, dockIds, tiles, freeTilesMap, timerActive, matchedCount, triggerShatter]);
 
     const handleRestart = () => {
         if (initialDeal) {
@@ -492,7 +509,7 @@ export function Mahjong() {
         }
     };
 
-    const handleHint = () => {
+    const handleHint = useCallback(() => {
         const freeOnBoard = tiles.filter(t => !t.isMatched && !dockIds.includes(t.id) && freeTilesMap.get(t.id));
         const seenValues = new Map<string, string>();
         for (const tile of freeOnBoard) {
@@ -509,7 +526,6 @@ export function Mahjong() {
             seenValues.set(value, tile.id);
         }
 
-        const tilesById = new Map(tiles.map(t => [t.id, t]));
         for (const dId of dockIds) {
             const dockTile = tilesById.get(dId);
             if (!dockTile) continue;
@@ -522,7 +538,7 @@ export function Mahjong() {
                 return;
             }
         }
-    };
+    }, [tiles, dockIds, freeTilesMap, tilesById]);
 
     const getTileStyle = useCallback((tile: TileState) => {
         const pxShift = tile.z * -6;
@@ -630,7 +646,7 @@ return scores.length > 0 ? scores[0] : null;
                         </div>
                         {[0, 1, 2].map((idx) => {
                             const dId = dockIds[idx];
-                            const tile = dId ? tiles.find(t => t.id === dId) : null;
+                            const tile = dId ? tilesById.get(dId) : null;
                             const isShattering = dId && shatteringTiles.has(dId);
 
                             return (
