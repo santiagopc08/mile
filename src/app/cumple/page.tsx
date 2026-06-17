@@ -1090,7 +1090,7 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
           transform: 'translateZ(0)',
           backfaceVisibility: 'hidden'
         }}
-        className="fixed inset-0 w-full ios-viewport-fix flex flex-col items-center justify-center z-[60]"
+        className="fixed inset-0 w-full ios-viewport-fix flex flex-col items-center justify-end pb-12 sm:pb-20 z-[60]"
       >
         <div className="w-full max-w-2xl px-4 text-center space-y-6 pointer-events-auto pt-[env(safe-area-inset-top,59px)] pb-[env(safe-area-inset-bottom,34px)]">
           <div className="border border-white/10 bg-black/75 backdrop-blur-md pt-8 px-6 pb-6 sm:pt-10 sm:px-10 sm:pb-8 relative">
@@ -1129,7 +1129,7 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
           transform: 'translateZ(0)',
           backfaceVisibility: 'hidden'
         }}
-        className="fixed inset-0 w-full ios-viewport-fix flex flex-col items-center justify-center z-[60]"
+        className="fixed inset-0 w-full ios-viewport-fix flex flex-col items-center justify-end pb-12 sm:pb-20 z-[60]"
       >
         <div className="w-full max-w-2xl px-4 space-y-6 text-center pointer-events-auto relative pt-[env(safe-area-inset-top,59px)] pb-[env(safe-area-inset-bottom,34px)]">
 
@@ -1350,7 +1350,7 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
           transform: 'translateZ(0)',
           backfaceVisibility: 'hidden'
         }}
-        className="fixed inset-0 w-full ios-viewport-fix flex flex-col items-center justify-center z-[60]"
+        className="fixed inset-0 w-full ios-viewport-fix flex flex-col items-center justify-end pb-8 sm:pb-16 z-[60]"
       >
         <div className="w-full max-w-4xl px-4 space-y-3 sm:space-y-4 pointer-events-auto pb-[calc(1.5rem+env(safe-area-inset-bottom,34px))] max-h-[80vh] sm:max-h-[85vh] overflow-y-auto pr-1 custom-scrollbar">
 
@@ -1692,7 +1692,7 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
                       <div className="p-4 bg-cyan-950/40 border border-cyan-500/20 rounded-2xl text-center shadow-lg">
                         <p className="text-cyan-300 font-bold text-xs mb-1.5 uppercase tracking-wider">🎁 Regalo en el Mundo Real</p>
                         <p className="text-white text-xs italic font-medium">
-                          "{selectedGift.details?.hint}"
+                          &quot;{selectedGift.details?.hint}&quot;
                         </p>
                       </div>
 
@@ -1791,6 +1791,7 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
 
 // --- Main Page Component handling the Secure Loader and auth wrapper ---
 export default function BirthdayPage() {
+  const { profile } = useProfile();
   const [phase, setPhase] = useState<'PHASE_PRELOADING' | 'PHASE_READY_TRIGGER' | 'PHASE_SCROLLING_STORY'>('PHASE_PRELOADING');
   const [decryptProgress, setDecryptProgress] = useState(0);
   const [decryptLogs, setDecryptLogs] = useState<string[]>([]);
@@ -1903,7 +1904,7 @@ export default function BirthdayPage() {
   // Midnight gate: only show the surprise on or after June 17, 2026 at midnight (local time)
   const now = new Date();
   const birthdayMidnight = new Date(2026, 5, 17, 0, 0, 0); // June = month 5 (0-indexed)
-  const isBirthdayUnlocked = now >= birthdayMidnight;
+  const isBirthdayUnlocked = now >= birthdayMidnight || profile === 'el';
 
   if (!isBirthdayUnlocked) {
     return (
