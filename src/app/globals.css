@@ -79,6 +79,14 @@ body {
   border-radius: 0px !important;
 }
 
+/* Specific exemptions to allow circle avatars, rings, and buttons */
+.rounded-full,
+.rounded-full *,
+.force-circle,
+.force-circle * {
+  border-radius: 9999px !important;
+}
+
 /* Geometric UI Signature Classes */
 .geometric-card {
   background: var(--color-surface-dim);

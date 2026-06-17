@@ -45,8 +45,13 @@ export default function Home() {
   const wishlist = useMemo(() => (data?.wishlist || []) as any[], [data?.wishlist]);
   const activePlansCount = wishlist.length;
   const savingPlansCount = useMemo(() => wishlist.filter(item => item.state === 'SAVING').length, [wishlist]);
-
-
+  const showBdayBanner = useMemo(() => {
+    if (typeof window === 'undefined') return false;
+    const isTest = window.location.search.includes('test=true') || window.location.search.includes('cumple=true');
+    const today = new Date();
+    const isBdayDate = today.getMonth() === 5 && today.getDate() === 17;
+    return isTest || (profile === 'ella' && isBdayDate);
+  }, [profile]);
 
   const reflections = useMemo(() => data?.persistentListening || [], [data?.persistentListening]);
   const reflectionsCount = reflections.length;
@@ -91,6 +96,23 @@ export default function Home() {
         {/* Main Terminal Container */}
         <div className="w-full max-w-4xl border border-white/10 bg-[#0a0a0a]/95 backdrop-blur-md relative mb-6 sm:mb-12">
           <AnimatedBrutalistCorners color={accentColorValue} size={16} thickness={1.5} />
+
+          {/* Birthday Surprise Banner */}
+          {showBdayBanner && (
+            <div className="border-b border-[#ff4b89] bg-[#ff4b89]/10 p-4 font-mono text-xs text-center flex flex-col sm:flex-row items-center justify-between gap-3 relative z-30">
+              <div className="flex items-center gap-2 text-white font-bold">
+                <span className="text-[#ff4b89] animate-pulse">💝</span>
+                <span>¡HOY ES UN DÍA MUY ESPECIAL: CUMPLEAÑOS DE MILE!</span>
+              </div>
+              <Link 
+                href="/cumple" 
+                className="!min-h-0 border border-[#ff4b89] bg-[#ff4b89]/20 hover:bg-[#ff4b89] hover:text-black transition-all px-4 py-1.5 text-[10px] uppercase font-black tracking-widest flex items-center gap-1.5"
+              >
+                <span>Descubrir Sorpresa 🎁</span>
+                <ArrowRight size={10} className="animate-slide-loop" />
+              </Link>
+            </div>
+          )}
 
           {/* Header Section */}
           <div className="border-b border-white/10 p-4 sm:p-8 lg:p-10 relative">
