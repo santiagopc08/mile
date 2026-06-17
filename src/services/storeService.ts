@@ -493,8 +493,12 @@ export const StoreService = {
                     // Check if item.id is a UUID (Supabase generated) or a temporary numeric ID (Date.now())
                     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(item.id);
 
-                    if (item.id && isUuid && existingIds.has(item.id)) {
-                        toUpsert.push(item);
+                    if (item.id && isUuid) {
+                        if (existingIds.has(item.id)) {
+                            toUpsert.push(item);
+                        } else {
+                            toInsert.push(item);
+                        }
                     } else {
                         const { id, ...rest } = item;
                         // If it's a temp ID, we don't send it to Supabase so it generates a new UUID

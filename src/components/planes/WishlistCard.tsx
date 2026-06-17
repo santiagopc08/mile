@@ -1,14 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
-import type { WishlistItem } from '@/services/storeService';
+import type { WishlistItem, WishlistState } from '@/services/storeService';
 import { formatCOP, STATE_CONFIG, REACTION_CONFIG, GOAL_CATEGORIES } from './constants';
 import { ExternalLink, Trash2, Pencil, MapPin, ChevronRight, Heart, Zap, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { StoreService } from '@/services/storeService';
-import { WishlistService } from '@/services/wishlistService';
-import { NotificationService } from '@/services/notificationService';
-import { supabase } from '@/lib/supabase';
 import { LinkPreview } from '@/components/LinkPreview';
 import { FuturisticProgressBar } from '@/components/ui/FuturisticProgressBar';
 
@@ -63,23 +59,18 @@ export function WishlistCard({ item, profile, onRefresh, onEdit, onDelete }: Wis
         if (amount <= 0) return;
         setSubmitting(true);
         try {
-            await WishlistService.addContribution(item.id, profile || 'el', amount, contribNote, supabase);
-            // Auto-transition to SAVING if still DISCOVERED
-            if (item.state === 'DISCOVERED') {
-                await WishlistService.updateWishlistState(item.id, 'SAVING', profile || 'el', supabase);
-            }
-            // Check if ready
-            if (item.savedAmount + amount >= item.price && item.price > 0 && item.state === 'SAVING') {
-                await WishlistService.updateWishlistState(item.id, 'READY_TO_DEPLOY', profile || 'el', supabase);
-            }
-
-            // Notificar a la pareja si el plan es compartido
-            if (item.shared) {
-                const target = profile === 'el' ? 'ella' : 'el';
-                const authorName = profile === 'el' ? 'Santiago' : 'Milena';
-                const amountFormatted = formatCOP(amount);
-                await NotificationService.addNotification(target, 'wishlist', `¡${authorName} aportó ${amountFormatted} al plan: "${item.title}"! 💰`, supabase);
-            }
+            const res = await fetch('/api/wishlist', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'contribute',
+                    itemId: item.id,
+                    profile: profile || 'el',
+                    amount,
+                    note: contribNote
+                })
+            });
+            if (!res.ok) throw new Error('Failed to contribute');
 
             setContribAmount('');
             setContribNote('');
@@ -91,29 +82,37 @@ export function WishlistCard({ item, profile, onRefresh, onEdit, onDelete }: Wis
 
     const handleReaction = async (type: string) => {
         try {
-            await WishlistService.toggleReaction(item.id, profile || 'el', type, supabase);
+            const res = await fetch('/api/wishlist', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'reaction',
+                    itemId: item.id,
+                    profile: profile || 'el',
+                    type
+                })
+            });
+            if (!res.ok) throw new Error('Failed to react');
             onRefresh();
         } catch (e) { console.error(e); }
     };
 
-    const handleStateTransition = async () => {
-        if (!stateConfig.next) return;
-        if (stateConfig.next === 'READY_TO_DEPLOY' && item.savedAmount < item.price && item.price > 0) return;
+    const handleStateTransition = async (forcedNextState?: WishlistState) => {
+        const nextState = forcedNextState || stateConfig.next;
+        if (!nextState) return;
+        if (!forcedNextState && nextState === 'READY_TO_DEPLOY' && item.savedAmount < item.price && item.price > 0) return;
         try {
-            await WishlistService.updateWishlistState(item.id, stateConfig.next, profile || 'el', supabase);
-            
-            // Notificar a la pareja si el plan es compartido
-            if (item.shared) {
-                const target = profile === 'el' ? 'ella' : 'el';
-                const authorName = profile === 'el' ? 'Santiago' : 'Milena';
-                if (stateConfig.next === 'COMPLETED') {
-                    await NotificationService.addNotification(target, 'wishlist', `¡Objetivo Cumplido! Completamos el plan: "${item.title}" 🎉`, supabase);
-                } else {
-                    const stateLabel = STATE_CONFIG[stateConfig.next]?.label || stateConfig.next;
-                    await NotificationService.addNotification(target, 'wishlist', `¡${authorName} actualizó el plan "${item.title}" a estado: ${stateLabel}!`, supabase);
-                }
-            }
-            
+            const res = await fetch('/api/wishlist', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'state_transition',
+                    itemId: item.id,
+                    profile: profile || 'el',
+                    nextState
+                })
+            });
+            if (!res.ok) throw new Error('Failed to transition state');
             onRefresh();
         } catch (e) { console.error(e); }
     };
@@ -252,15 +251,30 @@ export function WishlistCard({ item, profile, onRefresh, onEdit, onDelete }: Wis
 
             {/* Footer strip: state transition + edit/delete */}
             <div className="flex items-stretch border-t border-dashed border-white/20 mt-auto">
-                {stateConfig.next && stateConfig.nextLabel && (
-                    <button onClick={handleStateTransition}
-                        disabled={stateConfig.next === 'READY_TO_DEPLOY' && item.savedAmount < item.price && item.price > 0}
-                        className={`flex flex-1 items-center justify-center gap-1 py-1.5 text-[8px] font-mono font-bold uppercase tracking-widest transition-colors disabled:opacity-20 ${
-                            stateConfig.next === 'COMPLETED' ? 'text-user-c hover:bg-white/5' : 'text-[#00dbe9] hover:bg-white/5'
-                        }`}>
-                        <ChevronRight className="h-3 w-3" />
-                        {stateConfig.nextLabel}
-                    </button>
+                {item.state === 'DISCOVERED' ? (
+                    <>
+                        <button onClick={() => handleStateTransition('SAVING')}
+                            className="flex flex-1 items-center justify-center gap-1 py-1.5 text-[8px] font-mono font-bold uppercase tracking-widest transition-colors text-[#00dbe9] hover:bg-white/5 border-r border-white/10">
+                            <ChevronRight className="h-3 w-3" />
+                            Empezar a Ahorrar
+                        </button>
+                        <button onClick={() => handleStateTransition('READY_TO_DEPLOY')}
+                            className="flex flex-1 items-center justify-center gap-1 py-1.5 text-[8px] font-mono font-bold uppercase tracking-widest transition-colors text-user-c hover:bg-white/5">
+                            <ChevronRight className="h-3 w-3" />
+                            Pasar a Listo
+                        </button>
+                    </>
+                ) : (
+                    stateConfig.next && stateConfig.nextLabel && (
+                        <button onClick={() => handleStateTransition()}
+                            disabled={stateConfig.next === 'READY_TO_DEPLOY' && item.savedAmount < item.price && item.price > 0}
+                            className={`flex flex-1 items-center justify-center gap-1 py-1.5 text-[8px] font-mono font-bold uppercase tracking-widest transition-colors disabled:opacity-20 ${
+                                stateConfig.next === 'COMPLETED' ? 'text-user-c hover:bg-white/5' : 'text-[#00dbe9] hover:bg-white/5'
+                            }`}>
+                            <ChevronRight className="h-3 w-3" />
+                            {stateConfig.nextLabel}
+                        </button>
+                    )
                 )}
                 {!isCompleted && (
                     <button onClick={() => onEdit(item)} className="flex w-12 items-center justify-center border-l border-white/10 text-[#a88a7e] transition-colors hover:text-[#00dbe9] hover:bg-white/5">
