@@ -535,58 +535,58 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
   const petsPointerEvents = useTransform(smoothProgress, (v) => (v >= 0.31 && v < 0.83) ? "auto" : "none");
 
   // Pet 0 (Kiaro) transforms: [0.33, 0.45]
-  // Bubble fades 0.38→0.40. Video cross-fades starting at 0.36 (0.02 before bubble fade).
+  // Bubble fades 0.39→0.405. Video cross-fades starting at 0.39.
   const pet0Opacity = useTransform(smoothProgress, [0.315, 0.345, 0.435, 0.45], [0, 1, 1, 0]);
   const pet0Scale = useTransform(smoothProgress, [0.315, 0.345, 0.435, 0.45], [0.9, 1, 1, 0.9]);
   const pet0AvatarScale = useTransform(smoothProgress, [0.33, 0.35, 0.43, 0.45], [0.8, 1, 1, 0.8]);
   const pet0AvatarOpacity = useTransform(smoothProgress, [0.33, 0.35, 0.43, 0.45], [0, 1, 1, 0]);
-  const pet0BubbleOpacity = useTransform(smoothProgress, [0.33, 0.345, 0.37, 0.39], [0, 1, 1, 0]);
-  const pet0BubbleScale = useTransform(smoothProgress, [0.33, 0.345, 0.37, 0.39], [0.85, 1, 1, 0.85]);
-  const pet0VideoOpacity = useTransform(smoothProgress, [0.36, 0.385, 0.435, 0.45], [0, 1, 1, 0]);
-  const pet0VideoScale = useTransform(smoothProgress, [0.36, 0.385, 0.435, 0.45], [0.75, 1.05, 1.05, 0.75]);
-  const pet0VideoY = useTransform(smoothProgress, [0.36, 0.39], [40, 0]);
+  const pet0BubbleOpacity = useTransform(smoothProgress, [0.33, 0.345, 0.39, 0.405], [0, 1, 1, 0]);
+  const pet0BubbleScale = useTransform(smoothProgress, [0.33, 0.345, 0.39, 0.405], [0.85, 1, 1, 0.85]);
+  const pet0VideoOpacity = useTransform(smoothProgress, [0.39, 0.405, 0.435, 0.45], [0, 1, 1, 0]);
+  const pet0VideoScale = useTransform(smoothProgress, [0.39, 0.405, 0.435, 0.45], [0.75, 1.05, 1.05, 0.75]);
+  const pet0VideoY = useTransform(smoothProgress, [0.39, 0.405], [40, 0]);
   const pet0PointerEvents = useTransform(pet0Opacity, (v) => v > 0.15 ? "auto" : "none");
   const pet0BubblePointerEvents = useTransform(pet0BubbleOpacity, (v) => v > 0.15 ? "auto" : "none");
 
   // Pet 1 (Nika) transforms: [0.45, 0.57]
-  // Bubble fades 0.50→0.52. Video cross-fades starting at 0.48.
+  // Bubble fades 0.51→0.525. Video cross-fades starting at 0.51.
   const pet1Opacity = useTransform(smoothProgress, [0.435, 0.465, 0.555, 0.57], [0, 1, 1, 0]);
   const pet1Scale = useTransform(smoothProgress, [0.435, 0.465, 0.555, 0.57], [0.9, 1, 1, 0.9]);
   const pet1AvatarScale = useTransform(smoothProgress, [0.45, 0.47, 0.55, 0.57], [0.8, 1, 1, 0.8]);
   const pet1AvatarOpacity = useTransform(smoothProgress, [0.45, 0.47, 0.55, 0.57], [0, 1, 1, 0]);
-  const pet1BubbleOpacity = useTransform(smoothProgress, [0.45, 0.465, 0.49, 0.51], [0, 1, 1, 0]);
-  const pet1BubbleScale = useTransform(smoothProgress, [0.45, 0.465, 0.49, 0.51], [0.85, 1, 1, 0.85]);
-  const pet1VideoOpacity = useTransform(smoothProgress, [0.48, 0.505, 0.555, 0.57], [0, 1, 1, 0]);
-  const pet1VideoScale = useTransform(smoothProgress, [0.48, 0.505, 0.555, 0.57], [0.75, 1.05, 1.05, 0.75]);
-  const pet1VideoY = useTransform(smoothProgress, [0.48, 0.51], [40, 0]);
+  const pet1BubbleOpacity = useTransform(smoothProgress, [0.45, 0.465, 0.51, 0.525], [0, 1, 1, 0]);
+  const pet1BubbleScale = useTransform(smoothProgress, [0.45, 0.465, 0.51, 0.525], [0.85, 1, 1, 0.85]);
+  const pet1VideoOpacity = useTransform(smoothProgress, [0.51, 0.525, 0.555, 0.57], [0, 1, 1, 0]);
+  const pet1VideoScale = useTransform(smoothProgress, [0.51, 0.525, 0.555, 0.57], [0.75, 1.05, 1.05, 0.75]);
+  const pet1VideoY = useTransform(smoothProgress, [0.51, 0.525], [40, 0]);
   const pet1PointerEvents = useTransform(pet1Opacity, (v) => v > 0.15 ? "auto" : "none");
   const pet1BubblePointerEvents = useTransform(pet1BubbleOpacity, (v) => v > 0.15 ? "auto" : "none");
 
   // Pet 2 (Sam) transforms: [0.57, 0.69]
-  // Bubble fades 0.62→0.64. Video cross-fades starting at 0.60.
+  // Bubble fades 0.63→0.645. Video cross-fades starting at 0.63.
   const pet2Opacity = useTransform(smoothProgress, [0.555, 0.585, 0.675, 0.69], [0, 1, 1, 0]);
   const pet2Scale = useTransform(smoothProgress, [0.555, 0.585, 0.675, 0.69], [0.9, 1, 1, 0.9]);
   const pet2AvatarScale = useTransform(smoothProgress, [0.57, 0.59, 0.67, 0.69], [0.8, 1, 1, 0.8]);
   const pet2AvatarOpacity = useTransform(smoothProgress, [0.57, 0.59, 0.67, 0.69], [0, 1, 1, 0]);
-  const pet2BubbleOpacity = useTransform(smoothProgress, [0.57, 0.585, 0.61, 0.63], [0, 1, 1, 0]);
-  const pet2BubbleScale = useTransform(smoothProgress, [0.57, 0.585, 0.61, 0.63], [0.85, 1, 1, 0.85]);
-  const pet2VideoOpacity = useTransform(smoothProgress, [0.60, 0.625, 0.675, 0.69], [0, 1, 1, 0]);
-  const pet2VideoScale = useTransform(smoothProgress, [0.60, 0.625, 0.675, 0.69], [0.75, 1.05, 1.05, 0.75]);
-  const pet2VideoY = useTransform(smoothProgress, [0.60, 0.63], [40, 0]);
+  const pet2BubbleOpacity = useTransform(smoothProgress, [0.57, 0.585, 0.63, 0.645], [0, 1, 1, 0]);
+  const pet2BubbleScale = useTransform(smoothProgress, [0.57, 0.585, 0.63, 0.645], [0.85, 1, 1, 0.85]);
+  const pet2VideoOpacity = useTransform(smoothProgress, [0.63, 0.645, 0.675, 0.69], [0, 1, 1, 0]);
+  const pet2VideoScale = useTransform(smoothProgress, [0.63, 0.645, 0.675, 0.69], [0.75, 1.05, 1.05, 0.75]);
+  const pet2VideoY = useTransform(smoothProgress, [0.63, 0.645], [40, 0]);
   const pet2PointerEvents = useTransform(pet2Opacity, (v) => v > 0.15 ? "auto" : "none");
   const pet2BubblePointerEvents = useTransform(pet2BubbleOpacity, (v) => v > 0.15 ? "auto" : "none");
 
-  // Pet 3 (Miel) transforms: [0.69, 0.83] — extended end for more video time
-  // Bubble fades 0.74→0.76. Video cross-fades starting at 0.72. Extended to 0.83.
+  // Pet 3 (Miel) transforms: [0.69, 0.83]
+  // Bubble fades 0.75→0.765. Video cross-fades starting at 0.75.
   const pet3Opacity = useTransform(smoothProgress, [0.675, 0.705, 0.81, 0.83], [0, 1, 1, 0]);
   const pet3Scale = useTransform(smoothProgress, [0.675, 0.705, 0.81, 0.83], [0.9, 1, 1, 0.9]);
   const pet3AvatarScale = useTransform(smoothProgress, [0.69, 0.71, 0.81, 0.83], [0.8, 1, 1, 0.8]);
   const pet3AvatarOpacity = useTransform(smoothProgress, [0.69, 0.71, 0.81, 0.83], [0, 1, 1, 0]);
-  const pet3BubbleOpacity = useTransform(smoothProgress, [0.69, 0.705, 0.73, 0.75], [0, 1, 1, 0]);
-  const pet3BubbleScale = useTransform(smoothProgress, [0.69, 0.705, 0.73, 0.75], [0.85, 1, 1, 0.85]);
-  const pet3VideoOpacity = useTransform(smoothProgress, [0.72, 0.745, 0.81, 0.83], [0, 1, 1, 0]);
-  const pet3VideoScale = useTransform(smoothProgress, [0.72, 0.745, 0.81, 0.83], [0.75, 1.05, 1.05, 0.75]);
-  const pet3VideoY = useTransform(smoothProgress, [0.72, 0.75], [40, 0]);
+  const pet3BubbleOpacity = useTransform(smoothProgress, [0.69, 0.705, 0.75, 0.765], [0, 1, 1, 0]);
+  const pet3BubbleScale = useTransform(smoothProgress, [0.69, 0.705, 0.75, 0.765], [0.85, 1, 1, 0.85]);
+  const pet3VideoOpacity = useTransform(smoothProgress, [0.75, 0.765, 0.81, 0.83], [0, 1, 1, 0]);
+  const pet3VideoScale = useTransform(smoothProgress, [0.75, 0.765, 0.81, 0.83], [0.75, 1.05, 1.05, 0.75]);
+  const pet3VideoY = useTransform(smoothProgress, [0.75, 0.765], [40, 0]);
   const pet3PointerEvents = useTransform(pet3Opacity, (v) => v > 0.15 ? "auto" : "none");
   const pet3BubblePointerEvents = useTransform(pet3BubbleOpacity, (v) => v > 0.15 ? "auto" : "none");
 
@@ -600,7 +600,7 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
   const flowerCircleScale = useTransform(smoothProgress, [0.28, 0.36], [0, 1]);
 
   // Pet GIF scroll transforms (hoisted to respect Rules of Hooks)
-  const petGifOpacity = useTransform(smoothProgress, [0.78, 0.85], [0, 0.85]);
+  const petGifOpacity = useTransform(smoothProgress, [0.78, 0.85], [0, 0.70]);
   const petGifScale = useTransform(smoothProgress, [0.78, 0.88], [0.5, 1]);
 
   // Mic candle states
@@ -694,15 +694,15 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
   }, [smoothProgress]);
 
   // Track active pet scroll progress to toggle video and BGM mute states
-  // Play triggers start 0.01 before the video becomes visible to pre-buffer playback
+  // Play triggers start precisely as the video becomes visible (approx. 0.395, 0.515, 0.635, 0.755)
   useEffect(() => {
     let prevIdx = -1;
     const unsubscribe = smoothProgress.on("change", (latest) => {
       let activeIdx = -1;
-      if (latest >= 0.35 && latest < 0.45) activeIdx = 0;
-      else if (latest >= 0.47 && latest < 0.57) activeIdx = 1;
-      else if (latest >= 0.59 && latest < 0.69) activeIdx = 2;
-      else if (latest >= 0.71 && latest < 0.83) activeIdx = 3;
+      if (latest >= 0.395 && latest < 0.45) activeIdx = 0;
+      else if (latest >= 0.515 && latest < 0.57) activeIdx = 1;
+      else if (latest >= 0.635 && latest < 0.69) activeIdx = 2;
+      else if (latest >= 0.755 && latest < 0.83) activeIdx = 3;
 
       if (activeIdx !== prevIdx) {
         prevIdx = activeIdx;
@@ -1086,13 +1086,24 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
             />
           ))}
         </motion.div>
+      </motion.div>
 
-        {/* Pet GIFs — small, scattered among flowers, appear near the end */}
-        {[
-          { src: '/cumple/Kiaro.gif', top: '20%', left: '10%', size: 'w-24 h-24 sm:w-32 sm:h-32', rotate: 0 },
-          { src: '/cumple/Nika.gif', bottom: '5%', left: '22%', size: 'w-20 h-20 sm:w-28 sm:h-28', rotate: 0 },
-          { src: '/cumple/Miel.gif', bottom: '5%', right: '28%', size: 'w-20 h-20 sm:w-28 sm:h-28', rotate: 0 },
-        ].map((gif, idx) => (
+      {/* Pet GIFs Container (rendered in front of navbar, but behind canvas, z-[51]) */}
+      <motion.div className="fixed inset-0 pointer-events-none z-[51] overflow-hidden">
+        {([
+          { src: '/cumple/Kiaro.gif', left: '50%', size: 'w-24 h-24 sm:w-32 sm:h-32', rotate: 0, classPosition: 'bottom-[calc(4.6rem+env(safe-area-inset-bottom,0px))] lg:bottom-4 -translate-x-1/2' },
+          { src: '/cumple/Nika.gif', left: '22%', size: 'w-20 h-20 sm:w-28 sm:h-28', rotate: 0, classPosition: 'bottom-0' },
+          { src: '/cumple/Miel.gif', right: '28%', size: 'w-20 h-20 sm:w-28 sm:h-28', rotate: 0, classPosition: 'bottom-0' },
+        ] as {
+          src: string;
+          top?: string;
+          bottom?: string;
+          left?: string;
+          right?: string;
+          size: string;
+          rotate: number;
+          classPosition: string;
+        }[]).map((gif, idx) => (
           <motion.img
             key={`pet-gif-${idx}`}
             src={gif.src}
@@ -1103,10 +1114,9 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
               ...(gif.top ? { top: gif.top } : {}),
               ...(gif.bottom ? { bottom: gif.bottom } : {}),
               ...(gif.left ? { left: gif.left } : { right: gif.right }),
-              rotate: gif.rotate,
-              zIndex: 8
+              rotate: gif.rotate
             }}
-            className={`absolute object-contain pointer-events-none ${gif.size}`}
+            className={`absolute object-contain pointer-events-none blur-[0.6px] sm:blur-[0.8px] ${gif.size} ${gif.classPosition || ''}`}
           />
         ))}
       </motion.div>
@@ -1122,7 +1132,7 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
           transform: 'translateZ(0)',
           backfaceVisibility: 'hidden'
         }}
-        className="fixed inset-0 w-full ios-viewport-fix flex flex-col items-center justify-end pb-12 sm:pb-20 z-[30]"
+        className="fixed inset-0 w-full ios-viewport-fix flex flex-col items-center justify-center z-[30]"
       >
         <div className="w-full max-w-2xl px-4 text-center space-y-6 pointer-events-auto pt-[env(safe-area-inset-top,59px)] pb-[env(safe-area-inset-bottom,34px)]">
           <div className="border border-white/10 bg-black/75 backdrop-blur-md pt-8 px-6 pb-6 sm:pt-10 sm:px-10 sm:pb-8 relative">
@@ -1385,7 +1395,7 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
       >
         <div className="w-full max-w-4xl px-4 space-y-3 sm:space-y-4 pointer-events-auto pb-[calc(1.5rem+env(safe-area-inset-bottom,34px))] max-h-[80vh] sm:max-h-[85vh] overflow-y-auto pr-1 custom-scrollbar">
 
-          <div className="border border-white/10 bg-black/75 backdrop-blur-md pt-4 px-4 pb-2 sm:pt-6 sm:px-6 sm:pb-4 relative text-center space-y-3 sm:space-y-4 max-w-xl mx-auto">
+          <div className="border border-white/10 bg-black/75 backdrop-blur-md pt-4 px-4 pb-10 sm:pt-6 sm:px-6 sm:pb-12 relative text-center space-y-3 sm:space-y-4 max-w-xl mx-auto">
             <AnimatedBrutalistCorners key={`${candlesBlown}-${cakeState}-${micPermission}`} color="#ff4b89" size={14} thickness={1.5} />
 
             <div className="space-y-1">
@@ -1452,7 +1462,7 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
                 y: candlesBlown ? -10 : 0
               }}
               transition={{ duration: 0.8, ease: "easeInOut" }}
-              className="relative py-2 sm:py-4 flex flex-col items-center justify-center"
+              className="relative pt-2 pb-0 sm:pt-4 sm:pb-0 flex flex-col items-center justify-center"
             >
 
               {/* Confetti particles canvas */}
@@ -1619,7 +1629,7 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
                 <motion.div
                   initial={{ opacity: 0, y: 5 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="p-2 border border-[#c3f400] bg-[#c3f400]/10 text-center font-mono text-[9px] text-white uppercase tracking-widest relative z-30"
+                  className="p-2 border border-[#c3f400] bg-[#c3f400]/10 text-center font-mono text-[9px] text-white uppercase tracking-widest relative z-30 !mt-1 sm:!mt-2"
                 >
                   🎉 ¡Felicidades, Mile! Abre tus regalos aquí abajo: 🎉
                 </motion.div>
@@ -1709,7 +1719,7 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
               >
                 <div className="text-center mb-4 shrink-0">
                   {selectedGift.icon.endsWith('.svg') ? (
-                    <img src={selectedGift.icon} alt="" className="w-28 h-28 mx-auto block mb-2 object-contain" />
+                    <img src={selectedGift.icon} alt="" className="w-42 h-42 mx-auto block mb-2 object-contain" />
                   ) : (
                     <span className="text-5xl mx-auto block mb-2">{selectedGift.icon}</span>
                   )}
@@ -1812,9 +1822,9 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
                     <div className="flex flex-col space-y-5">
                       {/* Physical gift hint */}
                       <div className="p-6 bg-cyan-950/40 border border-cyan-500/20 rounded-none text-center shadow-lg space-y-3 flex flex-col items-center">
-                        <img 
-                          src="/cumple/Stitch.svg" 
-                          alt="Stitch" 
+                        <img
+                          src="/cumple/Stitch.svg"
+                          alt="Stitch"
                           className="w-28 h-28 object-contain mb-2"
                           style={{ animation: 'holo-float 3s ease-in-out infinite' }}
                         />

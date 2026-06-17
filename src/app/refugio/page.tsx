@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { PrivateRoute } from "@/components/PrivateRoute";
 import { JarOfNotes } from "@/components/JarOfNotes";
 import { PersistentListening } from "@/components/PersistentListening";
@@ -8,13 +9,48 @@ import { PetSpaceHub } from "@/components/PetSpaceHub";
 import { Timeline } from "@/components/Timeline";
 import { useStore } from "@/context/StoreContext";
 import { useProfile } from "@/context/ProfileContext";
-import { MessageCircleHeart, Mic, PawPrint, Clock } from 'lucide-react';
+import { MessageCircleHeart, Mic, PawPrint, Clock, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function RefugioPage() {
   type RefugioTab = 'notas' | 'escucha' | 'bebes' | 'historia';
 
   const [activeTab, setActiveTab] = useState<RefugioTab>('historia');
+
+  const [timeLeft, setTimeLeft] = useState<{
+    days: number;
+    hours: number;
+    minutes: number;
+    seconds: number;
+    isExpired: boolean;
+  }>({ days: 7, hours: 0, minutes: 0, seconds: 0, isExpired: false });
+
+  useEffect(() => {
+    const targetDate = new Date(2026, 5, 24, 0, 0, 0); // June 24, 2026 (month is 0-indexed)
+    
+    const updateTime = () => {
+      const now = new Date();
+      const difference = targetDate.getTime() - now.getTime();
+      
+      if (difference <= 0) {
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0, isExpired: true });
+        return;
+      }
+      
+      const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
+      const minutes = Math.floor((difference / 1000 / 60) % 60);
+      const seconds = Math.floor((difference / 1000) % 60);
+      
+      setTimeLeft({ days, hours, minutes, seconds, isExpired: false });
+    };
+
+    updateTime();
+    const timer = setInterval(updateTime, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const isBirthdayActive = !timeLeft.isExpired && (new Date() >= new Date(2026, 5, 17, 0, 0, 0));
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -61,6 +97,48 @@ export default function RefugioPage() {
               </h1>
             </div>
           </div>
+
+          {isBirthdayActive && (
+            <div className="border-b border-[#ff4b89]/20 bg-[#070105]/80 p-6 sm:p-8 relative overflow-hidden flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+              {/* Brutalist status border */}
+              <div className="absolute left-0 top-0 h-full w-2 bg-gradient-to-b from-[#ff4b89] via-[#c3f400] to-purple-600" />
+              
+              <div className="space-y-3 relative z-10 max-w-2xl">
+                <div className="flex items-center gap-2 text-[9px] font-mono font-bold tracking-[0.3em] text-[#ff4b89]">
+                  <Sparkles size={12} className="text-[#c3f400] animate-pulse" />
+                  <span>SECCIÓN TEMPORAL ACTIVA // PROTOCOLO DE CUMPLEAÑOS</span>
+                </div>
+                
+                <h2 className="text-2xl font-mono font-black uppercase text-white leading-none tracking-wide">
+                  ¡FELIZ CUMPLEAÑOS, MILE! 🎂✨
+                </h2>
+                
+                <p className="text-xs leading-relaxed text-[#e1bfb2] font-sans">
+                  Se ha desbloqueado una experiencia interactiva exclusiva para ti con cartas de la tripulación, videos, pasteles interactivos y sorpresas creadas con mucho cariño. ¡No te la pierdas!
+                </p>
+
+                {/* Countdown technical design */}
+                <div className="flex flex-wrap items-center gap-3 pt-1 font-mono text-[9px] text-[#a88a7e] uppercase">
+                  <span>EXPIRACIÓN DEL PROTOCOLO EN:</span>
+                  <div className="flex gap-1.5 text-white font-bold bg-black/40 px-2 py-0.5 border border-white/5 tracking-wider">
+                    <span className="text-[#c3f400]">{timeLeft.days}D</span> :
+                    <span className="text-[#c3f400]">{timeLeft.hours.toString().padStart(2, '0')}H</span> :
+                    <span className="text-[#c3f400]">{timeLeft.minutes.toString().padStart(2, '0')}M</span> :
+                    <span className="text-[#c3f400]">{timeLeft.seconds.toString().padStart(2, '0')}S</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="shrink-0 relative z-10 self-start md:self-center">
+                <Link
+                  href="/cumple"
+                  className="inline-block px-6 py-4 bg-gradient-to-r from-[#ff4b89] to-purple-600 hover:from-[#ff70a9] hover:to-purple-500 border border-white/10 text-white font-mono text-[10px] font-black uppercase tracking-widest text-center shadow-[0_0_20px_rgba(255,75,137,0.25)] hover:shadow-[0_0_25px_rgba(255,75,137,0.45)] active:scale-95 transition-all"
+                >
+                  [ INGRESAR A LA EXPERIENCIA ]
+                </Link>
+              </div>
+            </div>
+          )}
 
           <div className="grid grid-cols-2 border-b border-white/10 bg-black sm:grid-cols-4 lg:grid-cols-4">
             {tabs.map((tab) => (
