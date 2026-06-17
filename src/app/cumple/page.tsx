@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence, useScroll, useTransform, useSpring } from 'framer-motion';
+import { createPortal } from 'react-dom';
 import {
   Mic,
   MicOff,
@@ -157,7 +158,7 @@ function FloatingFlower({
   zOffset = 0
 }: FloatingFlowerProps) {
   const rangeStart = 0.18 + delay;
-  const rangeEnd = 0.40 + delay * 0.5;
+  const rangeEnd = 0.81 + delay * 0.05;
   const x = useTransform(smoothProgress, [rangeStart, rangeEnd], ['0vw', `${targetXOffset}vw`]);
   const y = useTransform(smoothProgress, [rangeStart, rangeEnd], ['0vh', `${targetYOffset}vh`]);
   const rotate = useTransform(smoothProgress, [rangeStart, rangeEnd], [initialRotate, targetRotate]);
@@ -231,7 +232,7 @@ const GIFTS_DATA = [
     title: 'Cena Romántica',
     subtitle: 'Un momento solo para los dos',
     icon: '🥂',
-    color: 'from-amber-400 to-amber-600',
+    color: 'from-[#ff4b89] to-[#a178ff]',
     type: 'invitation',
     details: {
       title: 'Cena Sorpresa Secreta',
@@ -244,18 +245,29 @@ const GIFTS_DATA = [
     title: 'Nuestra Historia',
     subtitle: 'Un viaje en el tiempo',
     icon: '📸',
-    color: 'from-pink-500 to-purple-600',
+    color: 'from-[#a178ff] to-[#c3f400]',
     type: 'timeline'
   },
   {
     id: 'gift-mystery',
     title: 'Paquete Misterioso',
     subtitle: '¿Qué podrá ser?',
-    icon: '[ OBJ ]',
-    color: 'from-cyan-500 to-blue-600',
+    icon: '/cumple/Open Colorful Gift Box.svg',
+    color: 'from-[#c3f400] to-[#ff4b89]',
     type: 'mystery',
     details: {
-      hint: 'Físico, envuelto con amor y esperando por ti en la sala...'
+      hint: 'Es un paquete físico envuelto con amor... ¡Pero ni yo sé dónde o cómo va a aparecer!'
+    }
+  },
+  {
+    id: 'gift-todos-video',
+    title: 'Felicidades',
+    subtitle: 'Mensajes de todos',
+    icon: '/cumple/Open Colorful Gift Box.svg',
+    color: 'from-[#ff4b89] via-[#a178ff] to-[#c3f400]',
+    type: 'video-all',
+    details: {
+      videoUrl: '/cumple/todos.mp4'
     }
   }
 ];
@@ -324,12 +336,23 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
   const events = useMemo(() => (data?.events || []) as any[], [data?.events]);
 
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const bgCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [mounted, setMounted] = useState(false);
 
-  // Background falling and accumulating flowers canvas logic
   useEffect(() => {
-    const canvas = bgCanvasRef.current;
+    setMounted(true);
+  }, []);
+
+  const canvasCleanupRef = useRef<(() => void) | null>(null);
+
+  const bgCanvasRef = useCallback((canvas: HTMLCanvasElement | null) => {
+    // Clean up previous canvas loop if any
+    if (canvasCleanupRef.current) {
+      canvasCleanupRef.current();
+      canvasCleanupRef.current = null;
+    }
+
     if (!canvas) return;
+
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
@@ -343,10 +366,10 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
     const loadedImages: HTMLImageElement[] = [];
     FLOATING_FLOWERS.forEach((src) => {
       const img = new Image();
-      img.src = src;
       img.onload = () => {
         loadedImages.push(img);
       };
+      img.src = src;
     });
 
     interface Particle {
@@ -373,21 +396,27 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
     let fallingParticles: Particle[] = [];
     const staticFlowers: StaticFlower[] = [];
 
-    const maxFalling = 15;
-    const maxStatic = 150;
+    const maxFalling = 40;
+    const maxStatic = 300;
     let frameId: number;
 
     const tick = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+      // Canvas debugging indicator dot at top-center
+      ctx.fillStyle = '#ff4b89';
+      ctx.beginPath();
+      ctx.arc(canvas.width / 2, 8, 4, 0, Math.PI * 2);
+      ctx.fill();
+
       // Spawn falling flowers
-      if (fallingParticles.length < maxFalling && Math.random() < 0.02) {
+      if (fallingParticles.length < maxFalling && Math.random() < 0.08) {
         fallingParticles.push({
           x: Math.random() * canvas.width,
           y: -40,
           size: Math.random() * 16 + 14,
-          speedX: (Math.random() - 0.5) * 0.8,
-          speedY: Math.random() * 1.2 + 0.8,
+          speedX: (Math.random() - 0.5) * 1.2,
+          speedY: Math.random() * 2.0 + 1.5,
           rot: Math.random() * 360,
           rotSpeed: (Math.random() - 0.5) * 1.5,
           imgIdx: Math.floor(Math.random() * FLOATING_FLOWERS.length),
@@ -459,7 +488,7 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
       tick();
     }, 200);
 
-    return () => {
+    canvasCleanupRef.current = () => {
       cancelAnimationFrame(frameId);
       clearTimeout(startTimeout);
       window.removeEventListener('resize', resizeCanvas);
@@ -487,12 +516,12 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
 
   // Flower lateral transformations - they stay visible longer (up to 0.85)
   const flowerLeftOpacity = useTransform(smoothProgress, [0.15, 0.22, 0.81, 0.85], [0, 1, 1, 0]);
-  const flowerLeftX = useTransform(smoothProgress, [0.15, 0.22, 0.81, 0.85], ['-100vw', '0vw', '0vw', '-50vw']);
-  const flowerLeftRotate = useTransform(smoothProgress, [0.15, 0.22, 0.81, 0.85], [-45, 5, 5, -15]);
+  const flowerLeftX = useTransform(smoothProgress, [0.15, 0.22, 0.26, 0.35, 0.81, 0.85], ['-100vw', '35vw', '35vw', '0vw', '0vw', '-50vw']);
+  const flowerLeftRotate = useTransform(smoothProgress, [0.15, 0.22, 0.26, 0.35, 0.81, 0.85], [-45, 12, 12, 5, 5, -15]);
 
   const flowerRightOpacity = useTransform(smoothProgress, [0.17, 0.25, 0.81, 0.85], [0, 1, 1, 0]);
-  const flowerRightX = useTransform(smoothProgress, [0.17, 0.25, 0.81, 0.85], ['100vw', '0vw', '0vw', '50vw']);
-  const flowerRightRotate = useTransform(smoothProgress, [0.17, 0.25, 0.81, 0.85], [45, -8, -8, 15]);
+  const flowerRightX = useTransform(smoothProgress, [0.17, 0.25, 0.26, 0.35, 0.81, 0.85], ['100vw', '-35vw', '-35vw', '0vw', '0vw', '50vw']);
+  const flowerRightRotate = useTransform(smoothProgress, [0.17, 0.25, 0.26, 0.35, 0.81, 0.85], [45, -12, -12, -8, -8, 15]);
 
   // Parallax transform calculations for floating scroll decorations
   const yFlow1 = useTransform(smoothProgress, [0.1, 0.9], [0, -150]);
@@ -987,11 +1016,14 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
   return (
     <div
       ref={containerRef}
-      className="relative w-full min-h-[600vh] bg-gradient-to-b from-slate-950 via-purple-950 to-pink-950 text-white overflow-x-hidden select-none pt-[env(safe-area-inset-top,59px)] pb-[env(safe-area-inset-bottom,34px)]"
+      className="relative w-full min-h-[600vh] bg-gradient-to-b from-black via-[#07030e] via-[#12041b] via-[#1c0211] via-[#090108] to-black text-white overflow-x-hidden select-none pt-[env(safe-area-inset-top,59px)] pb-[env(safe-area-inset-bottom,34px)]"
       style={{ touchAction: 'pan-y' }}
     >
-      {/* Background falling and accumulating flowers canvas */}
-      <canvas ref={bgCanvasRef} className="fixed inset-0 pointer-events-none z-[59]" />
+      {/* Background falling and accumulating flowers canvas (rendered in portal to stack on top of navbar z-50) */}
+      {mounted && typeof window !== 'undefined' && createPortal(
+        <canvas ref={bgCanvasRef} className="fixed inset-0 pointer-events-none z-[59]" />,
+        document.body
+      )}
       {/* Viewport units Safari normalization fix */}
       <style dangerouslySetInnerHTML={{
         __html: `
@@ -1011,7 +1043,7 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
 
       {/* CAPA DE LAS FLORES (Parallax Lateral y Ramo) */}
       <motion.div
-        className="fixed inset-0 pointer-events-none z-[58] overflow-hidden"
+        className="fixed inset-0 pointer-events-none z-[20] overflow-hidden"
       >
         {/* Lateral Izquierdo */}
         <motion.div
@@ -1057,10 +1089,9 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
 
         {/* Pet GIFs — small, scattered among flowers, appear near the end */}
         {[
-          { src: '/cumple/Kiaro.gif', top: '20%', left: '10%',  size: 'w-24 h-24 sm:w-32 sm:h-32', rotate: 0 },
-          { src: '/cumple/Nika.gif',  bottom: '5%', left: '22%', size: 'w-20 h-20 sm:w-28 sm:h-28', rotate: 0 },
-          { src: '/cumple/Sam.gif',   bottom: '5%', right: '8%', size: 'w-20 h-20 sm:w-28 sm:h-28', rotate: 0 },
-          { src: '/cumple/Miel.gif',  bottom: '5%', right: '28%', size: 'w-20 h-20 sm:w-28 sm:h-28', rotate: 0 },
+          { src: '/cumple/Kiaro.gif', top: '20%', left: '10%', size: 'w-24 h-24 sm:w-32 sm:h-32', rotate: 0 },
+          { src: '/cumple/Nika.gif', bottom: '5%', left: '22%', size: 'w-20 h-20 sm:w-28 sm:h-28', rotate: 0 },
+          { src: '/cumple/Miel.gif', bottom: '5%', right: '28%', size: 'w-20 h-20 sm:w-28 sm:h-28', rotate: 0 },
         ].map((gif, idx) => (
           <motion.img
             key={`pet-gif-${idx}`}
@@ -1091,7 +1122,7 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
           transform: 'translateZ(0)',
           backfaceVisibility: 'hidden'
         }}
-        className="fixed inset-0 w-full ios-viewport-fix flex flex-col items-center justify-end pb-12 sm:pb-20 z-[60]"
+        className="fixed inset-0 w-full ios-viewport-fix flex flex-col items-center justify-end pb-12 sm:pb-20 z-[30]"
       >
         <div className="w-full max-w-2xl px-4 text-center space-y-6 pointer-events-auto pt-[env(safe-area-inset-top,59px)] pb-[env(safe-area-inset-bottom,34px)]">
           <div className="border border-white/10 bg-black/75 backdrop-blur-md pt-8 px-6 pb-6 sm:pt-10 sm:px-10 sm:pb-8 relative">
@@ -1130,7 +1161,7 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
           transform: 'translateZ(0)',
           backfaceVisibility: 'hidden'
         }}
-        className="fixed inset-0 w-full ios-viewport-fix flex flex-col items-center justify-end pb-12 sm:pb-20 z-[60]"
+        className="fixed inset-0 w-full ios-viewport-fix flex flex-col items-center justify-center z-[30]"
       >
         <div className="w-full max-w-2xl px-4 space-y-6 text-center pointer-events-auto relative pt-[env(safe-area-inset-top,59px)] pb-[env(safe-area-inset-bottom,34px)]">
 
@@ -1219,7 +1250,7 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
           transform: 'translateZ(0)',
           backfaceVisibility: 'hidden'
         }}
-        className="fixed inset-0 w-full ios-viewport-fix flex flex-col items-center justify-center z-[60]"
+        className="fixed inset-0 w-full ios-viewport-fix flex flex-col items-center justify-center z-[30]"
       >
         <div className="w-full max-w-xl px-4 pointer-events-auto pt-[env(safe-area-inset-top,59px)] pb-[env(safe-area-inset-bottom,34px)] relative h-[60dvh] flex flex-col justify-center">
           {/* Section header */}
@@ -1260,7 +1291,7 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
                         <img
                           src={pet.src}
                           alt={pet.name}
-                          className="w-full h-full object-cover pointer-events-none select-none grayscale contrast-125"
+                          className="w-full h-full object-cover pointer-events-none select-none"
                         />
                         <div className="absolute inset-0 bg-slate-950/20" />
                       </motion.div>
@@ -1288,8 +1319,8 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
                       >
                         <div className="flex flex-col gap-2 text-center items-center">
                           <div className="flex justify-between w-full border-b border-white/10 pb-2 mb-2">
-                             <span className="text-[7px] text-stone-500 font-mono tracking-widest uppercase">ID: {pet.id.toUpperCase()}</span>
-                             <span className="text-[7px] text-white font-mono tracking-widest uppercase">MENSAJE</span>
+                            <span className="text-[7px] text-stone-500 font-mono tracking-widest uppercase">ID: {pet.id.toUpperCase()}</span>
+                            <span className="text-[7px] text-white font-mono tracking-widest uppercase">MENSAJE</span>
                           </div>
                           <span className="text-[8px] text-[#a88a7e] uppercase font-mono tracking-wider">{pet.role}</span>
                           <p className="text-[10px] leading-relaxed text-slate-100 antialiased font-mono uppercase mt-2">
@@ -1311,8 +1342,8 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
                           className="w-[300px] h-[225px] sm:w-[340px] sm:h-[255px] bg-[#0a0a0a] border border-white/10 relative pointer-events-none"
                         >
                           <div className="absolute top-0 left-0 w-full h-4 border-b border-white/10 bg-black flex items-center justify-between px-2">
-                             <span className="text-[6px] text-stone-500 font-mono uppercase tracking-widest">VIDEO FEED</span>
-                             <span className="text-[6px] text-white font-mono uppercase tracking-widest">ACTIVO</span>
+                            <span className="text-[6px] text-stone-500 font-mono uppercase tracking-widest">VIDEO FEED</span>
+                            <span className="text-[6px] text-white font-mono uppercase tracking-widest">ACTIVO</span>
                           </div>
                           <video
                             ref={el => { videoRefs.current[idx] = el; }}
@@ -1320,7 +1351,7 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
                             playsInline
                             muted
                             preload="auto"
-                            className="w-full h-full object-cover pt-4 grayscale contrast-125"
+                            className="w-full h-full object-contain pt-4"
                           />
                           {/* Recording status indicator */}
                           <div className="absolute top-5 left-2 bg-black/80 text-white font-mono text-[7px] font-bold uppercase tracking-wider px-1.5 py-0.5 border border-red-500/50 flex items-center gap-1">
@@ -1350,12 +1381,12 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
           transform: 'translateZ(0)',
           backfaceVisibility: 'hidden'
         }}
-        className="fixed inset-0 w-full ios-viewport-fix flex flex-col items-center justify-end pb-8 sm:pb-16 z-[60]"
+        className="fixed inset-0 w-full ios-viewport-fix flex flex-col items-center justify-start pt-20 pb-4 z-[30]"
       >
         <div className="w-full max-w-4xl px-4 space-y-3 sm:space-y-4 pointer-events-auto pb-[calc(1.5rem+env(safe-area-inset-bottom,34px))] max-h-[80vh] sm:max-h-[85vh] overflow-y-auto pr-1 custom-scrollbar">
 
           <div className="border border-white/10 bg-black/75 backdrop-blur-md pt-4 px-4 pb-2 sm:pt-6 sm:px-6 sm:pb-4 relative text-center space-y-3 sm:space-y-4 max-w-xl mx-auto">
-            <AnimatedBrutalistCorners color="#ff4b89" size={14} thickness={1.5} />
+            <AnimatedBrutalistCorners key={`${candlesBlown}-${cakeState}-${micPermission}`} color="#ff4b89" size={14} thickness={1.5} />
 
             <div className="space-y-1">
               <h3 className="text-[8px] font-mono font-bold uppercase tracking-[0.25em] text-[#a88a7e]">EL PASTEL DE CUMPLEAÑOS</h3>
@@ -1430,7 +1461,7 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
               </div>
 
               {/* Candles */}
-              <div className="flex justify-center gap-4 sm:gap-6 mb-[-1px] relative z-10">
+              <div className="flex justify-center gap-5 sm:gap-7 mb-[-1px] relative z-10">
                 {candles.map((lit, idx) => {
                   const isLit = cakeState === 'STATE_LIT' && lit;
                   return (
@@ -1440,28 +1471,77 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
                       className="flex flex-col items-center cursor-pointer group"
                     >
                       {/* Flame */}
-                      <div className="h-6 flex items-end">
+                      <div className="h-9 flex items-end justify-center overflow-visible w-6 relative">
                         <AnimatePresence>
                           {isLit ? (
-                            <motion.div
+                            <motion.svg
                               initial={{ scale: 0 }}
                               animate={{
-                                scale: [1, 1.12, 0.95, 1],
-                                y: [0, -2, 0],
-                                rotate: [0, -3, 3, 0]
+                                scale: [1, 1.15, 0.92, 1],
+                                y: [0, -3, 0],
+                                rotate: [0, -4, 4, 0]
                               }}
-                              exit={{ opacity: 0, scale: 0, y: -10 }}
+                              exit={{ opacity: 0, scale: 0, y: -15 }}
                               transition={{
                                 scale: { duration: 0.25 },
-                                y: { repeat: Infinity, duration: 1.4, ease: "easeInOut" },
-                                rotate: { repeat: Infinity, duration: 1.0, ease: "easeInOut" }
+                                y: { repeat: Infinity, duration: 1.2, ease: "easeInOut" },
+                                rotate: { repeat: Infinity, duration: 0.9, ease: "easeInOut" }
                               }}
-                              className="w-3 h-5 bg-gradient-to-t from-red-500 via-orange-400 to-yellow-200 rounded-none blur-[0.5px]"
-                              style={{
-                                boxShadow: '0 0 10px #ff7020, 0 0 18px #ffb595',
-                                transformOrigin: 'bottom center'
-                              }}
-                            />
+                              viewBox="0 0 24 36"
+                              className="w-5 h-8 overflow-visible"
+                              style={{ transformOrigin: 'bottom center' }}
+                            >
+                              <defs>
+                                <linearGradient id={`outerFlame-${idx}`} x1="0" y1="1" x2="0" y2="0">
+                                  <stop offset="0%" stopColor="#ff003c" stopOpacity="0.9" />
+                                  <stop offset="50%" stopColor="#ff7020" stopOpacity="0.95" />
+                                  <stop offset="100%" stopColor="#ffc300" stopOpacity="0" />
+                                </linearGradient>
+                                <linearGradient id={`innerFlame-${idx}`} x1="0" y1="1" x2="0" y2="0">
+                                  <stop offset="0%" stopColor="#ffb595" />
+                                  <stop offset="70%" stopColor="#ffffbb" />
+                                  <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
+                                </linearGradient>
+                              </defs>
+                              {/* Outer Glow & Flame */}
+                              <motion.path
+                                d="M12,4 C17,14 20,22 20,29 C20,34 16,36 12,36 C8,36 4,34 4,29 C4,22 7,14 12,4 Z"
+                                fill={`url(#outerFlame-${idx})`}
+                                animate={{
+                                  d: [
+                                    "M12,4 C17,14 20,22 20,29 C20,34 16,36 12,36 C8,36 4,34 4,29 C4,22 7,14 12,4 Z",
+                                    "M12,2 C18,14 21,21 21,29 C21,34 17,36 12,36 C7,36 3,34 3,29 C3,21 6,14 12,2 Z",
+                                    "M12,5 C16,14 19,22 19,29 C19,34 15,36 12,36 C9,36 5,34 5,29 C5,22 8,14 12,5 Z",
+                                    "M12,4 C17,14 20,22 20,29 C20,34 16,36 12,36 C8,36 4,34 4,29 C4,22 7,14 12,4 Z"
+                                  ]
+                                }}
+                                transition={{
+                                  repeat: Infinity,
+                                  duration: 0.8,
+                                  ease: "linear"
+                                }}
+                                style={{ filter: 'drop-shadow(0 0 6px #ff7020)' }}
+                              />
+                              {/* Inner Flame Core */}
+                              <motion.path
+                                d="M12,12 C15,18 17,24 17,29 C17,32 15,34 12,34 C9,34 7,32 7,29 C7,24 9,18 12,12 Z"
+                                fill={`url(#innerFlame-${idx})`}
+                                animate={{
+                                  d: [
+                                    "M12,12 C15,18 17,24 17,29 C17,32 15,34 12,34 C9,34 7,32 7,29 C7,24 9,18 12,12 Z",
+                                    "M12,10 C16,18 18,23 18,29 C18,32 15,34 12,34 C9,34 6,32 6,29 C6,23 8,18 12,10 Z",
+                                    "M12,13 C14,18 16,24 16,29 C16,32 14,34 12,34 C10,34 8,32 8,29 C8,24 10,18 12,13 Z",
+                                    "M12,12 C15,18 17,24 17,29 C17,32 15,34 12,34 C9,34 7,32 7,29 C7,24 9,18 12,12 Z"
+                                  ]
+                                }}
+                                transition={{
+                                  repeat: Infinity,
+                                  duration: 0.6,
+                                  ease: "linear",
+                                  delay: 0.1
+                                }}
+                              />
+                            </motion.svg>
                           ) : (
                             !lit && (
                               <motion.div
@@ -1478,24 +1558,59 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
                       </div>
 
                       {/* Candle body */}
-                      <div className="w-2 h-8 sm:h-10 bg-zinc-800 border-x border-t border-white/20 relative">
-                        <div className="absolute inset-x-0 top-2.5 h-1.5 bg-[#ff4b89]/60" />
-                        <div className="absolute inset-x-0 top-6 h-1.5 bg-[#c3f400]/60" />
+                      <div className="w-2.5 h-9 sm:h-11 bg-gradient-to-b from-zinc-700 to-zinc-900 border-x border-t border-white/20 relative flex items-center justify-center shadow-inner">
+                        {/* Glow light line inside candle body */}
+                        <div className="w-0.5 h-full bg-gradient-to-b from-[#ff4b89] via-[#c3f400] to-transparent opacity-75" />
+                        <div className="absolute inset-x-0 top-2 h-0.5 bg-[#ff4b89]/80" />
+                        <div className="absolute inset-x-0 bottom-2.5 h-0.5 bg-[#c3f400]/80" />
                       </div>
                     </div>
                   );
                 })}
               </div>
 
-              {/* Cake */}
-              <div className="w-40 sm:w-52 h-10 sm:h-14 bg-zinc-900 border border-white/10 relative z-0 flex flex-col justify-end p-2">
-                <div className="absolute inset-x-0 top-0 h-1.5 bg-[#ff4b89]" />
-                <div className="text-[8px] font-mono tracking-[0.3em] font-black text-center text-[#e1bfb2]/30 uppercase">
-                  Con mucho amor
+              {/* Layered Birthday Cake */}
+              <div className="flex flex-col items-center z-0 relative mt-[-1px]">
+                {/* Cake Tier 2 (Top) */}
+                <div className="w-36 sm:w-44 h-8 sm:h-10 bg-zinc-900 border border-white/10 relative flex flex-col justify-center p-1 shadow-md">
+                  {/* Frosting Top Line */}
+                  <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#ff4b89] via-[#a178ff] to-[#c3f400]" />
+                  {/* Neon frosting sprinkles */}
+                  <div className="flex justify-around px-2 opacity-60">
+                    <span className="w-1.5 h-1 bg-[#ff4b89] rotate-45" />
+                    <span className="w-1.5 h-1 bg-[#c3f400] -rotate-45" />
+                    <span className="w-1.5 h-1 bg-cyan-400 rotate-12" />
+                    <span className="w-1.5 h-1 bg-[#a178ff] -rotate-12" />
+                  </div>
                 </div>
-                <div className="h-0.5 bg-[#c3f400]/40 w-full mt-2" />
+
+                {/* Cake Tier 1 (Bottom) */}
+                <div className="w-48 sm:w-60 h-10 sm:h-12 bg-zinc-900 border-x border-b border-white/10 relative flex flex-col justify-end p-2 -mt-[1px] shadow-lg">
+                  {/* Frosting Middle Line */}
+                  <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-[#c3f400] via-[#ff4b89] to-[#a178ff]" />
+
+                  {/* Message */}
+                  <div className="text-[8px] font-mono tracking-[0.25em] font-black text-center text-[#fbdae0]/40 uppercase mb-0.5">
+                    Con mucho amor
+                  </div>
+
+                  {/* Sprinkles on bottom tier */}
+                  <div className="absolute inset-x-0 bottom-2 flex justify-between px-4 opacity-40">
+                    <span className="w-1 h-1 bg-[#c3f400]" />
+                    <span className="w-1.5 h-0.5 bg-[#ff4b89]" />
+                    <span className="w-1 h-1 bg-cyan-400" />
+                    <span className="w-1.5 h-0.5 bg-[#a178ff]" />
+                  </div>
+                </div>
+
+                {/* Cake Plate/Stand */}
+                <div className="w-56 sm:w-68 h-3 bg-zinc-800 border-x border-b border-white/20 relative shadow-2xl flex items-center justify-between px-4">
+                  {/* High-tech server details */}
+                  <div className="w-1.5 h-1.5 bg-[#c3f400] rounded-none opacity-60 animate-pulse" />
+                  <div className="h-0.5 bg-white/10 flex-grow mx-3" />
+                  <div className="w-1.5 h-1.5 bg-[#ff4b89] rounded-none opacity-60 animate-pulse" />
+                </div>
               </div>
-              <div className="w-48 sm:w-60 h-2 bg-zinc-800 border-x border-b border-white/20" />
             </motion.div>
 
             {/* Unlock Status Alert */}
@@ -1523,21 +1638,24 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
             >
               <div className="grid grid-cols-2 gap-4 w-full">
                 {GIFTS_DATA.map((gift) => {
-                  const isLarge = gift.type === 'mystery';
                   const isOpened = !!openedGifts[gift.id];
+                  const isSvgIcon = gift.icon.endsWith('.svg');
                   return (
                     <motion.div
                       key={gift.id}
                       layoutId={`container-${gift.id}`}
                       onClick={() => handleOpenGift(gift)}
-                      className={`relative cursor-pointer rounded-none p-4 bg-gradient-to-br ${gift.color} flex flex-col items-center justify-center text-center shadow-xl active:scale-95 transition-all duration-300 border border-white/10 ${isLarge ? 'col-span-2 h-36' : 'h-36'
-                        }`}
+                      className={`relative cursor-pointer rounded-none p-4 bg-gradient-to-br ${gift.color} flex flex-col items-center justify-center text-center shadow-xl active:scale-95 transition-all duration-300 border border-white/10 h-36`}
                       whileHover={{ scale: 1.02 }}
                     >
-                      <span className="text-3xl mb-1.5">{gift.icon}</span>
+                      {isSvgIcon ? (
+                        <img src={gift.icon} alt="" className="w-20 h-20 mb-1.5 object-contain" />
+                      ) : (
+                        <span className="text-4xl mb-1.5">{gift.icon}</span>
+                      )}
                       <h3 className="font-bold text-white text-sm tracking-wide">{gift.title}</h3>
                       <p className="text-[10px] text-white/80 mt-1 font-mono uppercase tracking-widest bg-black/20 px-2 py-0.5 rounded-none">
-                        {isOpened ? '[ EXPUESTO ]' : '[ REVELAR ]'}
+                        {isOpened ? 'EXPUESTO' : 'REVELAR'}
                       </p>
                     </motion.div>
                   );
@@ -1590,7 +1708,11 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
                 style={{ WebkitOverflowScrolling: 'touch' }}
               >
                 <div className="text-center mb-4 shrink-0">
-                  <span className="text-5xl mx-auto block mb-2">{selectedGift.icon}</span>
+                  {selectedGift.icon.endsWith('.svg') ? (
+                    <img src={selectedGift.icon} alt="" className="w-28 h-28 mx-auto block mb-2 object-contain" />
+                  ) : (
+                    <span className="text-5xl mx-auto block mb-2">{selectedGift.icon}</span>
+                  )}
                   <h2 className="text-xl font-black text-white tracking-tight">{selectedGift.title}</h2>
                   <p className="text-xs text-purple-300/70 mt-1">{selectedGift.subtitle}</p>
                 </div>
@@ -1685,96 +1807,42 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
                     </div>
                   )}
 
-                  {/* Case 3: Mystery Package + Coupons */}
+                  {/* Case 3: Mystery Package */}
                   {selectedGift.type === 'mystery' && (
                     <div className="flex flex-col space-y-5">
                       {/* Physical gift hint */}
-                      <div className="p-4 bg-cyan-950/40 border border-cyan-500/20 rounded-none text-center shadow-lg">
-                        <p className="text-[#00dbe9] font-bold text-xs mb-1.5 font-mono uppercase tracking-wider">REGALO EXTERNO</p>
-                        <p className="text-white text-xs italic font-medium">
+                      <div className="p-6 bg-cyan-950/40 border border-cyan-500/20 rounded-none text-center shadow-lg space-y-3 flex flex-col items-center">
+                        <img 
+                          src="/cumple/Stitch.svg" 
+                          alt="Stitch" 
+                          className="w-28 h-28 object-contain mb-2"
+                          style={{ animation: 'holo-float 3s ease-in-out infinite' }}
+                        />
+                        <p className="text-[#00dbe9] font-mono text-[10px] font-black uppercase tracking-[0.2em]">PAQUETE FÍSICO MISTERIOSO</p>
+                        <p className="text-white text-xs italic font-medium leading-relaxed max-w-xs">
                           &quot;{selectedGift.details?.hint}&quot;
                         </p>
+                        <div className="h-px bg-cyan-500/20 w-12 mx-auto my-2" />
+                        <p className="text-[10px] text-yellow-400 font-black uppercase font-mono tracking-widest leading-normal max-w-xs animate-pulse">
+                          ⚠️ ¡NI YO SÉ DÓNDE O CÓMO VA A APARECER!
+                        </p>
                       </div>
+                    </div>
+                  )}
 
-                      {/* Coupons section */}
-                      <div className="space-y-4">
-                        <div className="text-center">
-                          <h3 className="font-bold text-sm text-white uppercase tracking-wider">Cupones de Amor</h3>
-                          <p className="text-[10px] text-[#a88a7e] mt-1 leading-relaxed">
-                            Canjea estos cupones especiales y me llegará un mensaje directo para hacerlo realidad.
-                          </p>
-                        </div>
-
-                        <div className="space-y-3">
-                          {/* Coupon 1 */}
-                          <div className="border border-white/10 bg-black/60 p-4 flex flex-col justify-between items-stretch gap-3 relative rounded-xl shadow-md">
-                            <div className="absolute top-0 right-0 bg-[#d1bcff]/15 px-2 py-0.5 font-mono text-[7px] text-[#d1bcff] uppercase rounded-tr-xl rounded-bl-xl font-bold">
-                              CUPÓN 01
-                            </div>
-                            <div className="space-y-1">
-                              <h4 className="font-bold text-xs text-white uppercase tracking-tight">Masajes Premium</h4>
-                              <p className="text-[9.5px] text-[#e1bfb2] leading-relaxed">
-                                Una sesión de 30 minutos de masaje corporal de relajación absoluta con aceites esenciales por tu masajista de cabecera.
-                              </p>
-                            </div>
-                            <button
-                              disabled={redeemedCoupons.includes('massage')}
-                              onClick={() => handleRedeemCoupon('massage', 'Masajes Premium')}
-                              className={`w-full py-2 font-mono text-[9px] uppercase tracking-wider font-bold transition-all rounded-none ${redeemedCoupons.includes('massage')
-                                ? 'bg-zinc-800 text-stone-500 border border-transparent cursor-not-allowed'
-                                : 'bg-[#d1bcff] text-black hover:bg-[#bba1ff] border border-transparent active:scale-95'
-                                }`}
-                            >
-                              {redeemedCoupons.includes('massage') ? '✓ CANJEADO' : 'CANJEAR CUPÓN'}
-                            </button>
-                          </div>
-
-                          {/* Coupon 2 */}
-                          <div className="border border-white/10 bg-black/60 p-4 flex flex-col justify-between items-stretch gap-3 relative rounded-xl shadow-md">
-                            <div className="absolute top-0 right-0 bg-[#d1bcff]/15 px-2 py-0.5 font-mono text-[7px] text-[#d1bcff] uppercase rounded-tr-xl rounded-bl-xl font-bold">
-                              CUPÓN 02
-                            </div>
-                            <div className="space-y-1">
-                              <h4 className="font-bold text-xs text-white uppercase tracking-tight">Película Libre</h4>
-                              <p className="text-[9.5px] text-[#e1bfb2] leading-relaxed">
-                                Veremos la película o serie que tú elijas (sin importar el género) sin protestar, sin opiniones negativas y con atención completa.
-                              </p>
-                            </div>
-                            <button
-                              disabled={redeemedCoupons.includes('movie')}
-                              onClick={() => handleRedeemCoupon('movie', 'Elección de Película Sin Protestar')}
-                              className={`w-full py-2 font-mono text-[9px] uppercase tracking-wider font-bold transition-all rounded-none ${redeemedCoupons.includes('movie')
-                                ? 'bg-zinc-800 text-stone-500 border border-transparent cursor-not-allowed'
-                                : 'bg-[#d1bcff] text-black hover:bg-[#bba1ff] border border-transparent active:scale-95'
-                                }`}
-                            >
-                              {redeemedCoupons.includes('movie') ? '✓ CANJEADO' : 'CANJEAR CUPÓN'}
-                            </button>
-                          </div>
-
-                          {/* Coupon 3 */}
-                          <div className="border border-white/10 bg-black/60 p-4 flex flex-col justify-between items-stretch gap-3 relative rounded-xl shadow-md">
-                            <div className="absolute top-0 right-0 bg-[#d1bcff]/15 px-2 py-0.5 font-mono text-[7px] text-[#d1bcff] uppercase rounded-tr-xl rounded-bl-xl font-bold">
-                              CUPÓN 03
-                            </div>
-                            <div className="space-y-1">
-                              <h4 className="font-bold text-xs text-white uppercase tracking-tight">Desayuno Gourmet</h4>
-                              <p className="text-[9.5px] text-[#e1bfb2] leading-relaxed">
-                                Un desayuno premium preparado a tu gusto y servido directamente en la cama durante el fin de semana.
-                              </p>
-                            </div>
-                            <button
-                              disabled={redeemedCoupons.includes('breakfast')}
-                              onClick={() => handleRedeemCoupon('breakfast', 'Desayuno Gourmet en Cama')}
-                              className={`w-full py-2 font-mono text-[9px] uppercase tracking-wider font-bold transition-all rounded-none ${redeemedCoupons.includes('breakfast')
-                                ? 'bg-zinc-800 text-stone-500 border border-transparent cursor-not-allowed'
-                                : 'bg-[#d1bcff] text-black hover:bg-[#bba1ff] border border-transparent active:scale-95'
-                                }`}
-                            >
-                              {redeemedCoupons.includes('breakfast') ? '✓ CANJEADO' : 'CANJEAR CUPÓN'}
-                            </button>
-                          </div>
-                        </div>
+                  {/* Case 4: Video de Todos */}
+                  {selectedGift.type === 'video-all' && (
+                    <div className="w-full flex flex-col items-center justify-center space-y-4">
+                      <p className="text-[10px] text-[#a88a7e] text-center leading-relaxed mb-2 uppercase tracking-wider font-mono">
+                        Mira el mensaje que tus personas favoritas prepararon para ti.
+                      </p>
+                      <div className="w-full bg-black border border-white/10 relative shadow-2xl p-1">
+                        <video
+                          src="/cumple/todos.mp4"
+                          controls
+                          playsInline
+                          className="w-full h-auto max-h-[45dvh] object-contain"
+                        />
                       </div>
                     </div>
                   )}
@@ -1795,9 +1863,17 @@ export default function BirthdayPage() {
   const [phase, setPhase] = useState<'PHASE_PRELOADING' | 'PHASE_READY_TRIGGER' | 'PHASE_SCROLLING_STORY'>('PHASE_PRELOADING');
   const [decryptProgress, setDecryptProgress] = useState(0);
   const [decryptLogs, setDecryptLogs] = useState<string[]>([]);
+  const [currentTime, setCurrentTime] = useState(new Date());
 
   const synthRef = useRef<BdaySynth | null>(null);
   const [bgmActive, setBgmActive] = useState(false);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     synthRef.current = new BdaySynth();
@@ -1901,10 +1977,8 @@ export default function BirthdayPage() {
     );
   }
 
-  // Midnight gate: only show the surprise on or after June 17, 2026 at midnight (local time)
-  const now = new Date();
   const birthdayMidnight = new Date(2026, 5, 17, 0, 0, 0); // June = month 5 (0-indexed)
-  const isBirthdayUnlocked = now >= birthdayMidnight || profile === 'el';
+  const isBirthdayUnlocked = currentTime >= birthdayMidnight || profile === 'el';
 
   if (!isBirthdayUnlocked) {
     return (
@@ -1929,7 +2003,7 @@ export default function BirthdayPage() {
             </p>
             <div className="border border-white/10 bg-black/50 px-4 py-2 font-mono text-[10px] text-[#a88a7e] uppercase tracking-wider flex items-center gap-2">
               <span className="w-2 h-2 bg-red-500 rounded-none animate-pulse"></span>
-              FALTAN: {Math.max(0, Math.ceil((birthdayMidnight.getTime() - now.getTime()) / (1000 * 60 * 60)))} HORAS
+              FALTAN: {Math.max(0, Math.ceil((birthdayMidnight.getTime() - currentTime.getTime()) / (1000 * 60 * 60)))} HORAS
             </div>
           </div>
         </main>
