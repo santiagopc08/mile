@@ -317,15 +317,21 @@ export const DualWallet = ({
   const savingsRate = incomeThisMonth > 0 ? ((incomeThisMonth - expensesThisMonth) / incomeThisMonth) * 100 : 0;
   const averageDailySpending = weeklySpending / 7;
 
-  const budgetRows = useMemo(() => BUDGET_CATEGORIES.map((budget) => {
-    // ⚡ Bolt Optimization: Use O(1) Map lookup instead of O(N) filtering inside the map loop
-    const spent = budgetExpensesMap.get(budget) || 0;
-    const limit = budgets[budget];
-    const percent = limit > 0 ? (spent / limit) * 100 : 0;
-    const status = percent >= 100 ? 'OVERLOAD' : percent >= 80 ? 'CAUTION' : 'STABLE';
-    const color = status === 'OVERLOAD' ? '#ffb4ab' : status === 'CAUTION' ? '#a178ff' : '#c3f400';
-    return { budget, spent, limit, remaining: limit - spent, percent, status, color };
-  }), [budgetExpensesMap, budgets]);
+  const { budgetRows, budgetRowsMap } = useMemo(() => {
+    const rows = [];
+    const map = new Map();
+    for (const budget of BUDGET_CATEGORIES) {
+      const spent = budgetExpensesMap.get(budget) || 0;
+      const limit = budgets[budget];
+      const percent = limit > 0 ? (spent / limit) * 100 : 0;
+      const status = percent >= 100 ? 'OVERLOAD' : percent >= 80 ? 'CAUTION' : 'STABLE';
+      const color = status === 'OVERLOAD' ? '#ffb4ab' : status === 'CAUTION' ? '#a178ff' : '#c3f400';
+      const row = { budget, spent, limit, remaining: limit - spent, percent, status, color };
+      rows.push(row);
+      map.set(budget, row);
+    }
+    return { budgetRows: rows, budgetRowsMap: map };
+  }, [budgetExpensesMap, budgets]);
 
   // ⚡ Bolt Optimization: Filter before sort and slice to minimize intermediate operations
   const topCategories = useMemo(() => budgetRows
@@ -342,9 +348,9 @@ export const DualWallet = ({
     return sum;
   }, [movements]);
   const projectedIncome = incomeThisMonth + recurringIncome;
-  const wishlistBudget = budgetRows.find((row) => row.budget === 'Wishlist');
+  const wishlistBudget = budgetRowsMap.get('Wishlist');
   const wishlistAffordability = Math.max(0, Math.min(wishlistBudget?.remaining || 0, Math.max(totalAvailable, 0) * 0.18));
-  const foodSpent = budgetRows.find((row) => row.budget === 'Food')?.spent || 0;
+  const foodSpent = budgetRowsMap.get('Food')?.spent || 0;
   const foodBaseline = budgets.Food * 0.32;
   const foodDelta = foodBaseline > 0 ? ((foodSpent - foodBaseline) / foodBaseline) * 100 : 0;
   const balanceTone = totalAvailable < 0 ? '#ffb4ab' : '#c3f400';
