@@ -60,6 +60,15 @@ export function PomodoroTimer() {
         return plan;
     }, [totalBudget]);
 
+    // ⚡ Bolt Optimization: Calculate total duration once instead of O(N^2) inside sessionPlan.map
+    const totalPlannedDuration = useMemo(() => {
+        let sum = 0;
+        for (const s of sessionPlan) {
+            sum += s.duration;
+        }
+        return sum;
+    }, [sessionPlan]);
+
     const totalSessions = sessionPlan.length;
     const currentSessionData = sessionPlan[Math.min(currentSession - 1, totalSessions - 1)];
     const currentSessionDuration = currentSessionData?.duration || FOCUS_DURATION;
@@ -325,7 +334,6 @@ export function PomodoroTimer() {
                     {/* Proportional Segmented Session Timeline */}
                     <div className="flex h-5 w-full border border-white/10 bg-black/40 overflow-hidden relative font-mono select-none">
                         {sessionPlan.map((session, i) => {
-                            const totalPlannedDuration = sessionPlan.reduce((sum, s) => sum + s.duration, 0);
                             const pct = (session.duration / totalPlannedDuration) * 100;
                             const isCompleted = i + 1 < currentSession;
                             const isActive = i + 1 === currentSession && isRunning;
