@@ -53,3 +53,6 @@
 ## 2024-06-14 - Eliminate Multiple Array Iterations in FiscalAuditor
 **Learning:** `FiscalAuditor.tsx` contained multiple performance bottlenecks where `.filter()` and `.reduce()` were called repeatedly on the `allocations` and `vices` arrays during render. This created unnecessary intermediate arrays and triggered O(3*N) and O(2*M) operations in `useMemo` hooks.
 **Action:** Replaced multiple sequential array operations on both sets of data with single-pass `for...of` loops, consolidating logic and significantly reducing array iterations and memory allocation overhead.
+## 2024-06-16 - Prevent O(N) Array Lookups in Game Render Loops
+**Learning:** `Mahjong.tsx` utilized `.find()` on the 144-item `tiles` array within frequently triggered hooks (`handleTilePointerDown`, `handleHint`) and mapping loops during render. This resulted in recurrent `O(N)` scans on user interactions and re-renders, causing noticeable performance degradation.
+**Action:** When a collection requires constant individual lookups by ID across handlers and render loops, inject a `Map<string, Item>` dictionary alongside derived state inside a `useMemo` hook (e.g., `tilesById`) to ensure `O(1)` access time and avoid performance anti-patterns.
