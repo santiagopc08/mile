@@ -251,7 +251,7 @@ const GIFTS_DATA = [
     id: 'gift-mystery',
     title: 'Paquete Misterioso',
     subtitle: '¿Qué podrá ser?',
-    icon: '🎁',
+    icon: '[ OBJ ]',
     color: 'from-cyan-500 to-blue-600',
     type: 'mystery',
     details: {
@@ -267,11 +267,11 @@ const petBubbles = [
     src: '/img/pets/Kiaro.png',
     video: '/cumple/Kiaro.mp4',
     accent: '#ff7020',
-    role: 'Guardián Eterno 🌈',
-    msg: 'Humana, aunque ahora te cuido desde las estrellas y mis huellas quedaron marcadas para siempre en el cosmos, hoy bajo un ratito para desearte el más feliz de los cumpleaños. Sigue brillando, te amo con toda mi alma gatuna... 🐾💫',
+    role: 'GUARDIAN ETERNO',
+    msg: 'HUMANA, AUNQUE AHORA TE CUIDO DESDE OTRO LUGAR Y MIS HUELLAS QUEDARON MARCADAS PARA SIEMPRE, HOY BAJO UN RATITO PARA DESEARTE EL MAS FELIZ DE LOS CUMPLEANOS. SIGUE BRILLANDO, TE AMO CON TODA MI ALMA GATUNA.',
     side: 'left',
-    avatarBg: 'bg-amber-500/20 border-amber-500/40',
-    bubbleBg: 'bg-gradient-to-r from-amber-950/80 to-slate-900/90 border-amber-500/30'
+    avatarBg: 'border-amber-500/40',
+    bubbleBg: 'border-amber-500/30'
   },
   {
     id: 'nika',
@@ -279,11 +279,11 @@ const petBubbles = [
     src: '/img/pets/Nika.png',
     video: '/cumple/Nika.mp4',
     accent: '#00dbe9',
-    role: 'Exploradora',
-    msg: '¡Feliz cumple, Mile! Reportando que el cosmos y tus sueños están en perfectas condiciones bajo mi supervisión estelar hoy. 💫',
+    role: 'EXPLORADORA',
+    msg: 'FELIZ CUMPLE, MILE. REPORTANDO QUE TUS SUENOS ESTAN EN PERFECTAS CONDICIONES BAJO MI SUPERVISION HOY.',
     side: 'right',
-    avatarBg: 'bg-cyan-500/20 border-cyan-500/40',
-    bubbleBg: 'bg-gradient-to-r from-slate-900/90 to-cyan-950/80 border-cyan-500/30'
+    avatarBg: 'border-cyan-500/40',
+    bubbleBg: 'border-cyan-500/30'
   },
   {
     id: 'sam',
@@ -291,11 +291,11 @@ const petBubbles = [
     src: '/img/pets/Sam.png',
     video: '/cumple/Sam.mp4',
     accent: '#a100f0',
-    role: 'Navegante',
-    msg: '¡Capitana! Iniciando secuencia de celebración planetaria y repartición de premios en tu honor. ¡Feliz día a bordo! 🚀',
+    role: 'NAVEGANTE',
+    msg: 'CAPITANA. INICIANDO SECUENCIA DE CELEBRACION Y REPARTICION DE PREMIOS EN TU HONOR. FELIZ DIA A BORDO.',
     side: 'left',
-    avatarBg: 'bg-purple-500/20 border-purple-500/40',
-    bubbleBg: 'bg-gradient-to-r from-purple-950/80 to-slate-900/90 border-purple-500/30'
+    avatarBg: 'border-purple-500/40',
+    bubbleBg: 'border-purple-500/30'
   },
   {
     id: 'miel',
@@ -303,11 +303,11 @@ const petBubbles = [
     src: '/img/pets/Miel.png',
     video: '/cumple/Miel.mp4',
     accent: '#ffb595',
-    role: 'Oficial Médico',
-    msg: '¡Feliz cumpleaños! Mi prescripción médica oficial para el día de hoy es: 100% de descanso, toneladas de caricias y una dosis gigante de pastel. 🍰',
+    role: 'MIMOSA',
+    msg: 'FELIZ CUMPLEANOS. MI INDICACION OFICIAL PARA EL DIA DE HOY ES: CIENTO POR CIENTO DE DESCANSO, TONELADAS DE CARICIAS Y UNA DOSIS GIGANTE DE PASTEL.',
     side: 'right',
-    avatarBg: 'bg-yellow-500/20 border-yellow-500/40',
-    bubbleBg: 'bg-gradient-to-r from-slate-900/90 to-yellow-950/80 border-yellow-500/30'
+    avatarBg: 'border-yellow-500/40',
+    bubbleBg: 'border-yellow-500/30'
   }
 ];
 
@@ -971,7 +971,7 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
       const { error } = await supabase.from('notifications').insert({
         target_profile: 'el',
         type: 'cumple_coupon',
-        message: `¡Mile ha canjeado el cupón: "${name}"! 🎁`,
+        message: `¡Mile ha canjeado el vale: "${name}"!`,
         read: false
       });
       if (error) throw error;
@@ -1057,10 +1057,10 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
 
         {/* Pet GIFs — small, scattered among flowers, appear near the end */}
         {[
-          { src: '/cumple/Kiaro.gif', top: '72%', left: '6%',  size: 'w-12 h-12 sm:w-16 sm:h-16', rotate: -8 },
-          { src: '/cumple/Nika.gif',  top: '85%', left: '22%', size: 'w-10 h-10 sm:w-14 sm:h-14', rotate: 12 },
-          { src: '/cumple/Sam.gif',   top: '78%', right: '8%', size: 'w-11 h-11 sm:w-15 sm:h-15', rotate: -15 },
-          { src: '/cumple/Miel.gif',  top: '90%', right: '20%', size: 'w-10 h-10 sm:w-14 sm:h-14', rotate: 6 },
+          { src: '/cumple/Kiaro.gif', top: '20%', left: '10%',  size: 'w-24 h-24 sm:w-32 sm:h-32', rotate: 0 },
+          { src: '/cumple/Nika.gif',  bottom: '5%', left: '22%', size: 'w-20 h-20 sm:w-28 sm:h-28', rotate: 0 },
+          { src: '/cumple/Sam.gif',   bottom: '5%', right: '8%', size: 'w-20 h-20 sm:w-28 sm:h-28', rotate: 0 },
+          { src: '/cumple/Miel.gif',  bottom: '5%', right: '28%', size: 'w-20 h-20 sm:w-28 sm:h-28', rotate: 0 },
         ].map((gif, idx) => (
           <motion.img
             key={`pet-gif-${idx}`}
@@ -1069,12 +1069,13 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
             style={{
               opacity: petGifOpacity,
               scale: petGifScale,
-              top: gif.top,
+              ...(gif.top ? { top: gif.top } : {}),
+              ...(gif.bottom ? { bottom: gif.bottom } : {}),
               ...(gif.left ? { left: gif.left } : { right: gif.right }),
               rotate: gif.rotate,
               zIndex: 8
             }}
-            className={`absolute object-contain pointer-events-none rounded-full border border-white/10 shadow-lg ${gif.size}`}
+            className={`absolute object-contain pointer-events-none ${gif.size}`}
           />
         ))}
       </motion.div>
@@ -1254,18 +1255,18 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
                     <div className="flex flex-col items-center flex-shrink-0 relative -mt-10 sm:-mt-14 mb-1">
                       <motion.div
                         style={{ scale: avatarScale, opacity: avatarOpacity, willChange: 'transform, opacity' }}
-                        className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden border-2 ${pet.avatarBg} flex-shrink-0 relative flex items-center justify-center bg-zinc-950 shadow-lg`}
+                        className={`w-20 h-20 sm:w-24 sm:h-24 overflow-hidden border ${pet.avatarBg} flex-shrink-0 relative flex items-center justify-center bg-zinc-950`}
                       >
                         <img
                           src={pet.src}
                           alt={pet.name}
-                          className="w-full h-full object-cover rounded-full pointer-events-none select-none"
+                          className="w-full h-full object-cover pointer-events-none select-none grayscale contrast-125"
                         />
                         <div className="absolute inset-0 bg-slate-950/20" />
                       </motion.div>
                       <motion.span
                         style={{ opacity: avatarOpacity }}
-                        className="mt-2 text-[9px] font-black tracking-wider text-white bg-slate-900/90 px-2.5 py-0.5 rounded-full border border-white/10 shadow-sm font-mono uppercase z-10"
+                        className="mt-2 text-[9px] font-black tracking-wider text-white bg-black px-2.5 py-0.5 border border-white/10 font-mono uppercase z-10"
                       >
                         {pet.name}
                       </motion.span>
@@ -1274,7 +1275,7 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
                     {/* Shared relative space for Dialog Bubble and Video */}
                     <div className="w-full relative min-h-[235px] sm:min-h-[265px] flex items-center justify-center">
 
-                      {/* Dialog Bubble (Stage 1) */}
+                      {/* Card Message (Stage 1) */}
                       <motion.div
                         style={{
                           opacity: bubbleOpacity,
@@ -1283,15 +1284,15 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
                           originY: 0,
                           pointerEvents: bubblePointerEvents
                         }}
-                        className={`w-full p-4 sm:p-5 rounded-2xl border ${pet.bubbleBg} shadow-2xl absolute inset-x-0 top-0`}
+                        className={`w-full p-4 sm:p-5 border ${pet.bubbleBg} bg-[#0a0a0a] absolute inset-x-0 top-0`}
                       >
-                        {/* Arrow pointer pointing UP */}
-                        <div
-                          className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-inherit border-t border-l border-inherit rotate-45"
-                        />
-                        <div className="flex flex-col gap-1 text-center items-center">
+                        <div className="flex flex-col gap-2 text-center items-center">
+                          <div className="flex justify-between w-full border-b border-white/10 pb-2 mb-2">
+                             <span className="text-[7px] text-stone-500 font-mono tracking-widest uppercase">ID: {pet.id.toUpperCase()}</span>
+                             <span className="text-[7px] text-white font-mono tracking-widest uppercase">MENSAJE</span>
+                          </div>
                           <span className="text-[8px] text-[#a88a7e] uppercase font-mono tracking-wider">{pet.role}</span>
-                          <p className="text-xs leading-relaxed text-slate-100 antialiased font-sans italic">
+                          <p className="text-[10px] leading-relaxed text-slate-100 antialiased font-mono uppercase mt-2">
                             {pet.msg}
                           </p>
                         </div>
@@ -1307,25 +1308,24 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
                         className="w-full flex justify-center absolute inset-x-0 top-0 pointer-events-none"
                       >
                         <div
-                          className="w-[300px] h-[225px] sm:w-[340px] sm:h-[255px] bg-transparent relative pointer-events-none"
-                          style={{ filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.8))' }}
+                          className="w-[300px] h-[225px] sm:w-[340px] sm:h-[255px] bg-[#0a0a0a] border border-white/10 relative pointer-events-none"
                         >
+                          <div className="absolute top-0 left-0 w-full h-4 border-b border-white/10 bg-black flex items-center justify-between px-2">
+                             <span className="text-[6px] text-stone-500 font-mono uppercase tracking-widest">VIDEO FEED</span>
+                             <span className="text-[6px] text-white font-mono uppercase tracking-widest">ACTIVO</span>
+                          </div>
                           <video
                             ref={el => { videoRefs.current[idx] = el; }}
                             src={pet.video}
                             playsInline
                             muted
                             preload="auto"
-                            className="w-full h-full object-contain"
-                            style={{
-                              maskImage: 'radial-gradient(ellipse at center, black 55%, transparent 100%)',
-                              WebkitMaskImage: 'radial-gradient(ellipse at center, black 55%, transparent 100%)'
-                            }}
+                            className="w-full h-full object-cover pt-4 grayscale contrast-125"
                           />
                           {/* Recording status indicator */}
-                          <div className="absolute top-2 left-2 bg-red-600/95 text-white font-mono text-[7px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full flex items-center gap-1 shadow-md">
-                            <span className="w-1.5 h-1.5 bg-white rounded-full animate-ping" />
-                            <span>GRABACIÓN</span>
+                          <div className="absolute top-5 left-2 bg-black/80 text-white font-mono text-[7px] font-bold uppercase tracking-wider px-1.5 py-0.5 border border-red-500/50 flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 bg-red-500 animate-pulse" />
+                            <span>REC</span>
                           </div>
                         </div>
                       </motion.div>
@@ -1456,7 +1456,7 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
                                 y: { repeat: Infinity, duration: 1.4, ease: "easeInOut" },
                                 rotate: { repeat: Infinity, duration: 1.0, ease: "easeInOut" }
                               }}
-                              className="w-3 h-5 bg-gradient-to-t from-red-500 via-orange-400 to-yellow-200 rounded-full blur-[0.5px]"
+                              className="w-3 h-5 bg-gradient-to-t from-red-500 via-orange-400 to-yellow-200 rounded-none blur-[0.5px]"
                               style={{
                                 boxShadow: '0 0 10px #ff7020, 0 0 18px #ffb595',
                                 transformOrigin: 'bottom center'
@@ -1530,14 +1530,14 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
                       key={gift.id}
                       layoutId={`container-${gift.id}`}
                       onClick={() => handleOpenGift(gift)}
-                      className={`relative cursor-pointer rounded-2xl p-4 bg-gradient-to-br ${gift.color} flex flex-col items-center justify-center text-center shadow-xl active:scale-95 transition-all duration-300 border border-white/10 ${isLarge ? 'col-span-2 h-36' : 'h-36'
+                      className={`relative cursor-pointer rounded-none p-4 bg-gradient-to-br ${gift.color} flex flex-col items-center justify-center text-center shadow-xl active:scale-95 transition-all duration-300 border border-white/10 ${isLarge ? 'col-span-2 h-36' : 'h-36'
                         }`}
                       whileHover={{ scale: 1.02 }}
                     >
                       <span className="text-3xl mb-1.5">{gift.icon}</span>
                       <h3 className="font-bold text-white text-sm tracking-wide">{gift.title}</h3>
-                      <p className="text-[10px] text-white/80 mt-1 font-mono uppercase tracking-widest bg-black/20 px-2 py-0.5 rounded-full">
-                        {isOpened ? '✨ Descubierto ✨' : '🎁 Tócame'}
+                      <p className="text-[10px] text-white/80 mt-1 font-mono uppercase tracking-widest bg-black/20 px-2 py-0.5 rounded-none">
+                        {isOpened ? '[ EXPUESTO ]' : '[ REVELAR ]'}
                       </p>
                     </motion.div>
                   );
@@ -1559,7 +1559,7 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
             <motion.div
               layoutId={`container-${selectedGift.id}`}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-sm bg-gradient-to-b from-slate-900 via-slate-950 to-slate-950 rounded-3xl p-6 border border-white/10 shadow-2xl overflow-hidden relative flex flex-col"
+              className="w-full max-w-sm bg-gradient-to-b from-slate-900 via-slate-950 to-slate-950 rounded-none p-6 border border-white/10 shadow-2xl overflow-hidden relative flex flex-col"
               style={{ maxHeight: '80dvh' }}
             >
               {/* Box Lid Pop Animation */}
@@ -1567,16 +1567,16 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
                 initial={{ rotate: 0, y: 0, opacity: 1 }}
                 animate={{ rotate: -45, y: -120, opacity: 0 }}
                 transition={{ duration: 0.45, ease: "easeOut" }}
-                className="absolute top-4 left-1/2 -translate-x-1/2 w-44 h-12 bg-gradient-to-r from-rose-500 to-pink-600 rounded-lg shadow-lg pointer-events-none z-50 flex items-center justify-center"
+                className="absolute top-4 left-1/2 -translate-x-1/2 w-44 h-12 bg-gradient-to-r from-rose-500 to-pink-600 rounded-none shadow-lg pointer-events-none z-50 flex items-center justify-center"
                 style={{ transformOrigin: 'left bottom' }}
               >
-                <div className="absolute -top-3 w-8 h-8 rounded-full border-2 border-amber-300 bg-amber-400 flex items-center justify-center text-xs shadow-md">✨</div>
+                <div className="absolute -top-3 w-8 h-8 rounded-none border-2 border-amber-300 bg-amber-400 flex items-center justify-center text-xs shadow-md">✨</div>
               </motion.div>
 
               {/* Close Button with touch optimization for iOS */}
               <button
                 onClick={() => setSelectedGift(null)}
-                className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center bg-white/10 active:bg-white/20 rounded-full text-white text-sm font-bold z-50 hover:bg-white/15 transition-all"
+                className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center bg-white/10 active:bg-white/20 rounded-none text-white text-sm font-bold z-50 hover:bg-white/15 transition-all"
               >
                 ✕
               </button>
@@ -1599,7 +1599,7 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
                   {/* Case 1: Dinner Boarding Pass */}
                   {selectedGift.type === 'invitation' && (
                     <div className="w-full border border-amber-400/40 bg-black p-1 relative rounded-xl shadow-lg">
-                      <div className="border border-amber-400/20 p-4 space-y-4 rounded-lg">
+                      <div className="border border-amber-400/20 p-4 space-y-4 rounded-none">
                         <div className="flex justify-between items-baseline font-mono text-[9px] uppercase tracking-wider text-amber-400">
                           <span>Invitación Especial</span>
                           <span className="animate-pulse">● CENA SORPRESA CONFIRMADA</span>
@@ -1637,12 +1637,12 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
                   {selectedGift.type === 'timeline' && (
                     <div className="h-full flex flex-col items-center justify-start space-y-4">
                       <p className="text-[10px] text-[#a88a7e] text-center leading-relaxed mb-2">
-                        Desliza y mueve las fotos a los lados para recordar momentos especiales que hemos compartido. ❤️
+                        DESLIZA Y MUEVE LAS FOTOS PARA VISUALIZAR LOS REGISTROS HISTORICOS COMPARTIDOS.
                       </p>
 
                       <div
                         ref={constraintsRef}
-                        className="w-full h-80 border border-dashed border-white/10 bg-black/40 relative flex items-center justify-center overflow-hidden rounded-2xl p-4 shadow-inner"
+                        className="w-full h-80 border border-dashed border-white/10 bg-black/40 relative flex items-center justify-center overflow-hidden rounded-none p-4 shadow-inner"
                       >
                         {polaroidEvents.length === 0 ? (
                           <div className="text-center font-mono text-[#594137] text-[10px] uppercase">
@@ -1689,8 +1689,8 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
                   {selectedGift.type === 'mystery' && (
                     <div className="flex flex-col space-y-5">
                       {/* Physical gift hint */}
-                      <div className="p-4 bg-cyan-950/40 border border-cyan-500/20 rounded-2xl text-center shadow-lg">
-                        <p className="text-cyan-300 font-bold text-xs mb-1.5 uppercase tracking-wider">🎁 Regalo en el Mundo Real</p>
+                      <div className="p-4 bg-cyan-950/40 border border-cyan-500/20 rounded-none text-center shadow-lg">
+                        <p className="text-[#00dbe9] font-bold text-xs mb-1.5 font-mono uppercase tracking-wider">REGALO EXTERNO</p>
                         <p className="text-white text-xs italic font-medium">
                           &quot;{selectedGift.details?.hint}&quot;
                         </p>
@@ -1720,7 +1720,7 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
                             <button
                               disabled={redeemedCoupons.includes('massage')}
                               onClick={() => handleRedeemCoupon('massage', 'Masajes Premium')}
-                              className={`w-full py-2 font-mono text-[9px] uppercase tracking-wider font-bold transition-all rounded-lg ${redeemedCoupons.includes('massage')
+                              className={`w-full py-2 font-mono text-[9px] uppercase tracking-wider font-bold transition-all rounded-none ${redeemedCoupons.includes('massage')
                                 ? 'bg-zinc-800 text-stone-500 border border-transparent cursor-not-allowed'
                                 : 'bg-[#d1bcff] text-black hover:bg-[#bba1ff] border border-transparent active:scale-95'
                                 }`}
@@ -1743,7 +1743,7 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
                             <button
                               disabled={redeemedCoupons.includes('movie')}
                               onClick={() => handleRedeemCoupon('movie', 'Elección de Película Sin Protestar')}
-                              className={`w-full py-2 font-mono text-[9px] uppercase tracking-wider font-bold transition-all rounded-lg ${redeemedCoupons.includes('movie')
+                              className={`w-full py-2 font-mono text-[9px] uppercase tracking-wider font-bold transition-all rounded-none ${redeemedCoupons.includes('movie')
                                 ? 'bg-zinc-800 text-stone-500 border border-transparent cursor-not-allowed'
                                 : 'bg-[#d1bcff] text-black hover:bg-[#bba1ff] border border-transparent active:scale-95'
                                 }`}
@@ -1766,7 +1766,7 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
                             <button
                               disabled={redeemedCoupons.includes('breakfast')}
                               onClick={() => handleRedeemCoupon('breakfast', 'Desayuno Gourmet en Cama')}
-                              className={`w-full py-2 font-mono text-[9px] uppercase tracking-wider font-bold transition-all rounded-lg ${redeemedCoupons.includes('breakfast')
+                              className={`w-full py-2 font-mono text-[9px] uppercase tracking-wider font-bold transition-all rounded-none ${redeemedCoupons.includes('breakfast')
                                 ? 'bg-zinc-800 text-stone-500 border border-transparent cursor-not-allowed'
                                 : 'bg-[#d1bcff] text-black hover:bg-[#bba1ff] border border-transparent active:scale-95'
                                 }`}
@@ -1821,15 +1821,15 @@ export default function BirthdayPage() {
     if (phase !== 'PHASE_PRELOADING') return;
 
     const logMessages = [
-      "Abriendo el cofre de los recuerdos...",
-      "Buscando nuestros momentos favoritos...",
-      "Reuniendo flores para ti...",
-      "Llamando a nuestros pequeños compañeros...",
-      "Alistando la melodía de tu día...",
-      "Encendiendo las velitas del pastel...",
-      "Preparando tus regalos especiales...",
-      "Todo listo para celebrar tu vida. ✨",
-      "¡Bienvenida, Mile!"
+      "INICIALIZANDO SECUENCIA...",
+      "CARGANDO REGISTROS...",
+      "SINTETIZANDO ESTRUCTURAS...",
+      "ESTABLECIENDO CONEXION DE COMPANEROS...",
+      "SINTONIZANDO FRECUENCIA...",
+      "PREPARANDO SISTEMAS DE CELEBRACION...",
+      "DESENCRIPTANDO ARCHIVOS...",
+      "SISTEMA LISTO.",
+      "BIENVENIDA, MILE."
     ];
 
     let currentLogIndex = 0;
@@ -1887,12 +1887,12 @@ export default function BirthdayPage() {
 
               <div className="border border-white/5 bg-black p-4 h-40 overflow-y-auto font-mono text-[9px] leading-relaxed text-[#a88a7e] custom-scrollbar flex flex-col justify-start">
                 {decryptLogs.map((log, idx) => (
-                  <div key={idx} className="flex gap-2">
-                    <span className="text-[#ff4b89]">❤</span>
+                  <div key={idx} className="flex gap-2 uppercase">
+                    <span className="text-[#ff4b89]">{'>'}</span>
                     <span>{log}</span>
                   </div>
                 ))}
-                <div className="text-white mt-1 animate-pulse">Preparando sorpresas...</div>
+                <div className="text-white mt-1 animate-pulse uppercase">{'>'} CARGANDO...</div>
               </div>
             </div>
           </div>
@@ -1919,16 +1919,17 @@ export default function BirthdayPage() {
             <motion.div
               animate={{ scale: [1, 1.1, 1] }}
               transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
-              className="text-6xl"
+              className="text-3xl font-mono font-black text-white"
             >
-              🔒
+              [ BLOQUEADO ]
             </motion.div>
-            <h1 className="text-xl font-mono font-black uppercase tracking-widest text-pink-200">Todavía no es hora...</h1>
-            <p className="text-xs text-[#a88a7e] leading-relaxed max-w-xs">
-              Esta sorpresa se desbloquea a la medianoche del <span className="text-white font-bold">17 de junio</span>. ¡Vuelve pronto! ✨
+            <h1 className="text-xl font-mono font-black uppercase tracking-widest text-[#ff4b89]">ACCESO DENEGADO</h1>
+            <p className="text-xs text-[#a88a7e] leading-relaxed max-w-xs font-mono uppercase">
+              ESTA SECCION SE DESBLOQUEA A LA MEDIANOCHE DEL <span className="text-white font-bold">17 DE JUNIO</span>. REGRESA LUEGO.
             </p>
-            <div className="border border-white/10 bg-black/50 px-4 py-2 font-mono text-[10px] text-[#a88a7e] uppercase tracking-wider">
-              🕛 Faltan: {Math.max(0, Math.ceil((birthdayMidnight.getTime() - now.getTime()) / (1000 * 60 * 60)))} horas
+            <div className="border border-white/10 bg-black/50 px-4 py-2 font-mono text-[10px] text-[#a88a7e] uppercase tracking-wider flex items-center gap-2">
+              <span className="w-2 h-2 bg-red-500 rounded-none animate-pulse"></span>
+              FALTAN: {Math.max(0, Math.ceil((birthdayMidnight.getTime() - now.getTime()) / (1000 * 60 * 60)))} HORAS
             </div>
           </div>
         </main>
@@ -1947,15 +1948,15 @@ export default function BirthdayPage() {
           <div className="w-full max-w-md border border-white/10 bg-[#0a0a0a] p-8 sm:p-10 relative text-center flex flex-col items-center justify-center space-y-6">
             <AnimatedBrutalistCorners color="#ff4b89" size={16} thickness={1.5} />
             <motion.div
-              animate={{ y: [0, -8, 0] }}
+              animate={{ scale: [1, 1.1, 1] }}
               transition={{ repeat: Infinity, duration: 2.5, ease: "easeInOut" }}
-              className="text-6xl animate-pulse"
+              className="text-4xl font-mono font-black text-white"
             >
-              ❤️
+              [ LISTO ]
             </motion.div>
-            <h1 className="text-2xl font-mono font-black uppercase tracking-widest text-pink-200">Tu espacio secreto</h1>
-            <p className="text-xs text-[#a88a7e] leading-relaxed max-w-xs">
-              Diseñé algo muy especial para ti dentro de nuestra aplicación. Asegúrate de tener el volumen arriba.
+            <h1 className="text-2xl font-mono font-black uppercase tracking-widest text-[#ff4b89]">ESPACIO SECRETO</h1>
+            <p className="text-xs text-[#a88a7e] leading-relaxed max-w-xs font-mono uppercase">
+              SE HA DISENADO UN PROTOCOLO ESPECIAL PARA TI. REQUIERE VOLUMEN ALTO PARA SU EJECUCION.
             </p>
             <button
               onClick={() => {
@@ -1963,9 +1964,9 @@ export default function BirthdayPage() {
                 setBgmActive(true);
                 setPhase('PHASE_SCROLLING_STORY');
               }}
-              className="px-8 py-4 bg-gradient-to-r from-pink-500 via-purple-600 to-indigo-600 rounded-none font-mono text-xs font-black uppercase tracking-widest text-white shadow-[0_0_25px_rgba(236,72,153,0.3)] active:scale-95 transition-transform"
+              className="px-8 py-4 bg-[#ff4b89] border-b-2 border-r-2 border-black font-mono text-xs font-black uppercase tracking-widest text-black hover:bg-[#ffb1c3] active:scale-95 transition-all"
             >
-              🚀 Entrar a la Sorpresa
+              INICIAR PROTOCOLO
             </button>
           </div>
         </main>
