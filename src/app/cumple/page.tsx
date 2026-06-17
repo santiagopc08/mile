@@ -1747,7 +1747,7 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
                           </div>
                           <div>
                             <span className="text-[7.5px] text-stone-500 uppercase tracking-wider block font-semibold">Fecha y Hora</span>
-                            <span className="text-xs font-black text-white uppercase">21 JUN - 18:00</span>
+                            <span className="text-xs font-black text-white uppercase">20 JUN - 18:00</span>
                           </div>
                           <div>
                             <span className="text-[7.5px] text-stone-500 uppercase tracking-wider block font-semibold">Destino</span>
