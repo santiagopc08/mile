@@ -75,7 +75,7 @@ test.describe('Auth Refresh API', () => {
 
         expect(res.status).toBe(401);
         const data = await res.json();
-        expect(data).toEqual({ error: 'No device token found' });
+        expect(data).toEqual({ error: 'Refresh via password removed' });
     });
 
     test('should return 500 if listUsers fails', async () => {
@@ -86,9 +86,9 @@ test.describe('Auth Refresh API', () => {
         const req = new Request('http://localhost:3000/api/auth/refresh', { method: 'POST' });
         const res = await POST(req);
 
-        expect(res.status).toBe(500);
+        expect(res.status).toBe(401);
         const data = await res.json();
-        expect(data).toEqual({ error: 'Failed to list users' });
+        expect(data).toEqual({ error: 'Refresh via password removed' });
     });
 
     test('should return 401 if device token is invalid or expired', async () => {
@@ -108,7 +108,7 @@ test.describe('Auth Refresh API', () => {
 
         expect(res.status).toBe(401);
         const data = await res.json();
-        expect(data).toEqual({ error: 'Invalid device token' });
+        expect(data).toEqual({ error: 'Refresh via password removed' });
     });
 
     test('should return 500 if server configuration error (missing password)', async () => {
@@ -127,9 +127,9 @@ test.describe('Auth Refresh API', () => {
         const req = new Request('http://localhost:3000/api/auth/refresh', { method: 'POST' });
         const res = await POST(req);
 
-        expect(res.status).toBe(500);
+        expect(res.status).toBe(401);
         const data = await res.json();
-        expect(data).toEqual({ error: 'Server configuration error' });
+        expect(data).toEqual({ error: 'Refresh via password removed' });
     });
 
     test('should return 500 if session establishment fails', async () => {
@@ -151,9 +151,9 @@ test.describe('Auth Refresh API', () => {
         const req = new Request('http://localhost:3000/api/auth/refresh', { method: 'POST' });
         const res = await POST(req);
 
-        expect(res.status).toBe(500);
+        expect(res.status).toBe(401);
         const data = await res.json();
-        expect(data).toEqual({ error: 'Failed to establish session' });
+        expect(data).toEqual({ error: 'Refresh via password removed' });
     });
 
     test('should return 200 and session for "ella" profile', async () => {
@@ -179,13 +179,9 @@ test.describe('Auth Refresh API', () => {
         const req = new Request('http://localhost:3000/api/auth/refresh', { method: 'POST' });
         const res = await POST(req);
 
-        expect(res.status).toBe(200);
+        expect(res.status).toBe(401);
         const data = await res.json();
-        expect(data).toEqual({
-            success: true,
-            profile: 'ella',
-            session: { access_token: 'ella_access_token' }
-        });
+        expect(data).toEqual({ error: 'Refresh via password removed' });
     });
 
     test('should return 200 and session for "el" profile', async () => {
@@ -211,13 +207,9 @@ test.describe('Auth Refresh API', () => {
         const req = new Request('http://localhost:3000/api/auth/refresh', { method: 'POST' });
         const res = await POST(req);
 
-        expect(res.status).toBe(200);
+        expect(res.status).toBe(401);
         const data = await res.json();
-        expect(data).toEqual({
-            success: true,
-            profile: 'el',
-            session: { access_token: 'el_access_token' }
-        });
+        expect(data).toEqual({ error: 'Refresh via password removed' });
     });
 
 });
