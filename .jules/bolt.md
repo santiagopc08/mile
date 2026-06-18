@@ -56,3 +56,6 @@
 ## 2024-06-16 - Prevent O(N) Array Lookups in Game Render Loops
 **Learning:** `Mahjong.tsx` utilized `.find()` on the 144-item `tiles` array within frequently triggered hooks (`handleTilePointerDown`, `handleHint`) and mapping loops during render. This resulted in recurrent `O(N)` scans on user interactions and re-renders, causing noticeable performance degradation.
 **Action:** When a collection requires constant individual lookups by ID across handlers and render loops, inject a `Map<string, Item>` dictionary alongside derived state inside a `useMemo` hook (e.g., `tilesById`) to ensure `O(1)` access time and avoid performance anti-patterns.
+## 2024-06-25 - Eliminate In-Render Array Filtering with useMemo
+**Learning:** `HabitTracker.tsx` contained an inline `.filter().slice().map()` chain during rendering. This forces JavaScript to iterate through the entire array, create new intermediate arrays, and map them on every single render cycle, causing severe O(N) recalculation overhead.
+**Action:** Extracted the data derivation into a `useMemo` hook with a single-pass `for...of` loop and a `break` statement when the required number of items is reached (optimizing from O(N) to O(K)), completely removing array operations from the render cycle.
