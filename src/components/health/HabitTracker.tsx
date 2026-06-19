@@ -130,6 +130,18 @@ export function HabitTracker() {
         await refreshData();
     };
 
+    // ⚡ Bolt Optimization: Replace O(N) inline map/filter with a single pass O(N) useMemo
+    const recentHabitsForProfile = useMemo(() => {
+        const recent = [];
+        for (const h of habits) {
+            if (h.profile === profile) {
+                recent.push(h);
+                if (recent.length >= 10) break;
+            }
+        }
+        return recent;
+    }, [habits, profile]);
+
     const handleDelete = async (id: string) => {
         try {
             await HealthService.deleteHealthHabit(id, supabase);
@@ -299,7 +311,7 @@ export function HabitTracker() {
                             Historial Reciente
                         </h3>
                         <div className="space-y-2">
-                            {habits.filter(h => h.profile === profile).slice(0, 10).map(h => {
+                            {recentHabitsForProfile.map(h => {
                                 const config = HABIT_CONFIG[h.habitType];
                                 const severityColor = h.severity === 'high' ? '#ff003c' : h.severity === 'medium' ? '#ffb595' : '#c3f400';
                                 return (
