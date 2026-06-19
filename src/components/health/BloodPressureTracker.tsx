@@ -128,25 +128,26 @@ export const BloodPressureTracker = () => {
     const stats = useMemo(() => {
         if (entries.length === 0) return null;
 
-        const result = entries.reduce((acc, curr) => {
-            if (curr.systolic < acc.systolic.min.systolic) acc.systolic.min = curr;
-            if (curr.systolic > acc.systolic.max.systolic) acc.systolic.max = curr;
-            acc.systolic.sum += curr.systolic;
-
-            if (curr.diastolic < acc.diastolic.min.diastolic) acc.diastolic.min = curr;
-            if (curr.diastolic > acc.diastolic.max.diastolic) acc.diastolic.max = curr;
-            acc.diastolic.sum += curr.diastolic;
-
-            if (curr.heart_rate < acc.heartRate.min.heart_rate) acc.heartRate.min = curr;
-            if (curr.heart_rate > acc.heartRate.max.heart_rate) acc.heartRate.max = curr;
-            acc.heartRate.sum += curr.heart_rate;
-
-            return acc;
-        }, {
+        const result = {
             systolic: { min: entries[0], max: entries[0], sum: 0 },
             diastolic: { min: entries[0], max: entries[0], sum: 0 },
             heartRate: { min: entries[0], max: entries[0], sum: 0 }
-        });
+        };
+
+        // ⚡ Bolt Optimization: Replace entries.reduce() with a single pass O(N) loop
+        for (const curr of entries) {
+            if (curr.systolic < result.systolic.min.systolic) result.systolic.min = curr;
+            if (curr.systolic > result.systolic.max.systolic) result.systolic.max = curr;
+            result.systolic.sum += curr.systolic;
+
+            if (curr.diastolic < result.diastolic.min.diastolic) result.diastolic.min = curr;
+            if (curr.diastolic > result.diastolic.max.diastolic) result.diastolic.max = curr;
+            result.diastolic.sum += curr.diastolic;
+
+            if (curr.heart_rate < result.heartRate.min.heart_rate) result.heartRate.min = curr;
+            if (curr.heart_rate > result.heartRate.max.heart_rate) result.heartRate.max = curr;
+            result.heartRate.sum += curr.heart_rate;
+        }
 
         return {
             systolic: {
@@ -168,17 +169,21 @@ export const BloodPressureTracker = () => {
     }, [entries]);
 
     const chartData = useMemo(() => {
-        return entries.slice().reverse().map(entry => {
+        // ⚡ Bolt Optimization: Replace entries.slice().reverse().map() with a single backward loop
+        const data = [];
+        for (let i = entries.length - 1; i >= 0; i--) {
+            const entry = entries[i];
             const date = new Date(entry.created_at);
-            return {
+            data.push({
                 name: `${date.toLocaleDateString([], { month: 'short', day: 'numeric' })} ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}`,
                 fullDate: date.toLocaleString(),
                 systolic: entry.systolic,
                 diastolic: entry.diastolic,
                 heartRate: entry.heart_rate,
                 position: entry.position
-            };
-        });
+            });
+        }
+        return data;
     }, [entries]);
 
     return (

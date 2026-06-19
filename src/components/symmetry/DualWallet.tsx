@@ -311,7 +311,14 @@ export const DualWallet = ({
     return result;
   }, [movements]);
 
-  const totalBudget = useMemo(() => Object.values(budgets).reduce((sum, limit) => sum + limit, 0), [budgets]);
+  // ⚡ Bolt Optimization: Calculate total budget using a simple O(N) loop without intermediate array allocation
+  const totalBudget = useMemo(() => {
+    let sum = 0;
+    for (const key in budgets) {
+      sum += budgets[key as BudgetCategory];
+    }
+    return sum;
+  }, [budgets]);
   const spentAgainstBudget = expensesThisMonth;
   const budgetRemaining = totalBudget - spentAgainstBudget;
   const savingsRate = incomeThisMonth > 0 ? ((incomeThisMonth - expensesThisMonth) / incomeThisMonth) * 100 : 0;

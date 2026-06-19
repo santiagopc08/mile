@@ -285,18 +285,20 @@ export const StoreService = {
             const allVictories = victoriesRes?.data || [];
 
             const allContributions = (contribRes?.data || []) as any[];
-            const contribsByWishlistId = allContributions.reduce((acc: Record<string, any[]>, c: any) => {
-                if (!acc[c.wishlist_item_id]) acc[c.wishlist_item_id] = [];
-                acc[c.wishlist_item_id].push(c);
-                return acc;
-            }, {});
+            // ⚡ Bolt Optimization: Replace reduce with a direct O(N) loop to minimize callbacks and array copies
+            const contribsByWishlistId: Record<string, any[]> = {};
+            for (const c of allContributions) {
+                if (!contribsByWishlistId[c.wishlist_item_id]) contribsByWishlistId[c.wishlist_item_id] = [];
+                contribsByWishlistId[c.wishlist_item_id].push(c);
+            }
 
             const allReactions = (reactionsRes?.data || []) as any[];
-            const reactionsByWishlistId = allReactions.reduce((acc: Record<string, any[]>, r: any) => {
-                if (!acc[r.wishlist_item_id]) acc[r.wishlist_item_id] = [];
-                acc[r.wishlist_item_id].push(r);
-                return acc;
-            }, {});
+            // ⚡ Bolt Optimization: Replace reduce with a direct O(N) loop to minimize callbacks and array copies
+            const reactionsByWishlistId: Record<string, any[]> = {};
+            for (const r of allReactions) {
+                if (!reactionsByWishlistId[r.wishlist_item_id]) reactionsByWishlistId[r.wishlist_item_id] = [];
+                reactionsByWishlistId[r.wishlist_item_id].push(r);
+            }
 
 
 
@@ -378,17 +380,20 @@ export const StoreService = {
 
             if (shouldFetch('events')) {
                 const rawEvents = eventsRes?.data || [];
-                const commentsByEventId = (eventCommentsRes?.data || []).reduce((acc: Record<string, any[]>, c: any) => {
-                    if (!acc[c.event_id]) acc[c.event_id] = [];
-                    acc[c.event_id].push({
+
+                // ⚡ Bolt Optimization: Replace reduce with a direct O(N) loop to minimize callbacks and array copies
+                const commentsByEventId: Record<string, any[]> = {};
+                const eventCommentsData = eventCommentsRes?.data || [];
+                for (const c of eventCommentsData) {
+                    if (!commentsByEventId[c.event_id]) commentsByEventId[c.event_id] = [];
+                    commentsByEventId[c.event_id].push({
                         id: c.id,
                         eventId: c.event_id,
                         author: c.author,
                         text: c.text,
                         createdAt: c.created_at
                     });
-                    return acc;
-                }, {});
+                }
 
                 result.events = rawEvents.map((e: any) => ({
                     id: e.id,

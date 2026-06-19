@@ -164,8 +164,24 @@ export const SymmetryDashboard = () => {
 
   // Calculate financial statistics for dynamic header cell
   const userAllocations = useMemo(() => profile === 'el' ? allocationsA : allocationsB, [profile, allocationsA, allocationsB]);
-  const totalSpent = useMemo(() => userAllocations.reduce((sum, a) => sum + a.amount, 0), [userAllocations]);
-  const combinedTotalSpent = useMemo(() => storeAllocations.reduce((sum, a: any) => sum + a.amount, 0), [storeAllocations]);
+
+  // ⚡ Bolt Optimization: Replace userAllocations.reduce() with a single pass O(N) loop
+  const totalSpent = useMemo(() => {
+    let sum = 0;
+    for (const a of userAllocations) {
+      sum += a.amount;
+    }
+    return sum;
+  }, [userAllocations]);
+
+  // ⚡ Bolt Optimization: Replace storeAllocations.reduce() with a single pass O(N) loop
+  const combinedTotalSpent = useMemo(() => {
+    let sum = 0;
+    for (const a of storeAllocations) {
+      sum += (a as any).amount;
+    }
+    return sum;
+  }, [storeAllocations]);
 
   const accentColorValue = profile === 'ella' ? '#ff4b89' : '#c3f400';
   const accentAlphaValue = profile === 'ella' ? 'rgba(255, 75, 137, 0.3)' : 'rgba(195, 244, 0, 0.3)';

@@ -59,3 +59,7 @@
 ## 2024-06-25 - Eliminate In-Render Array Filtering with useMemo
 **Learning:** `HabitTracker.tsx` contained an inline `.filter().slice().map()` chain during rendering. This forces JavaScript to iterate through the entire array, create new intermediate arrays, and map them on every single render cycle, causing severe O(N) recalculation overhead.
 **Action:** Extracted the data derivation into a `useMemo` hook with a single-pass `for...of` loop and a `break` statement when the required number of items is reached (optimizing from O(N) to O(K)), completely removing array operations from the render cycle.
+
+## 2026-06-19 - Eliminate Array Allocation and Callback Overhead in Reducers/Mappers
+**Learning:** Identified widespread use of chained array methods (like `.slice().reverse().map()`) and `.reduce()` callbacks to aggregate states inside `useMemo` and services (e.g., `storeService.ts`, `DualWallet.tsx`, `BloodPressureTracker.tsx`). These patterns trigger internal object instantiation and garbage collection for every iteration and intermediate array state.
+**Action:** Replaced these higher-order functions with explicit, single-pass `for...of` or backward `for` loops. This approach avoids creating intermediate objects (like the results of `Object.values()` or `.slice()`) and prevents lambda context allocations on each loop step, driving substantial performance and memory gains without breaking logical bounds.
