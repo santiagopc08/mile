@@ -4,7 +4,7 @@ import { SupabaseClient } from '@supabase/supabase-js';
 export const NotificationService = {
 
 
-    async getNotifications(profile: string, supabase: SupabaseClient = defaultSupabase): Promise<any[]> {
+    async getNotifications(profile: string, supabase: SupabaseClient = defaultSupabase): Promise<Record<string, unknown>[]> {
         const { data } = await supabase
             .from('notifications')
             .select('*')
@@ -20,7 +20,7 @@ export const NotificationService = {
 
 
     async addNotification(target: string, type: string, message: string, supabase: SupabaseClient = defaultSupabase): Promise<void> {
-        const { data, error } = await supabase.from('notifications').insert({
+        const { error } = await supabase.from('notifications').insert({
             target_profile: target,
             type,
             message
