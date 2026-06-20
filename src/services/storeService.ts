@@ -288,16 +288,14 @@ export const StoreService = {
             // ⚡ Bolt Optimization: Replace reduce with a direct O(N) loop to minimize callbacks and array copies
             const contribsByWishlistId: Record<string, any[]> = {};
             for (const c of allContributions) {
-                if (!contribsByWishlistId[c.wishlist_item_id]) contribsByWishlistId[c.wishlist_item_id] = [];
-                contribsByWishlistId[c.wishlist_item_id].push(c);
+                (contribsByWishlistId[c.wishlist_item_id] ??= []).push(c);
             }
 
             const allReactions = (reactionsRes?.data || []) as any[];
             // ⚡ Bolt Optimization: Replace reduce with a direct O(N) loop to minimize callbacks and array copies
             const reactionsByWishlistId: Record<string, any[]> = {};
             for (const r of allReactions) {
-                if (!reactionsByWishlistId[r.wishlist_item_id]) reactionsByWishlistId[r.wishlist_item_id] = [];
-                reactionsByWishlistId[r.wishlist_item_id].push(r);
+                (reactionsByWishlistId[r.wishlist_item_id] ??= []).push(r);
             }
 
 
@@ -385,8 +383,7 @@ export const StoreService = {
                 const commentsByEventId: Record<string, any[]> = {};
                 const eventCommentsData = eventCommentsRes?.data || [];
                 for (const c of eventCommentsData) {
-                    if (!commentsByEventId[c.event_id]) commentsByEventId[c.event_id] = [];
-                    commentsByEventId[c.event_id].push({
+                    (commentsByEventId[c.event_id] ??= []).push({
                         id: c.id,
                         eventId: c.event_id,
                         author: c.author,
