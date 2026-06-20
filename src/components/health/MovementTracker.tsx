@@ -308,13 +308,25 @@ export function MovementTracker() {
 
     // Sessions logged today by each user
     const todayStr = new Date().toISOString().split('T')[0];
-    const todayLogs = useMemo(() => {
-        return sessions.filter(s => s.date === todayStr);
+
+    const { activeElToday, activeEllaToday } = useMemo(() => {
+        let el = false;
+        let ella = false;
+
+        // ⚡ Bolt Optimization: Single O(N) pass replacing multiple .filter() and .some() calls
+        for (const s of sessions) {
+            if (s.date === todayStr) {
+                if (s.profile === 'el') el = true;
+                if (s.profile === 'ella') ella = true;
+
+                // Early exit if both are found
+                if (el && ella) break;
+            }
+        }
+
+        return { activeElToday: el, activeEllaToday: ella };
     }, [sessions, todayStr]);
 
-    const activeElToday = useMemo(() => todayLogs.some(s => s.profile === 'el'), [todayLogs]);
-    const activeEllaToday = useMemo(() => todayLogs.some(s => s.profile === 'ella'), [todayLogs]);
-    
     // Glow Dual Triggered when BOTH are active today!
     const bothActiveToday = activeElToday && activeEllaToday;
 
