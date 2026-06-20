@@ -146,19 +146,36 @@ interface LeaderboardEntry {
 
 function isSlotFree(
     target: { x: number; y: number; z: number },
-    others: { x: number; y: number; z: number }[]
+    grid: Set<number>
 ): boolean {
-    const topBlocked = others.some(n =>
-        n.z - target.z === 1 &&
-        Math.abs(n.x - target.x) < 2 &&
-        Math.abs(n.y - target.y) < 2
-    );
-    if (topBlocked) return false;
-    const sameRow = others.filter(n => n.z === target.z && Math.abs(n.y - target.y) < 2);
-    const hasLeft = sameRow.some(n => target.x - 2 <= n.x && n.x < target.x);
-    const hasRight = sameRow.some(n => target.x < n.x && n.x <= target.x + 2);
-    if (hasLeft && hasRight) return false;
-    return true;
+    const zUp = (target.z + 1) * 10000;
+    for (let dx = -1; dx <= 1; dx++) {
+        for (let dy = -1; dy <= 1; dy++) {
+            if (grid.has(zUp + (target.y + dy) * 100 + (target.x + dx))) return false;
+        }
+    }
+    let hasLeft = false;
+    const zSame = target.z * 10000;
+    for (let dx = -2; dx <= -1; dx++) {
+        for (let dy = -1; dy <= 1; dy++) {
+            if (grid.has(zSame + (target.y + dy) * 100 + (target.x + dx))) {
+                hasLeft = true;
+                break;
+            }
+        }
+        if (hasLeft) break;
+    }
+    let hasRight = false;
+    for (let dx = 1; dx <= 2; dx++) {
+        for (let dy = -1; dy <= 1; dy++) {
+            if (grid.has(zSame + (target.y + dy) * 100 + (target.x + dx))) {
+                hasRight = true;
+                break;
+            }
+        }
+        if (hasRight) break;
+    }
+    return !(hasLeft && hasRight);
 }
 
 function generateSolvableBoard(rawCoords: { x: number; y: number; z: number }[], pairs: TileContent[]): TileState[] | null {
@@ -169,9 +186,13 @@ function generateSolvableBoard(rawCoords: { x: number; y: number; z: number }[],
         const assignments = new Map<string, TileContent>();
         let deadlock = false;
         while (pool.length > 0) {
+            const grid = new Set<number>();
+            for (const t of pool) {
+                grid.add(t.z * 10000 + t.y * 100 + t.x);
+            }
+
             const freeSlots = pool.filter((target, _idx) => {
-                const others = pool.filter(o => o.id !== target.id);
-                return isSlotFree(target, others);
+                return isSlotFree(target, grid);
             });
             if (freeSlots.length < 2) {
                 deadlock = true;
@@ -383,34 +404,63 @@ export function Mahjong() {
         const freeMap = new Map<string, boolean>();
         const idMap = new Map<string, TileState>();
         const dockSet = new Set(dockIds);
-        const activeTiles: TileState[] = [];
+        const grid = new Set<number>();
 
         for (const tile of tiles) {
             idMap.set(tile.id, tile);
             if (!tile.isMatched && !dockSet.has(tile.id)) {
-                activeTiles.push(tile);
+                grid.add(tile.z * 10000 + tile.y * 100 + tile.x);
             }
         }
 
-        tiles.forEach(tile => {
+        for (const tile of tiles) {
             if (tile.isMatched || dockSet.has(tile.id)) {
                 freeMap.set(tile.id, false);
-                return;
+                continue;
             }
-            const isTopCovered = activeTiles.some(n =>
-                n.z - tile.z === 1 &&
-                Math.abs(n.x - tile.x) < 2 &&
-                Math.abs(n.y - tile.y) < 2
-            );
+
+            let isTopCovered = false;
+            const zUp = (tile.z + 1) * 10000;
+            for (let dx = -1; dx <= 1; dx++) {
+                for (let dy = -1; dy <= 1; dy++) {
+                    if (grid.has(zUp + (tile.y + dy) * 100 + (tile.x + dx))) {
+                        isTopCovered = true;
+                        break;
+                    }
+                }
+                if (isTopCovered) break;
+            }
+
             if (isTopCovered) {
                 freeMap.set(tile.id, false);
-                return;
+                continue;
             }
-            const sameLayerRows = activeTiles.filter(n => n.z === tile.z && Math.abs(n.y - tile.y) < 2);
-            const hasLeft = sameLayerRows.some(n => tile.x - 2 <= n.x && n.x < tile.x);
-            const hasRight = sameLayerRows.some(n => tile.x < n.x && n.x <= tile.x + 2);
+
+            let hasLeft = false;
+            const zSame = tile.z * 10000;
+            for (let dx = -2; dx <= -1; dx++) {
+                for (let dy = -1; dy <= 1; dy++) {
+                    if (grid.has(zSame + (tile.y + dy) * 100 + (tile.x + dx))) {
+                        hasLeft = true;
+                        break;
+                    }
+                }
+                if (hasLeft) break;
+            }
+
+            let hasRight = false;
+            for (let dx = 1; dx <= 2; dx++) {
+                for (let dy = -1; dy <= 1; dy++) {
+                    if (grid.has(zSame + (tile.y + dy) * 100 + (tile.x + dx))) {
+                        hasRight = true;
+                        break;
+                    }
+                }
+                if (hasRight) break;
+            }
+
             freeMap.set(tile.id, !(hasLeft && hasRight));
-        });
+        }
         return { freeTilesMap: freeMap, tilesById: idMap };
     }, [tiles, dockIds]);
 
