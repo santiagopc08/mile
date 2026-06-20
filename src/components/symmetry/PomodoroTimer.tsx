@@ -26,16 +26,25 @@ export function PomodoroTimer() {
     }, []);
 
     const { data, updateData } = useStore();
-    const tasks = useMemo(() => {
-        return (data?.tasks || []).filter((t: Task) => t.status !== 'done' && t.status !== 'skipped');
-    }, [data?.tasks]);
-
     const [selectedTaskId, setSelectedTaskId] = useState<string>('');
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-    const activeTask = useMemo(() => {
-        return selectedTaskId ? tasks.find(t => t.id === selectedTaskId) : undefined;
-    }, [tasks, selectedTaskId]);
+    const { tasks, activeTask } = useMemo(() => {
+        const filteredTasks: Task[] = [];
+        let foundActiveTask: Task | undefined;
+
+        const dataTasks = data?.tasks || [];
+        for (let i = 0; i < dataTasks.length; i++) {
+            const t = dataTasks[i];
+            if (t.status !== 'done' && t.status !== 'skipped') {
+                filteredTasks.push(t);
+                if (selectedTaskId && t.id === selectedTaskId) {
+                    foundActiveTask = t;
+                }
+            }
+        }
+        return { tasks: filteredTasks, activeTask: foundActiveTask };
+    }, [data?.tasks, selectedTaskId]);
 
     const timerRef = useRef<NodeJS.Timeout | null>(null);
 
