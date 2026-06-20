@@ -1044,3 +1044,8 @@ textarea {
   transform-origin: center;
   display: inline-block;
 }
+/* Viewport units Safari normalization fix */
+.ios-viewport-fix {
+  height: 100dvh;
+  min-height: -webkit-fill-available;
+}

@@ -1024,14 +1024,6 @@ function BirthdayScrollContainer({ bgmActive, toggleBgm, setBgmTempMute }: Birth
         <canvas ref={bgCanvasRef} className="fixed inset-0 pointer-events-none z-[59]" />,
         document.body
       )}
-      {/* Viewport units Safari normalization fix */}
-      <style dangerouslySetInnerHTML={{
-        __html: `
-        .ios-viewport-fix {
-          height: 100dvh;
-          min-height: -webkit-fill-available;
-        }
-      `}} />
 
       {/* Top Fixed Progress Indicator */}
       <div className="fixed top-0 left-0 w-full h-1.5 bg-slate-900/50 z-[65]">
