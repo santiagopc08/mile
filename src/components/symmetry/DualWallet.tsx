@@ -341,10 +341,15 @@ export const DualWallet = ({
   }, [budgetExpensesMap, budgets]);
 
   // ⚡ Bolt Optimization: Filter before sort and slice to minimize intermediate operations
-  const topCategories = useMemo(() => budgetRows
-    .filter(row => row.spent > 0)
-    .sort((a, b) => b.spent - a.spent)
-    .slice(0, 3), [budgetRows]);
+  const topCategories = useMemo(() => {
+    const top = budgetRows
+      .filter(row => row.spent > 0)
+      .sort((a, b) => b.spent - a.spent)
+      .slice(0, 3);
+
+    // Fallback to top 3 generic categories if no spending
+    return top.length > 0 ? top : budgetRows.slice(0, 3);
+  }, [budgetRows]);
 
   // ⚡ Bolt Optimization: Single O(N) pass to avoid intermediate array creation
   const recurringIncome = useMemo(() => {
@@ -774,7 +779,7 @@ export const DualWallet = ({
                   <div className="mt-4 border-t border-white/10 pt-3">
                     <p className="mb-2 text-[8px] font-black uppercase tracking-[0.2em] text-[#a88a7e]">En qué gastamos más</p>
                     <div className="space-y-2">
-                      {(topCategories.length ? topCategories : budgetRows.slice(0, 3)).map((row) => (
+                      {topCategories.map((row) => (
                         <div key={row.budget} className="flex items-center justify-between border border-white/10 bg-black/40 px-3 py-2 text-[9px] font-bold uppercase tracking-[0.14em]">
                           <span>{t(row.budget)}</span>
                           <span style={{ color: row.color }}>{formatCOP(row.spent)}</span>

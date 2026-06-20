@@ -156,25 +156,35 @@ export function ActivityHistory({
                                                     <span className="text-[7px] font-black tracking-widest text-[#a88a7e] uppercase block w-full mb-1">
                                                         ANIMA A TU PAREJA:
                                                     </span>
-                                                    {(Object.keys(REACTION_CONFIG) as ReactionType[]).map(rxType => {
-                                                        const rxConfig = REACTION_CONFIG[rxType];
-                                                        const alreadyReacted = session.reactions.some(r => r.reactor === profile && r.type === rxType);
+                                                    {(() => {
+                                                        // ⚡ Bolt Optimization: Use a Set to make `alreadyReacted` lookups O(1) instead of nested .some()
+                                                        const myReactionsSet = new Set<string>();
+                                                        if (session.reactions) {
+                                                            for (const r of session.reactions) {
+                                                                if (r.reactor === profile) myReactionsSet.add(r.type);
+                                                            }
+                                                        }
 
-                                                        return (
-                                                            <button
-                                                                key={rxType}
-                                                                onClick={() => handleAddReaction(session.id, rxType)}
-                                                                className={`px-2 py-1 text-[7px] font-black uppercase tracking-wider border transition-all flex items-center gap-1 rounded-none ${
-                                                                    alreadyReacted
-                                                                        ? 'bg-white text-black border-white'
-                                                                        : 'bg-black hover:bg-white/5 border-white/10 text-white/50 hover:text-white'
-                                                                }`}
-                                                            >
-                                                                <span>{rxConfig.emoji}</span>
-                                                                <span>{rxConfig.label}</span>
-                                                            </button>
-                                                        );
-                                                    })}
+                                                        return (Object.keys(REACTION_CONFIG) as ReactionType[]).map(rxType => {
+                                                            const rxConfig = REACTION_CONFIG[rxType];
+                                                            const alreadyReacted = myReactionsSet.has(rxType);
+
+                                                            return (
+                                                                <button
+                                                                    key={rxType}
+                                                                    onClick={() => handleAddReaction(session.id, rxType)}
+                                                                    className={`px-2 py-1 text-[7px] font-black uppercase tracking-wider border transition-all flex items-center gap-1 rounded-none ${
+                                                                        alreadyReacted
+                                                                            ? 'bg-white text-black border-white'
+                                                                            : 'bg-black hover:bg-white/5 border-white/10 text-white/50 hover:text-white'
+                                                                    }`}
+                                                                >
+                                                                    <span>{rxConfig.emoji}</span>
+                                                                    <span>{rxConfig.label}</span>
+                                                                </button>
+                                                            );
+                                                        });
+                                                    })()}
                                                 </div>
                                             )}
                                         </div>
