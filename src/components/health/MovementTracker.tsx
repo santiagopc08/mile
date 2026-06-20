@@ -268,9 +268,14 @@ export function MovementTracker() {
             timestamp: new Date().toISOString()
         };
 
-        // Filter out any existing reaction of the same reactor to avoid duplicates
-        const filteredRx = targetSession.reactions.filter(r => r.reactor !== profile);
-        const updatedReactions = [...filteredRx, newRx];
+        // Update existing reaction or append a new one to avoid duplicates
+        const updatedReactions = [...targetSession.reactions];
+        const existingIdx = updatedReactions.findIndex(r => r.reactor === profile);
+        if (existingIdx !== -1) {
+            updatedReactions[existingIdx] = newRx;
+        } else {
+            updatedReactions.push(newRx);
+        }
 
         try {
             if (!isUsingLocalStorage) {
