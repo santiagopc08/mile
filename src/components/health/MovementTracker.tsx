@@ -335,7 +335,10 @@ export function MovementTracker() {
         if (sessions.length === 0) return 0;
 
         // Group sessions by unique date strings
-        const datesWithActivity = new Set(sessions.map(s => s.date));
+        const datesWithActivity = new Set<string>();
+        for (const s of sessions) {
+            datesWithActivity.add(s.date);
+        }
         
         let streak = 0;
         let checkDate = new Date(); // Start with today
