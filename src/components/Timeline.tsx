@@ -169,10 +169,8 @@ export function Timeline({ events }: TimelineProps) {
         setEditTags([]);
     };
 
-    const handleReact = async (eventId: string, emoji: string) => {
-        if (!profile) return;
-        const event = events.find(e => e.id === eventId);
-        if (!event) return;
+    const handleReact = async (event: TimelineEvent, emoji: string) => {
+        if (!profile || !event) return;
 
         const reactions = { ...(event.reactions || {}) };
         const currentReactors = reactions[emoji] || [];
@@ -190,14 +188,14 @@ export function Timeline({ events }: TimelineProps) {
         }
 
         // Optimistic update
-        const updatedEvents = events.map(e => e.id === eventId ? { ...e, reactions } : e);
+        const updatedEvents = events.map(e => e.id === event.id ? { ...e, reactions } : e);
         await updateData({ events: updatedEvents });
 
         try {
             await fetch('/api/timeline', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'react', id: eventId, reactions })
+                body: JSON.stringify({ action: 'react', id: event.id, reactions })
             });
         } catch (err) {
             alert(`Error al reaccionar: ${err instanceof Error ? err.message : 'Error desconocido'}`);
@@ -503,7 +501,7 @@ export function Timeline({ events }: TimelineProps) {
                                                     return (
                                                         <button
                                                             key={emoji}
-                                                            onClick={() => handleReact(event.id, emoji)}
+                                                            onClick={() => handleReact(event, emoji)}
                                                             className={`flex items-center gap-1 border px-2 py-1 text-xs transition-colors rounded-none font-mono ${hasReacted ? 'border-[#ff7020] text-[#ff7020] bg-[#ff7020]/5' : 'border-white/5 bg-black/40 text-white/60 hover:border-white/20'}`}
                                                         >
                                                             <span>{emoji}</span>
