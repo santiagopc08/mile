@@ -1,9 +1,14 @@
 import { NextResponse } from 'next/server';
 import { StoreService } from '@/services/storeService';
+import { verifyServerSession } from '@/lib/auth-utils';
 import { createServerClient } from '@/lib/supabase';
 
 export async function GET(request: Request) {
     try {
+        const isAuthenticated = await verifyServerSession();
+        if (!isAuthenticated) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
         const { searchParams } = new URL(request.url);
         const tablesStr = searchParams.get('tables');
         const tables = tablesStr ? tablesStr.split(',') : null;
@@ -18,6 +23,10 @@ export async function GET(request: Request) {
 
 export async function PUT(request: Request) {
     try {
+        const isAuthenticated = await verifyServerSession();
+        if (!isAuthenticated) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
         const body = await request.json();
         const supabase = createServerClient();
         await StoreService.updateStore(body, supabase);

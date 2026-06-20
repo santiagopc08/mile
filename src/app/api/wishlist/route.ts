@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { verifyServerSession } from '@/lib/auth-utils';
 import { createServerClient } from '@/lib/supabase';
 import { WishlistService } from '@/services/wishlistService';
 import { NotificationService } from '@/services/notificationService';
@@ -6,6 +7,10 @@ import { STATE_CONFIG } from '@/components/planes/constants';
 
 export async function POST(request: Request) {
     try {
+        const isAuthenticated = await verifyServerSession();
+        if (!isAuthenticated) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
         const body = await request.json();
         const { action, itemId, profile } = body;
         const supabase = createServerClient();
@@ -91,8 +96,8 @@ export async function POST(request: Request) {
         }
 
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error in wishlist API:', error);
-        return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+        return NextResponse.json({ error: (error instanceof Error ? error.message : String(error)) || 'Internal Server Error' }, { status: 500 });
     }
 }

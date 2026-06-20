@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { verifyServerSession } from '@/lib/auth-utils';
 import { createServerClient } from '@/lib/supabase';
 import webpush from 'web-push';
 
@@ -16,6 +17,10 @@ if (vapidPublicKey && vapidPrivateKey) {
 
 export async function POST(request: Request) {
     try {
+        const isAuthenticated = await verifyServerSession();
+        if (!isAuthenticated) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
         const { target, message, type } = await request.json();
 
         if (!target || !message) {
