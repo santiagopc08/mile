@@ -73,3 +73,7 @@
 ## 2026-06-20 - Optimize redundant O(N) lookup by reusing useMemo state
 **Learning:** During event handler execution (e.g., toggling state), performing nested or redundant `array.some()` checks can create O(N) performance cliffs, especially when an equivalent O(1) derived state map (`objectiveStats`) was already computed for rendering.
 **Action:** Always check if a required aggregated value (like `pendingCount`) is already being calculated in an existing `useMemo` block. If so, reuse the pre-calculated `Map` or `Set` inside event handlers to achieve O(1) lookups instead of running independent O(N) array loops.
+
+## 2024-06-20 - Prevent intermediate array allocations in event handlers
+**Learning:** React state update methods like `handleDeleteSession` or `handleAddReaction` often use `.filter()` or `.map()` to update state, creating intermediate arrays and adding GC pressure on large collections.
+**Action:** Use a single shallow copy combined with `findIndex` and `splice` or direct assignment to mutate the shallow copy, preventing full-array iteration and garbage allocation.

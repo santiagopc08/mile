@@ -193,8 +193,8 @@ export function MovementTracker() {
             });
 
             // Si la pareja también completó sesión hoy, enviar notificación de Sincronía
-            const partnerLogs = sessions.filter(s => s.profile === partner && s.date === todayStr && s.completion_status === 'completed');
-            if (partnerLogs.length > 0 && completionStatus === 'completed') {
+            const hasPartnerLogged = sessions.some(s => s.profile === partner && s.date === todayStr && s.completion_status === 'completed');
+            if (hasPartnerLogged && completionStatus === 'completed') {
                 const syncMsg = `¡Sincronía de Movimiento Completada! Ambos están activos hoy.`;
                 NotificationService.addNotification(partner, 'movement_sync', syncMsg).catch(err => {
                     console.error('Failed to trigger sync notification', err);
@@ -247,7 +247,11 @@ export function MovementTracker() {
                 if (error) throw error;
                 await fetchSessions();
             } else {
-                const updated = sessions.filter(s => s.id !== id);
+                const updated = [...sessions];
+                const idx = updated.findIndex(s => s.id === id);
+                if (idx !== -1) {
+                    updated.splice(idx, 1);
+                }
                 localStorage.setItem('movement_sessions', JSON.stringify(updated));
                 setSessions(updated);
             }
@@ -286,12 +290,11 @@ export function MovementTracker() {
                 if (error) throw error;
                 await fetchSessions();
             } else {
-                const updated = sessions.map(s => {
-                    if (s.id === sessionId) {
-                        return { ...s, reactions: updatedReactions };
-                    }
-                    return s;
-                });
+                const updated = [...sessions];
+                const idx = updated.findIndex(s => s.id === sessionId);
+                if (idx !== -1) {
+                    updated[idx] = { ...updated[idx], reactions: updatedReactions };
+                }
                 localStorage.setItem('movement_sessions', JSON.stringify(updated));
                 setSessions(updated);
             }
