@@ -274,14 +274,14 @@ function OrbitalViewport({
   );
 }
 
-function PetSelector({ pets, activeId, onSelect }: { pets: Pet[]; activeId: string; onSelect: (id: string) => void }) {
+function PetSelector({ pets, activeId, onSelect }: { pets: Pet[]; activeId: string; onSelect: (id: string, index: number) => void }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   return (
     <div ref={scrollRef} className="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
       {pets.map((p, i) => (
         <button
           key={p.id}
-          onClick={() => onSelect(p.id)}
+          onClick={() => onSelect(p.id, i)}
           className={`relative flex-shrink-0 flex items-center gap-3 border px-4 py-3 transition-all font-mono text-[10px] uppercase tracking-[0.2em] rounded-none ${p.id === activeId
             ? 'border-profile-accent bg-profile-accent/10 text-white'
             : 'border-white/10 bg-black/40 text-[#a88a7e] hover:border-white/20 hover:text-white'
@@ -955,8 +955,7 @@ export function PetSpaceHub() {
 
   const goPrev = () => triggerWarp(petData[(activeIdx - 1 + petData.length) % petData.length].id, -1);
   const goNext = () => triggerWarp(petData[(activeIdx + 1) % petData.length].id, 1);
-  const handleSelect = (id: string) => {
-    const newIdx = petData.findIndex(p => p.id === id);
+  const handleSelect = (id: string, newIdx: number) => {
     if (newIdx === activeIdx) return;
     triggerWarp(id, newIdx > activeIdx ? 1 : -1);
   };

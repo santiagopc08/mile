@@ -66,3 +66,7 @@
 ## 2023-10-25 - Efficient Array Update/Append
 **Learning:** Using `.filter()` followed by the spread operator `[...filtered, newItem]` creates multiple intermediate arrays, causing unnecessary garbage collection pressure and multiple passes over the array.
 **Action:** Use a single-pass `findIndex` approach on a single shallow copy. Create `[...original]`, find the item, and either update the index or `push()` to avoid redundant array creation and traversal.
+
+## 2024-05-18 - Optimize array searches in render cycles
+**Learning:** O(N) array scans like `findIndex()` inside click handlers can cause subtle micro-stutters in UI interactions, especially within loops mapping over the array itself.
+**Action:** Always pass the mapping index from the render loop down to the click handler if the target ID matches, turning the O(N) lookup into O(1) property access.
