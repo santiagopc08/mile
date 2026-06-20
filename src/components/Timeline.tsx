@@ -1,6 +1,7 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
+import { renderTextWithHashtags } from '@/utils/textFormatting';
 import { Calendar, Plus, Image as ImageIcon, Pencil, MessageSquare, Trash2, X } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
@@ -29,21 +30,6 @@ interface TimelineProps {
 
 const PRESET_TAGS = ['#amor', '#viaje', '#cena', '#hogar', '#logro', '#aniversario'];
 const EMOJI_OPTIONS = ['❤️', '😮', '😂', '✨', '☕'];
-
-const renderTextWithHashtags = (text: string) => {
-    if (!text) return null;
-    const parts = text.split(/(#[\w\dÀ-ÿ\u00f1\u00d1]+)/g);
-    return parts.map((part, index) => {
-        if (part.startsWith('#')) {
-            return (
-                <span key={index} className="font-mono text-user-c font-bold tracking-wider mx-0.5">
-                    {part}
-                </span>
-            );
-        }
-        return part;
-    });
-};
 
 export function Timeline({ events }: TimelineProps) {
     const { updateData } = useStore();
