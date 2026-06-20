@@ -1,4 +1,85 @@
 import { NextResponse } from 'next/server';
+import dns from 'dns/promises';
+
+function isLocalOrPrivateIP(ip: string): boolean {
+    if (ip.startsWith('::ffff:')) {
+        ip = ip.substring(7);
+    }
+    if (ip.includes('.')) {
+        const parts = ip.split('.').map(Number);
+        return (
+            parts[0] === 127 ||
+            parts[0] === 10 ||
+            (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31) ||
+            (parts[0] === 192 && parts[1] === 168) ||
+            (parts[0] === 169 && parts[1] === 254) ||
+            parts[0] === 0 ||
+            parts[0] === 255
+        );
+    }
+    ip = ip.toLowerCase();
+    return (
+        ip === '::1' ||
+        ip === '::' ||
+        ip.startsWith('fc') ||
+        ip.startsWith('fd') ||
+        ip.startsWith('fe8') ||
+        ip.startsWith('fe9') ||
+        ip.startsWith('fea') ||
+        ip.startsWith('feb')
+    );
+}
+
+async function validateHostname(hostname: string): Promise<boolean> {
+    try {
+        const addrs = await dns.lookup(hostname, { all: true });
+        for (const addr of addrs) {
+            if (isLocalOrPrivateIP(addr.address)) {
+                return false;
+            }
+        }
+        return true;
+    } catch (e) {
+        // Block if DNS resolution fails to prevent bypasses
+        return false;
+    }
+}
+
+async function fetchSafe(targetUrl: string, maxRedirects = 5): Promise<Response> {
+    if (maxRedirects < 0) {
+        throw new Error('Too many redirects');
+    }
+
+    const url = new URL(targetUrl);
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+        throw new Error('Invalid URL scheme');
+    }
+
+    const isValid = await validateHostname(url.hostname);
+    if (!isValid) {
+        throw new Error('Private or local addresses are not allowed');
+    }
+
+    const res = await fetch(url.toString(), {
+        redirect: 'manual',
+        headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept-Language': 'en-US,en;q=0.9'
+        }
+    });
+
+    if (res.status >= 300 && res.status < 400) {
+        const location = res.headers.get('location');
+        if (!location) {
+            return res;
+        }
+        const nextUrl = new URL(location, url).toString();
+        return fetchSafe(nextUrl, maxRedirects - 1);
+    }
+
+    return res;
+}
+
 
 // Use environment variable for API key
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
@@ -11,31 +92,9 @@ export async function GET(request: Request) {
         return NextResponse.json({ error: 'URL is required' }, { status: 400 });
     }
 
-    // SSRF Protection: Validate URL scheme and hostname
-    try {
-        const url = new URL(targetUrl);
-        if (url.protocol !== 'http:' && url.protocol !== 'https:') {
-            return NextResponse.json({ error: 'Invalid URL scheme' }, { status: 400 });
-        }
-        const hostname = url.hostname;
-        const isLocalhost = hostname === 'localhost' || hostname === '[::1]';
-        const isPrivateIPv4 = /^(127\.\d{1,3}\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2[0-9]|3[0-1])\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|169\.254\.\d{1,3}\.\d{1,3}|0\.0\.0\.0)$/i.test(hostname);
-
-        if (isLocalhost || isPrivateIPv4) {
-            return NextResponse.json({ error: 'Private or local addresses are not allowed' }, { status: 400 });
-        }
-    } catch {
-        return NextResponse.json({ error: 'Invalid URL format' }, { status: 400 });
-    }
 
     try {
-        const response = await fetch(targetUrl, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                'Accept-Language': 'en-US,en;q=0.9'
-            },
-            redirect: 'follow'
-        });
+        const response = await fetchSafe(targetUrl);
 
         const finalUrl = response.url;
         const html = await response.text();
@@ -173,7 +232,13 @@ export async function GET(request: Request) {
             coords
         });
 
-    } catch (error) {
+    } catch (error: any) {
+        if (error.message === 'Private or local addresses are not allowed' || error.message === 'Invalid URL scheme' || error.message === 'Too many redirects') {
+            return NextResponse.json({ error: error.message }, { status: 400 });
+        }
+        if (error instanceof TypeError && error.message === 'Invalid URL') {
+            return NextResponse.json({ error: 'Invalid URL format' }, { status: 400 });
+        }
         console.error('Link preview error:', error);
         return NextResponse.json({ error: 'Failed to fetch link preview' }, { status: 500 });
     }
