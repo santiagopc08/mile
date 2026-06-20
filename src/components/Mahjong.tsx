@@ -43,12 +43,21 @@ function generateCoordinates(type: LayoutType) {
                 }
             }
         }
+        const coordSet = new Set<string>();
+        for (let i = 0; i < coords.length; i++) {
+            const c = coords[i];
+            coordSet.add(`${c.x},${c.y},${c.z}`);
+        }
+
         for (let z = 1; z < maxLayers; z++) {
             const potential = coords.filter(c => c.z === z - 1);
             potential.forEach(p => {
                 if (Math.random() > 0.6 && coords.length < target) {
-                    const exists = coords.some(c => c.x === p.x && c.y === p.y && c.z === z);
-                    if (!exists) coords.push({ x: p.x, y: p.y, z });
+                    const key = `${p.x},${p.y},${z}`;
+                    if (!coordSet.has(key)) {
+                        coordSet.add(key);
+                        coords.push({ x: p.x, y: p.y, z });
+                    }
                 }
             });
         }
@@ -57,7 +66,9 @@ function generateCoordinates(type: LayoutType) {
         while (coords.length < target && safety < 2000) {
             const x = (fillIdx % (width / 2)) * 2;
             const y = Math.floor(fillIdx / (width / 2)) * 2;
-            if (!coords.some(c => c.x === x && c.y === y && c.z === 0)) {
+            const key = `${x},${y},0`;
+            if (!coordSet.has(key)) {
+                coordSet.add(key);
                 coords.push({ x, y, z: 0 });
             }
             fillIdx++;
@@ -94,10 +105,19 @@ function generateCoordinates(type: LayoutType) {
         for (let x = 0; x <= 8; x += 2) for (let y = 2; y <= 10; y += 2) coords.push({ x: x + offset, y, z: 0 });
         for (let x = 2; x <= 6; x += 2) for (let y = 4; y <= 8; y += 2) coords.push({ x: x + offset, y, z: 1 });
         coords.push({ x: 4 + offset, y: 6, z: 2 });
+        const coordSet = new Set<string>();
+        for (let i = 0; i < coords.length; i++) {
+            const c = coords[i];
+            coordSet.add(`${c.x},${c.y},${c.z}`);
+        }
+
         for (let x = 4; x <= 14; x += 2) for (let y = 0; y <= 14; y += 2) {
             if (coords.length < 144) {
-                const exists = coords.some(c => c.x === x && c.y === y && c.z === 0);
-                if (!exists) coords.push({ x, y, z: 0 });
+                const key = `${x},${y},0`;
+                if (!coordSet.has(key)) {
+                    coordSet.add(key);
+                    coords.push({ x, y, z: 0 });
+                }
             }
         }
         let fillI = 0;
@@ -111,8 +131,11 @@ function generateCoordinates(type: LayoutType) {
         }
         while (coords.length < 144 && fillI < fillPositions.length) {
             const fp = fillPositions[fillI];
-            const exists = coords.some(c => c.x === fp.x && c.y === fp.y && c.z === fp.z);
-            if (!exists) coords.push(fp);
+            const key = `${fp.x},${fp.y},${fp.z}`;
+            if (!coordSet.has(key)) {
+                coordSet.add(key);
+                coords.push(fp);
+            }
             fillI++;
         }
     }

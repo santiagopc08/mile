@@ -108,8 +108,8 @@ test.describe('StoreService.getStore error handling', () => {
 
 test.describe('StoreService.updateStore', () => {
     test('should call correct supabase methods for updates and insertions', async () => {
-        let calledTables: string[] = [];
-        let calledMethods: string[] = [];
+        const calledTables: string[] = [];
+        const calledMethods: string[] = [];
 
         const chainable = {
             select: () => chainable,

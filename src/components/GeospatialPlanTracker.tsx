@@ -40,7 +40,7 @@ export function GeospatialPlanTracker() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const fetchLocations = useCallback(async () => {
-    let query = supabase.from('ubicaciones').select('*');
+    const query = supabase.from('ubicaciones').select('*');
 
     const { data, error } = await query.order('created_at', { ascending: false });
     if (!error && data) {
