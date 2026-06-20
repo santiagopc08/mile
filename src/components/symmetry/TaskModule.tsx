@@ -314,7 +314,9 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
   };
 
   const toggleObjectiveComplete = (id: string) => {
-    const hasPending = tasks.some(t => t.objective_id === id && t.status !== 'done' && t.status !== 'skipped');
+    // ⚡ Bolt Optimization: Replace O(N) array some with O(1) stats map lookup
+    const stats = objectiveStats.get(id);
+    const hasPending = stats ? stats.pendingCount > 0 : false;
     if (hasPending) {
       sound.playError();
       haptics.triggerError();

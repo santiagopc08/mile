@@ -70,3 +70,6 @@
 ## 2024-05-18 - Optimize array searches in render cycles
 **Learning:** O(N) array scans like `findIndex()` inside click handlers can cause subtle micro-stutters in UI interactions, especially within loops mapping over the array itself.
 **Action:** Always pass the mapping index from the render loop down to the click handler if the target ID matches, turning the O(N) lookup into O(1) property access.
+## 2026-06-20 - Optimize redundant O(N) lookup by reusing useMemo state
+**Learning:** During event handler execution (e.g., toggling state), performing nested or redundant `array.some()` checks can create O(N) performance cliffs, especially when an equivalent O(1) derived state map (`objectiveStats`) was already computed for rendering.
+**Action:** Always check if a required aggregated value (like `pendingCount`) is already being calculated in an existing `useMemo` block. If so, reuse the pre-calculated `Map` or `Set` inside event handlers to achieve O(1) lookups instead of running independent O(N) array loops.
