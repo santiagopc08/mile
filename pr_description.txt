@@ -1,0 +1,8 @@
+🎯 **What:**
+Removed hardcoded instances of the `SUPABASE_SERVICE_ROLE_KEY` and the `NEXT_PUBLIC_SUPABASE_URL` from initialization scripts, scratchpads, and tools (`seed.mjs`, `test_supabase.mjs`, `migrate.mjs`, `gen_keys.mjs`, `scratch/check_ubicaciones.mjs`, `scratch/query_policies.mjs`).
+
+⚠️ **Risk:**
+The Supabase Service Role Key bypasses Row Level Security (RLS) entirely, providing full administrative read and write access to the entire database. Exposing this key in source control allows anyone with repository access to completely compromise the database, extract all user data, or wipe the schema.
+
+🛡️ **Solution:**
+Replaced all hardcoded values with references to the appropriate environment variables (`process.env.NEXT_PUBLIC_SUPABASE_URL` and `process.env.SUPABASE_SERVICE_ROLE_KEY`). Additionally, the scripts now feature a fail-fast mechanism: they will explicitly throw an `Error` immediately if these environment variables are missing, rather than failing silently or reverting to hardcoded fallbacks.
