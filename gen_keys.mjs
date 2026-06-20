@@ -7,7 +7,11 @@ if (!JWT_SECRET) {
     throw new Error('JWT_SECRET environment variable is missing.');
 }
 
-const PROJECT_URL = 'https://ghazqlmvlptcysiruqig.supabase.co';
+const PROJECT_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+
+if (!PROJECT_URL) {
+    throw new Error('NEXT_PUBLIC_SUPABASE_URL environment variable is missing.');
+}
 
 const iat = Math.floor(Date.now() / 1000);
 const exp = iat + (60 * 60 * 24 * 365 * 10); // 10 years
