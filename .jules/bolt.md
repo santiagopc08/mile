@@ -63,3 +63,6 @@
 ## 2026-06-19 - Eliminate Array Allocation and Callback Overhead in Reducers/Mappers
 **Learning:** Identified widespread use of chained array methods (like `.slice().reverse().map()`) and `.reduce()` callbacks to aggregate states inside `useMemo` and services (e.g., `storeService.ts`, `DualWallet.tsx`, `BloodPressureTracker.tsx`). These patterns trigger internal object instantiation and garbage collection for every iteration and intermediate array state.
 **Action:** Replaced these higher-order functions with explicit, single-pass `for...of` or backward `for` loops. This approach avoids creating intermediate objects (like the results of `Object.values()` or `.slice()`) and prevents lambda context allocations on each loop step, driving substantial performance and memory gains without breaking logical bounds.
+## 2023-10-25 - Efficient Array Update/Append
+**Learning:** Using `.filter()` followed by the spread operator `[...filtered, newItem]` creates multiple intermediate arrays, causing unnecessary garbage collection pressure and multiple passes over the array.
+**Action:** Use a single-pass `findIndex` approach on a single shallow copy. Create `[...original]`, find the item, and either update the index or `push()` to avoid redundant array creation and traversal.
