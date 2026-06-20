@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, Plus, Image as ImageIcon, Pencil, MessageSquare, Trash2, X } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useStore } from '@/context/StoreContext';
 import { useProfile } from '@/context/ProfileContext';
@@ -71,7 +71,13 @@ export function Timeline({ events }: TimelineProps) {
     const [editImageUrl, setEditImageUrl] = useState<string | undefined>(undefined);
     const [isEditUploading, setIsEditUploading] = useState(false);
 
-    const activeEvent = events.find(e => e.id === activeEventId) || null;
+    const activeEvent = useMemo(() => {
+        if (!activeEventId) return null;
+        for (const e of events) {
+            if (e.id === activeEventId) return e;
+        }
+        return null;
+    }, [events, activeEventId]);
 
     const handleAddEvent = async (e: React.FormEvent) => {
         e.preventDefault();
