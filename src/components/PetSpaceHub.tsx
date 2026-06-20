@@ -853,7 +853,8 @@ export function PetSpaceHub() {
     }));
     setHearts(prev => [...prev, ...newHearts]);
     setTimeout(() => {
-      setHearts(prev => prev.filter(h => !newHearts.some(nh => nh.id === h.id)));
+      const newHeartIds = new Set(newHearts.map(nh => nh.id));
+      setHearts(prev => prev.filter(h => !newHeartIds.has(h.id)));
     }, 1500);
   };
 
