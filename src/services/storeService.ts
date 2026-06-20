@@ -279,8 +279,13 @@ export const StoreService = {
                 trackingData = trackingRes.data || [];
             }
 
-            const todayTracking = trackingData.find((t: any) => t.date === todayStr);
-            const yesterdayTracking = trackingData.find((t: any) => t.date === yesterdayStr);
+            // ⚡ Bolt Optimization: Replace O(N) array finds with a single O(N) pass mapping by date
+            const trackingByDate: Record<string, typeof trackingData[0]> = {};
+            for (const t of trackingData) {
+                trackingByDate[t.date] = t;
+            }
+            const todayTracking = trackingByDate[todayStr];
+            const yesterdayTracking = trackingByDate[yesterdayStr];
 
             const allVictories = victoriesRes?.data || [];
 
