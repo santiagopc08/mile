@@ -790,8 +790,8 @@ export function PetSpaceHub() {
   // Heart animation overlay particles
   const [hearts, setHearts] = useState<{ id: number; x: number; y: number }[]>([]);
   
-  const activePet = petData.find(p => p.id === activeId) || petData[0];
   const activeIdx = petData.findIndex(p => p.id === activeId);
+  const activePet = activeIdx !== -1 ? petData[activeIdx] : petData[0];
   const activeVitals = vitals[activeId] || { joy: activePet.o2, warmth: activePet.temp };
 
   const warpTimeoutRef = useRef<NodeJS.Timeout | null>(null);
