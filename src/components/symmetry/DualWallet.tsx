@@ -4,188 +4,20 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   Activity,
-  ArrowDownLeft,
-  ArrowLeftRight,
-  ArrowUpRight,
-  BadgeDollarSign,
-  CalendarDays,
+  Target,
+
   ChevronDown,
   ChevronRight,
   CircleDollarSign,
-  FileText,
-  PiggyBank,
-  Plus,
-  Repeat2,
-  SlidersHorizontal,
-  Target,
-  Trash2,
-  Wallet,
 } from 'lucide-react';
 import { useProfile } from '@/context/ProfileContext';
-import { StoreService } from '@/services/storeService';
-import { NotificationService } from '@/services/notificationService';
 import { AnimatedBrutalistCorners } from '@/components/ui/AnimatedBrutalistCorners';
 import { sound } from '@/lib/sound';
 import { haptics } from '@/lib/haptics';
-
-type TransactionType = 'expense' | 'income' | 'transfer' | 'budget_adjustment';
-type BudgetCategory = 'Food' | 'Transport' | 'Health' | 'Entertainment' | 'Wishlist' | 'Savings';
-
-interface FinancialMovement {
-  id: string;
-  amount: number;
-  description: string;
-  category: string;
-  date: string;
-  type?: TransactionType;
-  account?: string;
-  related_budget?: BudgetCategory | '';
-  recurring?: boolean;
-}
-
-const DEFAULT_BUDGETS: Record<BudgetCategory, number> = {
-  Food: 520000,
-  Transport: 260000,
-  Health: 320000,
-  Entertainment: 240000,
-  Wishlist: 420000,
-  Savings: 700000,
-};
-
-const BUDGET_CATEGORIES = Object.keys(DEFAULT_BUDGETS) as BudgetCategory[];
-const INCOME_TYPES = ['salary', 'freelance', 'gift', 'refund', 'shared_income'] as const;
-const ACCOUNTS = ['main_wallet', 'savings_vault', 'shared_pool', 'cash_node'] as const;
-
-const TRANSLATIONS: Record<string, string> = {
-  Food: 'Comida',
-  Transport: 'Transporte',
-  Health: 'Salud',
-  Entertainment: 'Entretenimiento',
-  Wishlist: 'Antojos',
-  Savings: 'Ahorro',
-  salary: 'Salario',
-  freelance: 'Freelance',
-  gift: 'Regalo',
-  refund: 'Reembolso',
-  shared_income: 'Ingreso Compartido',
-  main_wallet: 'Billetera Principal',
-  savings_vault: 'Nuestra Alcancía',
-  shared_pool: 'Fondo Compartido',
-  cash_node: 'Efectivo',
-  expense: 'Gasto',
-  income: 'Ingreso',
-  transfer: 'Transferencia',
-  budget_adjustment: 'Ajuste de Límite',
-  Other: 'Otro',
-  none: 'Ninguno',
-  no_budget: 'Sin Presupuesto'
-};
-const t = (key: string) => TRANSLATIONS[key] || key;
-
-const TYPE_META: Record<TransactionType, { label: string; tag: string; color: string; bg: string; Icon: React.ElementType }> = {
-  expense: {
-    label: 'Añadir Gasto',
-    tag: 'Salió',
-    color: '#ffb4ab',
-    bg: 'rgba(255, 180, 171, 0.08)',
-    Icon: ArrowUpRight,
-  },
-  income: {
-    label: 'Registrar Ingreso',
-    tag: 'Entró',
-    color: '#c3f400',
-    bg: 'rgba(195, 244, 0, 0.08)',
-    Icon: ArrowDownLeft,
-  },
-  transfer: {
-    label: 'Mover Dinero',
-    tag: 'Movimiento',
-    color: '#a178ff',
-    bg: 'rgba(161, 120, 255, 0.09)',
-    Icon: ArrowLeftRight,
-  },
-  budget_adjustment: {
-    label: 'Ajustar Límite',
-    tag: 'Ajuste',
-    color: '#ff4b89',
-    bg: 'rgba(255, 75, 137, 0.08)',
-    Icon: SlidersHorizontal,
-  },
-};
-
-const normalizeCategory = (category: string): string => {
-  const lower = category.toLowerCase();
-  if (lower.includes('aliment') || lower.includes('food') || lower.includes('suministro')) return 'Food';
-  if (lower.includes('transport')) return 'Transport';
-  if (lower.includes('salud') || lower.includes('health') || lower.includes('veterin')) return 'Health';
-  if (lower.includes('wish')) return 'Wishlist';
-  if (lower.includes('reserva') || lower.includes('saving')) return 'Savings';
-  if (lower.includes('entreten')) return 'Entertainment';
-  return category.replace(/^[^\p{L}\p{N}]+/u, '').trim() || 'Other';
-};
-
-const inferType = (movement: FinancialMovement): TransactionType => {
-  if (movement.type) return movement.type;
-  return movement.amount < 0 ? 'income' : 'expense';
-};
-
-const signedAmount = (movement: FinancialMovement) => {
-  const amount = Math.abs(Number(movement.amount) || 0);
-  const type = inferType(movement);
-  if (type === 'income') return amount;
-  if (type === 'expense') return -amount;
-  return 0;
-};
-
-const isThisMonth = (date: string) => {
-  const parsed = new Date(date);
-  const now = new Date();
-  return parsed.getMonth() === now.getMonth() && parsed.getFullYear() === now.getFullYear();
-};
-
-const isWithinDays = (date: string, days: number) => {
-  const parsed = new Date(date).getTime();
-  return parsed >= Date.now() - days * 24 * 60 * 60 * 1000;
-};
-
-const formatCOP = (val: number) => {
-  return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(val);
-};
-
-const compactCOP = (val: number) => {
-  return new Intl.NumberFormat('es-CO', { notation: 'compact', maximumFractionDigits: 1 }).format(val);
-};
-
-const ChunkedProgress = ({ value, color }: { value: number; color: string }) => {
-  const activeSegments = Math.ceil(Math.min(Math.max(value, 0), 100) / 10);
-
-  return (
-    <div className="grid grid-cols-10 gap-1">
-      {Array.from({ length: 10 }).map((_, index) => (
-        <div
-          key={index}
-          className="h-2 border border-white/10 bg-black"
-          style={index < activeSegments ? { backgroundColor: color, borderColor: color, boxShadow: `0 0 8px ${color}55` } : undefined}
-        />
-      ))}
-    </div>
-  );
-};
-
-const MetricCell = ({ label, value, tone }: { label: string; value: string; tone?: string }) => (
-  <div className="border border-white/10 bg-black/45 p-3">
-    <div className="text-[8px] font-black uppercase tracking-[0.22em] text-[#a88a7e]">{label}</div>
-    <motion.div
-      key={value}
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="mt-2 text-lg font-black uppercase tracking-normal tabular-nums sm:text-2xl"
-      style={{ color: tone || '#ffffff' }}
-    >
-      {value}
-    </motion.div>
-  </div>
-);
+import { FinancialMovement, BudgetCategory, DEFAULT_BUDGETS, BUDGET_CATEGORIES, formatCOP, compactCOP, t, normalizeCategory, inferType, signedAmount, isThisMonth, isWithinDays, MetricCell, ChunkedProgress } from './DualWalletShared';
+import { DualWalletForm } from './DualWalletForm';
+import { DualWalletHistory } from './DualWalletHistory';
+import { DualWalletMetrics } from './DualWalletMetrics';
 
 export const DualWallet = ({
   allocations,
@@ -195,9 +27,7 @@ export const DualWallet = ({
   onAllocationsChange: (newAllocations: FinancialMovement[]) => void;
 }) => {
   const { profile } = useProfile();
-  const accentColor = profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)';
   const accentHex = profile === 'ella' ? '#ff4b89' : '#c3f400';
-  const [type, setType] = useState<TransactionType>('expense');
 
   // Budgets State
   const [budgets, setBudgets] = useState<Record<BudgetCategory, number>>(DEFAULT_BUDGETS);
@@ -214,6 +44,7 @@ export const DualWallet = ({
       const saved = localStorage.getItem(`symmetry_budgets_${profile}`);
       if (saved) {
         try {
+          // eslint-disable-next-line react-hooks/set-state-in-effect
           setBudgets(JSON.parse(saved));
         } catch (e) {
           console.error("Error loading budgets:", e);
@@ -230,13 +61,6 @@ export const DualWallet = ({
     setBudgets(next);
     localStorage.setItem(`symmetry_budgets_${profile}`, JSON.stringify(next));
   };
-  const [amount, setAmount] = useState('');
-  const [description, setDescription] = useState('');
-  const [category, setCategory] = useState<string>('Food');
-  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
-  const [account, setAccount] = useState<(typeof ACCOUNTS)[number]>('main_wallet');
-  const [relatedBudget, setRelatedBudget] = useState<BudgetCategory | ''>('Food');
-  const [recurring, setRecurring] = useState(false);
 
   const movements = useMemo(
     () => allocations.map((movement) => ({ ...movement, type: inferType(movement), amount: Math.abs(Number(movement.amount) || 0) })),
@@ -246,7 +70,6 @@ export const DualWallet = ({
   // ⚡ Bolt Optimization: Replace O(N*M) budget filtering inside map and multiple O(N) array loops
   // with a single O(N) pass over movements. We pre-calculate totals and group expenses into a Map.
   const {
-    monthMovements,
     incomeThisMonth,
     expensesThisMonth,
     savingsTotal,
@@ -255,7 +78,6 @@ export const DualWallet = ({
     budgetExpensesMap
   } = useMemo(() => {
     const result = {
-      monthMovements: [] as typeof movements,
       incomeThisMonth: 0,
       expensesThisMonth: 0,
       savingsTotal: 0,
@@ -283,7 +105,6 @@ export const DualWallet = ({
 
       // Process monthly specific totals
       if (isThisMonthDate) {
-        result.monthMovements.push(m);
         if (isIncome) {
           result.incomeThisMonth += mAmount;
         } else if (isExpense) {
@@ -367,249 +188,17 @@ export const DualWallet = ({
   const foodDelta = foodBaseline > 0 ? ((foodSpent - foodBaseline) / foodBaseline) * 100 : 0;
   const balanceTone = totalAvailable < 0 ? '#ffb4ab' : '#c3f400';
 
-  const addMovement = () => {
-    const parsedAmount = parseFloat(amount);
-    if (!parsedAmount || parsedAmount <= 0 || !description.trim()) {
-      sound.playError();
-      haptics.triggerError();
-      return;
-    }
-
-    const movement: FinancialMovement = {
-      id: Date.now().toString(),
-      amount: parsedAmount,
-      description: description.trim(),
-      category,
-      date: new Date(`${date}T12:00:00`).toISOString(),
-      type,
-      account,
-      related_budget: relatedBudget,
-      recurring,
-    };
-
-    onAllocationsChange([movement, ...allocations]);
-    sound.playSave();
-    haptics.triggerSave();
-
-    // Enviar notificación a la pareja si es un ahorro (discreto)
-    const isSavings = category === 'Savings' || relatedBudget === 'Savings' || account === 'savings_vault';
-    if (isSavings) {
-      const target = profile === 'el' ? 'ella' : 'el';
-      const authorName = profile === 'el' ? 'Santiago' : 'Milena';
-      const amountFormatted = formatCOP(parsedAmount);
-      const alertMsg = `¡${authorName} registró un nuevo ahorro de ${amountFormatted}! 💰`;
-      NotificationService.addNotification(target, 'wallet', alertMsg).catch(err => {
-        console.error('Failed to trigger wallet notification:', err);
-      });
-    }
-
-    setAmount('');
-    setDescription('');
-  };
 
   const deleteMovement = (id: string) => {
     onAllocationsChange(allocations.filter((movement) => movement.id !== id));
   };
 
-  const setQuickAction = (nextType: TransactionType) => {
-    setType(nextType);
-    switch (nextType) {
-      case 'income':
-        setCategory('salary');
-        setRelatedBudget('');
-        break;
-      case 'transfer':
-        setCategory('internal_transfer');
-        setRelatedBudget('Savings');
-        break;
-      case 'expense':
-      default:
-        setCategory('Food');
-        setRelatedBudget('Food');
-        break;
-    }
-  };
 
   return (
     <div className="space-y-6 font-mono">
-      <section
-        className="relative overflow-hidden border bg-[#0a0a0a] bg-dot-matrix p-4"
-        style={{ borderColor: balanceTone, boxShadow: `0 0 18px ${balanceTone}22` }}
-      >
-        <AnimatedBrutalistCorners color={balanceTone} size={12} thickness={1.5} />
-        
-        <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-          <Wallet size={120} className="text-white" />
-        </div>
+<DualWalletMetrics totalAvailable={totalAvailable} incomeThisMonth={incomeThisMonth} expensesThisMonth={expensesThisMonth} savingsTotal={savingsTotal} budgetRemaining={budgetRemaining} balanceTone={balanceTone} accentHex={accentHex} />
 
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-white/5 pb-4 relative z-10">
-          <div>
-            <p className="text-[9px] font-mono font-black uppercase tracking-[0.26em]" style={{ color: balanceTone }}>Resumen General</p>
-            <h3 className="mt-1 text-2xl font-mono font-black uppercase tracking-normal text-white">Estado financiero general</h3>
-          </div>
-          <span className="border px-2 py-1 text-[8px] font-black uppercase tracking-[0.2em]" style={{ borderColor: balanceTone, color: balanceTone }}>
-            {totalAvailable < 0 ? 'Estado: En Rojo' : 'Estado: Todo Bien'}
-          </span>
-        </div>
-        <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-5">
-          <MetricCell label="Total Disponible" value={formatCOP(totalAvailable)} tone={balanceTone} />
-          <MetricCell label="Ingresos del Mes" value={formatCOP(incomeThisMonth)} tone="#c3f400" />
-          <MetricCell label="Gastos del Mes" value={formatCOP(expensesThisMonth)} tone="#ffb4ab" />
-          <MetricCell label="Ahorro Total" value={formatCOP(savingsTotal)} tone="#a178ff" />
-          <MetricCell label="Presupuesto Restante" value={formatCOP(budgetRemaining)} tone={budgetRemaining < 0 ? '#ffb4ab' : accentHex} />
-        </div>
-      </section>
-
-      <section className="border border-white/10 bg-black/40 p-4">
-        <div className="mb-4 grid grid-cols-1 sm:grid-cols-3 gap-[1px] bg-white/[0.08] brutal-border pl-[1px] pt-[1px]">
-          {(['expense', 'income', 'transfer'] as TransactionType[]).map((quickType) => {
-            const meta = TYPE_META[quickType];
-            const Icon = meta.Icon;
-            const active = type === quickType;
-            return (
-              <button
-                key={quickType}
-                type="button"
-                onClick={() => {
-                  setQuickAction(quickType);
-                  sound.playTick();
-                  haptics.triggerTick();
-                }}
-                className="flex items-center justify-center gap-2 px-3 py-3 text-[9px] font-mono tracking-widest uppercase transition-all bg-[#0a0a0a] hover:bg-white/5 !min-h-0"
-                style={{
-                  color: active ? meta.color : '#a88a7e',
-                  boxShadow: active ? `inset 0 -2px 0 0 ${meta.color}` : 'none',
-                }}
-              >
-                <Icon size={14} strokeWidth={1.5} /> {meta.label}
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="grid grid-cols-1 gap-3 lg:grid-cols-4">
-          <label className="space-y-1">
-            <span className="flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-[#a88a7e]">
-              <BadgeDollarSign size={8} /> Monto
-            </span>
-            <input
-              type="number"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="0.00 COP"
-              className="w-full border border-white/10 bg-black px-3 py-2 text-xs uppercase text-white outline-none transition-colors placeholder:text-[#594137]"
-              style={{ '--tw-ring-color': accentColor } as React.CSSProperties}
-            />
-          </label>
-          <label className="space-y-1 lg:col-span-2">
-            <span className="flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-[#a88a7e]">
-              <FileText size={8} /> Descripción
-            </span>
-            <input
-              type="text"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Concepto del movimiento"
-              className="w-full border border-white/10 bg-black px-3 py-2 text-xs uppercase text-white outline-none transition-colors placeholder:text-[#594137] focus:border-[var(--color-profile-accent)]"
-            />
-          </label>
-          <label className="space-y-1">
-            <span className="flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-[#a88a7e]">
-              <SlidersHorizontal size={8} /> Tipo
-            </span>
-            <select
-              value={type}
-              onChange={(e) => setQuickAction(e.target.value as TransactionType)}
-              className="w-full cursor-pointer appearance-none border border-white/10 bg-black px-3 py-2 text-xs text-[#e5e2e1] outline-none"
-            >
-              {Object.keys(TYPE_META).map((key) => (
-                <option key={key} value={key} className="bg-[#0a0a0a]">
-                  {t(key)}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="space-y-1">
-            <span className="flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-[#a88a7e]">
-              <Target size={8} /> Categoría
-            </span>
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="w-full cursor-pointer appearance-none border border-white/10 bg-black px-3 py-2 text-xs text-[#e5e2e1] outline-none"
-            >
-              {(type === 'income' ? INCOME_TYPES : BUDGET_CATEGORIES).map((cat) => (
-                <option key={cat} value={cat} className="bg-[#0a0a0a]">
-                  {t(cat)}
-                </option>
-              ))}
-              <option value="Other" className="bg-[#0a0a0a]">Otro</option>
-            </select>
-          </label>
-          <label className="space-y-1">
-            <span className="flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-[#a88a7e]">
-              <CalendarDays size={8} /> Fecha
-            </span>
-            <input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="w-full border border-white/10 bg-black px-3 py-2 text-xs uppercase text-white outline-none"
-            />
-          </label>
-          <label className="space-y-1">
-            <span className="flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-[#a88a7e]">
-              <Wallet size={8} /> Cuenta
-            </span>
-            <select
-              value={account}
-              onChange={(e) => setAccount(e.target.value as (typeof ACCOUNTS)[number])}
-              className="w-full cursor-pointer appearance-none border border-white/10 bg-black px-3 py-2 text-xs text-[#e5e2e1] outline-none"
-            >
-              {ACCOUNTS.map((acc) => (
-                <option key={acc} value={acc} className="bg-[#0a0a0a]">
-                  {t(acc)}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="space-y-1">
-            <span className="flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-[#a88a7e]">
-              <PiggyBank size={8} /> Presupuesto
-            </span>
-            <select
-              value={relatedBudget}
-              onChange={(e) => setRelatedBudget(e.target.value as BudgetCategory | '')}
-              className="w-full cursor-pointer appearance-none border border-white/10 bg-black px-3 py-2 text-xs text-[#e5e2e1] outline-none"
-            >
-              <option value="" className="bg-[#0a0a0a]">ninguno</option>
-              {BUDGET_CATEGORIES.map((budget) => (
-                <option key={budget} value={budget} className="bg-[#0a0a0a]">
-                  {t(budget)}
-                </option>
-              ))}
-            </select>
-          </label>
-          <div className="grid grid-cols-[1fr_auto] gap-2 lg:col-span-4">
-            <button
-              type="button"
-              onClick={() => setRecurring(!recurring)}
-              className="flex items-center justify-center gap-2 border px-3 py-3 text-[9px] font-black uppercase tracking-[0.18em] transition-colors hover:bg-white/5"
-              style={{ borderColor: recurring ? accentHex : 'rgba(255,255,255,0.1)', color: recurring ? accentHex : '#a88a7e' }}
-            >
-              <Repeat2 size={14} /> recurrente: {recurring ? 'si' : 'no'}
-            </button>
-            <motion.button
-              whileTap={{ scale: 0.98 }}
-              onClick={addMovement}
-              className="flex items-center justify-center gap-2 border px-5 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-black transition-opacity hover:opacity-90"
-              style={{ borderColor: TYPE_META[type].color, backgroundColor: TYPE_META[type].color, boxShadow: `0 0 15px ${TYPE_META[type].color}33` }}
-            >
-              <Plus size={14} /> Registrar
-            </motion.button>
-          </div>
-        </div>
-      </section>
+<DualWalletForm onAllocationsChange={onAllocationsChange} allocations={allocations} />
 
       {/* budgets (COLLAPSIBLE) */}
       <div className="border border-white/10 bg-[#0a0a0a] rounded-none overflow-hidden transition-all duration-300 relative">
@@ -811,66 +400,7 @@ export const DualWallet = ({
         </AnimatePresence>
       </div>
 
-      <section className="border border-white/10 bg-black/40 p-4">
-        <h3 className="mb-4 flex items-center justify-between border-b border-white/10 pb-3 text-[10px] font-mono font-black uppercase tracking-[0.22em] text-[#a88a7e]">
-          <span>Historial de Movimientos</span>
-          <span>{movements.length.toString().padStart(2, '0')} registros</span>
-        </h3>
-        <div className="max-h-96 space-y-2 overflow-y-auto pr-2 custom-scrollbar">
-          <AnimatePresence mode="popLayout">
-            {movements.map((movement) => {
-              const meta = TYPE_META[movement.type || 'expense'];
-              const Icon = meta.Icon;
-              return (
-                <motion.div
-                  key={movement.id}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  className="group relative border border-white/10 bg-[#0a0a0a] p-0 transition-all hover:border-white/30"
-                >
-                  {/* Lateral type stripe */}
-                  <div className="absolute left-0 top-0 bottom-0 w-[5px]" style={{ backgroundColor: meta.color }} />
-
-                  <div className="flex flex-col md:flex-row items-start md:items-center gap-3 pl-6 pr-3 py-3 w-full">
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center border !min-h-0" style={{ borderColor: meta.color, color: meta.color, backgroundColor: meta.bg }}>
-                      <Icon size={14} strokeWidth={1.5} />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-[10px] font-mono font-black uppercase tracking-widest text-white">{movement.description}</span>
-                        <span className="border px-1.5 py-0.5 text-[7px] font-mono tracking-widest uppercase" style={{ borderColor: meta.color, color: meta.color }}>
-                          {meta.tag}
-                        </span>
-                        {movement.recurring && <span className="border border-user-c/30 px-1.5 py-0.5 text-[7px] font-mono tracking-widest uppercase text-user-c">recurrente</span>}
-                      </div>
-                      <div className="mt-1 flex flex-wrap items-center gap-2 text-[7px] font-mono tracking-widest uppercase text-[#594137]">
-                        <span>{t(normalizeCategory(movement.category))}</span>
-                        <span>{t(movement.account || 'main_wallet')}</span>
-                        <span>{t(movement.related_budget || 'no_budget')}</span>
-                        <span>{new Date(movement.date).toLocaleDateString()}</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between gap-4 w-full md:w-auto md:justify-end shrink-0">
-                      <span className="text-[11px] font-mono font-black tracking-tighter tabular-nums" style={{ color: meta.color }}>
-                        {movement.type === 'expense' ? '-' : movement.type === 'income' ? '+' : ''}
-                        {formatCOP(movement.amount)}
-                      </span>
-                      <button
-                        onClick={() => deleteMovement(movement.id)}
-                        className="p-1 text-[#594137] opacity-60 transition-all hover:bg-red-500/10 hover:text-red-500 group-hover:opacity-100 !min-h-0"
-                        aria-label="Eliminar movimiento"
-                      >
-                        <Trash2 size={12} strokeWidth={1.5} />
-                      </button>
-                    </div>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </AnimatePresence>
-        </div>
-      </section>
+<DualWalletHistory movements={movements} deleteMovement={deleteMovement} />
     </div>
   );
 };
