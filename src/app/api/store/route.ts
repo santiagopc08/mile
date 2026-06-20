@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server';
 import { StoreService } from '@/services/storeService';
 import { createServerClient } from '@/lib/supabase';
+import { verifyAuth } from '@/lib/auth';
 
 export async function GET(request: Request) {
     try {
+        if (!(await verifyAuth())) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         const { searchParams } = new URL(request.url);
         const tablesStr = searchParams.get('tables');
         const tables = tablesStr ? tablesStr.split(',') : null;
@@ -18,6 +20,7 @@ export async function GET(request: Request) {
 
 export async function PUT(request: Request) {
     try {
+        if (!(await verifyAuth())) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         const body = await request.json();
         const supabase = createServerClient();
         await StoreService.updateStore(body, supabase);
