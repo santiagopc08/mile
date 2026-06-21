@@ -554,14 +554,18 @@ export const StoreService = {
                     }
                 }
 
-                if (toDelete.length > 0) await supabase.from(tableName).delete().in('id', toDelete);
-                if (toUpsert.length > 0) await supabase.from(tableName).upsert(toUpsert);
-                if (toInsert.length > 0) await supabase.from(tableName).insert(toInsert);
+                const ops: PromiseLike<unknown>[] = [];
+                if (toDelete.length > 0) ops.push(supabase.from(tableName).delete().in('id', toDelete));
+                if (toUpsert.length > 0) ops.push(supabase.from(tableName).upsert(toUpsert));
+                if (toInsert.length > 0) ops.push(supabase.from(tableName).insert(toInsert));
+                await Promise.all(ops);
             };
+
+            const syncPromises: Promise<void>[] = [];
 
             // Wishlist
             if (newData.wishlist !== undefined) {
-                await syncTable('wishlist', newData.wishlist.map(w => ({
+                syncPromises.push(syncTable('wishlist', newData.wishlist.map(w => ({
                     id: w.id,
                     category: w.category,
                     title: w.title,
@@ -578,12 +582,12 @@ export const StoreService = {
                     shared: w.shared || false,
                     author: w.author || 'el',
                     owner: w.owner || undefined
-                })));
+                }))));
             }
 
             // Tasks
             if (newData.tasks !== undefined) {
-                await syncTable('tasks', newData.tasks.map((t) => ({
+                syncPromises.push(syncTable('tasks', newData.tasks.map((t) => ({
                     id: t.id,
                     title: t.text,
                     text: t.text,
@@ -599,24 +603,24 @@ export const StoreService = {
                     detail: t.detail || null,
                     assignee: t.assignee || null,
                     updated_at: new Date().toISOString()
-                })));
+                }))));
             }
 
             // Objectives
             if (newData.objectives !== undefined) {
-                await syncTable('objectives', newData.objectives.map(o => ({
+                syncPromises.push(syncTable('objectives', newData.objectives.map(o => ({
                     id: o.id,
                     title: o.title,
                     author: o.author || 'el',
                     is_complete: o.is_complete || false,
                     last_active: o.last_active || new Date().toISOString(),
                     created_at: o.created_at || new Date().toISOString()
-                })));
+                }))));
             }
 
             // Allocations
             if (newData.allocations !== undefined) {
-                await syncTable('allocations', newData.allocations.map(a => ({
+                syncPromises.push(syncTable('allocations', newData.allocations.map(a => ({
                     id: a.id,
                     amount: a.amount,
                     description: a.description,
@@ -624,12 +628,12 @@ export const StoreService = {
                     date: a.date,
                     profile: (a as any).profile || 'el',
                     created_at: new Date().toISOString()
-                })));
+                }))));
             }
 
             // Events
             if (newData.events !== undefined) {
-                await syncTable('events', newData.events.map(e => ({
+                syncPromises.push(syncTable('events', newData.events.map(e => ({
                     id: e.id,
                     title: e.title,
                     date: e.date,
@@ -638,26 +642,26 @@ export const StoreService = {
                     author: e.author || 'el',
                     tags: e.tags || [],
                     reactions: e.reactions || {}
-                })));
+                }))));
             }
 
             // Notes
             if (newData.notes !== undefined) {
-                await syncTable('notes', newData.notes.map(n => ({
+                syncPromises.push(syncTable('notes', newData.notes.map(n => ({
                     id: n.id,
                     text: n.text,
                     author: n.author || 'el'
-                })));
+                }))));
             }
 
             // Commitments
             if (newData.commitments !== undefined) {
-                await syncTable('commitments', newData.commitments.map(c => ({
+                syncPromises.push(syncTable('commitments', newData.commitments.map(c => ({
                     id: c.id,
                     text: c.text,
                     is_active: !c.completed,
                     author: c.author || 'el'
-                })));
+                }))));
 
                 // Update tracking
                 const todayCompleted = newData.commitments.filter(c => c.completed).length;
@@ -668,17 +672,19 @@ export const StoreService = {
 
             // Victories (Shared handling for El and Ella)
             const handleVictories = async (victories: Victory[], author: 'el' | 'ella') => {
-                await syncTable('victories', victories.map(v => ({
+                syncPromises.push(syncTable('victories', victories.map(v => ({
                     id: v.id,
                     text: v.text,
                     author
-                })), { author });
+                })), { author }));
             };
 
-            if (newData.victoriesEl !== undefined) await handleVictories(newData.victoriesEl, 'el');
-            if (newData.victoriesElla !== undefined) await handleVictories(newData.victoriesElla, 'ella');
+            if (newData.victoriesEl !== undefined) syncPromises.push(handleVictories(newData.victoriesEl, 'el'));
+            if (newData.victoriesElla !== undefined) syncPromises.push(handleVictories(newData.victoriesElla, 'ella'));
 
 
+
+            await Promise.all(syncPromises);
 
             // Persistent Listening
             if (newData.persistentListening !== undefined) {
