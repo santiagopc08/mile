@@ -387,7 +387,8 @@ export function Mahjong() {
 
     const initializeGame = async (layoutParam?: LayoutType) => {
         const mobileState = window.innerWidth <= 768;
-        const imageUrls = shuffleArray(await MahjongService.getMahjongImages());
+        const images = await MahjongService.getMahjongImages();
+        const fetchedImages: { url: string, source: 'supabase' | 'local' }[] = shuffleArray(images);
 
         let selectedLayout = layoutParam || currentLayout;
         if (!selectedLayout) {
@@ -398,8 +399,12 @@ export function Mahjong() {
         const tilesCount = LAYOUT_INFO[selectedLayout].tiles;
         const pairsCount = tilesCount / 2;
         const pairs: TileContent[] = [];
-        for (let i = 0; i < Math.min(imageUrls.length, pairsCount); i++) {
-            pairs.push({ type: 'custom', value: imageUrls[i] });
+        for (let i = 0; i < Math.min(fetchedImages.length, pairsCount); i++) {
+            const img = fetchedImages[i];
+            pairs.push({
+                type: img.source === 'supabase' ? 'custom' : 'local_image',
+                value: img.url
+            });
         }
         let emojiIdx = 0;
         while (pairs.length < pairsCount) {

@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { useProfile } from '@/context/ProfileContext';
 
 export interface TileContent {
-    type: 'custom' | 'traditional';
+    type: 'custom' | 'local_image' | 'traditional';
     value: string;
 }
 
@@ -24,21 +24,38 @@ export const TileVisual = memo(({ tile }: { tile: TileState }) => {
     const { profile } = useProfile();
     const accentColor = profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)';
     
-    return tile.content.type === 'custom' ? (
-        <div className="relative h-full w-full overflow-hidden p-[2px]">
-            <div className="absolute inset-0 bg-gradient-to-br from-[#ffd700] via-[#d4af37] to-[#aa7c11] opacity-70"></div>
-            {/* inner dark bezel */}
-            <div className="absolute inset-[3px] bg-black z-0"></div>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-                src={tile.content.value}
-                alt="Memory"
-                className="relative z-10 h-full w-full select-none rounded-none object-cover saturate-[1.2] sepia-[0.3] contrast-[1.1] brightness-[1.1] pointer-events-none"
-            />
-            {/* top glossy shine */}
-            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-white/30 z-20 pointer-events-none"></div>
-        </div>
-    ) : (
+    if (tile.content.type === 'custom') {
+        return (
+            <div className="relative h-full w-full overflow-hidden p-[2px]">
+                <div className="absolute inset-0 bg-gradient-to-br from-[#ffd700] via-[#d4af37] to-[#aa7c11] opacity-70"></div>
+                {/* inner dark bezel */}
+                <div className="absolute inset-[3px] bg-black z-0"></div>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                    src={tile.content.value}
+                    alt="Memory"
+                    className="relative z-10 h-full w-full select-none rounded-none object-cover saturate-[1.2] sepia-[0.3] contrast-[1.1] brightness-[1.1] pointer-events-none"
+                />
+                {/* top glossy shine */}
+                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-white/30 z-20 pointer-events-none"></div>
+            </div>
+        );
+    }
+
+    if (tile.content.type === 'local_image') {
+        return (
+            <div className="relative h-full w-full overflow-hidden p-[2px] opacity-80">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                    src={tile.content.value}
+                    alt="Tile"
+                    className="relative z-10 h-full w-full select-none rounded-none object-cover saturate-50 contrast-125 brightness-90 pointer-events-none grayscale-[0.3]"
+                />
+            </div>
+        );
+    }
+
+    return (
         <div className={`flex h-full w-full select-none items-center justify-center text-[2rem] leading-none pointer-events-none md:text-[2.2rem] ${tile.content.value === '🀄' || tile.content.value === '🀆' ? '' : 'text-[#e5e2e1]'}`} style={tile.content.value === '🀄' || tile.content.value === '🀆' ? { color: accentColor } : {}}>
             {tile.content.value}
         </div>
