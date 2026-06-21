@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server';
+import { verifyAuth } from '@/lib/auth';
 
 export async function POST(req: Request) {
   try {
+        if (!(await verifyAuth())) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const body = await req.json();
     const { taskText, category, field } = body;
 

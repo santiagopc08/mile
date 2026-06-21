@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase';
+import { verifyAuth } from '@/lib/auth';
 import webpush from 'web-push';
 
 // Configure Web Push with our VAPID keys
@@ -16,6 +17,7 @@ if (vapidPublicKey && vapidPrivateKey) {
 
 export async function POST(request: Request) {
     try {
+        if (!(await verifyAuth())) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         const { target, message, type } = await request.json();
 
         if (!target || !message) {
@@ -53,12 +55,13 @@ export async function POST(request: Request) {
         });
 
         // 3. Send in parallel to all active subscriptions
-        const sendPromises = subscriptions.map(async (subRecord: any) => {
+        const sendPromises = subscriptions.map(async (subRecord: Record<string, unknown>) => {
             try {
-                await webpush.sendNotification(subRecord.subscription, payload);
-            } catch (err: any) {
+                await webpush.sendNotification(subRecord.subscription as webpush.PushSubscription, payload);
+            } catch (err: unknown) {
                 // If endpoint is no longer valid (status 410 Gone or 404 Not Found), remove it
-                if (err.statusCode === 410 || err.statusCode === 404) {
+                const errorObj = err as Record<string, unknown>;
+                if (errorObj.statusCode === 410 || errorObj.statusCode === 404) {
                     console.log(`Removing expired subscription: ${subRecord.endpoint}`);
                     await supabase
                         .from('push_subscriptions')
@@ -74,8 +77,8 @@ export async function POST(request: Request) {
 
         return NextResponse.json({ success: true, sent: subscriptions.length });
 
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error('Error in send push API:', err);
-        return NextResponse.json({ error: err.message }, { status: 500 });
+        return NextResponse.json({ error: (err instanceof Error ? err.message : 'Unknown error') }, { status: 500 });
     }
 }
