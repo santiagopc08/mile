@@ -486,12 +486,39 @@ export const StoreService = {
 
     async updateStore(newData: Partial<AppData>, supabase: SupabaseClient = defaultSupabase): Promise<void> {
         try {
+            // Cache for fetched table data to avoid duplicate fetches
+            const tableCache = new Map<string, Record<string, unknown>[]>();
+
             // Helper for Upsert/Delete pattern
             const syncTable = async (tableName: string, incomingItems: any[], filter: any = {}) => {
                 if (!incomingItems) return;
 
-                const { data: existing } = await supabase.from(tableName).select('id').match(filter);
-                const existingIds = new Set((existing || []).map((r: any) => r.id));
+                let existingRecords: Record<string, unknown>[] = [];
+                if (tableCache.has(tableName)) {
+                    existingRecords = tableCache.get(tableName)!;
+                } else {
+                    const cols = new Set(['id']);
+                    if (filter) {
+                        Object.keys(filter).forEach(k => cols.add(k));
+                    }
+                    if (tableName === 'persistent_listening') {
+                        cols.add('topic');
+                    }
+                    const { data } = await supabase.from(tableName).select(Array.from(cols).join(', '));
+                    existingRecords = (data || []) as unknown as Record<string, unknown>[];
+                    tableCache.set(tableName, existingRecords);
+                }
+
+                let existing = existingRecords;
+                if (filter && Object.keys(filter).length > 0) {
+                    existing = existingRecords.filter(item => {
+                        for (const key in filter) {
+                            if (item[key] !== filter[key]) return false;
+                        }
+                        return true;
+                    });
+                }
+                const existingIds = new Set(existing.map((r: Record<string, unknown>) => r.id));
 
                 const toUpsert: any[] = [];
                 const toInsert: any[] = [];
@@ -522,8 +549,8 @@ export const StoreService = {
 
                 const toDelete: string[] = [];
                 for (const r of (existing || [])) {
-                    if (!incomingIds.has(r.id)) {
-                        toDelete.push(r.id);
+                    if (!incomingIds.has(r.id as string)) {
+                        toDelete.push(r.id as string);
                     }
                 }
 
@@ -655,9 +682,16 @@ export const StoreService = {
 
             // Persistent Listening
             if (newData.persistentListening !== undefined) {
-                const { data: existingRows } = await supabase.from('persistent_listening').select('id, topic');
-                const existingTopics = new Set((existingRows || []).map((r: any) => r.topic));
-                const existingIds = new Set((existingRows || []).map((r: any) => r.id));
+                let existingRows: Record<string, unknown>[] = [];
+                if (tableCache.has('persistent_listening')) {
+                    existingRows = tableCache.get('persistent_listening')!;
+                } else {
+                    const { data } = await supabase.from('persistent_listening').select('id, topic');
+                    existingRows = (data || []) as unknown as Record<string, unknown>[];
+                    tableCache.set('persistent_listening', existingRows);
+                }
+                const existingTopics = new Set(existingRows.map((r: Record<string, unknown>) => r.topic));
+                const existingIds = new Set(existingRows.map((r: Record<string, unknown>) => r.id));
 
                 await syncTable('persistent_listening', newData.persistentListening.map(l => ({
                     id: l.id,
