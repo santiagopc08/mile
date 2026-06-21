@@ -496,9 +496,16 @@ export const StoreService = {
                 const toUpsert: any[] = [];
                 const toInsert: any[] = [];
 
+                const incomingIds = new Set<string>();
+                const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
                 for (const item of incomingItems) {
+                    if (item.id) {
+                        incomingIds.add(item.id);
+                    }
+
                     // Check if item.id is a UUID (Supabase generated) or a temporary numeric ID (Date.now())
-                    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(item.id);
+                    const isUuid = item.id && uuidRegex.test(item.id);
 
                     if (item.id && isUuid) {
                         if (existingIds.has(item.id)) {
@@ -513,8 +520,12 @@ export const StoreService = {
                     }
                 }
 
-                const incomingIds = new Set(incomingItems.filter(i => i.id).map(i => i.id));
-                const toDelete = (existing || []).filter(r => !incomingIds.has(r.id)).map(r => r.id);
+                const toDelete: string[] = [];
+                for (const r of (existing || [])) {
+                    if (!incomingIds.has(r.id)) {
+                        toDelete.push(r.id);
+                    }
+                }
 
                 if (toDelete.length > 0) await supabase.from(tableName).delete().in('id', toDelete);
                 if (toUpsert.length > 0) await supabase.from(tableName).upsert(toUpsert);
