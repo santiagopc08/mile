@@ -209,53 +209,61 @@ function isSlotFree(
     return !hasRight;
 }
 
+function tryGenerateBoard(
+    coords: { x: number; y: number; z: number; id: string }[],
+    availablePairs: TileContent[]
+): TileState[] | null {
+    let pool = coords.map(c => ({ ...c }));
+    const assignments = new Map<string, TileContent>();
+    let deadlock = false;
+
+    while (pool.length > 0) {
+        const grid = new Set<number>();
+        for (const t of pool) {
+            grid.add(t.z * 10000 + t.y * 100 + t.x);
+        }
+
+        const freeSlots = pool.filter((target, _idx) => {
+            return isSlotFree(target, grid);
+        });
+        if (freeSlots.length < 2) {
+            deadlock = true;
+            break;
+        }
+        const i1 = Math.floor(Math.random() * freeSlots.length);
+        let i2 = Math.floor(Math.random() * (freeSlots.length - 1));
+        if (i2 >= i1) i2++;
+        const slot1 = freeSlots[i1];
+        const slot2 = freeSlots[i2];
+        const pair = availablePairs.pop();
+        if (!pair) { deadlock = true; break; }
+        assignments.set(slot1.id, pair);
+        assignments.set(slot2.id, pair);
+
+        pool = pool.filter(p => p.id !== slot1.id && p.id !== slot2.id);
+    }
+
+    if (!deadlock && pool.length === 0) {
+        return coords.map(c => ({
+            id: c.id,
+            x: c.x,
+            y: c.y,
+            z: c.z,
+            content: assignments.get(c.id)!,
+            isMatched: false,
+            isSelected: false,
+            isHinted: false
+        }));
+    }
+    return null;
+}
+
 function generateSolvableBoard(rawCoords: { x: number; y: number; z: number }[], pairs: TileContent[]): TileState[] | null {
     const coords = rawCoords.map((c, i) => ({ ...c, id: `tile_${i}` }));
     for (let attempt = 0; attempt < 100; attempt++) {
-        const pool = coords.map(c => ({ ...c }));
         const availablePairs = shuffleArray([...pairs]);
-        const assignments = new Map<string, TileContent>();
-        let deadlock = false;
-        while (pool.length > 0) {
-            const grid = new Set<number>();
-            for (const t of pool) {
-                grid.add(t.z * 10000 + t.y * 100 + t.x);
-            }
-
-            const freeSlots = pool.filter((target, _idx) => {
-                return isSlotFree(target, grid);
-            });
-            if (freeSlots.length < 2) {
-                deadlock = true;
-                break;
-            }
-            const i1 = Math.floor(Math.random() * freeSlots.length);
-            let i2 = Math.floor(Math.random() * (freeSlots.length - 1));
-            if (i2 >= i1) i2++;
-            const slot1 = freeSlots[i1];
-            const slot2 = freeSlots[i2];
-            const pair = availablePairs.pop();
-            if (!pair) { deadlock = true; break; }
-            assignments.set(slot1.id, pair);
-            assignments.set(slot2.id, pair);
-            for (let r = pool.length - 1; r >= 0; r--) {
-                if (pool[r].id === slot1.id || pool[r].id === slot2.id) {
-                    pool.splice(r, 1);
-                }
-            }
-        }
-        if (!deadlock && pool.length === 0) {
-            return coords.map(c => ({
-                id: c.id,
-                x: c.x,
-                y: c.y,
-                z: c.z,
-                content: assignments.get(c.id)!,
-                isMatched: false,
-                isSelected: false,
-                isHinted: false
-            }));
-        }
+        const result = tryGenerateBoard(coords, availablePairs);
+        if (result) return result;
     }
     return null;
 }
