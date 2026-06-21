@@ -1,27 +1,13 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { renderTextWithHashtags } from '@/utils/textFormatting';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MessageCircleHeart, X, Circle, Triangle, Square } from 'lucide-react';
 import { useStore } from '@/context/StoreContext';
 import { useProfile } from '@/context/ProfileContext';
 
 type AnimState = 'idle' | 'img1' | 'img2' | 'video' | 'popup' | 'reverse-video' | 'reverse-img2' | 'reverse-img1';
-
-const renderTextWithHashtags = (text: string) => {
-    if (!text) return null;
-    const parts = text.split(/(#[\w\dÀ-ÿ\u00f1\u00d1]+)/g);
-    return parts.map((part, index) => {
-        if (part.startsWith('#')) {
-            return (
-                <span key={index} className="font-mono text-user-c font-bold tracking-wider mx-0.5">
-                    {part}
-                </span>
-            );
-        }
-        return part;
-    });
-};
 
 export function JarOfNotes() {
     const { data, updateData } = useStore();

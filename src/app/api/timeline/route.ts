@@ -3,13 +3,11 @@ import { StoreService } from '@/services/storeService';
 import { TimelineService } from '@/services/timelineService';
 import { verifyServerSession } from '@/lib/auth-utils';
 import { createServerClient } from '@/lib/supabase';
+import { verifyAuth } from '@/lib/auth';
 
 export async function POST(request: Request) {
     try {
-        const isAuthenticated = await verifyServerSession();
-        if (!isAuthenticated) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
+        if (!(await verifyAuth())) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         const body = await request.json();
         const { action, ...payload } = body;
         const supabase = createServerClient();
@@ -44,10 +42,7 @@ export async function POST(request: Request) {
 
 export async function DELETE(request: Request) {
     try {
-        const isAuthenticated = await verifyServerSession();
-        if (!isAuthenticated) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
+        if (!(await verifyAuth())) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         const { searchParams } = new URL(request.url);
         const id = searchParams.get('id');
         const type = searchParams.get('type'); // 'comment'
