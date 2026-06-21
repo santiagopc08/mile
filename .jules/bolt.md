@@ -1,3 +1,3 @@
-## 2023-10-25 - [Performance Optimization] Cache syncTable database lookups
-**Learning:** In bulk update methods like `updateStore` which rely on a closure (`syncTable`) to fetch existing records for `upsert`/`delete` logic, repeated queries for the same table (e.g. fetching records for different user IDs via different filters, or pre-fetching before passing to `syncTable`) create severe network bottlenecks.
-**Action:** Use a `Map<string, any[]>` scoped to the bulk update method to cache table lookups by `tableName`. Dynamically gather all filter columns requested by `syncTable` and fetch the superset of required data on the first call, applying specific filters purely client-side during subsequent invocations to prevent redundant network I/O.
+## 2024-06-25 - Refactoring Complex Game Board Generation
+**Learning:** Overly complex nested loops containing both business logic and array mutation (`splice`) significantly reduce readability and increase cyclomatic complexity.
+**Action:** Extract inner iteration/attempt logic into clearly named helper functions, and replace in-place reverse-loop array mutations with functional `.filter()` re-assignments.

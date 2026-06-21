@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { StoreService } from '@/services/storeService';
+import { verifyServerSession } from '@/lib/auth-utils';
 import { createServerClient } from '@/lib/supabase';
 import { verifyAuth } from '@/lib/auth';
 
