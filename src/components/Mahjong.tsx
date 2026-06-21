@@ -751,7 +751,7 @@ return scores.length > 0 ? scores[0] : null;
 
                                     {isShattering && tile && (
                                         <div className="absolute inset-0 z-50 pointer-events-none">
-                                            <div className="shatter-container" style={{ '--ripple-color': accentColor } as React.CSSProperties}>
+                                            <div className="shatter-container" style={{ '--ripple-color': tile.content.type === 'custom' ? '#ffd700' : accentColor } as React.CSSProperties}>
                                                 <div className="ripple-wave" />
                                                 <div className="ripple-core" />
                                                 <div className="shard shard-top"><TileVisual tile={tile} /></div>
@@ -910,7 +910,7 @@ return scores.length > 0 ? scores[0] : null;
                                 }}
                                 className="tile-item pointer-events-none"
                             >
-                                <div className="shatter-container" style={{ '--ripple-color': accentColor } as React.CSSProperties}>
+                                <div className="shatter-container" style={{ '--ripple-color': tile.content.type === 'custom' ? '#ffd700' : accentColor } as React.CSSProperties}>
                                     <div className="ripple-wave" />
                                     <div className="ripple-core" />
                                     <div className="shard shard-top"><TileVisual tile={tile} /></div>
