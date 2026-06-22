@@ -150,7 +150,7 @@ test.describe('MahjongService', () => {
     });
 
     test.describe('getMahjongImages', () => {
-        test('should combine images from Supabase and local API, filtering invalid URLs', async () => {
+        test('should combine images from Supabase and local API, filtering invalid URLs and returning objects', async () => {
             const mockData = {
                 events: [
                     { image_url: 'https://example.com/img1.png' },
@@ -169,10 +169,10 @@ test.describe('MahjongService', () => {
             const images = await MahjongService.getMahjongImages(mockSupabase);
 
             expect(images.length).toBe(4);
-            expect(images).toContain('https://example.com/img1.png');
-            expect(images).toContain('https://example.com/img2.png');
-            expect(images).toContain('/local-img1.png');
-            expect(images).toContain('/local-img2.jpg');
+            expect(images).toContainEqual({ url: 'https://example.com/img1.png', source: 'supabase' });
+            expect(images).toContainEqual({ url: 'https://example.com/img2.png', source: 'supabase' });
+            expect(images).toContainEqual({ url: '/local-img1.png', source: 'local' });
+            expect(images).toContainEqual({ url: '/local-img2.jpg', source: 'local' });
         });
 
         test('should handle fetch API failure gracefully', async () => {
@@ -187,7 +187,7 @@ test.describe('MahjongService', () => {
             const images = await MahjongService.getMahjongImages(mockSupabase);
 
             expect(images.length).toBe(1);
-            expect(images[0]).toBe('https://example.com/img1.png');
+            expect(images).toContainEqual({ url: 'https://example.com/img1.png', source: 'supabase' });
         });
 
         test('should handle overall failure gracefully', async () => {
