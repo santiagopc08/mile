@@ -84,11 +84,16 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
 
   const toggleChecklistInCard = (taskId: string, listType: 'actions' | 'validations', itemId: string) => {
-    const task = tasks.find(t => t.id === taskId);
-    if (!task) return;
+    // ⚡ Bolt Optimization: Replace O(N) double pass (.find + .map) with single pass
+    const taskIndex = tasks.findIndex(t => t.id === taskId);
+    if (taskIndex === -1) return;
+    const task = tasks[taskIndex];
     const list = task[listType] || [];
     const newList = list.map(i => i.id === itemId ? { ...i, checked: !i.checked } : i);
-    updateData({ tasks: tasks.map((t): Task => t.id === taskId ? { ...t, [listType]: newList } : t) as Task[] });
+
+    const updatedTasks = [...tasks];
+    updatedTasks[taskIndex] = { ...task, [listType]: newList } as Task;
+    updateData({ tasks: updatedTasks });
     
     sound.playTick();
     haptics.triggerTick();
@@ -162,8 +167,10 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
   };
 
   const updateTaskStatus = (id: string, status: Task['status']) => {
-    const task = tasks.find(t => t.id === id);
-    if (!task) return;
+    // ⚡ Bolt Optimization: Replace O(N) double pass (.find + .map) with single pass
+    const taskIndex = tasks.findIndex(t => t.id === id);
+    if (taskIndex === -1) return;
+    const task = tasks[taskIndex];
 
     let finalStatus = status;
     if (status === 'done' && task.validations && task.validations.length > 0) {
@@ -173,7 +180,9 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
       }
     }
 
-    updateData({ tasks: tasks.map(t => t.id === id ? { ...t, status: finalStatus, updated_at: new Date().toISOString() } : t) as Task[] });
+    const updatedTasks = [...tasks];
+    updatedTasks[taskIndex] = { ...task, status: finalStatus, updated_at: new Date().toISOString() } as Task;
+    updateData({ tasks: updatedTasks });
 
     if (finalStatus === 'done') {
       sound.playSuccess();
@@ -197,12 +206,16 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
   };
 
   const handleEditSave = (updatedTask: Task) => {
-    updateData({
-      tasks: tasks.map(t => t.id === editingTaskId ? {
+    // ⚡ Bolt Optimization: Replace O(N) map with single pass findIndex + mutation
+    const updatedTasks = [...tasks];
+    const taskIndex = updatedTasks.findIndex(t => t.id === editingTaskId);
+    if (taskIndex !== -1) {
+      updatedTasks[taskIndex] = {
         ...updatedTask,
         updated_at: new Date().toISOString()
-      } : t) as Task[]
-    });
+      } as Task;
+      updateData({ tasks: updatedTasks });
+    }
     setEditingTaskId(null);
   };
 
@@ -214,10 +227,16 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
       haptics.triggerError();
       return;
     }
-    const obj = objectives.find(o => o.id === id);
-    if (!obj) return;
+    // ⚡ Bolt Optimization: Replace O(N) double pass (.find + .map) with single pass
+    const objIndex = objectives.findIndex(o => o.id === id);
+    if (objIndex === -1) return;
+
+    const obj = objectives[objIndex];
     const nextComplete = !obj.is_complete;
-    updateData({ objectives: objectives.map(o => o.id === id ? { ...o, is_complete: nextComplete } : o) as Objective[] });
+
+    const updatedObjectives = [...objectives];
+    updatedObjectives[objIndex] = { ...obj, is_complete: nextComplete };
+    updateData({ objectives: updatedObjectives });
 
     if (nextComplete) {
       sound.playSuccess();
