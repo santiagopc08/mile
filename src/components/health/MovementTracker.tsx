@@ -247,11 +247,8 @@ export function MovementTracker() {
                 if (error) throw error;
                 await fetchSessions();
             } else {
-                const updated = [...sessions];
-                const idx = updated.findIndex(s => s.id === id);
-                if (idx !== -1) {
-                    updated.splice(idx, 1);
-                }
+                // ⚡ Bolt Optimization: Replace findIndex+splice mutation with single-pass filter
+                const updated = sessions.filter(s => s.id !== id);
                 localStorage.setItem('movement_sessions', JSON.stringify(updated));
                 setSessions(updated);
             }
@@ -263,8 +260,10 @@ export function MovementTracker() {
     // Log Support Reaction
     const handleAddReaction = async (sessionId: string, rxType: ReactionType) => {
         if (!profile) return;
-        const targetSession = sessions.find(s => s.id === sessionId);
-        if (!targetSession) return;
+        // ⚡ Bolt Optimization: Replace O(N) double pass (.find + .findIndex) with single pass
+        const sessionIndex = sessions.findIndex(s => s.id === sessionId);
+        if (sessionIndex === -1) return;
+        const targetSession = sessions[sessionIndex];
 
         const newRx: Reaction = {
             reactor: profile as 'el' | 'ella',
@@ -291,10 +290,7 @@ export function MovementTracker() {
                 await fetchSessions();
             } else {
                 const updated = [...sessions];
-                const idx = updated.findIndex(s => s.id === sessionId);
-                if (idx !== -1) {
-                    updated[idx] = { ...updated[idx], reactions: updatedReactions };
-                }
+                updated[sessionIndex] = { ...targetSession, reactions: updatedReactions };
                 localStorage.setItem('movement_sessions', JSON.stringify(updated));
                 setSessions(updated);
             }

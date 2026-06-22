@@ -738,17 +738,20 @@ return scores.length > 0 ? scores[0] : null;
                             <Sparkles className={`h-3 w-3 text-${accentClass}`} style={{ color: accentColor }} />
                             Dock
                         </div>
-                        {[0, 1, 2].map((idx) => {
-                            const dId = dockIds[idx];
-                            // Check if this dock index is currently shattering
-                            const shatterEntry = Array.from(shatteringTiles.values()).find(s => s.dockIndex === idx);
-                            const isShattering = !!shatterEntry;
-                            const tile = isShattering ? shatterEntry.tile : (dId ? tilesById.get(dId) : null);
+                        {(() => {
+                            // ⚡ Bolt Optimization: Pre-calculate shattering values to avoid O(N*M) lookups inside the map loop
+                            const shatteringValues = Array.from(shatteringTiles.values());
+                            return [0, 1, 2].map((idx) => {
+                                const dId = dockIds[idx];
+                                // Check if this dock index is currently shattering using the pre-calculated array
+                                const shatterEntry = shatteringValues.find(s => s.dockIndex === idx);
+                                const isShattering = !!shatterEntry;
+                                const tile = isShattering ? shatterEntry.tile : (dId ? tilesById.get(dId) : null);
 
-                            return (
-                                <div key={idx} className="relative flex h-18 w-14 items-center justify-center border border-dashed border-white/15 bg-[#050505] md:h-20 md:w-16">
-                                    {tile && !isShattering && (
-                                        <motion.div
+                                return (
+                                    <div key={idx} className="relative flex h-18 w-14 items-center justify-center border border-dashed border-white/15 bg-[#050505] md:h-20 md:w-16">
+                                        {tile && !isShattering && (
+                                            <motion.div
                                             layoutId={tile.id}
                                             className="flex h-full w-full items-center justify-center overflow-hidden rounded-none border border-r-[3px] border-b-[4px] border-[#4b403a] bg-[#111] shadow-none"
                                         >
@@ -765,12 +768,13 @@ return scores.length > 0 ? scores[0] : null;
                                                 <div className="shard shard-right"><TileVisual tile={tile} /></div>
                                                 <div className="shard shard-bottom"><TileVisual tile={tile} /></div>
                                                 <div className="shard shard-left"><TileVisual tile={tile} /></div>
+                                                </div>
                                             </div>
-                                        </div>
-                                    )}
-                                </div>
-                            );
-                        })}
+                                        )}
+                                    </div>
+                                );
+                            });
+                        })()}
                     </div>
                 </div>
             )}
