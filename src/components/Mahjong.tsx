@@ -512,7 +512,7 @@ export function Mahjong() {
         setShatteringTiles(prev => {
             const next = new Map(prev);
             next.set(tileA.id, { tile: tileA, dockIndex });
-            next.set(tileB.id, { tile: tileB, dockIndex });
+            next.set(tileB.id, { tile: tileB, dockIndex: undefined });
             return next;
         });
         setTimeout(() => {
@@ -740,8 +740,10 @@ return scores.length > 0 ? scores[0] : null;
                         </div>
                         {[0, 1, 2].map((idx) => {
                             const dId = dockIds[idx];
-                            const tile = dId ? tilesById.get(dId) : null;
-                            const isShattering = dId && shatteringTiles.has(dId);
+                            // Check if this dock index is currently shattering
+                            const shatterEntry = Array.from(shatteringTiles.values()).find(s => s.dockIndex === idx);
+                            const isShattering = !!shatterEntry;
+                            const tile = isShattering ? shatterEntry.tile : (dId ? tilesById.get(dId) : null);
 
                             return (
                                 <div key={idx} className="relative flex h-18 w-14 items-center justify-center border border-dashed border-white/15 bg-[#050505] md:h-20 md:w-16">

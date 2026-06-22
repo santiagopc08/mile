@@ -34,7 +34,7 @@ export const TileVisual = memo(({ tile }: { tile: TileState }) => {
                 <img
                     src={tile.content.value}
                     alt="Memory"
-                    className="relative z-10 h-full w-full select-none rounded-none object-cover saturate-[1.2] sepia-[0.3] contrast-[1.1] brightness-[1.1] pointer-events-none"
+                    className="relative z-10 h-full w-full select-none rounded-none object-cover pointer-events-none"
                 />
                 {/* top glossy shine */}
                 <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-white/30 z-20 pointer-events-none"></div>
@@ -44,12 +44,12 @@ export const TileVisual = memo(({ tile }: { tile: TileState }) => {
 
     if (tile.content.type === 'local_image') {
         return (
-            <div className="relative h-full w-full overflow-hidden p-[2px] opacity-80">
+            <div className="relative h-full w-full overflow-hidden p-[2px]">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                     src={tile.content.value}
                     alt="Tile"
-                    className="relative z-10 h-full w-full select-none rounded-none object-cover saturate-50 contrast-125 brightness-90 pointer-events-none grayscale-[0.3]"
+                    className="relative z-10 h-full w-full select-none rounded-none object-cover pointer-events-none"
                 />
             </div>
         );
