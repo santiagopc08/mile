@@ -9,23 +9,23 @@ import { useProfile } from '@/context/ProfileContext';
 import { Undo2, Trophy, RotateCcw, Lightbulb, Layers3, Sparkles } from 'lucide-react';
 import { AnimatedBrutalistCorners } from '@/components/ui/AnimatedBrutalistCorners';
 import MahjongTimer, { MahjongTimerHandle } from './MahjongTimer';
-import MahjongTile, { TileState, TileContent, TileVisual } from './MahjongTile';
+import { TileState, TileContent, TileVisual } from './MahjongTile';
+import { MahjongCanvas } from './MahjongCanvas';
 
 const MAHJONG_UNICODE = [
-    "🀀", "🀁", "🀂", "🀃", "🀄", "🀅", "🀆",
-    "🀇", "🀈", "🀉", "🀊", "🀋", "🀌", "🀍", "🀎", "🀏",
-    "🀐", "🀑", "🀒", "🀓", "🀔", "🀕", "🀖", "🀗", "🀘",
-    "🀙", "🀚", "🀛", "🀜", "🀝", "🀞", "🀟", "🀠", "🀡"
+    "🌸", "🐱", "💖", "🍊", "🍀", "🍎", "🐼", "🦊", "🐶", "🐰",
+    "🐨", "🌻", "🍓", "🍇", "🥑", "🎈", "✨", "💫", "🧁", "🍩",
+    "🎨", "🎮", "🧸", "🍿", "🍕", "🍤", "🍣", "🌮", "🥞", "🍔",
+    "🍟", "🍦", "🍭", "🍫"
 ];
 
-type LayoutType = 'turtle' | 'fortress' | 'peaks' | 'mobile' | 'random';
+type LayoutType = 'turtle' | 'fortress' | 'peaks' | 'random';
 
 const LAYOUT_INFO: Record<LayoutType, { name: string; description: string; tiles: number }> = {
     turtle: { name: 'Tortuga Clásica', description: 'El diseño milenario en pirámide.', tiles: 144 },
     fortress: { name: 'La Fortaleza', description: 'Muros concéntricos de memorias.', tiles: 144 },
     peaks: { name: 'Picos Gemelos', description: 'Dos torres que se encuentran.', tiles: 144 },
-    random: { name: 'Caos Equilibrado', description: 'Formación procedimental única.', tiles: 144 },
-    mobile: { name: 'Modo Móvil', description: 'Diseño optimizado para tu pantalla.', tiles: 72 }
+    random: { name: 'Caos Equilibrado', description: 'Formación procedimental única.', tiles: 144 }
 };
 
 function generateCoordinates(type: LayoutType) {
@@ -77,12 +77,6 @@ function generateCoordinates(type: LayoutType) {
         return coords.slice(0, target);
     }
 
-    if (type === 'mobile') {
-        for (let x = 0; x <= 10; x += 2) for (let y = 0; y <= 14; y += 2) coords.push({ x, y, z: 0 });
-        for (let x = 2; x <= 8; x += 2) for (let y = 2; y <= 10; y += 2) coords.push({ x, y, z: 1 });
-        for (let x = 4; x <= 6; x += 2) for (let y = 6; y <= 8; y += 2) coords.push({ x, y, z: 2 });
-        return coords.slice(0, 72);
-    }
 
     if (type === 'turtle') {
         for (let x = 0; x <= 18; x += 2) for (let y = 0; y <= 14; y += 2) coords.push({ x, y, z: 0 });
@@ -274,7 +268,10 @@ export function Mahjong() {
     const accentClass = profile === 'ella' ? 'user-a' : 'user-b';
 
     const [tiles, setTiles] = useState<TileState[]>([]);
-    const [currentLayout, setCurrentLayout] = useState<LayoutType>('turtle');
+    const [currentLayout, setCurrentLayout] = useState<LayoutType>(() => {
+        const layouts: LayoutType[] = ['turtle', 'fortress', 'peaks', 'random'];
+        return layouts[Math.floor(Math.random() * layouts.length)];
+    });
     const [isLoaded, setIsLoaded] = useState(false);
     const [matchedCount, setMatchedCount] = useState(0);
     const [isMobile, setIsMobile] = useState(false);
@@ -287,10 +284,18 @@ export function Mahjong() {
     const [timerActive, setTimerActive] = useState(false);
     const [leaderboard, setLeaderboard] = useState<{ el: LeaderboardEntry[]; ella: LeaderboardEntry[] }>({ el: [], ella: [] });
     const [scoreSaved, setScoreSaved] = useState(false);
-    const [shatteringTiles, setShatteringTiles] = useState<Map<string, { tile: TileState; dockIndex?: number }>>(new Map());
     const [isNewRecord, setIsNewRecord] = useState(false);
 
     const isProcessingRef = useRef(false);
+
+    const [memoryModalData, setMemoryModalData] = useState<{
+        imageUrl: string;
+        title: string;
+        description: string;
+        date: string;
+    } | null>(null);
+
+    const [eventDetailsMap, setEventDetailsMap] = useState<Map<string, { title: string; description: string; date: string }>>(new Map());
 
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -388,11 +393,26 @@ export function Mahjong() {
     const initializeGame = async (layoutParam?: LayoutType) => {
         const mobileState = window.innerWidth <= 768;
         const images = await MahjongService.getMahjongImages();
-        const fetchedImages: { url: string, source: 'supabase' | 'local' }[] = shuffleArray(images);
+
+        // Registrar metadatos de recuerdos de Supabase
+        const detailsMap = new Map<string, { title: string; description: string; date: string }>();
+        for (const img of images) {
+            if (img.source === 'supabase' && img.url) {
+                detailsMap.set(img.url, {
+                    title: img.title || 'Recuerdo Especial',
+                    description: img.description || 'Un hermoso recuerdo de nuestra historia.',
+                    date: img.date ? new Intl.DateTimeFormat('es-CO', { dateStyle: 'long' }).format(new Date(img.date)) : 'Fecha especial'
+                });
+            }
+        }
+        setEventDetailsMap(detailsMap);
+
+        const fetchedImages: { url: string, source: 'supabase' | 'local', title?: string, description?: string, date?: string }[] = shuffleArray(images);
 
         let selectedLayout = layoutParam || currentLayout;
         if (!selectedLayout) {
-            selectedLayout = mobileState ? 'mobile' : 'turtle';
+            const layouts: LayoutType[] = ['turtle', 'fortress', 'peaks', 'random'];
+            selectedLayout = layouts[Math.floor(Math.random() * layouts.length)];
         }
         setCurrentLayout(selectedLayout);
 
@@ -436,7 +456,6 @@ export function Mahjong() {
         timerRef.current?.resetTime();
         setScoreSaved(false);
         setIsNewRecord(false);
-        setShatteringTiles(new Map());
         setIsLoaded(true);
     };
 
@@ -508,28 +527,13 @@ export function Mahjong() {
         return { freeTilesMap: freeMap, tilesById: idMap };
     }, [tiles, dockIds]);
 
-    const triggerShatter = useCallback((tileA: TileState, tileB: TileState, dockIndex?: number) => {
-        setShatteringTiles(prev => {
-            const next = new Map(prev);
-            next.set(tileA.id, { tile: tileA, dockIndex });
-            next.set(tileB.id, { tile: tileB, dockIndex: undefined });
-            return next;
-        });
-        setTimeout(() => {
-            setShatteringTiles(prev => {
-                const next = new Map(prev);
-                next.delete(tileA.id);
-                next.delete(tileB.id);
-                return next;
-            });
-        }, 700);
-    }, []);
 
     const handleTilePointerDown = useCallback((id: string) => {
         if (isProcessingRef.current || gameLost) return;
         if (dockIds.includes(id)) return;
         const tile = tilesById.get(id);
         if (!tile || tile.isMatched || !freeTilesMap.get(id)) return;
+        
         isProcessingRef.current = true;
         requestAnimationFrame(() => { isProcessingRef.current = false; });
         if (!timerActive && matchedCount < tiles.length) { setTimerActive(true); }
@@ -551,13 +555,28 @@ export function Mahjong() {
             setUndoStack(us => [...us, [matchingDockTile.id, tile.id]]);
             setMatchedCount(mc => mc + 2);
             setDockIds(prev => prev.filter(did => did !== matchingDockId));
-            triggerShatter(matchingDockTile, tile, dockIndex);
             setTiles(prev => prev.map(t => {
                 if (t.id === matchingDockTile.id || t.id === tile.id) {
                     return { ...t, isMatched: true, isSelected: false };
                 }
                 return t;
             }));
+
+            // Si es un recuerdo de Supabase (dorado), pausar temporizador y mostrar modal
+            if (tile.content.type === 'custom') {
+                const eventInfo = eventDetailsMap.get(tile.content.value);
+                if (eventInfo) {
+                    setTimerActive(false); // Pausar temporizador
+                    setTimeout(() => {
+                        setMemoryModalData({
+                            imageUrl: tile.content.value,
+                            title: eventInfo.title,
+                            description: eventInfo.description,
+                            date: eventInfo.date
+                        });
+                    }, 800);
+                }
+            }
         } else {
             if (dockIds.length >= 2) {
                 setGameLost(true);
@@ -569,7 +588,7 @@ export function Mahjong() {
                 setUndoStack(us => [...us, [id]]);
             }
         }
-    }, [tilesById, gameLost, dockIds, tiles, freeTilesMap, timerActive, matchedCount, triggerShatter]);
+    }, [tilesById, gameLost, dockIds, tiles, freeTilesMap, timerActive, matchedCount, eventDetailsMap]);
 
     const handleRestart = () => {
         if (initialDeal) {
@@ -582,7 +601,6 @@ export function Mahjong() {
             timerRef.current?.resetTime();
             setScoreSaved(false);
             setIsNewRecord(false);
-            setShatteringTiles(new Map());
         }
     };
 
@@ -634,22 +652,6 @@ export function Mahjong() {
         }
     }, [tiles, dockIds, freeTilesMap, tilesById]);
 
-    const getTileStyle = useCallback((tile: TileState) => {
-        const pxShift = tile.z * -6;
-        const spacingX = isMobile ? 1.5 : 2;
-        const spacingY = isMobile ? 1.8 : 2.2;
-        const halfWidth = isMobile ? 1.6 : 1.75;
-        const width = isMobile ? '3.2rem' : '3.5rem';
-        const height = isMobile ? '4.0rem' : '4.2rem';
-        const xRem = (tile.x - centerX) * spacingX;
-        const yRem = tile.y * spacingY;
-        return {
-            left: `calc(50% - ${halfWidth}rem + ${xRem}rem + ${pxShift}px)`, top: `calc(${yRem}rem + ${pxShift}px)`,
-            zIndex: tile.z * 100 + tile.y,
-            width,
-            height
-        };
-    }, [isMobile, centerX]);
     const getBestForProfile = (p: 'el' | 'ella') => {
         const scores = leaderboard[p];
 return scores.length > 0 ? scores[0] : null;
@@ -731,53 +733,6 @@ return scores.length > 0 ? scores[0] : null;
                 </div>
             </div>
 
-            {isLoaded && (
-                <div className="relative z-20 mb-6 w-full max-w-lg">
-                    <div className="relative flex min-h-[5.5rem] items-center justify-center gap-3 border border-white/10 bg-black/70 p-3">
-                        <div className="absolute left-3 top-2 flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.22em] text-[#a88a7e]">
-                            <Sparkles className={`h-3 w-3 text-${accentClass}`} style={{ color: accentColor }} />
-                            Dock
-                        </div>
-                        {(() => {
-                            // ⚡ Bolt Optimization: Pre-calculate shattering values to avoid O(N*M) lookups inside the map loop
-                            const shatteringValues = Array.from(shatteringTiles.values());
-                            return [0, 1, 2].map((idx) => {
-                                const dId = dockIds[idx];
-                                // Check if this dock index is currently shattering using the pre-calculated array
-                                const shatterEntry = shatteringValues.find(s => s.dockIndex === idx);
-                                const isShattering = !!shatterEntry;
-                                const tile = isShattering ? shatterEntry.tile : (dId ? tilesById.get(dId) : null);
-
-                                return (
-                                    <div key={idx} className="relative flex h-18 w-14 items-center justify-center border border-dashed border-white/15 bg-[#050505] md:h-20 md:w-16">
-                                        {tile && !isShattering && (
-                                            <motion.div
-                                            layoutId={tile.id}
-                                            className="flex h-full w-full items-center justify-center overflow-hidden rounded-none border border-r-[3px] border-b-[4px] border-[#4b403a] bg-[#111] shadow-none"
-                                        >
-                                            <TileVisual tile={tile} />
-                                        </motion.div>
-                                    )}
-
-                                    {isShattering && tile && (
-                                        <div className="absolute inset-0 z-50 pointer-events-none">
-                                            <div className="shatter-container" style={{ '--ripple-color': tile.content.type === 'custom' ? '#ffd700' : accentColor } as React.CSSProperties}>
-                                                <div className="ripple-wave" />
-                                                <div className="ripple-core" />
-                                                <div className="shard shard-top"><TileVisual tile={tile} /></div>
-                                                <div className="shard shard-right"><TileVisual tile={tile} /></div>
-                                                <div className="shard shard-bottom"><TileVisual tile={tile} /></div>
-                                                <div className="shard shard-left"><TileVisual tile={tile} /></div>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                );
-                            });
-                        })()}
-                    </div>
-                </div>
-            )}
 
             {gameLost && (
                 <motion.div
@@ -804,6 +759,68 @@ return scores.length > 0 ? scores[0] : null;
                     </button>
                 </motion.div>
             )}
+
+            {/* Modal de Recuerdo Desbloqueado */}
+            <AnimatePresence>
+                {memoryModalData && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[100099] flex items-center justify-center bg-black/85 p-4 backdrop-blur-md"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, y: 20 }}
+                            animate={{ scale: 1, y: 0 }}
+                            exit={{ scale: 0.9, y: 20 }}
+                            transition={{ type: 'spring', damping: 25, stiffness: 180 }}
+                            className="relative w-full max-w-lg border border-[#ffd700]/40 bg-[#0a0a0a] p-6 text-center shadow-[0_0_50px_rgba(255,215,0,0.25)] md:p-8"
+                        >
+                            {/* Esquinas brutalistas doradas */}
+                            <div className="absolute top-0 left-0 h-4 w-4 border-t-2 border-l-2 border-[#ffd700]" />
+                            <div className="absolute top-0 right-0 h-4 w-4 border-t-2 border-r-2 border-[#ffd700]" />
+                            <div className="absolute bottom-0 left-0 h-4 w-4 border-b-2 border-l-2 border-[#ffd700]" />
+                            <div className="absolute bottom-0 right-0 h-4 w-4 border-b-2 border-r-2 border-[#ffd700]" />
+
+                            <div className="mb-4 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.24em] text-[#ffd700]">
+                                <Sparkles className="h-4 w-4 text-[#ffd700] animate-pulse" />
+                                Recuerdo Desbloqueado
+                            </div>
+
+                            {/* Foto grande con bordes dorados */}
+                            <div className="relative mx-auto mb-6 aspect-video max-h-64 overflow-hidden border border-[#ffd700]/30 bg-black/60 p-[3px]">
+                                <img
+                                    src={memoryModalData.imageUrl}
+                                    alt={memoryModalData.title}
+                                    className="h-full w-full object-cover"
+                                />
+                            </div>
+
+                            <h3 className="mb-1 text-2xl font-black uppercase tracking-tight text-white font-mono">
+                                {memoryModalData.title}
+                            </h3>
+                            
+                            <span className="mb-4 block text-[10px] font-mono uppercase text-[#a88a7e]">
+                                {memoryModalData.date}
+                            </span>
+
+                            <p className="mb-8 border-y border-white/5 py-4 font-mono text-xs italic leading-relaxed text-[#e5e2e1]">
+                                "{memoryModalData.description}"
+                            </p>
+
+                            <button
+                                onClick={() => {
+                                    setMemoryModalData(null);
+                                    setTimerActive(true); // Reanudar temporizador
+                                }}
+                                className="w-full bg-[#ffd700] py-3 text-xs font-black uppercase tracking-[0.18em] text-black transition-all hover:bg-[#ffe57f] active:scale-95"
+                            >
+                                Continuar
+                            </button>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {gameWon && (
                 <motion.div
@@ -875,64 +892,21 @@ return scores.length > 0 ? scores[0] : null;
             )}
 
             <div
-                className="relative flex w-full max-w-[880px] justify-center overflow-hidden border border-white/10 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.05),transparent_42%),linear-gradient(180deg,rgba(255,255,255,0.03),transparent)] transition-all duration-200"
+                className="relative flex w-full max-w-[880px] flex-col justify-center overflow-hidden border border-white/10 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.05),transparent_42%),linear-gradient(180deg,rgba(255,255,255,0.03),transparent)] transition-all duration-200"
                 style={{
-                    height: `${Math.max(600, (boardSpanY * (isMobile ? 1.8 : 2.2) + (isMobile ? 4.0 : 4.2)) * scale * 16 + 40)}px`
+                    height: isMobile ? '530px' : '630px'
                 }}
                 ref={containerRef}
             >
                 <div className="pointer-events-none absolute inset-0 bg-dot-matrix opacity-70" />
                 <AnimatedBrutalistCorners color={accentColor} size={12} thickness={1.5} />
                 
-                <div
-                    className="relative w-full transition-transform duration-200 ease-out"
-                    style={{
-                        transform: `scale(${scale})`,
-                        transformOrigin: 'top center',
-                        height: `${(boardSpanY * (isMobile ? 1.8 : 2.2) + (isMobile ? 4.0 : 4.2)) * 16}px`
-                    }}
-                >
-                    <AnimatePresence>
-                        {tiles.map(tile => {
-                            if (tile.isMatched || dockIds.includes(tile.id)) return null;
-
-                            return (
-                                <MahjongTile
-                                    key={tile.id}
-                                    tile={tile}
-                                    isFree={!!freeTilesMap.get(tile.id)}
-                                    onPointerDown={handleTilePointerDown}
-                                    positionStyle={getTileStyle(tile)}
-                                />
-                            );
-                        })}
-                    </AnimatePresence>
-
-                    {Array.from(shatteringTiles.entries()).map(([tileId, { tile, dockIndex }]) => {
-                        if (dockIndex !== undefined) return null;
-                        const pos = getTileStyle(tile);
-                        return (
-                            <div
-                                key={`shatter-${tileId}`}
-                                style={{
-                                    position: 'absolute',
-                                    ...pos,
-                                    zIndex: pos.zIndex + 200,
-                                }}
-                                className="tile-item pointer-events-none"
-                            >
-                                <div className="shatter-container" style={{ '--ripple-color': tile.content.type === 'custom' ? '#ffd700' : accentColor } as React.CSSProperties}>
-                                    <div className="ripple-wave" />
-                                    <div className="ripple-core" />
-                                    <div className="shard shard-top"><TileVisual tile={tile} /></div>
-                                    <div className="shard shard-right"><TileVisual tile={tile} /></div>
-                                    <div className="shard shard-bottom"><TileVisual tile={tile} /></div>
-                                    <div className="shard shard-left"><TileVisual tile={tile} /></div>
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
+                <MahjongCanvas
+                    tiles={tiles}
+                    freeTilesMap={freeTilesMap}
+                    dockIds={dockIds}
+                    onTilePointerDown={handleTilePointerDown}
+                />
             </div>
         </div>
     );

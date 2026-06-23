@@ -45,18 +45,23 @@ export const MahjongService = {
     },
 
 
-    async getMahjongImages(supabase: SupabaseClient = defaultSupabase): Promise<{ url: string, source: 'supabase' | 'local' }[]> {
+    async getMahjongImages(supabase: SupabaseClient = defaultSupabase): Promise<{ url: string, source: 'supabase' | 'local', title?: string, description?: string, date?: string }[]> {
         try {
             const [eventsRes, localRes] = await Promise.all([
-                supabase.from('events').select('image_url').not('image_url', 'is', null),
+                supabase.from('events').select('image_url, title, description, date').not('image_url', 'is', null),
                 fetch('/api/mahjong-images').then(r => r.json()).catch(() => [])
             ]);
 
             const eventData = eventsRes.data || [];
             const eventImgs = eventData
-                .map(e => e.image_url)
-                .filter(url => url && typeof url === 'string' && url.trim() !== '')
-                .map(url => ({ url, source: 'supabase' as const }));
+                .filter(e => e.image_url && typeof e.image_url === 'string' && e.image_url.trim() !== '')
+                .map(e => ({
+                    url: e.image_url,
+                    source: 'supabase' as const,
+                    title: e.title || undefined,
+                    description: e.description || undefined,
+                    date: e.date || undefined
+                }));
 
             const localImgsArray = Array.isArray(localRes) ? localRes : [];
             const localImgs = localImgsArray

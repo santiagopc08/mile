@@ -61,7 +61,7 @@ export const TRANSLATIONS: Record<string, string> = {
 };
 export const t = (key: string) => TRANSLATIONS[key] || key;
 
-export const TYPE_META: Record<TransactionType, { label: string; tag: string; color: string; bg: string; Icon: React.ElementType }> = {
+export const TYPE_META: Record<TransactionType, { label: string; tag: string; color: string; bg: string; Icon: React.ComponentType<any> }> = {
   expense: {
     label: 'Añadir Gasto',
     tag: 'Salió',

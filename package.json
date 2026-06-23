@@ -9,9 +9,12 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.6.1",
     "@serwist/next": "^9.5.7",
     "@supabase/auth-js": "^2.108.1",
     "@supabase/supabase-js": "^2.108.1",
+    "@types/three": "^0.184.1",
     "@vercel/speed-insights": "^1.0.4",
     "@vis.gl/react-google-maps": "^1.8.3",
     "clsx": "^2.1.1",
@@ -25,6 +28,7 @@
     "recharts": "^3.8.1",
     "serwist": "^9.5.7",
     "tailwind-merge": "^3.5.0",
+    "three": "^0.184.0",
     "uuid": "^14.0.0",
     "web-push": "^3.6.7"
   },
