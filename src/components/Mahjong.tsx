@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { StoreService } from '@/services/storeService';
 import { MahjongService } from '@/services/mahjongService';
@@ -27,6 +28,33 @@ const LAYOUT_INFO: Record<LayoutType, { name: string; description: string; tiles
     peaks: { name: 'Picos Gemelos', description: 'Dos torres que se encuentran.', tiles: 144 },
     random: { name: 'Caos Equilibrado', description: 'Formación procedimental única.', tiles: 144 }
 };
+
+function filterCoordsByColumns(coords: { x: number; y: number; z: number }[], maxCols: number) {
+    const uniqueX = Array.from(new Set(coords.map(c => c.x))).sort((a, b) => a - b);
+    if (uniqueX.length <= maxCols) return coords;
+
+    const diff = uniqueX.length - maxCols;
+    const startIndex = Math.floor(diff / 2);
+    const allowedX = new Set(uniqueX.slice(startIndex, startIndex + maxCols));
+
+    const filtered = coords.filter(c => allowedX.has(c.x));
+
+    if (filtered.length % 2 !== 0) {
+        let maxZ = -1;
+        let indexToRemove = -1;
+        for (let i = 0; i < filtered.length; i++) {
+            if (filtered[i].z > maxZ) {
+                maxZ = filtered[i].z;
+                indexToRemove = i;
+            }
+        }
+        if (indexToRemove !== -1) {
+            filtered.splice(indexToRemove, 1);
+        }
+    }
+
+    return filtered;
+}
 
 function generateCoordinates(type: LayoutType) {
     const coords: { x: number, y: number, z: number }[] = [];
@@ -142,7 +170,8 @@ function generateCoordinates(type: LayoutType) {
         return true;
     });
 
-    return deduped.slice(0, target);
+    const sliced = deduped.slice(0, target);
+    return filterCoordsByColumns(sliced, 10);
 }
 
 function shuffleArray<T>(array: T[]): T[] {
@@ -203,41 +232,65 @@ function isSlotFree(
     return !hasRight;
 }
 
-function tryGenerateBoard(
-    coords: { x: number; y: number; z: number; id: string }[],
-    availablePairs: TileContent[]
-): TileState[] | null {
-    let pool = coords.map(c => ({ ...c }));
+function generateSolvableBoard(rawCoords: { x: number; y: number; z: number }[], pairs: TileContent[]): TileState[] | null {
+    const coords = rawCoords.map((c, i) => ({ ...c, id: `tile_${i}` }));
+    const finalPairs = pairs.slice(0, coords.length / 2);
     const assignments = new Map<string, TileContent>();
-    let deadlock = false;
+    const availablePairs = [...finalPairs];
+    let steps = 0;
+    const maxSteps = 40000; // safety limit
 
-    while (pool.length > 0) {
+    function backtrack(pool: typeof coords): boolean {
+        steps++;
+        if (steps > maxSteps) return false;
+        if (pool.length === 0) return true;
+
         const grid = new Set<number>();
         for (const t of pool) {
             grid.add(t.z * 10000 + t.y * 100 + t.x);
         }
 
-        const freeSlots = pool.filter((target, _idx) => {
-            return isSlotFree(target, grid);
-        });
-        if (freeSlots.length < 2) {
-            deadlock = true;
-            break;
-        }
-        const i1 = Math.floor(Math.random() * freeSlots.length);
-        let i2 = Math.floor(Math.random() * (freeSlots.length - 1));
-        if (i2 >= i1) i2++;
-        const slot1 = freeSlots[i1];
-        const slot2 = freeSlots[i2];
-        const pair = availablePairs.pop();
-        if (!pair) { deadlock = true; break; }
-        assignments.set(slot1.id, pair);
-        assignments.set(slot2.id, pair);
+        const freeSlots = pool.filter(target => isSlotFree(target, grid));
+        if (freeSlots.length < 2) return false;
 
-        pool = pool.filter(p => p.id !== slot1.id && p.id !== slot2.id);
+        const freePairs: [number, number][] = [];
+        for (let i = 0; i < freeSlots.length; i++) {
+            for (let j = i + 1; j < freeSlots.length; j++) {
+                freePairs.push([i, j]);
+            }
+        }
+
+        const shuffledPairs = shuffleArray(freePairs);
+        const currentPair = availablePairs.pop();
+        if (!currentPair) return false;
+
+        // Try a few pairs of free slots
+        // Optimization: limit the branching factor to avoid excessive deep search if we get stuck
+        const limitBranch = Math.min(shuffledPairs.length, 6);
+        for (let pIdx = 0; pIdx < limitBranch; pIdx++) {
+            const [i1, i2] = shuffledPairs[pIdx];
+            const slot1 = freeSlots[i1];
+            const slot2 = freeSlots[i2];
+
+            assignments.set(slot1.id, currentPair);
+            assignments.set(slot2.id, currentPair);
+
+            const nextPool = pool.filter(p => p.id !== slot1.id && p.id !== slot2.id);
+
+            if (backtrack(nextPool)) {
+                return true;
+            }
+
+            assignments.delete(slot1.id);
+            assignments.delete(slot2.id);
+        }
+
+        availablePairs.push(currentPair);
+        return false;
     }
 
-    if (!deadlock && pool.length === 0) {
+    const success = backtrack(coords);
+    if (success) {
         return coords.map(c => ({
             id: c.id,
             x: c.x,
@@ -252,20 +305,12 @@ function tryGenerateBoard(
     return null;
 }
 
-function generateSolvableBoard(rawCoords: { x: number; y: number; z: number }[], pairs: TileContent[]): TileState[] | null {
-    const coords = rawCoords.map((c, i) => ({ ...c, id: `tile_${i}` }));
-    for (let attempt = 0; attempt < 100; attempt++) {
-        const availablePairs = shuffleArray([...pairs]);
-        const result = tryGenerateBoard(coords, availablePairs);
-        if (result) return result;
-    }
-    return null;
-}
-
 export function Mahjong() {
     const { profile } = useProfile();
     const accentColor = profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)';
     const accentClass = profile === 'ella' ? 'user-a' : 'user-b';
+    const secondaryColor = profile === 'ella' ? 'var(--color-user-b)' : 'var(--color-user-a)';
+    const secondaryClass = profile === 'ella' ? 'user-b' : 'user-a';
 
     const [tiles, setTiles] = useState<TileState[]>([]);
     const [currentLayout, setCurrentLayout] = useState<LayoutType>(() => {
@@ -431,7 +476,10 @@ export function Mahjong() {
             pairs.push({ type: 'traditional', value: MAHJONG_UNICODE[emojiIdx % MAHJONG_UNICODE.length] });
             emojiIdx++;
         }
-        const rawCoords = generateCoordinates(selectedLayout);
+        let rawCoords = generateCoordinates(selectedLayout);
+        if (mobileState) {
+            rawCoords = filterCoordsByColumns(rawCoords, 8);
+        }
         let initialTiles = generateSolvableBoard(rawCoords, pairs);
         if (!initialTiles) {
             const fullDeck = shuffleArray([...pairs, ...pairs]);
@@ -660,7 +708,7 @@ return scores.length > 0 ? scores[0] : null;
     const gameWon = matchedCount === tiles.length && tiles.length > 0;
 
     return (
-        <div className="relative flex w-full flex-col items-center justify-center overflow-hidden">
+        <div className="relative flex w-full flex-col items-center justify-center overflow-hidden max-md:overflow-visible">
 
             <div className="relative z-10 mb-5 flex flex-col w-full gap-4 border border-white/10 bg-black/60 p-4">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -733,48 +781,76 @@ return scores.length > 0 ? scores[0] : null;
                 </div>
             </div>
 
-
-            {gameLost && (
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="z-[100099] flex w-[90%] max-w-md flex-col items-center border border-red-500 bg-black/95 px-8 py-10 shadow-[0_0_40px_rgba(239,68,68,0.22)] backdrop-blur-xl md:px-12 md:py-12"
-                >
-                    <div className="mb-6 flex h-16 w-16 rotate-45 items-center justify-center border border-red-500 bg-red-500/10">
-                        <RotateCcw className="h-8 w-8 -rotate-45 text-red-400" />
+            {gameLost && typeof window !== 'undefined' && createPortal(
+                <div className="fixed inset-0 z-[100000] flex items-center justify-center bg-black/75 backdrop-blur-md p-4 overflow-hidden">
+                    {/* Cyber scanlines */}
+                    <div className="absolute inset-0 scanlines-overlay opacity-35 pointer-events-none z-0" />
+                    
+                    {/* Figuras desenfocadas de fondo (Glow) */}
+                    <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+                        <div className="absolute top-[15%] left-[10%] w-80 h-80 rounded-full bg-red-600/25 blur-[100px] animate-bg-glow-float-1" />
+                        <div className="absolute bottom-[15%] right-[10%] w-80 h-80 rounded-full bg-stone-900/50 blur-[100px] animate-bg-glow-float-2" />
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] rounded-full bg-red-900/15 blur-[90px] animate-bg-glow-rotate" />
                     </div>
-                    <h3 className="mb-2 text-3xl font-black uppercase tracking-normal text-white md:text-4xl">Sin Espacio</h3>
-                    <p className="mb-8 text-center text-sm font-light tracking-normal text-[#a88a7e]">Tu bandeja se ha llenado con cartas sin emparejar.</p>
-                    <button
-                        onClick={handleRestart}
-                        className="w-full bg-red-500 py-4 text-xs font-bold uppercase tracking-[0.18em] text-white transition-colors hover:bg-red-600"
+
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="relative z-10 flex w-[95%] max-w-md flex-col items-center border border-red-500 bg-black/95 px-8 py-10 shadow-[0_0_40px_rgba(239,68,68,0.22)] backdrop-blur-xl md:px-12 md:py-12 animate-glitch-container"
                     >
-                        Reintentar
-                    </button>
-                    <button
-                        onClick={handleUndo}
-                        className="mt-4 flex w-full items-center justify-center gap-2 border border-white/10 py-3 text-xs font-bold uppercase tracking-[0.18em] text-[#a88a7e] transition-colors hover:bg-white/5 hover:text-white"
-                    >
-                        <Undo2 className="h-4 w-4" /> Deshacer
-                    </button>
-                </motion.div>
+                        {/* Esquinas brutalistas decorativas */}
+                        <div className="absolute top-0 left-0 h-4 w-4 border-t-2 border-l-2 border-red-500" />
+                        <div className="absolute top-0 right-0 h-4 w-4 border-t-2 border-r-2 border-red-500" />
+                        <div className="absolute bottom-0 left-0 h-4 w-4 border-b-2 border-l-2 border-red-500" />
+                        <div className="absolute bottom-0 right-0 h-4 w-4 border-b-2 border-r-2 border-red-500" />
+
+                        <div className="mb-6 flex h-16 w-16 rotate-45 items-center justify-center border border-red-500 bg-red-500/10 animate-glitch-flicker">
+                            <RotateCcw className="h-8 w-8 -rotate-45 text-red-400" />
+                        </div>
+                        <h3 className="mb-2 text-3xl font-black uppercase tracking-normal text-white md:text-4xl animate-glitch-text">Sin Espacio</h3>
+                        <p className="mb-8 text-center text-sm font-light tracking-normal text-[#a88a7e]">Tu bandeja se ha llenado con cartas sin emparejar.</p>
+                        <button
+                            onClick={handleRestart}
+                            className="w-full bg-red-500 py-4 text-xs font-bold uppercase tracking-[0.18em] text-white transition-all hover:bg-red-600 active:scale-95"
+                        >
+                            Reintentar
+                        </button>
+                        <button
+                            onClick={handleUndo}
+                            className="mt-4 flex w-full items-center justify-center gap-2 border border-white/10 py-3 text-xs font-bold uppercase tracking-[0.18em] text-[#a88a7e] transition-all hover:bg-white/5 hover:text-white active:scale-95"
+                        >
+                            <Undo2 className="h-4 w-4" /> Deshacer
+                        </button>
+                    </motion.div>
+                </div>,
+                document.body
             )}
 
             {/* Modal de Recuerdo Desbloqueado */}
             <AnimatePresence>
-                {memoryModalData && (
+                {memoryModalData && typeof window !== 'undefined' && createPortal(
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[100099] flex items-center justify-center bg-black/85 p-4 backdrop-blur-md"
+                        className="fixed inset-0 z-[100099] flex items-center justify-center bg-black/80 p-4 backdrop-blur-md overflow-hidden"
                     >
+                        {/* Cyber scanlines */}
+                        <div className="absolute inset-0 scanlines-overlay opacity-35 pointer-events-none z-0" />
+
+                        {/* Figuras desenfocadas de fondo (Glow dorado) */}
+                        <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+                            <div className="absolute top-[15%] left-[10%] w-80 h-80 rounded-full bg-[#ffd700]/12 blur-[100px] animate-bg-glow-float-1" />
+                            <div className="absolute bottom-[15%] right-[10%] w-80 h-80 rounded-full bg-[#ff00ff]/8 blur-[100px] animate-bg-glow-float-2" />
+                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] rounded-full bg-[#ffd700]/5 blur-[90px] animate-bg-glow-rotate" />
+                        </div>
+
                         <motion.div
                             initial={{ scale: 0.9, y: 20 }}
                             animate={{ scale: 1, y: 0 }}
                             exit={{ scale: 0.9, y: 20 }}
                             transition={{ type: 'spring', damping: 25, stiffness: 180 }}
-                            className="relative w-full max-w-lg border border-[#ffd700]/40 bg-[#0a0a0a] p-6 text-center shadow-[0_0_50px_rgba(255,215,0,0.25)] md:p-8"
+                            className="relative z-10 w-full max-w-lg border border-[#ffd700]/40 bg-[#0a0a0a] p-6 text-center shadow-[0_0_50px_rgba(255,215,0,0.25)] md:p-8 animate-glitch-container"
                         >
                             {/* Esquinas brutalistas doradas */}
                             <div className="absolute top-0 left-0 h-4 w-4 border-t-2 border-l-2 border-[#ffd700]" />
@@ -782,7 +858,7 @@ return scores.length > 0 ? scores[0] : null;
                             <div className="absolute bottom-0 left-0 h-4 w-4 border-b-2 border-l-2 border-[#ffd700]" />
                             <div className="absolute bottom-0 right-0 h-4 w-4 border-b-2 border-r-2 border-[#ffd700]" />
 
-                            <div className="mb-4 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.24em] text-[#ffd700]">
+                            <div className="mb-4 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.24em] text-[#ffd700] animate-glitch-text">
                                 <Sparkles className="h-4 w-4 text-[#ffd700] animate-pulse" />
                                 Recuerdo Desbloqueado
                             </div>
@@ -818,84 +894,101 @@ return scores.length > 0 ? scores[0] : null;
                                 Continuar
                             </button>
                         </motion.div>
-                    </motion.div>
+                    </motion.div>,
+                    document.body
                 )}
             </AnimatePresence>
 
-            {gameWon && (
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className={`z-[1000] flex w-[90%] max-w-md flex-col items-center border border-${accentClass} bg-black/95 px-8 py-10 shadow-none backdrop-blur-xl md:px-12 md:py-12`}
-                    style={{ borderColor: accentColor, boxShadow: `0 0 44px ${accentColor}2e` }}
-                >
-                    <div className="mb-5 flex h-16 w-16 rotate-45 items-center justify-center border-2 border-current" style={{ color: accentColor }}>
-                        <Trophy className="h-8 w-8 -rotate-45 text-current" />
+            {gameWon && typeof window !== 'undefined' && createPortal(
+                <div className="fixed inset-0 z-[100000] flex items-center justify-center bg-black/75 backdrop-blur-md p-4 overflow-hidden">
+                    {/* Cyber scanlines */}
+                    <div className="absolute inset-0 scanlines-overlay opacity-35 pointer-events-none z-0" />
+
+                    {/* Figuras desenfocadas de fondo (Glow con colores dinámicos) */}
+                    <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+                        <div className="absolute top-[15%] left-[10%] w-80 h-80 rounded-full blur-[100px] animate-bg-glow-float-1" style={{ backgroundColor: `${accentColor}33` }} />
+                        <div className="absolute bottom-[15%] right-[10%] w-80 h-80 rounded-full blur-[100px] animate-bg-glow-float-2" style={{ backgroundColor: `${secondaryColor}22` }} />
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] rounded-full blur-[90px] animate-bg-glow-rotate" style={{ backgroundColor: `${accentColor}15` }} />
                     </div>
-                    <h3 className="mb-2 text-3xl font-black uppercase tracking-normal md:text-4xl" style={{ color: accentColor }}>¡Triunfo!</h3>
-                    <p className="mb-6 text-center text-sm font-light tracking-normal text-[#a88a7e]">Has liberado todas nuestras memorias.</p>
 
-                    {isNewRecord && (
-                        <motion.div
-                            initial={{ scale: 0.8, opacity: 0 }}
-                            animate={{ scale: [1, 1.05, 1], opacity: 1 }}
-                            transition={{ repeat: Infinity, duration: 1.5 }}
-                            className={`mb-4 border border-${accentClass} bg-${accentClass}/10 px-6 py-2 text-xs font-bold uppercase tracking-[0.2em] shadow-none`}
-                            style={{ borderColor: accentColor, color: profile === 'ella' ? '#ffb595' : '#e1ff80' }}
-                        >
-                            NUEVO RÉCORD
-                        </motion.div>
-                    )}
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className={`relative z-10 flex w-[95%] max-w-md flex-col items-center border border-${accentClass} bg-black/95 px-8 py-10 shadow-none backdrop-blur-xl md:px-12 md:py-12 animate-glitch-container`}
+                        style={{ borderColor: accentColor, boxShadow: `0 0 44px ${accentColor}2e` }}
+                    >
+                        {/* Esquinas brutalistas decorativas */}
+                        <div className="absolute top-0 left-0 h-4 w-4 border-t-2 border-l-2" style={{ borderColor: accentColor }} />
+                        <div className="absolute top-0 right-0 h-4 w-4 border-t-2 border-r-2" style={{ borderColor: accentColor }} />
+                        <div className="absolute bottom-0 left-0 h-4 w-4 border-b-2 border-l-2" style={{ borderColor: accentColor }} />
+                        <div className="absolute bottom-0 right-0 h-4 w-4 border-b-2 border-r-2" style={{ borderColor: accentColor }} />
 
-                    <div className="relative mb-6 w-full border border-white/10 bg-[#050505] p-4">
-                        <div className="text-center">
-                            <span className="mb-1 block text-[10px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Tu Tiempo</span>
-                            <span className="font-mono text-3xl tracking-normal text-white">{formatTime(timerRef.current?.getTime() || 0)}</span>
-                            <span className={`mt-1 block text-[10px] font-bold uppercase ${profile === 'ella' ? 'text-user-b' : 'text-user-a'}`}>
-                                {profile === 'el' ? 'Santiago' : 'Mile'}
-                            </span>
+                        <div className="mb-5 flex h-16 w-16 rotate-45 items-center justify-center border-2 border-current animate-glitch-flicker" style={{ color: accentColor }}>
+                            <Trophy className="h-8 w-8 -rotate-45 text-current" />
                         </div>
-                    </div>
+                        <h3 className="mb-2 text-3xl font-black uppercase tracking-normal md:text-4xl animate-glitch-text" style={{ color: accentColor }}>¡Triunfo!</h3>
+                        <p className="mb-6 text-center text-sm font-light tracking-normal text-[#a88a7e]">Has liberado todas nuestras memorias.</p>
 
-                    {(leaderboard.el.length > 0 || leaderboard.ella.length > 0) && (
-                        <div className="w-full mb-6">
-                            <h4 className="mb-3 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Tabla de Récords</h4>
-                            <div className="grid grid-cols-2 gap-3">
-                                <div className="space-y-1.5">
-                                    <span className="block text-center text-[10px] font-bold uppercase tracking-wider text-user-a">Él</span>
-                                    {leaderboard.el.length > 0 ? leaderboard.el.slice(0, 3).map((s, i) => (
-                                        <div key={i} className="flex items-center justify-between border border-white/10 bg-[#0a0a0a] px-3 py-1.5 text-xs">
-                                            <span className="font-mono text-white/35">#{i + 1}</span>
-                                            <span className="font-mono tabular-nums tracking-normal text-white">{formatTime(s.time_seconds)}</span>
-                                        </div>
-                                    )) : (
-                                        <p className="text-center text-[10px] italic text-white/30">Sin récords</p>
-                                    )}
-                                </div>
-                                <div className="space-y-1.5">
-                                    <span className="block text-center text-[10px] font-bold uppercase tracking-wider text-user-b">Ella</span>
-                                    {leaderboard.ella.length > 0 ? leaderboard.ella.slice(0, 3).map((s, i) => (
-                                        <div key={i} className="flex items-center justify-between border border-white/10 bg-[#0a0a0a] px-3 py-1.5 text-xs">
-                                            <span className="font-mono text-white/35">#{i + 1}</span>
-                                            <span className="font-mono tabular-nums tracking-normal text-white">{formatTime(s.time_seconds)}</span>
-                                        </div>
-                                    )) : (
-                                        <p className="text-center text-[10px] italic text-white/30">Sin récords</p>
-                                    )}
-                                </div>
+                        {isNewRecord && (
+                            <motion.div
+                                initial={{ scale: 0.8, opacity: 0 }}
+                                animate={{ scale: [1, 1.05, 1], opacity: 1 }}
+                                transition={{ repeat: Infinity, duration: 1.5 }}
+                                className={`mb-4 border border-${accentClass} bg-${accentClass}/10 px-6 py-2 text-xs font-bold uppercase tracking-[0.2em] shadow-none`}
+                                style={{ borderColor: accentColor, color: profile === 'ella' ? '#ffb595' : '#e1ff80' }}
+                            >
+                                NUEVO RÉCORD
+                            </motion.div>
+                        )}
+
+                        <div className="relative mb-6 w-full border border-white/10 bg-[#050505] p-4">
+                            <div className="text-center">
+                                <span className="mb-1 block text-[10px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Tu Tiempo</span>
+                                <span className="font-mono text-3xl tracking-normal text-white">{formatTime(timerRef.current?.getTime() || 0)}</span>
+                                <span className={`mt-1 block text-[10px] font-bold uppercase ${profile === 'ella' ? 'text-user-b' : 'text-user-a'}`}>
+                                    {profile === 'el' ? 'Santiago' : 'Mile'}
+                                </span>
                             </div>
                         </div>
-                    )}
 
-                    <button onClick={() => { setIsLoaded(false); }} className={`w-full bg-${accentClass} py-3.5 text-xs font-black uppercase tracking-[0.18em] text-black transition-all hover:opacity-80`} style={{ backgroundColor: accentColor }}>Jugar de nuevo</button>
-                </motion.div>
+                        {(leaderboard.el.length > 0 || leaderboard.ella.length > 0) && (
+                            <div className="w-full mb-6">
+                                <h4 className="mb-3 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Tabla de Récords</h4>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="space-y-1.5">
+                                        <span className="block text-center text-[10px] font-bold uppercase tracking-wider text-user-a">Él</span>
+                                        {leaderboard.el.length > 0 ? leaderboard.el.slice(0, 3).map((s, i) => (
+                                            <div key={i} className="flex items-center justify-between border border-white/10 bg-[#0a0a0a] px-3 py-1.5 text-xs">
+                                                <span className="font-mono text-white/35">#{i + 1}</span>
+                                                <span className="font-mono tabular-nums tracking-normal text-white">{formatTime(s.time_seconds)}</span>
+                                            </div>
+                                        )) : (
+                                            <p className="text-center text-[10px] italic text-white/30">Sin récords</p>
+                                        )}
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <span className="block text-center text-[10px] font-bold uppercase tracking-wider text-user-b">Ella</span>
+                                        {leaderboard.ella.length > 0 ? leaderboard.ella.slice(0, 3).map((s, i) => (
+                                            <div key={i} className="flex items-center justify-between border border-white/10 bg-[#0a0a0a] px-3 py-1.5 text-xs">
+                                                <span className="font-mono text-white/35">#{i + 1}</span>
+                                                <span className="font-mono tabular-nums tracking-normal text-white">{formatTime(s.time_seconds)}</span>
+                                            </div>
+                                        )) : (
+                                            <p className="text-center text-[10px] italic text-white/30">Sin récords</p>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        <button onClick={() => { setIsLoaded(false); }} className={`w-full bg-${accentClass} py-3.5 text-xs font-black uppercase tracking-[0.18em] text-black transition-all hover:opacity-80 active:scale-95`} style={{ backgroundColor: accentColor }}>Jugar de nuevo</button>
+                    </motion.div>
+                </div>,
+                document.body
             )}
 
             <div
-                className="relative flex w-full max-w-[880px] flex-col justify-center overflow-hidden border border-white/10 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.05),transparent_42%),linear-gradient(180deg,rgba(255,255,255,0.03),transparent)] transition-all duration-200"
-                style={{
-                    height: isMobile ? '530px' : '630px'
-                }}
+                className="relative flex w-full max-w-[880px] max-md:max-w-none max-md:w-screen max-md:shrink-0 h-[630px] max-md:h-[530px] flex-col justify-center overflow-hidden border border-white/10 max-md:border-x-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.05),transparent_42%),linear-gradient(180deg,rgba(255,255,255,0.03),transparent)] transition-all duration-200"
                 ref={containerRef}
             >
                 <div className="pointer-events-none absolute inset-0 bg-dot-matrix opacity-70" />
@@ -906,6 +999,7 @@ return scores.length > 0 ? scores[0] : null;
                     freeTilesMap={freeTilesMap}
                     dockIds={dockIds}
                     onTilePointerDown={handleTilePointerDown}
+                    isMobile={isMobile}
                 />
             </div>
         </div>

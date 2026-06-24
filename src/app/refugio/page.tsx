@@ -17,40 +17,7 @@ export default function RefugioPage() {
 
   const [activeTab, setActiveTab] = useState<RefugioTab>('historia');
 
-  const [timeLeft, setTimeLeft] = useState<{
-    days: number;
-    hours: number;
-    minutes: number;
-    seconds: number;
-    isExpired: boolean;
-  }>({ days: 7, hours: 0, minutes: 0, seconds: 0, isExpired: false });
-
-  useEffect(() => {
-    const targetDate = new Date(2026, 5, 24, 0, 0, 0); // June 24, 2026 (month is 0-indexed)
-    
-    const updateTime = () => {
-      const now = new Date();
-      const difference = targetDate.getTime() - now.getTime();
-      
-      if (difference <= 0) {
-        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0, isExpired: true });
-        return;
-      }
-      
-      const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
-      const minutes = Math.floor((difference / 1000 / 60) % 60);
-      const seconds = Math.floor((difference / 1000) % 60);
-      
-      setTimeLeft({ days, hours, minutes, seconds, isExpired: false });
-    };
-
-    updateTime();
-    const timer = setInterval(updateTime, 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const isBirthdayActive = !timeLeft.isExpired && (new Date() >= new Date(2026, 5, 17, 0, 0, 0));
+  const isBirthdayActive = new Date() >= new Date(2026, 5, 17, 0, 0, 0);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -106,7 +73,7 @@ export default function RefugioPage() {
               <div className="space-y-3 relative z-10 max-w-2xl">
                 <div className="flex items-center gap-2 text-[9px] font-mono font-bold tracking-[0.3em] text-[#ff4b89]">
                   <Sparkles size={12} className="text-[#c3f400] animate-pulse" />
-                  <span>SECCIÓN TEMPORAL ACTIVA // PROTOCOLO DE CUMPLEAÑOS</span>
+                  <span>SECCIÓN PERMANENTE // PROTOCOLO DE CUMPLEAÑOS</span>
                 </div>
                 
                 <h2 className="text-2xl font-mono font-black uppercase text-white leading-none tracking-wide">
@@ -117,14 +84,11 @@ export default function RefugioPage() {
                   Se ha desbloqueado una experiencia interactiva exclusiva para ti con cartas de la tripulación, videos, pasteles interactivos y sorpresas creadas con mucho cariño. ¡No te la pierdas!
                 </p>
 
-                {/* Countdown technical design */}
+                {/* Status tag */}
                 <div className="flex flex-wrap items-center gap-3 pt-1 font-mono text-[9px] text-[#a88a7e] uppercase">
-                  <span>EXPIRACIÓN DEL PROTOCOLO EN:</span>
-                  <div className="flex gap-1.5 text-white font-bold bg-black/40 px-2 py-0.5 border border-white/5 tracking-wider">
-                    <span className="text-[#c3f400]">{timeLeft.days}D</span> :
-                    <span className="text-[#c3f400]">{timeLeft.hours.toString().padStart(2, '0')}H</span> :
-                    <span className="text-[#c3f400]">{timeLeft.minutes.toString().padStart(2, '0')}M</span> :
-                    <span className="text-[#c3f400]">{timeLeft.seconds.toString().padStart(2, '0')}S</span>
+                  <span>ESTADO DEL PROTOCOLO:</span>
+                  <div className="flex gap-1.5 text-[#c3f400] font-bold bg-[#c3f400]/10 px-2 py-0.5 border border-[#c3f400]/20 tracking-wider">
+                    <span>ARCHIVO PERMANENTE</span>
                   </div>
                 </div>
               </div>

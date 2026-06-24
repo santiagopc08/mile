@@ -22,21 +22,20 @@ function CameraRig({ boardWidth, boardHeight }: CameraRigProps) {
         const aspect = size.width / size.height;
         const fovRad = ((camera as THREE.PerspectiveCamera).fov * Math.PI) / 180;
 
-        // Detectar si la pantalla está en posición vertical (típico de móviles/móvil)
-        const isMobileScreen = aspect < boardWidth / boardHeight;
+        const isMobileDevice = size.width <= 768;
 
-        // Calcular distancia Z exacta requerida para enmarcar el tablero + el dock
-        let requiredZ = boardHeight / (2 * Math.tan(fovRad / 2));
-        if (isMobileScreen) {
-            // Pantalla vertical (móvil): ajustar distancia según el ancho del tablero
-            requiredZ = boardWidth / (2 * aspect * Math.tan(fovRad / 2));
-        }
+        // Calcular distancia Z requerida tanto para el ancho como para el alto
+        const requiredZHeight = boardHeight / (2 * Math.tan(fovRad / 2));
+        const requiredZWidth = boardWidth / (2 * aspect * Math.tan(fovRad / 2));
 
-        // Si es móvil (pantalla vertical), reducir el margen de seguridad para que el tablero llegue muy cerca de los bordes (ej: 4% de margen)
-        // Si es escritorio, mantener un margen de visualización más cómodo (22% de margen)
-        const marginMultiplier = isMobileScreen ? 1.04 : 1.22;
-        const targetZ = Math.max(isMobileScreen ? 4.0 : 5.0, requiredZ * marginMultiplier);
-        const targetY = isMobileScreen ? 0.05 : -0.2; // Centrado ligeramente ajustado en móvil para maximizar espacio vertical
+        // La distancia requerida es el máximo de ambas para asegurar que el tablero quepa por completo
+        const requiredZ = Math.max(requiredZHeight, requiredZWidth);
+
+        // Si es móvil, usamos un margen del 4% para estirar el tablero al máximo de la pantalla lateral previniendo recortes
+        // Si es escritorio, usamos un margen del 18% para una visualización más cómoda
+        const marginMultiplier = isMobileDevice ? 1.1 : 1.18;
+        const targetZ = Math.max(isMobileDevice ? 3.0 : 5.0, requiredZ * marginMultiplier);
+        const targetY = isMobileDevice ? 0.04 : -0.2; // Centrado ligeramente ajustado en móvil para maximizar espacio vertical
 
         // Interpolación suave de la posición de la cámara (Parallax)
         camera.position.x = THREE.MathUtils.lerp(camera.position.x, x * 0.35, 8 * safeDelta);
@@ -116,7 +115,7 @@ function MatchExplosion({ position, color, onComplete }: ExplosionProps) {
     const flashRef = useRef<THREE.Mesh>(null);
     const ringRef = useRef<THREE.Mesh>(null);
     const lightRef = useRef<THREE.PointLight>(null);
-    
+
     // Barras de glitch horizontales y verticales (efecto screen tear)
     const hBarRef = useRef<THREE.Mesh>(null);
     const vBarRef = useRef<THREE.Mesh>(null);
@@ -151,7 +150,7 @@ function MatchExplosion({ position, color, onComplete }: ExplosionProps) {
     useFrame((state, delta) => {
         const safeDelta = Math.min(delta, 0.1);
         ageRef.current += safeDelta;
-        
+
         if (ageRef.current >= duration) {
             onComplete();
             return;
@@ -159,7 +158,7 @@ function MatchExplosion({ position, color, onComplete }: ExplosionProps) {
 
         const progress = 1 - (ageRef.current / duration);
         const time = state.clock.elapsedTime;
-        
+
         // Efecto glitch: parpadeos de alta frecuencia (RGB shift / signal loss simulation)
         const isGlitchActive = Math.sin(time * 95) > 0.15;
         const glitchColor = Math.sin(time * 140) > 0 ? color : (color === '#ffd700' ? '#ff00ff' : '#00ffff');
@@ -251,7 +250,7 @@ function MatchExplosion({ position, color, onComplete }: ExplosionProps) {
 
                     mesh.position.set(p.pos[0], p.pos[1], p.pos[2]);
                     mesh.rotation.set(p.rot[0], p.rot[1], p.rot[2]);
-                    
+
                     // Escala no uniforme distorsionada estilo pixel art glitcheado
                     const baseScale = p.scale * progress;
                     mesh.scale.set(
@@ -360,9 +359,10 @@ interface MahjongCanvasProps {
     freeTilesMap: Map<string, boolean>;
     dockIds: string[];
     onTilePointerDown: (id: string) => void;
+    isMobile: boolean;
 }
 
-export function MahjongCanvas({ tiles, freeTilesMap, dockIds, onTilePointerDown }: MahjongCanvasProps) {
+export function MahjongCanvas({ tiles, freeTilesMap, dockIds, onTilePointerDown, isMobile }: MahjongCanvasProps) {
     const { profile } = useProfile();
     const [explosions, setExplosions] = useState<{ id: string; pos: [number, number, number]; color: string }[]>([]);
     const prevMatchedIdsRef = useRef<Set<string>>(new Set());
@@ -398,9 +398,9 @@ export function MahjongCanvas({ tiles, freeTilesMap, dockIds, onTilePointerDown 
 
         const width = (maxX - minX) * spacingX + tileWidth;
         const height = (maxY - minY) * spacingY + tileHeight;
-        
-        // Espacio libre físico constante entre el tablero y el dock
-        const gap = 1.6;
+
+        // Espacio libre físico constante entre el tablero y el dock (reducido en móvil para ganar espacio y zoom)
+        const gap = isMobile ? 0.7 : 1.6;
         const totalHeight = height + gap + tileHeight;
 
         // Centrado de la altura combinada sobre Y = 0
@@ -415,7 +415,7 @@ export function MahjongCanvas({ tiles, freeTilesMap, dockIds, onTilePointerDown 
             boardY,
             dockY
         };
-    }, [tiles]);
+    }, [tiles, isMobile]);
 
     const prevDockIdsRef = useRef<string[]>([]);
 
@@ -480,7 +480,7 @@ export function MahjongCanvas({ tiles, freeTilesMap, dockIds, onTilePointerDown 
 
                 {/* Iluminación Estética */}
                 <ambientLight intensity={0.7} />
-                
+
                 {/* Luz Principal (Sombras dinámicas) */}
                 <directionalLight
                     position={[4, 9, 8]}
