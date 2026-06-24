@@ -6,6 +6,7 @@ import { Clock } from 'lucide-react';
 interface MahjongTimerProps {
     isActive: boolean;
     formatTime: (seconds: number) => string;
+    accentColor: string;
 }
 
 export interface MahjongTimerHandle {
@@ -13,14 +14,19 @@ export interface MahjongTimerHandle {
     resetTime: () => void;
 }
 
-const MahjongTimer = memo(forwardRef<MahjongTimerHandle, MahjongTimerProps>(({ isActive, formatTime }, ref) => {
+const MahjongTimer = memo(forwardRef<MahjongTimerHandle, MahjongTimerProps>(({ isActive, formatTime, accentColor }, ref) => {
     const [time, setTime] = useState(0);
+    const [pulse, setPulse] = useState(false);
 
     useEffect(() => {
         let interval: NodeJS.Timeout;
         if (isActive) {
             interval = setInterval(() => {
-                setTime(prev => prev + 1);
+                setTime(prev => {
+                    setPulse(true);
+                    setTimeout(() => setPulse(false), 200);
+                    return prev + 1;
+                });
             }, 1000);
         }
         return () => clearInterval(interval);
@@ -32,18 +38,30 @@ const MahjongTimer = memo(forwardRef<MahjongTimerHandle, MahjongTimerProps>(({ i
     }));
 
     return (
-        <div className="relative flex min-w-36 flex-col items-center overflow-hidden border border-white/10 bg-black/70 px-5 py-3">
-            <div className="absolute left-0 top-0 h-[2px] w-full bg-[#00dbe9] opacity-70" />
-
-            <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">
-                <Clock className="h-3 w-3 text-[#00dbe9]" />
-                Tiempo
-            </span>
-            <span className="font-mono text-2xl font-bold tabular-nums tracking-normal text-white">
-                {formatTime(time)}
-            </span>
-
-            <div className="absolute bottom-0 right-0 h-2 w-2 border-b border-r border-[#ff7020]/50" />
+        <div className="relative group select-none">
+            {/* 3D shadow layer */}
+            <div 
+                className="absolute inset-0 translate-x-[3px] translate-y-[3px] border-2 border-black transition-transform duration-200" 
+                style={{ backgroundColor: accentColor }}
+            />
+            {/* Foreground container */}
+            <div 
+                className={`relative flex items-center gap-1.5 md:gap-2 border-2 border-white bg-[#0a0a0a] px-2 py-1 md:px-3.5 md:py-2 transition-all duration-200 group-hover:-translate-x-[1px] group-hover:-translate-y-[1px] group-active:translate-x-[2px] group-active:translate-y-[2px]`}
+                style={{
+                    boxShadow: isActive ? `0 0 12px ${accentColor}40` : 'none'
+                }}
+            >
+                <Clock 
+                    className={`h-3.5 w-3.5 md:h-4.5 md:w-4.5 transition-all duration-200 ${pulse ? 'scale-125 rotate-12' : 'scale-100 rotate-0'}`} 
+                    style={{ color: accentColor }} 
+                />
+                <div className="flex flex-col items-start leading-none">
+                    <span className="text-[7px] md:text-[9px] font-bold uppercase tracking-[0.15em] text-[#a88a7e] mb-0.5">Tiempo</span>
+                    <span className="font-mono text-xs md:text-sm font-black tabular-nums tracking-tight text-white">
+                        {formatTime(time)}
+                    </span>
+                </div>
+            </div>
         </div>
     );
 }));

@@ -7,7 +7,7 @@ import { StoreService } from '@/services/storeService';
 import { MahjongService } from '@/services/mahjongService';
 import { NotificationService } from '@/services/notificationService';
 import { useProfile } from '@/context/ProfileContext';
-import { Undo2, Trophy, RotateCcw, Lightbulb, Layers3, Sparkles } from 'lucide-react';
+import { Undo2, Trophy, RotateCcw, Lightbulb, Layers3, Sparkles, Shield, Mountain } from 'lucide-react';
 import { AnimatedBrutalistCorners } from '@/components/ui/AnimatedBrutalistCorners';
 import MahjongTimer, { MahjongTimerHandle } from './MahjongTimer';
 import { TileState, TileContent, TileVisual } from './MahjongTile';
@@ -16,17 +16,16 @@ import { MahjongCanvas } from './MahjongCanvas';
 const MAHJONG_UNICODE = [
     "🌸", "🐱", "💖", "🍊", "🍀", "🍎", "🐼", "🦊", "🐶", "🐰",
     "🐨", "🌻", "🍓", "🍇", "🥑", "🎈", "✨", "💫", "🧁", "🍩",
-    "🎨", "🎮", "🧸", "🍿", "🍕", "🍤", "🍣", "🌮", "🥞", "🍔",
-    "🍟", "🍦", "🍭", "🍫"
+    "🎨", "🎮", "🧸", "🍿", "🍕", "🍤", "🍣", "🌮", "🥞", "🍔"
 ];
 
 type LayoutType = 'turtle' | 'fortress' | 'peaks' | 'random';
 
 const LAYOUT_INFO: Record<LayoutType, { name: string; description: string; tiles: number }> = {
-    turtle: { name: 'Tortuga Clásica', description: 'El diseño milenario en pirámide.', tiles: 144 },
-    fortress: { name: 'La Fortaleza', description: 'Muros concéntricos de memorias.', tiles: 144 },
-    peaks: { name: 'Picos Gemelos', description: 'Dos torres que se encuentran.', tiles: 144 },
-    random: { name: 'Caos Equilibrado', description: 'Formación procedimental única.', tiles: 144 }
+    turtle: { name: 'Tortuga Clásica', description: 'El diseño milenario en pirámide.', tiles: 96 },
+    fortress: { name: 'La Fortaleza', description: 'Muros concéntricos de memorias.', tiles: 96 },
+    peaks: { name: 'Picos Gemelos', description: 'Dos torres que se encuentran.', tiles: 96 },
+    random: { name: 'Caos Equilibrado', description: 'Formación procedimental única.', tiles: 96 }
 };
 
 function filterCoordsByColumns(coords: { x: number; y: number; z: number }[], maxCols: number) {
@@ -52,7 +51,6 @@ function filterCoordsByColumns(coords: { x: number; y: number; z: number }[], ma
             filtered.splice(indexToRemove, 1);
         }
     }
-
     return filtered;
 }
 
@@ -61,26 +59,30 @@ function generateCoordinates(type: LayoutType) {
     const target = LAYOUT_INFO[type].tiles;
 
     if (type === 'random') {
-        const maxLayers = 5;
-        const width = 20;
-        const height = 16;
+        const maxLayers = 4;
+        const width = 16;  // x will be 0, 2, 4, 6, 8, 10, 12, 14 (8 columns)
+        const height = 16; // y will be 0, 2, 4, 6, 8, 10, 12, 14 (8 rows)
+
+        // Generate base layer
         for (let x = 0; x < width; x += 2) {
             for (let y = 0; y < height; y += 2) {
-                if (Math.random() > 0.4 && coords.length < target * 0.6) {
+                if (Math.random() > 0.35 && coords.length < target * 0.6) {
                     coords.push({ x, y, z: 0 });
                 }
             }
         }
+
         const coordSet = new Set<string>();
         for (let i = 0; i < coords.length; i++) {
             const c = coords[i];
             coordSet.add(`${c.x},${c.y},${c.z}`);
         }
 
+        // Generate upper layers
         for (let z = 1; z < maxLayers; z++) {
             const potential = coords.filter(c => c.z === z - 1);
             potential.forEach(p => {
-                if (Math.random() > 0.6 && coords.length < target) {
+                if (Math.random() > 0.5 && coords.length < target) {
                     const key = `${p.x},${p.y},${z}`;
                     if (!coordSet.has(key)) {
                         coordSet.add(key);
@@ -89,9 +91,11 @@ function generateCoordinates(type: LayoutType) {
                 }
             });
         }
+
+        // Fill remaining coordinates to reach exactly `target`
         let fillIdx = 0;
         let safety = 0;
-        while (coords.length < target && safety < 2000) {
+        while (coords.length < target && safety < 3000) {
             const x = (fillIdx % (width / 2)) * 2;
             const y = Math.floor(fillIdx / (width / 2)) * 2;
             const key = `${x},${y},0`;
@@ -105,73 +109,154 @@ function generateCoordinates(type: LayoutType) {
         return coords.slice(0, target);
     }
 
-
     if (type === 'turtle') {
-        for (let x = 0; x <= 18; x += 2) for (let y = 0; y <= 14; y += 2) coords.push({ x, y, z: 0 });
-        for (let x = 2; x <= 16; x += 2) for (let y = 2; y <= 12; y += 2) coords.push({ x, y, z: 1 });
-        for (let x = 6; x <= 12; x += 2) for (let y = 4; y <= 8; y += 2) coords.push({ x, y, z: 2 });
-        for (let x = 8; x <= 10; x += 2) for (let y = 4; y <= 6; y += 2) coords.push({ x, y, z: 3 });
-    } else if (type === 'fortress') {
-        for (let x = 0; x <= 22; x += 2) for (let y = 0; y <= 14; y += 2) if (x === 0 || x === 22 || y === 0 || y === 14) coords.push({ x, y, z: 0 });
-        for (let x = 2; x <= 20; x += 2) for (let y = 2; y <= 12; y += 2) if (coords.length < 100) coords.push({ x, y, z: 0 });
-        let i = 0;
-        while (coords.length < 144) {
-            coords.push({ x: 4 + (i % 8) * 2, y: 4 + Math.floor(i / 8) * 2, z: 1 + Math.floor(i / 16) });
-            i++;
-        }
-    } else {
-        for (let x = 0; x <= 8; x += 2) for (let y = 2; y <= 10; y += 2) coords.push({ x, y, z: 0 });
-        for (let x = 2; x <= 6; x += 2) for (let y = 4; y <= 8; y += 2) coords.push({ x, y, z: 1 });
-        coords.push({ x: 4, y: 6, z: 2 });
-        const offset = 12;
-        for (let x = 0; x <= 8; x += 2) for (let y = 2; y <= 10; y += 2) coords.push({ x: x + offset, y, z: 0 });
-        for (let x = 2; x <= 6; x += 2) for (let y = 4; y <= 8; y += 2) coords.push({ x: x + offset, y, z: 1 });
-        coords.push({ x: 4 + offset, y: 6, z: 2 });
-        const coordSet = new Set<string>();
-        for (let i = 0; i < coords.length; i++) {
-            const c = coords[i];
-            coordSet.add(`${c.x},${c.y},${c.z}`);
-        }
-
-        for (let x = 4; x <= 14; x += 2) for (let y = 0; y <= 14; y += 2) {
-            if (coords.length < 144) {
-                const key = `${x},${y},0`;
-                if (!coordSet.has(key)) {
-                    coordSet.add(key);
+        // Layer 0: 8x8 without corners
+        for (let x = 0; x <= 14; x += 2) {
+            for (let y = 0; y <= 14; y += 2) {
+                if (!((x === 0 || x === 14) && (y === 0 || y === 14))) {
                     coords.push({ x, y, z: 0 });
                 }
             }
         }
-        let fillI = 0;
-        const fillPositions = [];
-        for (let fx = 0; fx <= 20; fx += 2) {
-            for (let fy = 0; fy <= 14; fy += 2) {
-                for (let fz = 0; fz <= 2; fz++) {
-                    fillPositions.push({ x: fx, y: fy, z: fz });
+        // Layer 1: 6x6
+        for (let x = 2; x <= 12; x += 2) {
+            for (let y = 2; y <= 12; y += 2) {
+                coords.push({ x, y, z: 1 });
+            }
+        }
+        // Layer 2: 4x4
+        for (let x = 4; x <= 10; x += 2) {
+            for (let y = 4; y <= 10; y += 2) {
+                coords.push({ x, y, z: 2 });
+            }
+        }
+        // Layer 3: 2x2
+        for (let x = 6; x <= 8; x += 2) {
+            for (let y = 6; y <= 8; y += 2) {
+                coords.push({ x, y, z: 3 });
+            }
+        }
+        return coords.slice(0, target);
+    }
+
+    if (type === 'fortress') {
+        // Layer 0: Outer walls
+        for (let x = 0; x <= 14; x += 2) {
+            for (let y = 0; y <= 14; y += 2) {
+                if (x === 0 || x === 14 || y === 0 || y === 14) {
+                    coords.push({ x, y, z: 0 });
                 }
             }
         }
-        while (coords.length < 144 && fillI < fillPositions.length) {
-            const fp = fillPositions[fillI];
-            const key = `${fp.x},${fp.y},${fp.z}`;
+        // Layer 1: Inner walls
+        for (let x = 2; x <= 12; x += 2) {
+            for (let y = 2; y <= 12; y += 2) {
+                if (x === 2 || x === 12 || y === 2 || y === 12) {
+                    coords.push({ x, y, z: 1 });
+                }
+            }
+        }
+        // Layer 2: Core walls
+        for (let x = 4; x <= 10; x += 2) {
+            for (let y = 4; y <= 10; y += 2) {
+                if (x === 4 || x === 10 || y === 4 || y === 10) {
+                    coords.push({ x, y, z: 2 });
+                }
+            }
+        }
+        // Fill core spaces to reach target
+        let i = 0;
+        const coordSet = new Set(coords.map(c => `${c.x},${c.y},${c.z}`));
+        while (coords.length < target && i < 200) {
+            const x = 4 + (i % 4) * 2;
+            const y = 4 + Math.floor(i / 4) * 2;
+            if (x <= 10 && y <= 10) {
+                const z = 3;
+                const key = `${x},${y},${z}`;
+                if (!coordSet.has(key)) {
+                    coordSet.add(key);
+                    coords.push({ x, y, z });
+                }
+            }
+            i++;
+        }
+        let j = 0;
+        while (coords.length < target && j < 200) {
+            const x = 2 + (j % 6) * 2;
+            const y = 2 + Math.floor(j / 6) * 2;
+            if (x <= 12 && y <= 12) {
+                const z = 2;
+                const key = `${x},${y},${z}`;
+                if (!coordSet.has(key)) {
+                    coordSet.add(key);
+                    coords.push({ x, y, z });
+                }
+            }
+            j++;
+        }
+        return coords.slice(0, target);
+    }
+
+    // peaks
+    // Peak 1: Left-aligned
+    for (let x = 0; x <= 6; x += 2) {
+        for (let y = 2; y <= 10; y += 2) {
+            coords.push({ x, y, z: 0 });
+        }
+    }
+    for (let x = 2; x <= 4; x += 2) {
+        for (let y = 4; y <= 8; y += 2) {
+            coords.push({ x, y, z: 1 });
+        }
+    }
+    coords.push({ x: 2, y: 6, z: 2 });
+
+    // Peak 2: Right-aligned
+    for (let x = 8; x <= 14; x += 2) {
+        for (let y = 2; y <= 10; y += 2) {
+            coords.push({ x, y, z: 0 });
+        }
+    }
+    for (let x = 10; x <= 12; x += 2) {
+        for (let y = 4; y <= 8; y += 2) {
+            coords.push({ x, y, z: 1 });
+        }
+    }
+    coords.push({ x: 12, y: 6, z: 2 });
+
+    // Connecting bridges at y = 0 and y = 12
+    for (let x = 0; x <= 14; x += 2) {
+        coords.push({ x, y: 0, z: 0 });
+        coords.push({ x, y: 12, z: 0 });
+    }
+
+    const coordSet = new Set<string>();
+    const uniqueCoords: { x: number, y: number, z: number }[] = [];
+    for (const c of coords) {
+        if (c.x >= 0 && c.x <= 14 && c.y >= 0 && c.y <= 14) {
+            const key = `${c.x},${c.y},${c.z}`;
             if (!coordSet.has(key)) {
                 coordSet.add(key);
-                coords.push(fp);
+                uniqueCoords.push(c);
             }
-            fillI++;
         }
     }
 
-    const seen = new Set<string>();
-    const deduped = coords.filter(c => {
-        const key = `${c.x},${c.y},${c.z}`;
-        if (seen.has(key)) return false;
-        seen.add(key);
-        return true;
-    });
-
-    const sliced = deduped.slice(0, target);
-    return filterCoordsByColumns(sliced, 10);
+    let i = 0;
+    while (uniqueCoords.length < target && i < 400) {
+        const x = 2 + (i % 6) * 2;
+        const y = 2 + Math.floor(i / 6) % 6 * 2;
+        const z = 2 + Math.floor(Math.floor(i / 6) / 6);
+        if (x >= 2 && x <= 12 && y >= 2 && y <= 12 && z < 5) {
+            const key = `${x},${y},${z}`;
+            if (!coordSet.has(key)) {
+                coordSet.add(key);
+                uniqueCoords.push({ x, y, z });
+            }
+        }
+        i++;
+    }
+    return uniqueCoords.slice(0, target);
 }
 
 function shuffleArray<T>(array: T[]): T[] {
@@ -330,6 +415,32 @@ export function Mahjong() {
     const [leaderboard, setLeaderboard] = useState<{ el: LeaderboardEntry[]; ella: LeaderboardEntry[] }>({ el: [], ella: [] });
     const [scoreSaved, setScoreSaved] = useState(false);
     const [isNewRecord, setIsNewRecord] = useState(false);
+    const [isMatchPulse, setIsMatchPulse] = useState(false);
+    const [progressParticles, setProgressParticles] = useState<{ id: number; angle: number; speed: number; rotate: number }[]>([]);
+
+    useEffect(() => {
+        if (matchedCount > 0) {
+            setIsMatchPulse(true);
+            const t = setTimeout(() => setIsMatchPulse(false), 400);
+
+            // Spawn 16 wall-breaking fragments (was 10)
+            const newParticles = Array.from({ length: 16 }).map((_, i) => ({
+                id: Date.now() + i + Math.random(),
+                angle: (Math.random() - 0.5) * Math.PI * 0.95,
+                speed: 25 + Math.random() * 55, // Faster speed
+                rotate: Math.random() * 720
+            }));
+            setProgressParticles(prev => [...prev, ...newParticles]);
+            const timer = setTimeout(() => {
+                setProgressParticles(prev => prev.filter(p => !newParticles.includes(p)));
+            }, 700);
+
+            return () => {
+                clearTimeout(t);
+                clearTimeout(timer);
+            };
+        }
+    }, [matchedCount]);
 
     const isProcessingRef = useRef(false);
 
@@ -418,7 +529,7 @@ export function Mahjong() {
             const tileWidth = isMobile ? 3.2 : 3.5;
             const boardWidthRem = boardSpanX * spacingX + tileWidth;
             const boardWidthPx = boardWidthRem * 16;
-            
+
             if (boardWidthPx > containerWidth) {
                 setScale((containerWidth - 10) / boardWidthPx);
             } else {
@@ -581,7 +692,7 @@ export function Mahjong() {
         if (dockIds.includes(id)) return;
         const tile = tilesById.get(id);
         if (!tile || tile.isMatched || !freeTilesMap.get(id)) return;
-        
+
         isProcessingRef.current = true;
         requestAnimationFrame(() => { isProcessingRef.current = false; });
         if (!timerActive && matchedCount < tiles.length) { setTimerActive(true); }
@@ -613,17 +724,15 @@ export function Mahjong() {
             // Si es un recuerdo de Supabase (dorado), pausar temporizador y mostrar modal
             if (tile.content.type === 'custom') {
                 const eventInfo = eventDetailsMap.get(tile.content.value);
-                if (eventInfo) {
-                    setTimerActive(false); // Pausar temporizador
-                    setTimeout(() => {
-                        setMemoryModalData({
-                            imageUrl: tile.content.value,
-                            title: eventInfo.title,
-                            description: eventInfo.description,
-                            date: eventInfo.date
-                        });
-                    }, 800);
-                }
+                setTimerActive(false); // Pausar temporizador
+                setTimeout(() => {
+                    setMemoryModalData({
+                        imageUrl: tile.content.value,
+                        title: eventInfo?.title || 'Recuerdo Especial',
+                        description: eventInfo?.description || 'Un hermoso recuerdo de nuestra historia.',
+                        date: eventInfo?.date || 'Fecha especial'
+                    });
+                }, 800);
             }
         } else {
             if (dockIds.length >= 2) {
@@ -702,82 +811,24 @@ export function Mahjong() {
 
     const getBestForProfile = (p: 'el' | 'ella') => {
         const scores = leaderboard[p];
-return scores.length > 0 ? scores[0] : null;
+        return scores.length > 0 ? scores[0] : null;
     };
 
     const gameWon = matchedCount === tiles.length && tiles.length > 0;
 
+    const percent = tiles.length > 0 ? (matchedCount / tiles.length) * 100 : 0;
+    const filledSegments = Math.round((percent / 100) * 24);
+
     return (
         <div className="relative flex w-full flex-col items-center justify-center overflow-hidden max-md:overflow-visible">
 
-            <div className="relative z-10 mb-5 flex flex-col w-full gap-4 border border-white/10 bg-black/60 p-4">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div className="flex flex-col items-start">
-                        <div className="mb-2 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.24em] text-[#a88a7e]">
-                            <Layers3 className={`h-4 w-4 text-${accentClass}`} style={{ color: accentColor }} />
-                            Tablero Activo: {LAYOUT_INFO[currentLayout]?.name || currentLayout}
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                            {(Object.keys(LAYOUT_INFO) as LayoutType[]).map((layout) => (
-                                <button
-                                    key={layout}
-                                    onClick={() => {
-                                        setCurrentLayout(layout);
-                                        initializeGame(layout);
-                                    }}
-                                    className={`!min-h-0 px-2.5 py-1 text-[8px] font-mono font-bold uppercase border transition-all ${
-                                        currentLayout === layout
-                                            ? `bg-${accentClass} text-black border-${accentClass}`
-                                            : 'bg-[#0a0a0a] text-[#a88a7e] border-white/10 hover:border-white/20'
-                                    }`}
-                                    style={currentLayout === layout ? { backgroundColor: accentColor, borderColor: accentColor } : {}}
-                                >
-                                    {LAYOUT_INFO[layout].name}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-4">
-                        <div className="flex items-stretch gap-3">
-                            <MahjongTimer isActive={timerActive} formatTime={formatTime} ref={timerRef} />
-                            <div className="relative flex min-w-32 flex-col items-center border border-white/10 bg-black/70 px-5 py-3">
-                                <span className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Pares</span>
-                                <div className="flex items-baseline gap-1 font-mono tracking-normal">
-                                    <span className={`text-3xl font-bold tabular-nums text-${accentClass}`} style={{ color: accentColor }}>{matchedCount}</span>
-                                    <span className="text-xs text-white/40">/ {tiles.length}</span>
-                                </div>
-                                <div className={`absolute bottom-0 right-0 h-2 w-2 border-b border-r border-${accentClass}/50`} style={{ borderColor: `${accentColor}80` }} />
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-3 gap-2 w-full sm:w-auto">
-                            <button
-                                onClick={handleUndo}
-                                disabled={undoStack.length === 0}
-                                className={`flex min-h-12 items-center justify-center gap-2 border border-white/10 bg-[#0a0a0a] px-3 py-2 text-[10px] font-bold uppercase tracking-[0.16em] text-[#a88a7e] transition-colors hover:border-${accentClass} hover:text-white active:scale-95 disabled:opacity-35`}
-                                title="Deshacer"
-                            >
-                                <Undo2 className="h-4 w-4" /> <span className="hidden sm:inline">Deshacer</span>
-                            </button>
-                            <button
-                                onClick={handleHint}
-                                className={`flex min-h-12 items-center justify-center gap-2 border border-${accentClass}/50 bg-${accentClass}/10 px-3 py-2 text-[10px] font-bold uppercase tracking-[0.16em] transition-colors hover:bg-${accentClass} hover:text-black active:scale-95`}
-                                style={{ borderColor: `${accentColor}80`, backgroundColor: `${accentColor}1a`, color: accentColor }}
-                                title="Pista"
-                            >
-                                <Lightbulb className="h-4 w-4" /> <span className="hidden sm:inline">Pista</span>
-                            </button>
-                            <button
-                                onClick={handleRestart}
-                                className={`flex min-h-12 items-center justify-center gap-2 border border-${accentClass} bg-${accentClass} px-3 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-black transition-all hover:opacity-80 active:scale-95`}
-                                style={{ borderColor: accentColor, backgroundColor: accentColor }}
-                                title="Reiniciar"
-                            >
-                                <RotateCcw className="h-4 w-4" /> <span className="hidden sm:inline">Reiniciar</span>
-                            </button>
-                        </div>
-                    </div>
+            <div className="relative z-10 mb-4 flex items-center justify-center border border-white/10 bg-black/60 p-4 w-full">
+                <div className="flex items-center gap-3 text-xs font-black uppercase tracking-[0.24em] text-[#a88a7e]">
+                    {currentLayout === 'turtle' && <Layers3 className="h-5 w-5" style={{ color: accentColor }} />}
+                    {currentLayout === 'fortress' && <Shield className="h-5 w-5" style={{ color: accentColor }} />}
+                    {currentLayout === 'peaks' && <Mountain className="h-5 w-5" style={{ color: accentColor }} />}
+                    {currentLayout === 'random' && <Sparkles className="h-5 w-5" style={{ color: accentColor }} />}
+                    <span>Tablero: {LAYOUT_INFO[currentLayout]?.name || currentLayout}</span>
                 </div>
             </div>
 
@@ -785,7 +836,7 @@ return scores.length > 0 ? scores[0] : null;
                 <div className="fixed inset-0 z-[100000] flex items-center justify-center bg-black/75 backdrop-blur-md p-4 overflow-hidden">
                     {/* Cyber scanlines */}
                     <div className="absolute inset-0 scanlines-overlay opacity-35 pointer-events-none z-0" />
-                    
+
                     {/* Figuras desenfocadas de fondo (Glow) */}
                     <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
                         <div className="absolute top-[15%] left-[10%] w-80 h-80 rounded-full bg-red-600/25 blur-[100px] animate-bg-glow-float-1" />
@@ -827,77 +878,79 @@ return scores.length > 0 ? scores[0] : null;
             )}
 
             {/* Modal de Recuerdo Desbloqueado */}
-            <AnimatePresence>
-                {memoryModalData && typeof window !== 'undefined' && createPortal(
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[100099] flex items-center justify-center bg-black/80 p-4 backdrop-blur-md overflow-hidden"
-                    >
-                        {/* Cyber scanlines */}
-                        <div className="absolute inset-0 scanlines-overlay opacity-35 pointer-events-none z-0" />
-
-                        {/* Figuras desenfocadas de fondo (Glow dorado) */}
-                        <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-                            <div className="absolute top-[15%] left-[10%] w-80 h-80 rounded-full bg-[#ffd700]/12 blur-[100px] animate-bg-glow-float-1" />
-                            <div className="absolute bottom-[15%] right-[10%] w-80 h-80 rounded-full bg-[#ff00ff]/8 blur-[100px] animate-bg-glow-float-2" />
-                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] rounded-full bg-[#ffd700]/5 blur-[90px] animate-bg-glow-rotate" />
-                        </div>
-
+            {typeof window !== 'undefined' && createPortal(
+                <AnimatePresence>
+                    {memoryModalData && (
                         <motion.div
-                            initial={{ scale: 0.9, y: 20 }}
-                            animate={{ scale: 1, y: 0 }}
-                            exit={{ scale: 0.9, y: 20 }}
-                            transition={{ type: 'spring', damping: 25, stiffness: 180 }}
-                            className="relative z-10 w-full max-w-lg border border-[#ffd700]/40 bg-[#0a0a0a] p-6 text-center shadow-[0_0_50px_rgba(255,215,0,0.25)] md:p-8 animate-glitch-container"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="fixed inset-0 z-[100099] flex items-center justify-center bg-black/80 p-4 backdrop-blur-md overflow-hidden"
                         >
-                            {/* Esquinas brutalistas doradas */}
-                            <div className="absolute top-0 left-0 h-4 w-4 border-t-2 border-l-2 border-[#ffd700]" />
-                            <div className="absolute top-0 right-0 h-4 w-4 border-t-2 border-r-2 border-[#ffd700]" />
-                            <div className="absolute bottom-0 left-0 h-4 w-4 border-b-2 border-l-2 border-[#ffd700]" />
-                            <div className="absolute bottom-0 right-0 h-4 w-4 border-b-2 border-r-2 border-[#ffd700]" />
+                            {/* Cyber scanlines */}
+                            <div className="absolute inset-0 scanlines-overlay opacity-35 pointer-events-none z-0" />
 
-                            <div className="mb-4 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.24em] text-[#ffd700] animate-glitch-text">
-                                <Sparkles className="h-4 w-4 text-[#ffd700] animate-pulse" />
-                                Recuerdo Desbloqueado
+                            {/* Figuras desenfocadas de fondo (Glow dorado) */}
+                            <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+                                <div className="absolute top-[15%] left-[10%] w-80 h-80 rounded-full bg-[#ffd700]/12 blur-[100px] animate-bg-glow-float-1" />
+                                <div className="absolute bottom-[15%] right-[10%] w-80 h-80 rounded-full bg-[#ff00ff]/8 blur-[100px] animate-bg-glow-float-2" />
+                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] rounded-full bg-[#ffd700]/5 blur-[90px] animate-bg-glow-rotate" />
                             </div>
 
-                            {/* Foto grande con bordes dorados */}
-                            <div className="relative mx-auto mb-6 aspect-video max-h-64 overflow-hidden border border-[#ffd700]/30 bg-black/60 p-[3px]">
-                                <img
-                                    src={memoryModalData.imageUrl}
-                                    alt={memoryModalData.title}
-                                    className="h-full w-full object-cover"
-                                />
-                            </div>
-
-                            <h3 className="mb-1 text-2xl font-black uppercase tracking-tight text-white font-mono">
-                                {memoryModalData.title}
-                            </h3>
-                            
-                            <span className="mb-4 block text-[10px] font-mono uppercase text-[#a88a7e]">
-                                {memoryModalData.date}
-                            </span>
-
-                            <p className="mb-8 border-y border-white/5 py-4 font-mono text-xs italic leading-relaxed text-[#e5e2e1]">
-                                "{memoryModalData.description}"
-                            </p>
-
-                            <button
-                                onClick={() => {
-                                    setMemoryModalData(null);
-                                    setTimerActive(true); // Reanudar temporizador
-                                }}
-                                className="w-full bg-[#ffd700] py-3 text-xs font-black uppercase tracking-[0.18em] text-black transition-all hover:bg-[#ffe57f] active:scale-95"
+                            <motion.div
+                                initial={{ scale: 0.9, y: 20 }}
+                                animate={{ scale: 1, y: 0 }}
+                                exit={{ scale: 0.9, y: 20 }}
+                                transition={{ type: 'spring', damping: 25, stiffness: 180 }}
+                                className="relative z-10 w-full max-w-lg border border-[#ffd700]/40 bg-[#0a0a0a] p-6 text-center shadow-[0_0_50px_rgba(255,215,0,0.25)] md:p-8 animate-glitch-container"
                             >
-                                Continuar
-                            </button>
+                                {/* Esquinas brutalistas doradas */}
+                                <div className="absolute top-0 left-0 h-4 w-4 border-t-2 border-l-2 border-[#ffd700]" />
+                                <div className="absolute top-0 right-0 h-4 w-4 border-t-2 border-r-2 border-[#ffd700]" />
+                                <div className="absolute bottom-0 left-0 h-4 w-4 border-b-2 border-l-2 border-[#ffd700]" />
+                                <div className="absolute bottom-0 right-0 h-4 w-4 border-b-2 border-r-2 border-[#ffd700]" />
+
+                                <div className="mb-4 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.24em] text-[#ffd700] animate-glitch-text">
+                                    <Sparkles className="h-4 w-4 text-[#ffd700] animate-pulse" />
+                                    Recuerdo Desbloqueado
+                                </div>
+
+                                {/* Foto grande con bordes dorados */}
+                                <div className="relative mx-auto mb-6 aspect-video max-h-64 overflow-hidden border border-[#ffd700]/30 bg-black/60 p-[3px]">
+                                    <img
+                                        src={memoryModalData.imageUrl}
+                                        alt={memoryModalData.title}
+                                        className="h-full w-full object-cover"
+                                    />
+                                </div>
+
+                                <h3 className="mb-1 text-2xl font-black uppercase tracking-tight text-white font-mono">
+                                    {memoryModalData.title}
+                                </h3>
+
+                                <span className="mb-4 block text-[10px] font-mono uppercase text-[#a88a7e]">
+                                    {memoryModalData.date}
+                                </span>
+
+                                <p className="mb-8 border-y border-white/5 py-4 font-mono text-xs italic leading-relaxed text-[#e5e2e1]">
+                                    "{memoryModalData.description}"
+                                </p>
+
+                                <button
+                                    onClick={() => {
+                                        setMemoryModalData(null);
+                                        setTimerActive(true); // Reanudar temporizador
+                                    }}
+                                    className="w-full bg-[#ffd700] py-3 text-xs font-black uppercase tracking-[0.18em] text-black transition-all hover:bg-[#ffe57f] active:scale-95"
+                                >
+                                    Continuar
+                                </button>
+                            </motion.div>
                         </motion.div>
-                    </motion.div>,
-                    document.body
-                )}
-            </AnimatePresence>
+                    )}
+                </AnimatePresence>,
+                document.body
+            )}
 
             {gameWon && typeof window !== 'undefined' && createPortal(
                 <div className="fixed inset-0 z-[100000] flex items-center justify-center bg-black/75 backdrop-blur-md p-4 overflow-hidden">
@@ -928,6 +981,24 @@ return scores.length > 0 ? scores[0] : null;
                         </div>
                         <h3 className="mb-2 text-3xl font-black uppercase tracking-normal md:text-4xl animate-glitch-text" style={{ color: accentColor }}>¡Triunfo!</h3>
                         <p className="mb-6 text-center text-sm font-light tracking-normal text-[#a88a7e]">Has liberado todas nuestras memorias.</p>
+
+                        {/* Video de Victoria */}
+                        <div className="relative w-full mb-6 aspect-video overflow-hidden border border-white/10 bg-black/60 p-[3px]" style={{ borderColor: `${accentColor}40`, boxShadow: `0 0 15px ${accentColor}15` }}>
+                            {/* Esquinas brutalistas decorativas */}
+                            <div className="absolute top-0 left-0 h-2 w-2 border-t border-l" style={{ borderColor: accentColor }} />
+                            <div className="absolute top-0 right-0 h-2 w-2 border-t border-r" style={{ borderColor: accentColor }} />
+                            <div className="absolute bottom-0 left-0 h-2 w-2 border-b border-l" style={{ borderColor: accentColor }} />
+                            <div className="absolute bottom-0 right-0 h-2 w-2 border-b border-r" style={{ borderColor: accentColor }} />
+
+                            <video
+                                src="/vid/mahjong_victory.mp4"
+                                autoPlay
+                                loop
+                                muted
+                                playsInline
+                                className="h-full w-full object-cover"
+                            />
+                        </div>
 
                         {isNewRecord && (
                             <motion.div
@@ -988,12 +1059,158 @@ return scores.length > 0 ? scores[0] : null;
             )}
 
             <div
-                className="relative flex w-full max-w-[880px] max-md:max-w-none max-md:w-screen max-md:shrink-0 h-[630px] max-md:h-[530px] flex-col justify-center overflow-hidden border border-white/10 max-md:border-x-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.05),transparent_42%),linear-gradient(180deg,rgba(255,255,255,0.03),transparent)] transition-all duration-200"
+                className="relative flex w-full max-w-[880px] max-md:max-w-none max-md:w-screen max-md:shrink-0 h-[690px] max-md:h-[590px] flex-col justify-center overflow-hidden border border-white/10 max-md:border-x-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.05),transparent_42%),linear-gradient(180deg,rgba(255,255,255,0.03),transparent)] transition-all duration-200"
                 ref={containerRef}
             >
                 <div className="pointer-events-none absolute inset-0 bg-dot-matrix opacity-70" />
                 <AnimatedBrutalistCorners color={accentColor} size={12} thickness={1.5} />
-                
+
+                {/* --- 3D BRUTALIST HUD: TIMER (TOP LEFT OF DOCK) --- */}
+                <div className="absolute top-[50px] right-[calc(50%+100px)] md:top-[62px] md:right-[calc(50%+155px)] left-auto z-20">
+                    <MahjongTimer isActive={timerActive} formatTime={formatTime} ref={timerRef} accentColor={accentColor} />
+                </div>
+
+                {/* --- 3D BRUTALIST HUD: PAIR COUNTER (TOP RIGHT OF DOCK) --- */}
+                <div className="absolute top-[50px] left-[calc(50%+100px)] md:top-[62px] md:left-[calc(50%+155px)] right-auto z-20 select-none group">
+                    {/* 3D shadow/extrusion */}
+                    <div
+                        className="absolute inset-0 translate-x-[3px] translate-y-[3px] border-2 border-black transition-transform duration-200"
+                        style={{ backgroundColor: accentColor }}
+                    />
+                    {/* Foreground container */}
+                    <div
+                        className={`relative flex items-center gap-1.5 md:gap-2 border-2 border-white bg-[#0a0a0a] px-2 py-1 md:px-3.5 md:py-2 transition-all duration-200 group-hover:-translate-x-[1px] group-hover:-translate-y-[1px] ${isMatchPulse ? 'scale-105' : 'scale-100'
+                            }`}
+                        style={{
+                            boxShadow: isMatchPulse ? `0 0 15px ${accentColor}80` : 'none'
+                        }}
+                    >
+                        <div className="flex flex-col items-start leading-none">
+                            <span className="text-[7px] md:text-[9px] font-bold uppercase tracking-[0.15em] text-[#a88a7e] mb-0.5">Parejas</span>
+                            <div className="flex items-baseline gap-1 font-mono tracking-normal">
+                                <span className="text-xs md:text-sm font-black tabular-nums text-white">
+                                    {Math.floor(matchedCount / 2)}
+                                </span>
+                                <span className="text-[9px] md:text-[10px] text-white/40">/ {Math.floor(tiles.length / 2)}</span>
+                            </div>
+                        </div>
+                        <Trophy
+                            className={`h-3.5 w-3.5 md:h-4.5 md:w-4.5 transition-transform duration-300 ${isMatchPulse ? 'rotate-12 scale-125' : 'rotate-0'}`}
+                            style={{ color: accentColor }}
+                        />
+                    </div>
+                </div>
+
+                {/* --- 3D BRUTALIST HUD: ACTIONS (BOTTOM CENTER, BELOW PROGRESS BAR) --- */}
+                <div className="absolute bottom-[8px] md:bottom-[12px] left-1/2 -translate-x-1/2 z-20 flex items-center justify-center gap-3">
+                    {/* Undo Button */}
+                    <button
+                        onClick={handleUndo}
+                        disabled={undoStack.length === 0}
+                        className="relative group select-none disabled:opacity-30 disabled:pointer-events-none"
+                        title="Deshacer"
+                    >
+                        <div
+                            className="absolute inset-0 translate-x-[2px] translate-y-[2px] border border-black transition-transform duration-200"
+                            style={{ backgroundColor: undoStack.length > 0 ? accentColor : '#333' }}
+                        />
+                        <div className="relative flex items-center gap-1 border border-white/30 bg-[#0c0c0e] px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-white transition-transform duration-200 group-hover:-translate-x-[1px] group-hover:-translate-y-[1px] group-active:translate-x-[1px] group-active:translate-y-[1px]">
+                            <Undo2 className="h-3.5 w-3.5 transition-transform duration-300 group-hover:-rotate-45" />
+                            <span className="hidden sm:inline">Deshacer</span>
+                        </div>
+                    </button>
+
+                    {/* Help/Hint Button */}
+                    <button
+                        onClick={handleHint}
+                        className="relative group select-none"
+                        title="Pista"
+                    >
+                        <div
+                            className="absolute inset-0 translate-x-[2px] translate-y-[2px] border border-black transition-transform duration-200"
+                            style={{ backgroundColor: accentColor }}
+                        />
+                        <div className="relative flex items-center gap-1 border border-white/30 bg-[#0c0c0e] px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-white transition-transform duration-200 group-hover:-translate-x-[1px] group-hover:-translate-y-[1px] group-active:translate-x-[1px] group-active:translate-y-[1px]">
+                            <Lightbulb className="h-3.5 w-3.5 transition-all duration-300 group-hover:scale-115 group-hover:text-yellow-300" />
+                            <span className="hidden sm:inline">Pista</span>
+                        </div>
+                    </button>
+
+                    {/* Restart Button */}
+                    <button
+                        onClick={handleRestart}
+                        className="relative group select-none"
+                        title="Reiniciar"
+                    >
+                        <div
+                            className="absolute inset-0 translate-x-[2px] translate-y-[2px] border border-black transition-transform duration-200"
+                            style={{ backgroundColor: accentColor }}
+                        />
+                        <div className="relative flex items-center gap-1 border border-white/30 bg-[#0c0c0e] px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-white transition-transform duration-200 group-hover:-translate-x-[1px] group-hover:-translate-y-[1px] group-active:translate-x-[1px] group-active:translate-y-[1px]">
+                            <RotateCcw className="h-3.5 w-3.5 transition-transform duration-500 group-hover:rotate-180" />
+                            <span className="hidden sm:inline">Reiniciar</span>
+                        </div>
+                    </button>
+                </div>
+
+                {/* --- VIDEO PROGRESS BAR AT THE BOTTOM ("BREAKING THE WALL") --- */}
+                <div className="absolute bottom-[44px] md:bottom-[52px] left-1/2 -translate-x-1/2 w-[220px] md:w-[300px] h-[3px] bg-white/10 z-20 flex items-center select-none font-mono">
+                    {/* Glowing active progress line segment */}
+                    <motion.div
+                        className="absolute left-0 top-0 bottom-0 origin-left"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${percent}%` }}
+                        transition={{ type: 'spring', stiffness: 80, damping: 18 }}
+                        style={{
+                            backgroundColor: accentColor,
+                            boxShadow: `0 0 10px ${accentColor}, 0 0 4px ${accentColor}`
+                        }}
+                    />
+
+                    {/* Interactive Arrow Head Tracker */}
+                    <motion.div
+                        className="absolute pointer-events-none top-1/2"
+                        initial={{ left: 0 }}
+                        animate={{ left: `${percent}%` }}
+                        transition={{ type: 'spring', stiffness: 80, damping: 18 }}
+                        style={{ x: '-50%', y: '-50%' }}
+                    >
+                        <div className="relative flex items-center justify-center">
+                            {/* Futuristic Dart/Arrow Head (Slightly larger w-4.5 h-4.5) */}
+                            <svg
+                                viewBox="0 0 10 10"
+                                className="w-4.5 h-4.5 fill-current drop-shadow-[0_0_4px_rgba(255,255,255,0.9)]"
+                                style={{ color: '#ffffff' }}
+                            >
+                                <path d="M2 1.5 L8 5 L2 8.5 L4 5 Z" />
+                            </svg>
+
+                            {/* Breaking Wall Particles emitted from the tip of the arrow */}
+                            {progressParticles.map((p) => (
+                                <motion.div
+                                    key={p.id}
+                                    className="absolute pointer-events-none rounded-sm"
+                                    initial={{ x: 0, y: 0, opacity: 1, scale: 1.3, rotate: 0 }}
+                                    animate={{
+                                        x: Math.cos(p.angle) * p.speed,
+                                        y: Math.sin(p.angle) * p.speed,
+                                        opacity: 0,
+                                        scale: 0,
+                                        rotate: p.rotate
+                                    }}
+                                    transition={{ duration: 0.7, ease: "easeOut" }}
+                                    style={{
+                                        width: p.id % 2 === 0 ? '6px' : '4px',
+                                        height: p.id % 2 === 0 ? '6px' : '4px',
+                                        backgroundColor: accentColor,
+                                        boxShadow: `0 0 5px ${accentColor}`
+                                    }}
+                                />
+                            ))}
+                        </div>
+                    </motion.div>
+                </div>
+
                 <MahjongCanvas
                     tiles={tiles}
                     freeTilesMap={freeTilesMap}

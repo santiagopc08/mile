@@ -71,7 +71,30 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     };
 
     useEffect(() => {
-        fetchData();
+        let isMounted = true;
+
+        // Verify session initially to prevent unauthenticated 401 calls
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (isMounted) {
+                if (session) {
+                    fetchData();
+                } else {
+                    setIsLoading(false);
+                }
+            }
+        });
+
+        // Listen for authentication changes (e.g. log in / log out)
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+            if (isMounted) {
+                if (session) {
+                    fetchData();
+                } else {
+                    setData(null);
+                    setIsLoading(false);
+                }
+            }
+        });
         
         const pendingSlices = new Set<string>();
 
@@ -98,7 +121,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             fetchTimeoutRef.current = setTimeout(() => {
                 const tablesArray = Array.from(pendingSlices);
                 pendingSlices.clear();
-                fetchData(tablesArray);
+                // Only fetch if there is an active session
+                supabase.auth.getSession().then(({ data: { session } }) => {
+                    if (session) {
+                        fetchData(tablesArray);
+                    }
+                });
             }, 600);
         };
 
@@ -121,6 +149,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             .subscribe();
 
         return () => {
+            isMounted = false;
+            subscription.unsubscribe();
             supabase.removeChannel(channel);
             if (fetchTimeoutRef.current) clearTimeout(fetchTimeoutRef.current);
         };

@@ -3,6 +3,7 @@
 import { PrivateRoute } from "@/components/PrivateRoute";
 import { useProfile } from "@/context/ProfileContext";
 import dynamic from "next/dynamic";
+import { AnimatedBrutalistCorners } from "@/components/ui/AnimatedBrutalistCorners";
 
 const Mahjong = dynamic(
   () => import("@/components/Mahjong").then((m) => m.Mahjong),
@@ -32,10 +33,30 @@ export default function JuegoPage() {
         <div className="mx-auto w-full max-w-7xl border-x border-white/10">
           <div className="border-y border-white/10 bg-[#0a0a0a]/95">
             <div className="relative p-5 sm:p-8 md:p-10">
-              <div className={`absolute left-0 top-0 h-full w-px bg-${accentClass}`} style={{ backgroundColor: accentColor }} />
-              <h1 className="max-w-4xl text-3xl sm:text-4xl md:text-5xl font-mono font-bold uppercase leading-[0.92] tracking-tight text-white">
-                Mahjong
-              </h1>
+              <div className={`absolute left-0 top-0 h-full w-[5px] bg-${accentClass}`} style={{ backgroundColor: accentColor }} />
+              <div className="flex items-center justify-between gap-4 w-full">
+                <h1 
+                  className="text-4xl sm:text-5xl md:text-6xl font-black uppercase tracking-[0.15em] font-mono text-white select-none"
+                  style={{
+                    textShadow: `3px 3px 0px #000, 0 0 10px ${accentColor}80, 0 0 30px ${accentColor}30`
+                  }}
+                >
+                  Miel-jong
+                </h1>
+                
+                {/* Sprite B from Miel-jong.mp4 */}
+                <div className="relative h-20 w-20 sm:h-24 sm:w-24 md:h-28 md:w-28 flex-shrink-0">
+                  <video
+                    className="h-full w-full object-cover object-right opacity-90 mix-blend-screen contrast-125"
+                    src="/vid/Miel-jong.mp4"
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    webkit-playsinline="true"
+                  />
+                </div>
+              </div>
             </div>
           </div>
 

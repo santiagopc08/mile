@@ -31,11 +31,9 @@ function CameraRig({ boardWidth, boardHeight }: CameraRigProps) {
         // La distancia requerida es el máximo de ambas para asegurar que el tablero quepa por completo
         const requiredZ = Math.max(requiredZHeight, requiredZWidth);
 
-        // Si es móvil, usamos un margen del 4% para estirar el tablero al máximo de la pantalla lateral previniendo recortes
-        // Si es escritorio, usamos un margen del 18% para una visualización más cómoda
-        const marginMultiplier = isMobileDevice ? 1.1 : 1.18;
+        const marginMultiplier = isMobileDevice ? 1.08 : 1.15;
         const targetZ = Math.max(isMobileDevice ? 3.0 : 5.0, requiredZ * marginMultiplier);
-        const targetY = isMobileDevice ? 0.04 : -0.2; // Centrado ligeramente ajustado en móvil para maximizar espacio vertical
+        const targetY = isMobileDevice ? -0.15 : -0.20; // Centrado ligeramente ajustado en móvil para maximizar espacio vertical y separar los botones
 
         // Interpolación suave de la posición de la cámara (Parallax)
         camera.position.x = THREE.MathUtils.lerp(camera.position.x, x * 0.35, 8 * safeDelta);
@@ -396,11 +394,15 @@ export function MahjongCanvas({ tiles, freeTilesMap, dockIds, onTilePointerDown,
         const tileWidth = 0.96;
         const tileHeight = 1.04;
 
-        const width = (maxX - minX) * spacingX + tileWidth;
-        const height = (maxY - minY) * spacingY + tileHeight;
+        // Use fixed bounds of 14 columns (width) and 14 rows (height) to keep camera zoom and dock positioning constant across all layouts (strictly 8x8)
+        const fixedCols = 14;
+        const fixedRows = 14;
+
+        const width = fixedCols * spacingX + tileWidth;
+        const height = fixedRows * spacingY + tileHeight;
 
         // Espacio libre físico constante entre el tablero y el dock (reducido en móvil para ganar espacio y zoom)
-        const gap = isMobile ? 0.7 : 1.6;
+        const gap = isMobile ? 0.35 : 0.7;
         const totalHeight = height + gap + tileHeight;
 
         // Centrado de la altura combinada sobre Y = 0
