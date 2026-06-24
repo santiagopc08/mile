@@ -99,12 +99,20 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
                 // 2. Query Supabase Auth for backend session verification
                 const { data: { session } } = await supabase.auth.getSession();
                 const email = session?.user?.email;
-                if (email === 'el@mile.app') {
-                    setProfile('el');
+                if (email === 'el@mile.app' || email === 'ella@mile.app') {
+                    const matchedProfile = email === 'el@mile.app' ? 'el' : 'ella';
+                    setProfile(matchedProfile);
                     setIsAuthenticated(true);
-                } else if (email === 'ella@mile.app') {
-                    setProfile('ella');
-                    setIsAuthenticated(true);
+
+                    // Sync backend cookie silently using access token
+                    if (session?.access_token) {
+                        fetch('/api/auth/sync', {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${session.access_token}`
+                            }
+                        }).catch(e => console.error('Failed to sync auth token with server cookie:', e));
+                    }
                 } else if (authStatus === 'true' && (savedProfile === 'el' || savedProfile === 'ella')) {
                     // No backend session exists but we have local session, auto-login silently
                     await login(savedProfile);

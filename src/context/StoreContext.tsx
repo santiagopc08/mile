@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
 import type { AppData } from '@/services/storeService';
 import { supabase } from '@/lib/supabase';
+import { useProfile } from '@/context/ProfileContext';
 
 interface StoreContextType {
     data: AppData | null;
@@ -14,6 +15,7 @@ interface StoreContextType {
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
 export function StoreProvider({ children }: { children: ReactNode }) {
+    const { isAuthenticated } = useProfile();
     const [data, setData] = useState<AppData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -22,7 +24,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         try {
             setIsLoading(true);
             const query = tables && tables.length > 0 ? `?tables=${tables.join(',')}` : '';
-            const res = await fetch(`/api/store${query}`);
+            
+            const { data: { session } } = await supabase.auth.getSession();
+            const token = session?.access_token;
+            const headers: Record<string, string> = {};
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
+            const res = await fetch(`/api/store${query}`, { headers });
             if (res.ok) {
                 const json = await res.json();
                 if (tables && tables.length > 0) {
@@ -58,9 +68,18 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         setData(optimistic);
 
         try {
+            const { data: { session } } = await supabase.auth.getSession();
+            const token = session?.access_token;
+            const headers: Record<string, string> = {
+                'Content-Type': 'application/json'
+            };
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
             await fetch('/api/store', {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+                headers,
                 body: JSON.stringify(partial)
             });
             await fetchData();
@@ -71,30 +90,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     };
 
     useEffect(() => {
-        let isMounted = true;
+        if (!isAuthenticated) {
+            setData(null);
+            setIsLoading(false);
+            return;
+        }
 
-        // Verify session initially to prevent unauthenticated 401 calls
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            if (isMounted) {
-                if (session) {
-                    fetchData();
-                } else {
-                    setIsLoading(false);
-                }
-            }
-        });
-
-        // Listen for authentication changes (e.g. log in / log out)
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-            if (isMounted) {
-                if (session) {
-                    fetchData();
-                } else {
-                    setData(null);
-                    setIsLoading(false);
-                }
-            }
-        });
+        // Fetch data immediately when authenticated
+        fetchData();
         
         const pendingSlices = new Set<string>();
 
@@ -121,12 +124,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             fetchTimeoutRef.current = setTimeout(() => {
                 const tablesArray = Array.from(pendingSlices);
                 pendingSlices.clear();
-                // Only fetch if there is an active session
-                supabase.auth.getSession().then(({ data: { session } }) => {
-                    if (session) {
-                        fetchData(tablesArray);
-                    }
-                });
+                if (isAuthenticated) {
+                    fetchData(tablesArray);
+                }
             }, 600);
         };
 
@@ -149,12 +149,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             .subscribe();
 
         return () => {
-            isMounted = false;
-            subscription.unsubscribe();
             supabase.removeChannel(channel);
             if (fetchTimeoutRef.current) clearTimeout(fetchTimeoutRef.current);
         };
-    }, []);
+    }, [isAuthenticated]);
 
     return (
         <StoreContext.Provider value={{ data, isLoading, refreshData: fetchData, updateData }}>

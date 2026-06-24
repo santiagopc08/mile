@@ -61,15 +61,15 @@ export default function RootLayout({
   return (
     <html lang="es" suppressHydrationWarning>
       <body suppressHydrationWarning className={`${spaceGrotesk.variable} ${anta.variable} ${quantico.variable} font-sans antialiased text-[#fbdae0] bg-[#1f0e13] min-h-screen lg:pl-20 pb-safe`}>
-        <StoreProvider>
-          <ProfileProvider>
+        <ProfileProvider>
+          <StoreProvider>
             <VisibilityProvider>
               <AppNav />
               <IOSInstallPrompt />
               {children}
             </VisibilityProvider>
-          </ProfileProvider>
-        </StoreProvider>
+          </StoreProvider>
+        </ProfileProvider>
       </body>
     </html>
   );
