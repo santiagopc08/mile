@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { useProfile } from '@/context/ProfileContext';
 
 export interface TileContent {
-    type: 'custom' | 'local_image' | 'traditional';
+    type: 'custom' | 'local_image' | 'traditional' | 'bottle_message' | 'calendar_date' | 'clock_time';
     value: string;
 }
 
@@ -23,7 +23,7 @@ export interface TileState {
 export const TileVisual = memo(({ tile }: { tile: TileState }) => {
     const { profile } = useProfile();
     const accentColor = profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)';
-    
+
     if (tile.content.type === 'custom') {
         return (
             <div className="relative h-full w-full overflow-hidden p-[2px]">
@@ -38,6 +38,51 @@ export const TileVisual = memo(({ tile }: { tile: TileState }) => {
                 />
                 {/* top glossy shine */}
                 <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-white/30 z-20 pointer-events-none"></div>
+            </div>
+        );
+    }
+
+    if (tile.content.type === 'bottle_message') {
+        return (
+            <div className="relative h-full w-full overflow-hidden p-[2px] flex items-center justify-center bg-[#0a2323]">
+                <div className="absolute inset-0 bg-gradient-to-br from-[#008080] via-[#004d4d] to-[#001a1a] opacity-75"></div>
+                {/* inner dark bezel */}
+                <div className="absolute inset-[3px] bg-black z-0"></div>
+                {/* Vintage Letter Scroll or Bottle emoji */}
+                <div className="relative z-10 text-[2rem] select-none pointer-events-none animate-pulse">🍾</div>
+                {/* top glossy shine */}
+                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/15 to-[#00ffcc]/20 z-20 pointer-events-none"></div>
+            </div>
+        );
+    }
+
+    if (tile.content.type === 'calendar_date') {
+        const parts = tile.content.value.split(' ');
+        const dayStr = parts[0] || '';
+        const monthStr = parts[1] || '';
+        return (
+            <div className="relative h-full w-full overflow-hidden p-[2px] flex flex-col items-center justify-center bg-stone-900 border border-red-500/30">
+                <div className="w-full bg-red-600 text-white text-[7px] font-black tracking-widest text-center py-[2px] uppercase select-none leading-none pointer-events-none">
+                    CAL
+                </div>
+                <div className="w-full flex-1 bg-stone-950 flex flex-col items-center justify-center leading-none select-none pointer-events-none">
+                    <span className="text-[12px] font-black text-white">{dayStr}</span>
+                    <span className="text-[8px] font-bold text-red-400 mt-[2px] uppercase">{monthStr}</span>
+                </div>
+            </div>
+        );
+    }
+
+    if (tile.content.type === 'clock_time') {
+        return (
+            <div className="relative h-full w-full overflow-hidden p-[2px] flex flex-col items-center justify-center bg-stone-950 border border-emerald-500/30">
+                <div className="absolute inset-0 bg-gradient-to-br from-emerald-950/20 via-black to-emerald-950/40 opacity-70"></div>
+                <div className="relative z-10 flex flex-col items-center justify-center leading-none select-none pointer-events-none">
+                    <span className="text-[7px] font-bold text-emerald-500/40 tracking-wider mb-[2px] uppercase">HORA</span>
+                    <span className="text-[10px] font-black text-emerald-400 font-mono tracking-tighter shadow-[0_0_8px_rgba(52,211,153,0.5)]">
+                        {tile.content.value}
+                    </span>
+                </div>
             </div>
         );
     }

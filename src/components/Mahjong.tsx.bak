@@ -8,7 +8,7 @@ import { StoreService } from '@/services/storeService';
 import { MahjongService } from '@/services/mahjongService';
 import { NotificationService } from '@/services/notificationService';
 import { useProfile } from '@/context/ProfileContext';
-import { Undo2, Trophy, RotateCcw, Lightbulb, Sparkles } from 'lucide-react';
+import { Undo2, Trophy, RotateCcw, Lightbulb, Layers3, Sparkles, Shield, Mountain } from 'lucide-react';
 import { AnimatedBrutalistCorners } from '@/components/ui/AnimatedBrutalistCorners';
 import MahjongTimer, { MahjongTimerHandle } from './MahjongTimer';
 import { TileState, TileContent, TileVisual } from './MahjongTile';
@@ -16,7 +16,7 @@ import { MahjongCanvas } from './MahjongCanvas';
 
 const TILESETS: Record<string, { name: string; icon: string; minGames: number; tiles: string[] }> = {
     traditional: {
-        name: "Clásico",
+        name: "Clásico Oriental",
         icon: "🀄",
         minGames: 0,
         tiles: [
@@ -26,166 +26,88 @@ const TILESETS: Record<string, { name: string; icon: string; minGames: number; t
         ]
     },
     romance: {
-        name: "Amor",
+        name: "Amor & Ternura",
         icon: "💖",
-        minGames: 10,
+        minGames: 3,
         tiles: [
             "💖", "💝", "💘", "💞", "💟", "💌", "💋", "💍", "🌹", "💐", "🥂", "🍫", "🎈", "🧸", "❤️", "💑",
             "👩‍❤️‍👨", "👰‍♀️", "🤵‍♂️", "🍾", "🧁", "🕯️", "🎁", "✨", "🎀", "🕊️", "💓", "💕", "❤️‍🔥", "💋", "💍", "💖"
         ]
     },
     animals: {
-        name: "Animales",
+        name: "Reino Animal",
         icon: "🐱",
-        minGames: 20,
+        minGames: 7,
         tiles: [
             "🐱", "🐶", "🦊", "🐼", "🐨", "🐰", "🐻", "🐯", "🦁", "🐸", "🐵", "🐧", "🐦", "🐤", "🦄", "🐙",
             "🐳", "🐬", "🐝", "🦋", "🐞", "🦕", "🐆", "🦓", "🐘", "🐪", "🦒", "🦘", "🦦", "🦉", "🐢", "🦀"
         ]
     },
     sweets: {
-        name: "Dulces",
+        name: "Festín Dulce",
         icon: "🍰",
-        minGames: 30,
+        minGames: 12,
         tiles: [
             "🍎", "🍓", "🍊", "🍇", "🍉", "🍌", "🍒", "🍑", "🥑", "🍕", "🍔", "🍟", "🌮", "🍣", "🍤", "🥞",
             "🍩", "🧁", "🍦", "🍧", "🍪", "🍿", "☕️", "🍹", "🍬", "🍭", "🍫", "🍰", "🥧", "🍯", "🍮", "🥐"
         ]
     },
     nature: {
-        name: "Naturaleza",
+        name: "Jardín Estelar",
         icon: "🌸",
-        minGames: 40,
+        minGames: 18,
         tiles: [
             "🌸", "🌻", "🌷", "🌺", "🌼", "🍂", "🍁", "🍀", "🍄", "🌲", "🌴", "🌵", "🌊", "☀️", "🌙", "⭐️",
             "🪐", "💫", "✨", "🌈", "🏔️", "🌋", "🏖️", "🪵", "🌱", "☘️", "🎋", "🍃", "🌬️", "❄️", "⛈️", "☔️"
         ]
     },
     hobbies: {
-        name: "Hobbies",
+        name: "Club Recreativo",
         icon: "🎮",
-        minGames: 50,
+        minGames: 25,
         tiles: [
             "🎮", "🎲", "🧩", "🎨", "🎭", "🎬", "🎧", "🎤", "🎸", "🎹", "⚽️", "🏀", "🎾", "🏹", "✈️", "⛵️",
             "🛹", "🚲", "🏎️", "🎳", "🎯", "🕹️", "🎰", "🎼", "🎻", "🎷", "🥁", "🧶", "🧵", "🎨", "🎬", "🎧"
         ]
     },
     magic: {
-        name: "Magia",
+        name: "Magia & Hechizos",
         icon: "🔮",
-        minGames: 60,
+        minGames: 33,
         tiles: [
             "🔮", "🧿", "🪄", "🧪", "🕯️", "🛸", "🚀", "☄️", "🌟", "⚜️", "🗝️", "🧧", "🏮", "🧙‍♂️", "🧙‍♀️", "🧚‍♂️",
             "🧚‍♀️", "🧞‍♂️", "🧞‍♀️", "🧛‍♂️", "🧛‍♀️", "🧟‍♂️", "🧟‍♀️", "🦄", "🐉", "🐲", "🏰", "📜", "⚗️", "🧪", "🧿", "🔮"
         ]
     },
     cosmic: {
-        name: "Espacio",
+        name: "Odisea Espacial",
         icon: "🛸",
-        minGames: 70,
+        minGames: 42,
         tiles: [
             "🛸", "🚀", "🪐", "🌌", "☄️", "🛰️", "👨‍🚀", "👩‍🚀", "👽", "👾", "🤖", "🌟", "🌍", "📡", "🔭", "🌑",
             "🌒", "🌓", "🌔", "🌕", "🌖", "🌗", "🌘", "🪐", "💫", "✨", "🌟", "🌌", "🚀", "🛸", "🌍", "🛰️"
         ]
     },
     app_special: {
-        name: "Mieljong",
+        name: "Galería Miel-jong",
         icon: "📲",
-        minGames: 80,
+        minGames: 52,
         tiles: [
             "🍾", "🧠", "🏆", "⏱️", "⏳", "⏰", "🀄", "📅", "💬", "🗺️", "📍", "🏥", "🩺", "🐈‍⬛", "🐈", "💰",
             "💵", "🎂", "🎈", "🏠", "🚪", "🗒️", "✏️", "🌊", "💖", "💝", "🎁", "✨", "🌟", "💫", "🧸",
             "🛡️", "🔑", "🐾", "🐶", "🫙", "🔔", "✈️", "🍽️", "🍿", "🛍️", "🛒", "🎟️", "💊", "🛌", "🏃‍♀️", "🥦",
             "🥛", "🧘‍♀️", "🎮", "🕹️", "🧩", "⚙️", "📈", "🪙", "🍷", "🔋"
         ]
-    },
-    travel: {
-        name: "Viajes",
-        icon: "✈️",
-        minGames: 90,
-        tiles: [
-            "✈️", "🛳️", "🚗", "🚲", "🗺️", "📍", "📸", "🗽", "🗼", "🏰", "🏔️", "🏖️", "⛺", "🎒", "🚞", "🚆",
-            "🚢", "🛩️", "🚁", "🧳", "🚏", "🗻", "🏜️", "🏝️", "🏕️", "🛖", "🛶", "🚠", "🎢", "🚂"
-        ]
-    },
-    celebration: {
-        name: "Fiesta",
-        icon: "🎉",
-        minGames: 100,
-        tiles: [
-            "🎉", "🎊", "🎈", "🎂", "🍾", "🥂", "🍹", "🍺", "🍷", "🍕", "🍔", "🍿", "🎭", "💃", "🕺", "🎆",
-            "🎇", "🎁", "🕯️", "🧁", "🍩", "🍪", "🍫", "🍬", "🍭", "🎼", "🎤", "🎧", "🎷", "🎸"
-        ]
-    },
-    fruits: {
-        name: "Frutas",
-        icon: "🍇",
-        minGames: 110,
-        tiles: [
-            "🍇", "🍈", "🍉", "🍊", "🍋", "🍌", "🍍", "🥭", "🍎", "🍏", "🍐", "🍑", "🍒", "🍓", "🫐", "🥝",
-            "🍅", "🫒", "🥥", "🥑", "🍆", "🥔", "🥕", "🌽", "🌶️", "🫑", "🥒", "🥬", "🥦", "🍄"
-        ]
-    },
-    mythology: {
-        name: "Mitología",
-        icon: "🐉",
-        minGames: 120,
-        tiles: [
-            "🐉", "🐲", "🦄", "🧜‍♀️", "🧜‍♂️", "🧚‍♀️", "🧚‍♂️", "🧙‍♀️", "🧙‍♂️", "🧛‍♀️", "🧛‍♂️", "🧟‍♀️", "🧟‍♂️", "🧞‍♀️", "🧞‍♂️",
-            "👻", "💀", "👽", "👾", "🤖", "👹", "👺", "🦁", "🦅", "🐺", "🦊", "🐻", "🐼", "🐯", "🐍"
-        ]
-    },
-    sports: {
-        name: "Deportes",
-        icon: "⚽",
-        minGames: 130,
-        tiles: [
-            "⚽", "🏀", "🏈", "⚾", "🥎", "🎾", "🏐", "🏉", "🥏", "🎱", "🪀", "🏓", "🏸", "🏒", "🏑", "🥍",
-            "🏏", "🏹", "🎣", "🥊", "🥋", "🛹", "🛼", "🚴", "🏆", "🥇", "🥈", "🥉", "🎖️", "🎗️"
-        ]
-    },
-    weather: {
-        name: "Clima",
-        icon: "⚡",
-        minGames: 140,
-        tiles: [
-            "☀️", "🌙", "☁️", "⛅", "⛈️", "🌤️", "🌥️", "🌦️", "🌧️", "🌨️", "🌩️", "🌪️", "🌫️", "🌬️", "🌀", "🌈",
-            "☔", "⚡", "❄️", "🔥", "💧", "🌊", "🍂", "🍁", "🍀", "🌸", "🌻", "🌷", "🍃", "🪵"
-        ]
-    },
-    miel_santi: {
-        name: "Miel",
-        icon: "🍯",
-        minGames: 150,
-        tiles: [
-            "🍯", "🐻", "🐝", "👩‍❤️‍👨", "💑", "💍", "🏠", "🍾", "🥂", "💖", "💝", "💌", "✨", "🌟", "🎂", "💋",
-            "🧸", "🐾", "🐱", "🐶", "🏥", "🩺", "💬", "🗺️", "📍", "🚪", "🗒️", "✏️", "🌊", "🎁"
-        ]
     }
-};
-
-const getUnlockedTilesForCount = (gamesCount: number) => {
-    let tilesPool: string[] = [];
-    for (const key in TILESETS) {
-        if (TILESETS[key].minGames <= gamesCount) {
-            tilesPool = [...tilesPool, ...TILESETS[key].tiles];
-        }
-    }
-    return tilesPool;
-};
-
-const getTargetTilesForLevel = (level: number) => {
-    const target = 80 + (level - 1) * 8;
-    return Math.min(Math.max(80, Math.floor(target / 2) * 2), 96);
 };
 
 type LayoutType = 'turtle' | 'fortress' | 'peaks' | 'random';
 
 const LAYOUT_INFO: Record<LayoutType, { name: string; description: string; tiles: number }> = {
-    turtle: { name: 'Tortuga', description: 'El diseño milenario en pirámide.', tiles: 96 },
-    fortress: { name: 'Fortaleza', description: 'Muros concéntricos de memorias.', tiles: 96 },
-    peaks: { name: 'Picos', description: 'Dos torres que se encuentran.', tiles: 96 },
-    random: { name: 'Caos', description: 'Formación procedimental única.', tiles: 96 }
+    turtle: { name: 'Tortuga Clásica', description: 'El diseño milenario en pirámide.', tiles: 96 },
+    fortress: { name: 'La Fortaleza', description: 'Muros concéntricos de memorias.', tiles: 96 },
+    peaks: { name: 'Picos Gemelos', description: 'Dos torres que se encuentran.', tiles: 96 },
+    random: { name: 'Caos Equilibrado', description: 'Formación procedimental única.', tiles: 96 }
 };
 
 function filterCoordsByColumns(coords: { x: number; y: number; z: number }[], maxCols: number) {
@@ -214,8 +136,9 @@ function filterCoordsByColumns(coords: { x: number; y: number; z: number }[], ma
     return filtered;
 }
 
-function generateCoordinates(type: LayoutType, target: number) {
+function generateCoordinates(type: LayoutType) {
     const coords: { x: number, y: number, z: number }[] = [];
+    const target = LAYOUT_INFO[type].tiles;
 
     if (type === 'random') {
         const maxLayers = 4;
@@ -605,10 +528,6 @@ export function Mahjong() {
 
     // Connection Features states (Message in Bottle & Daily stats)
     const [todayRevealedBottle, setTodayRevealedBottle] = useState<any | null>(null);
-    const [allScores, setAllScores] = useState<any[]>([]);
-    const [partnerCompletedGames, setPartnerCompletedGames] = useState(0);
-    const level = 1 + Math.floor(completedGamesCount / 10);
-    const partnerLevel = 1 + Math.floor(partnerCompletedGames / 10);
     const [dailyPlayRecord, setDailyPlayRecord] = useState<any | null>(null);
     const [dailyStats, setDailyStats] = useState<{ el: any | null; ella: any | null }>({ el: null, ella: null });
     const [historicDailyStats, setHistoricDailyStats] = useState<{
@@ -767,15 +686,6 @@ export function Mahjong() {
             MahjongService.getTotalGamesCompletedCount(profile as 'el' | 'ella')
                 .then(setCompletedGamesCount)
                 .catch(() => { });
-
-            const partnerProfile = profile === 'el' ? 'ella' : 'el';
-            MahjongService.getTotalGamesCompletedCount(partnerProfile)
-                .then(setPartnerCompletedGames)
-                .catch(() => { });
-
-            MahjongService.getAllMahjongScores()
-                .then(setAllScores)
-                .catch(() => { });
         }
     }, [profile]);
 
@@ -818,29 +728,6 @@ export function Mahjong() {
                         }
                     });
 
-                // ALSO save to mahjong_scores as 'daily' layout for leaderboard
-                const pKey = profile as 'el' | 'ella';
-                const bestScores = leaderboard[pKey] || [];
-                const isRecord = bestScores.length === 0 || time < bestScores[0].time_seconds;
-                setIsNewRecord(isRecord);
-
-                if (profile && !scoreSaved) {
-                    setScoreSaved(true);
-                    MahjongService.saveMahjongScore(
-                        profile as 'el' | 'ella',
-                        time,
-                        'daily',
-                        tiles.length
-                    ).then(() => {
-                        MahjongService.getMahjongLeaderboard().then(setLeaderboard).catch(() => { });
-                        if (isRecord) {
-                            const target = profile === 'el' ? 'ella' : 'el';
-                            const authorName = profile === 'el' ? 'Santiago' : 'Milena';
-                            NotificationService.addNotification(target, 'mahjong_record', `¡Récord Superado!: ${authorName} batió el récord en el Desafío Diario con un tiempo de ${formatTime(time)}! 🏆`).catch(e => console.error(e));
-                        }
-                    });
-                }
-
                 // Send daily puzzle completion notification
                 const target = profile === 'el' ? 'ella' : 'el';
                 const senderName = profile === 'el' ? 'Santiago' : 'Milena';
@@ -851,21 +738,8 @@ export function Mahjong() {
                 ).catch(e => console.error(e));
             } else {
                 const pKey = profile as 'el' | 'ella';
-
-                // Parse scores to find our best time at the current level
-                const parsedLevelScores = allScores.map(score => {
-                    let parsedLevel = 1;
-                    if (score.layout && score.layout.includes(':')) {
-                        parsedLevel = parseInt(score.layout.split(':')[1], 10) || 1;
-                    } else {
-                        parsedLevel = score.tile_count === 96 ? 3 : score.tile_count === 88 ? 2 : 1;
-                    }
-                    return { ...score, parsedLevel };
-                });
-
-                const myLevelScores = parsedLevelScores.filter(s => s.profile === pKey && s.parsedLevel === level);
-                const bestTimeForLevel = myLevelScores.length > 0 ? Math.min(...myLevelScores.map(s => s.time_seconds)) : null;
-                const isRecord = bestTimeForLevel === null || time < bestTimeForLevel;
+                const bestScores = leaderboard[pKey] || [];
+                const isRecord = bestScores.length === 0 || time < bestScores[0].time_seconds;
                 setIsNewRecord(isRecord);
 
                 if (profile && !scoreSaved) {
@@ -873,25 +747,25 @@ export function Mahjong() {
                     MahjongService.saveMahjongScore(
                         profile as 'el' | 'ella',
                         time,
-                        `${currentLayout}:${level}`,
+                        currentLayout,
                         tiles.length
                     ).then(() => {
-                        MahjongService.getAllMahjongScores().then(setAllScores).catch(() => { });
+                        MahjongService.getMahjongLeaderboard().then(setLeaderboard).catch(() => { });
                         MahjongService.getTotalGamesCompletedCount(profile as 'el' | 'ella')
                             .then(setCompletedGamesCount)
                             .catch(() => { });
 
-                        // Notify partner if record at this level
+                        // Notificar a la pareja si es récord
                         if (isRecord) {
                             const target = profile === 'el' ? 'ella' : 'el';
                             const authorName = profile === 'el' ? 'Santiago' : 'Milena';
-                            NotificationService.addNotification(target, 'mahjong_record', `¡Nuevo Récord de Nivel!: ${authorName} superó su marca en el Nivel ${level} con un tiempo de ${formatTime(time)}! 🏆`).catch(e => console.error(e));
+                            NotificationService.addNotification(target, 'mahjong_record', `¡Récord Superado!: ${authorName} batió el récord en el juego con un tiempo de ${formatTime(time)}! 🏆`).catch(e => console.error(e));
                         }
                     });
                 }
             }
         }
-    }, [matchedCount, tiles.length, timerActive, profile, scoreSaved, currentLayout, leaderboard, gameMode, activeCoopGame, level, allScores]);
+    }, [matchedCount, tiles.length, timerActive, profile, scoreSaved, currentLayout, leaderboard, gameMode, activeCoopGame]);
 
     const containerRef = useRef<HTMLDivElement>(null);
     const [scale, setScale] = useState(1);
@@ -1092,8 +966,7 @@ export function Mahjong() {
         }
         setEventDetailsMap(detailsMap);
 
-        const level = 1 + Math.floor(completedGamesCount / 10);
-        const tilesCount = getTargetTilesForLevel(level);
+        const tilesCount = LAYOUT_INFO[selectedLayout].tiles;
         const pairsCount = tilesCount / 2;
         const pairs: TileContent[] = [];
 
@@ -1114,22 +987,13 @@ export function Mahjong() {
                 value: img.url
             });
         }
-
-        // Mix both players' unlocked tilesets
-        const myUnlockedTiles = getUnlockedTilesForCount(completedGamesCount);
-        const partnerUnlockedTiles = getUnlockedTilesForCount(partnerCompletedGames);
-        const mixedTilesPool = shuffleArray(Array.from(new Set([...myUnlockedTiles, ...partnerUnlockedTiles])));
-
         let emojiIdx = 0;
         while (pairs.length < pairsCount) {
-            pairs.push({
-                type: 'traditional',
-                value: mixedTilesPool[emojiIdx % mixedTilesPool.length]
-            });
+            pairs.push({ type: 'traditional', value: activeTileset.tiles[emojiIdx % activeTileset.tiles.length] });
             emojiIdx++;
         }
 
-        let rawCoords = generateCoordinates(selectedLayout, tilesCount);
+        let rawCoords = generateCoordinates(selectedLayout);
         if (mobileState) {
             rawCoords = filterCoordsByColumns(rawCoords, 8);
         }
@@ -1241,8 +1105,7 @@ export function Mahjong() {
         }
         setCurrentLayout(selectedLayout);
 
-        const level = 1 + Math.floor(completedGamesCount / 10);
-        const tilesCount = getTargetTilesForLevel(level);
+        const tilesCount = LAYOUT_INFO[selectedLayout].tiles;
         const pairsCount = tilesCount / 2;
         const pairs: TileContent[] = [];
 
@@ -1267,7 +1130,7 @@ export function Mahjong() {
             pairs.push({ type: 'traditional', value: activeTileset.tiles[emojiIdx % activeTileset.tiles.length] });
             emojiIdx++;
         }
-        let rawCoords = generateCoordinates(selectedLayout, tilesCount);
+        let rawCoords = generateCoordinates(selectedLayout);
         if (mobileState) {
             rawCoords = filterCoordsByColumns(rawCoords, 8);
         }
@@ -1404,26 +1267,9 @@ export function Mahjong() {
             setDockIds(updatedDock);
             setTiles(updatedTiles);
 
-            // Sync to Coop Game in DB & Auto-Turn Pass
+            // Sync to Coop Game in DB
             if (gameMode === 'coop' && activeCoopGame) {
-                const newMatchedCount = matchedCount + 2;
-                const halfMatched = Math.floor(tiles.length / 2);
-                if (newMatchedCount === halfMatched) {
-                    const nextTurn = coopTurn === 'el' ? 'ella' : 'el';
-                    setCoopTurn(nextTurn);
-                    MahjongService.updateCoopGame(activeCoopGame.id, updatedTiles, updatedDock, nextTurn, profile as 'el' | 'ella');
-
-                    const target = profile === 'el' ? 'ella' : 'el';
-                    const authorName = profile === 'el' ? 'Santiago' : 'Milena';
-                    NotificationService.addNotification(
-                        target,
-                        'mahjong_coop_turn',
-                        `¡${authorName} completó la mitad del tablero! Tu turno de terminar el juego.`
-                    ).catch(console.error);
-                    alert(`¡Has completado la mitad del tablero (${halfMatched} fichas)! El turno pasa automáticamente a tu pareja.`);
-                } else {
-                    MahjongService.updateCoopGame(activeCoopGame.id, updatedTiles, updatedDock, coopTurn, profile as 'el' | 'ella');
-                }
+                MahjongService.updateCoopGame(activeCoopGame.id, updatedTiles, updatedDock, coopTurn, profile as 'el' | 'ella');
             }
 
             // Si es un recuerdo de Supabase (dorado), pausar temporizador y mostrar modal
@@ -1564,74 +1410,6 @@ export function Mahjong() {
     const percent = tiles.length > 0 ? (matchedCount / tiles.length) * 100 : 0;
     const filledSegments = Math.round((percent / 100) * 24);
 
-    const layoutName = gameMode === 'coop' ? 'Cooperativo' : gameMode === 'daily' ? 'Diario' : (LAYOUT_INFO[currentLayout]?.name || currentLayout);
-
-    const parsedLevelScores = useMemo(() => {
-        return allScores.map(score => {
-            let parsedLevel = 1;
-            let parsedLayout = score.layout;
-            if (score.layout && score.layout.includes(':')) {
-                const parts = score.layout.split(':');
-                parsedLayout = parts[0];
-                parsedLevel = parseInt(parts[1], 10) || 1;
-            } else {
-                parsedLevel = score.tile_count === 96 ? 3 : score.tile_count === 88 ? 2 : 1;
-            }
-            return {
-                ...score,
-                parsedLayout,
-                parsedLevel
-            };
-        });
-    }, [allScores]);
-
-    const levelComparisons = useMemo(() => {
-        if (gameMode !== 'solo') return [];
-
-        const comparisons: {
-            levelLabel: string;
-            elLvl: number;
-            ellaLvl: number;
-            elTime: number | null;
-            ellaTime: number | null;
-        }[] = [];
-
-        for (let offset = 0; offset < 3; offset++) {
-            const currentWinnerLvl = level - offset;
-            if (currentWinnerLvl < 1) break;
-
-            const isWinnerEl = profile === 'el';
-            const partnerMaxLvl = partnerLevel;
-
-            let elLvl: number;
-            let ellaLvl: number;
-
-            if (isWinnerEl) {
-                elLvl = currentWinnerLvl;
-                ellaLvl = Math.min(partnerMaxLvl, currentWinnerLvl);
-            } else {
-                ellaLvl = currentWinnerLvl;
-                elLvl = Math.min(partnerMaxLvl, currentWinnerLvl);
-            }
-
-            const elScores = parsedLevelScores.filter(s => s.profile === 'el' && s.parsedLevel === elLvl);
-            const elTime = elScores.length > 0 ? Math.min(...elScores.map(s => s.time_seconds)) : null;
-
-            const ellaScores = parsedLevelScores.filter(s => s.profile === 'ella' && s.parsedLevel === ellaLvl);
-            const ellaTime = ellaScores.length > 0 ? Math.min(...ellaScores.map(s => s.time_seconds)) : null;
-
-            comparisons.push({
-                levelLabel: offset === 0 ? 'Nivel Actual' : `Nivel ${currentWinnerLvl}`,
-                elLvl,
-                ellaLvl,
-                elTime,
-                ellaTime
-            });
-        }
-
-        return comparisons;
-    }, [gameMode, level, partnerLevel, profile, parsedLevelScores]);
-
     return (
         <div className="relative flex w-full flex-col items-center justify-center overflow-hidden max-md:overflow-visible">
 
@@ -1672,105 +1450,64 @@ export function Mahjong() {
                 </button>
             </div>
 
-            <div className="relative z-10 mb-4 flex flex-col items-center justify-center border border-white/10 bg-black/60 p-4 w-full gap-3.5">
-                {/* Title line combining Level, Tileset, and Layout */}
-                <div className="flex items-center justify-center flex-wrap gap-2 md:gap-3 text-xs md:text-sm font-black uppercase tracking-[0.15em] text-white font-mono select-none">
-                    <span className="text-base md:text-lg select-none mr-0.5" role="img" aria-label={activeTileset.name}>
-                        {activeTileset.icon}
-                    </span>
-                    <span className="text-white/50">LVL</span>
-                    <span className="font-black font-sans text-sm md:text-base -ml-1" style={{ color: accentColor }}>
-                        {level}
-                    </span>
-                    <span className="h-3 w-[1px] bg-white/20 mx-1.5" />
-                    <span className="font-black font-sans tracking-wider" style={{ color: accentColor }}>
-                        {activeTileset.name}
-                    </span>
-                    <span className="h-3 w-[1px] bg-white/20 mx-1.5" />
-                    <span className="font-bold text-[#a88a7e]">
-                        {layoutName}
-                    </span>
+            {/* Mensajes en la Botella Recibidos (Revelar / Ver) */}
+            <div className="flex gap-2 mb-4 z-10">
+                {pendingReceivedBottle && (
+                    <button
+                        onClick={() => {
+                            setShowMessageText(false);
+                            setHasPausedForMessage(false);
+                            setRevealedBottleMessage({
+                                id: pendingReceivedBottle.id,
+                                text: pendingReceivedBottle.message,
+                                sender: pendingReceivedBottle.sender === 'el' ? 'Santiago' : 'Milena'
+                            });
+                        }}
+                        className="flex items-center gap-1.5 border border-[#00ffcc] bg-[#004d40]/40 px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[#00ffcc] hover:bg-[#004d40]/70 transition-all active:scale-95 animate-bounce shadow-[0_0_15px_rgba(0,255,204,0.4)]"
+                    >
+                        🍾 Revelar Botella Recibida
+                    </button>
+                )}
+                {todayRevealedBottle && !pendingReceivedBottle && (
+                    <button
+                        onClick={() => {
+                            setShowMessageText(false);
+                            setHasPausedForMessage(false);
+                            setRevealedBottleMessage({
+                                id: todayRevealedBottle.id,
+                                text: todayRevealedBottle.message,
+                                sender: todayRevealedBottle.sender === 'el' ? 'Santiago' : 'Milena'
+                            });
+                        }}
+                        className="flex items-center gap-1.5 border border-teal-500/50 bg-[#0c3131]/60 px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[#00ffcc] hover:bg-[#0c3131]/80 hover:border-teal-400 transition-all active:scale-95"
+                    >
+                        👁️ Ver Botella Recibida
+                    </button>
+                )}
+            </div>
 
-                    {/* Resized and Inline Bottle Tile Button */}
-                    {(pendingReceivedBottle || todayRevealedBottle) && (
-                        <div className="ml-2.5 flex items-center">
-                            {pendingReceivedBottle ? (
-                                <button
-                                    onClick={() => {
-                                        setShowMessageText(false);
-                                        setHasPausedForMessage(false);
-                                        setRevealedBottleMessage({
-                                            id: pendingReceivedBottle.id,
-                                            text: pendingReceivedBottle.message,
-                                            sender: pendingReceivedBottle.sender === 'el' ? 'Santiago' : 'Milena'
-                                        });
-                                    }}
-                                    className="relative w-8 h-11 overflow-hidden rounded-none border border-r-[2px] border-b-[3px] border-[#4b403a] bg-[#111] hover:brightness-125 transition-all active:scale-95 shadow-[0_0_12px_rgba(0,255,204,0.55)] animate-bounce"
-                                    title="Revelar Botella Recibida"
-                                >
-                                    {/* Geometric corner mark */}
-                                    <div className="pointer-events-none absolute right-0 top-0 h-1 w-1 border-r border-t border-[#00ffcc]/60 z-30" />
-                                    
-                                    <div className="relative h-full w-full overflow-hidden p-[1px] flex items-center justify-center bg-[#0a2323]">
-                                        <div className="absolute inset-0 bg-gradient-to-br from-[#008080] via-[#004d4d] to-[#001a1a] opacity-75"></div>
-                                        {/* inner dark bezel */}
-                                        <div className="absolute inset-[2px] bg-black z-0"></div>
-                                        {/* Bottle emoji */}
-                                        <div className="relative z-10 text-sm select-none pointer-events-none animate-pulse">🍾</div>
-                                        {/* top glossy shine */}
-                                        <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/15 to-[#00ffcc]/20 z-20 pointer-events-none"></div>
-                                    </div>
-                                </button>
-                            ) : todayRevealedBottle ? (
-                                <button
-                                    onClick={() => {
-                                        setShowMessageText(false);
-                                        setHasPausedForMessage(false);
-                                        setRevealedBottleMessage({
-                                            id: todayRevealedBottle.id,
-                                            text: todayRevealedBottle.message,
-                                            sender: todayRevealedBottle.sender === 'el' ? 'Santiago' : 'Milena'
-                                        });
-                                    }}
-                                    className="relative w-8 h-11 overflow-hidden rounded-none border border-r-[2px] border-b-[3px] border-[#4b403a] bg-[#111] hover:brightness-110 transition-all active:scale-95 shadow-[0_0_8px_rgba(0,255,204,0.2)]"
-                                    title="Ver Botella Recibida"
-                                >
-                                    {/* Geometric corner mark */}
-                                    <div className="pointer-events-none absolute right-0 top-0 h-1 w-1 border-r border-t border-[#00ffcc]/40 z-30" />
-                                    
-                                    <div className="relative h-full w-full overflow-hidden p-[1px] flex items-center justify-center bg-[#051515]">
-                                        <div className="absolute inset-0 bg-gradient-to-br from-[#004d4d] via-[#003333] to-[#001111] opacity-75"></div>
-                                        {/* inner dark bezel */}
-                                        <div className="absolute inset-[2px] bg-black z-0"></div>
-                                        {/* Bottle emoji */}
-                                        <div className="relative z-10 text-sm select-none pointer-events-none opacity-80">🍾</div>
-                                        {/* top glossy shine */}
-                                        <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-[#00ffcc]/10 z-20 pointer-events-none"></div>
-                                    </div>
-                                </button>
-                            ) : null}
-                        </div>
-                    )}
+            <div className="relative z-10 mb-4 flex flex-col md:flex-row items-center justify-between border border-white/10 bg-black/60 p-4 w-full gap-3 md:gap-6">
+                <div className="flex items-center gap-3 text-xs font-black uppercase tracking-[0.24em] text-[#a88a7e]">
+                    {currentLayout === 'turtle' && <Layers3 className="h-5 w-5" style={{ color: accentColor }} />}
+                    {currentLayout === 'fortress' && <Shield className="h-5 w-5" style={{ color: accentColor }} />}
+                    {currentLayout === 'peaks' && <Mountain className="h-5 w-5" style={{ color: accentColor }} />}
+                    {currentLayout === 'random' && <Sparkles className="h-5 w-5" style={{ color: accentColor }} />}
+                    <span>
+                        {gameMode === 'coop' ? 'Tablero Cooperativo' : gameMode === 'daily' ? 'Tablero Diario' : `Tablero: ${LAYOUT_INFO[currentLayout]?.name || currentLayout}`}
+                    </span>
                 </div>
 
-                {/* Level Progress Bar: 0 to 10 games completed for current level */}
-                <div className="w-full max-w-[280px] md:max-w-[340px] flex flex-col gap-1.5 font-mono text-[9px] text-[#a88a7e] select-none">
-                    <div className="flex justify-between uppercase tracking-wider font-bold">
-                        <span>Progreso Nivel</span>
-                        <span style={{ color: accentColor }}>{completedGamesCount % 10}/10 juegos</span>
-                    </div>
-                    <div className="relative h-[4px] w-full bg-white/10 overflow-hidden border border-white/5">
-                        <motion.div
-                            className="absolute left-0 top-0 bottom-0 origin-left"
-                            initial={{ width: 0 }}
-                            animate={{ width: `${(completedGamesCount % 10) * 10}%` }}
-                            transition={{ type: 'spring', stiffness: 80, damping: 18 }}
-                            style={{
-                                backgroundColor: accentColor,
-                                boxShadow: `0 0 10px ${accentColor}, 0 0 4px ${accentColor}`
-                            }}
-                        />
-                    </div>
+                <div className="flex items-center gap-2 border border-white/10 bg-white/[0.03] px-3 py-1.5 font-mono text-[9px] sm:text-[10px] tracking-wider text-white">
+                    <span className="text-sm select-none" role="img" aria-label={activeTileset.name}>{activeTileset.icon}</span>
+                    <span className="font-bold text-[#a88a7e] uppercase">
+                        Nivel {Object.keys(TILESETS).indexOf(Object.keys(TILESETS).find(key => TILESETS[key].name === activeTileset.name) || 'traditional') + 1}:
+                    </span>
+                    <span className="font-black" style={{ color: accentColor }}>
+                        {activeTileset.name}
+                    </span>
+                    <span className="text-[#a88a7e]/60">
+                        ({completedGamesCount} {completedGamesCount === 1 ? 'juego' : 'juegos'})
+                    </span>
                 </div>
             </div>
 
@@ -1966,59 +1703,35 @@ export function Mahjong() {
                             </div>
                         </div>
 
-                        {gameMode === 'daily' ? (
-                            (leaderboard.el.length > 0 || leaderboard.ella.length > 0) && (
-                                <div className="w-full mb-6">
-                                    <h4 className="mb-3 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Tabla de Récords (Diario)</h4>
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <div className="space-y-1.5">
-                                            <span className="block text-center text-[10px] font-bold uppercase tracking-wider text-user-a">Él</span>
-                                            {leaderboard.el.length > 0 ? leaderboard.el.slice(0, 3).map((s, i) => (
-                                                <div key={i} className="flex items-center justify-between border border-white/10 bg-[#0a0a0a] px-3 py-1.5 text-xs">
-                                                    <span className="font-mono text-white/35">#{i + 1}</span>
-                                                    <span className="font-mono tabular-nums tracking-normal text-white">{formatTime(s.time_seconds)}</span>
-                                                </div>
-                                            )) : (
-                                                <p className="text-center text-[10px] italic text-white/30">Sin récords</p>
-                                            )}
-                                        </div>
-                                        <div className="space-y-1.5">
-                                            <span className="block text-center text-[10px] font-bold uppercase tracking-wider text-user-b">Ella</span>
-                                            {leaderboard.ella.length > 0 ? leaderboard.ella.slice(0, 3).map((s, i) => (
-                                                <div key={i} className="flex items-center justify-between border border-white/10 bg-[#0a0a0a] px-3 py-1.5 text-xs">
-                                                    <span className="font-mono text-white/35">#{i + 1}</span>
-                                                    <span className="font-mono tabular-nums tracking-normal text-white">{formatTime(s.time_seconds)}</span>
-                                                </div>
-                                            )) : (
-                                                <p className="text-center text-[10px] italic text-white/30">Sin récords</p>
-                                            )}
-                                        </div>
+                        {(leaderboard.el.length > 0 || leaderboard.ella.length > 0) && (
+                            <div className="w-full mb-6">
+                                <h4 className="mb-3 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Tabla de Récords</h4>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="space-y-1.5">
+                                        <span className="block text-center text-[10px] font-bold uppercase tracking-wider text-user-a">Él</span>
+                                        {leaderboard.el.length > 0 ? leaderboard.el.slice(0, 3).map((s, i) => (
+                                            <div key={i} className="flex items-center justify-between border border-white/10 bg-[#0a0a0a] px-3 py-1.5 text-xs">
+                                                <span className="font-mono text-white/35">#{i + 1}</span>
+                                                <span className="font-mono tabular-nums tracking-normal text-white">{formatTime(s.time_seconds)}</span>
+                                            </div>
+                                        )) : (
+                                            <p className="text-center text-[10px] italic text-white/30">Sin récords</p>
+                                        )}
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <span className="block text-center text-[10px] font-bold uppercase tracking-wider text-user-b">Ella</span>
+                                        {leaderboard.ella.length > 0 ? leaderboard.ella.slice(0, 3).map((s, i) => (
+                                            <div key={i} className="flex items-center justify-between border border-white/10 bg-[#0a0a0a] px-3 py-1.5 text-xs">
+                                                <span className="font-mono text-white/35">#{i + 1}</span>
+                                                <span className="font-mono tabular-nums tracking-normal text-white">{formatTime(s.time_seconds)}</span>
+                                            </div>
+                                        )) : (
+                                            <p className="text-center text-[10px] italic text-white/30">Sin récords</p>
+                                        )}
                                     </div>
                                 </div>
-                            )
-                        ) : gameMode === 'solo' && levelComparisons.length > 0 ? (
-                            <div className="w-full mb-6">
-                                <h4 className="mb-3 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Comparativa de Niveles</h4>
-                                <div className="space-y-2">
-                                    {levelComparisons.map((comp, idx) => {
-                                        const elTimeStr = comp.elTime !== null ? formatTime(comp.elTime) : '--:--';
-                                        const ellaTimeStr = comp.ellaTime !== null ? formatTime(comp.ellaTime) : '--:--';
-                                        return (
-                                            <div key={idx} className="flex flex-col items-center border border-white/10 bg-[#0a0a0a] py-2 px-3 text-xs tracking-normal font-mono">
-                                                <div className="mb-1 text-[9px] font-bold uppercase text-[#a88a7e] tracking-wider">
-                                                    {comp.levelLabel}
-                                                </div>
-                                                <div className="flex w-full justify-center gap-3 text-white">
-                                                    <span className="text-user-a font-bold">el lvl {comp.elLvl} {elTimeStr}</span>
-                                                    <span className="text-white/20">|</span>
-                                                    <span className="text-user-b font-bold">ella lvl {comp.ellaLvl} {ellaTimeStr}</span>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
                             </div>
-                        ) : null}
+                        )}
 
                         <button onClick={() => { setIsLoaded(false); }} className={`w-full bg-${accentClass} py-3.5 text-xs font-black uppercase tracking-[0.18em] text-black transition-all hover:opacity-80 active:scale-95`} style={{ backgroundColor: accentColor }}>Jugar de nuevo</button>
                     </motion.div>
@@ -2382,16 +2095,9 @@ export function Mahjong() {
                         <div className="flex flex-col items-start leading-none">
                             <span className="text-[7px] md:text-[9px] font-bold uppercase tracking-[0.15em] text-[#a88a7e] mb-0.5">Parejas</span>
                             <div className="flex items-baseline gap-1 font-mono tracking-normal">
-                                <motion.span
-                                    key={Math.floor(matchedCount / 2)}
-                                    initial={{ scale: 3.5 }}
-                                    animate={{ scale: 1 }}
-                                    transition={{ type: "spring", stiffness: 300, damping: 15 }}
-                                    className="inline-block text-xs md:text-sm font-black tabular-nums text-white"
-                                    style={{ transformOrigin: "center" }}
-                                >
+                                <span className="text-xs md:text-sm font-black tabular-nums text-white">
                                     {Math.floor(matchedCount / 2)}
-                                </motion.span>
+                                </span>
                                 <span className="text-[9px] md:text-[10px] text-white/40">/ {Math.floor(tiles.length / 2)}</span>
                             </div>
                         </div>
@@ -2403,7 +2109,7 @@ export function Mahjong() {
                 </div>
 
                 {/* --- 3D BRUTALIST HUD: ACTIONS (BOTTOM CENTER, BELOW PROGRESS BAR) --- */}
-                <div className="absolute bottom-[8px] md:bottom-[12px] left-1/2 -translate-x-1/2 z-20 flex items-center justify-center gap-4">
+                <div className="absolute bottom-[8px] md:bottom-[12px] left-1/2 -translate-x-1/2 z-20 flex items-center justify-center gap-3">
                     {/* Undo Button */}
                     <button
                         onClick={handleUndo}
@@ -2455,10 +2161,95 @@ export function Mahjong() {
                         </button>
                     )}
 
+                    {/* Pasar Turno Button for Coop Mode */}
+                    {gameMode === 'coop' && activeCoopGame && coopTurn === profile && (
+                        <button
+                            onClick={async () => {
+                                const nextTurn = profile === 'el' ? 'ella' : 'el';
+                                setCoopTurn(nextTurn);
+                                await MahjongService.updateCoopGame(activeCoopGame.id, tiles, dockIds, nextTurn, profile as 'el' | 'ella');
 
+                                const target = profile === 'el' ? 'ella' : 'el';
+                                const authorName = profile === 'el' ? 'Santiago' : 'Milena';
+                                await NotificationService.addNotification(
+                                    target,
+                                    'mahjong_coop_turn',
+                                    `¡${authorName} despejó el camino! Tu turno de encontrar el siguiente recuerdo.`
+                                );
+                                alert('¡Has pasado tu turno! Tu pareja ha sido notificada.');
+                            }}
+                            className="relative group select-none"
+                            title="Pasar Turno"
+                        >
+                            <div
+                                className="absolute inset-0 translate-x-[2px] translate-y-[2px] border border-black transition-transform duration-200"
+                                style={{ backgroundColor: '#00ffcc' }}
+                            />
+                            <div className="relative flex items-center gap-1 border border-white/30 bg-[#0c1616] px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-[#00ffcc] transition-transform duration-200 group-hover:-translate-x-[1px] group-hover:-translate-y-[1px] group-active:translate-x-[1px] group-active:translate-y-[1px]">
+                                <Sparkles className="h-3.5 w-3.5 text-[#00ffcc]" />
+                                <span>Pasar Turno</span>
+                            </div>
+                        </button>
+                    )}
                 </div>
 
-                <div className="h-6" />
+                {/* --- VIDEO PROGRESS BAR AT THE BOTTOM ("BREAKING THE WALL") --- */}
+                <div className="absolute bottom-[44px] md:bottom-[52px] left-1/2 -translate-x-1/2 w-[220px] md:w-[300px] h-[3px] bg-white/10 z-20 flex items-center select-none font-mono">
+                    {/* Glowing active progress line segment */}
+                    <motion.div
+                        className="absolute left-0 top-0 bottom-0 origin-left"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${percent}%` }}
+                        transition={{ type: 'spring', stiffness: 80, damping: 18 }}
+                        style={{
+                            backgroundColor: accentColor,
+                            boxShadow: `0 0 10px ${accentColor}, 0 0 4px ${accentColor}`
+                        }}
+                    />
+
+                    {/* Interactive Arrow Head Tracker */}
+                    <motion.div
+                        className="absolute pointer-events-none top-1/2"
+                        initial={{ left: 0 }}
+                        animate={{ left: `${percent}%` }}
+                        transition={{ type: 'spring', stiffness: 80, damping: 18 }}
+                        style={{ x: '-50%', y: '-50%' }}
+                    >
+                        <div className="relative flex items-center justify-center">
+                            {/* Futuristic Dart/Arrow Head (Slightly larger w-4.5 h-4.5) */}
+                            <svg
+                                viewBox="0 0 10 10"
+                                className="w-4.5 h-4.5 fill-current drop-shadow-[0_0_4px_rgba(255,255,255,0.9)]"
+                                style={{ color: '#ffffff' }}
+                            >
+                                <path d="M2 1.5 L8 5 L2 8.5 L4 5 Z" />
+                            </svg>
+
+                            {/* Breaking Wall Particles emitted from the tip of the arrow */}
+                            {progressParticles.map((p) => (
+                                <motion.div
+                                    key={p.id}
+                                    className="absolute pointer-events-none rounded-sm"
+                                    initial={{ x: 0, y: 0, opacity: 1, scale: 1.3, rotate: 0 }}
+                                    animate={{
+                                        x: Math.cos(p.angle) * p.speed,
+                                        y: Math.sin(p.angle) * p.speed,
+                                        opacity: 0,
+                                        scale: 0,
+                                        rotate: p.rotate
+                                    }}
+                                    transition={{ duration: 0.7, ease: "easeOut" }}
+                                    style={{
+                                        width: p.id % 2 === 0 ? '6px' : '4px',
+                                        height: p.id % 2 === 0 ? '6px' : '4px',
+                                        backgroundColor: accentColor,
+                                        boxShadow: `0 0 5px ${accentColor}`
+                                    }}
+                                />
+                            ))}
+                        </div>
+                    </motion.div>
+                </div>
 
                 <MahjongCanvas
                     tiles={tiles}

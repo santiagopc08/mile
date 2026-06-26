@@ -31,9 +31,9 @@ function CameraRig({ boardWidth, boardHeight }: CameraRigProps) {
         // La distancia requerida es el máximo de ambas para asegurar que el tablero quepa por completo
         const requiredZ = Math.max(requiredZHeight, requiredZWidth);
 
-        const marginMultiplier = isMobileDevice ? 1.08 : 1.15;
+        const marginMultiplier = isMobileDevice ? 1.22 : 1.18;
         const targetZ = Math.max(isMobileDevice ? 3.0 : 5.0, requiredZ * marginMultiplier);
-        const targetY = isMobileDevice ? -0.15 : -0.20; // Centrado ligeramente ajustado en móvil para maximizar espacio vertical y separar los botones
+        const targetY = isMobileDevice ? -0.38 : -0.25; // Centrado ligeramente ajustado para maximizar espacio vertical y separar los botones
 
         // Interpolación suave de la posición de la cámara (Parallax)
         camera.position.x = THREE.MathUtils.lerp(camera.position.x, x * 0.35, 8 * safeDelta);
@@ -429,7 +429,7 @@ export function MahjongCanvas({ tiles, freeTilesMap, dockIds, onTilePointerDown,
 
             const spacingX = 0.49;
             const spacingY = 0.53;
-            const spacingZ = 0.16;
+            const spacingZ = 0.24;
 
             const newExplosions = newlyMatched.map(tile => {
                 // Verificar si la ficha estaba en el dock antes del emparejamiento para detonar la explosión allí
@@ -467,7 +467,7 @@ export function MahjongCanvas({ tiles, freeTilesMap, dockIds, onTilePointerDown,
     const rawAccentColor = profile === 'ella' ? '#ff4b89' : '#e1ff80';
 
     return (
-        <div className="relative h-full w-full select-none" style={{ minHeight: '520px' }}>
+        <div className="relative h-full w-full select-none" style={{ minHeight: isMobile ? '400px' : '520px' }}>
             <Canvas
                 shadows={{ type: THREE.PCFShadowMap }} // Se define tipo de shadow map explícito para eliminar warning de deprecación de PCFSoftShadowMap
                 camera={{ fov: 50, position: [0, -0.6, 6.2], near: 0.1, far: 50 }}
@@ -481,12 +481,12 @@ export function MahjongCanvas({ tiles, freeTilesMap, dockIds, onTilePointerDown,
                 <DockSlots dockY={dockY} accentColor={rawAccentColor} />
 
                 {/* Iluminación Estética */}
-                <ambientLight intensity={0.7} />
+                <ambientLight intensity={0.45} />
 
                 {/* Luz Principal (Sombras dinámicas) */}
                 <directionalLight
-                    position={[4, 9, 8]}
-                    intensity={1.3}
+                    position={[4.2, 9, 8.5]}
+                    intensity={1.65}
                     castShadow
                     shadow-mapSize-width={1024}
                     shadow-mapSize-height={1024}
