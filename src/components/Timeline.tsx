@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { renderTextWithHashtags } from '@/utils/textFormatting';
 import { Calendar, Plus, Image as ImageIcon, Pencil, MessageSquare, Trash2, X } from 'lucide-react';
@@ -413,8 +414,7 @@ export function Timeline({ events }: TimelineProps) {
 
                                             {editImageUrl && (
                                                 <div className="overflow-hidden border border-white/10 rounded-none">
-                                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                    <img src={editImageUrl} alt="Current" className="w-full h-auto max-h-32 object-cover opacity-60" />
+                                                    <Image src={editImageUrl} alt="Current" width={500} height={300} className="w-full h-auto max-h-32 object-cover opacity-60" unoptimized />
                                                 </div>
                                             )}
 
@@ -467,12 +467,7 @@ export function Timeline({ events }: TimelineProps) {
 
                                     {event.imageUrl && (
                                         <div className="mt-4 min-h-32 overflow-hidden border border-white/10 bg-black rounded-none">
-                                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                                            <img
-                                                src={event.imageUrl}
-                                                alt={event.title}
-                                                className="w-full h-auto object-cover grayscale hover:grayscale-0 transition-all duration-500"
-                                            />
+                                            <Image src={event.imageUrl} alt={event.title} width={500} height={300} className="w-full h-auto object-cover grayscale hover:grayscale-0 transition-all duration-500" unoptimized />
                                         </div>
                                     )}
 
