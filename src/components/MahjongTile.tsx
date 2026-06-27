@@ -3,6 +3,7 @@
 import { memo } from 'react';
 import { motion } from 'framer-motion';
 import { useProfile } from '@/context/ProfileContext';
+import Image from 'next/image';
 
 export interface TileContent {
     type: 'custom' | 'local_image' | 'traditional' | 'bottle_message' | 'calendar_date' | 'clock_time';
@@ -30,12 +31,15 @@ export const TileVisual = memo(({ tile }: { tile: TileState }) => {
                 <div className="absolute inset-0 bg-gradient-to-br from-[#ffd700] via-[#d4af37] to-[#aa7c11] opacity-70"></div>
                 {/* inner dark bezel */}
                 <div className="absolute inset-[3px] bg-black z-0"></div>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                    src={tile.content.value}
-                    alt="Memory"
-                    className="relative z-10 h-full w-full select-none rounded-none object-cover pointer-events-none"
-                />
+                <div className="relative z-10 h-full w-full select-none rounded-none pointer-events-none">
+                    <Image
+                        src={tile.content.value}
+                        alt="Memory"
+                        fill
+                        unoptimized
+                        className="object-cover"
+                    />
+                </div>
                 {/* top glossy shine */}
                 <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-white/30 z-20 pointer-events-none"></div>
             </div>
@@ -90,12 +94,15 @@ export const TileVisual = memo(({ tile }: { tile: TileState }) => {
     if (tile.content.type === 'local_image') {
         return (
             <div className="relative h-full w-full overflow-hidden p-[2px]">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                    src={tile.content.value}
-                    alt="Tile"
-                    className="relative z-10 h-full w-full select-none rounded-none object-cover pointer-events-none"
-                />
+                <div className="relative z-10 h-full w-full select-none rounded-none pointer-events-none">
+                    <Image
+                        src={tile.content.value}
+                        alt="Tile"
+                        fill
+                        unoptimized
+                        className="object-cover"
+                    />
+                </div>
             </div>
         );
     }
