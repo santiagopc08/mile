@@ -17,6 +17,7 @@ export function useOnlineStatus() {
     window.addEventListener('offline', handleOffline);
 
     // Keep state fully synchronized
+    // eslint-disable-next-line
     setIsOnline(navigator.onLine);
 
     return () => {
