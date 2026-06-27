@@ -33,6 +33,9 @@ export function ActivityHistory({
     handleAddReaction,
     REACTION_CONFIG
 }: ActivityHistoryProps) {
+    // ⚡ Bolt Optimization: Pre-calculate Object keys to avoid O(N) evaluations in render map loops
+    const reactionKeys = Object.keys(REACTION_CONFIG) as ReactionType[];
+
     return (
         <>
                     {/* CAPA 3: HISTORIAL & ACTIVIDAD RECIENTE */}
@@ -165,7 +168,7 @@ export function ActivityHistory({
                                                             }
                                                         }
 
-                                                        return (Object.keys(REACTION_CONFIG) as ReactionType[]).map(rxType => {
+                                                        return reactionKeys.map(rxType => {
                                                             const rxConfig = REACTION_CONFIG[rxType];
                                                             const alreadyReacted = myReactionsSet.has(rxType);
 
