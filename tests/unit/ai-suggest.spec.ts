@@ -1,3 +1,4 @@
+process.env.NEXT_PUBLIC_MOCK_AUTH = 'true';
 import { test, expect } from '@playwright/test';
 import { POST } from '../../src/app/api/ai-suggest/route';
 
