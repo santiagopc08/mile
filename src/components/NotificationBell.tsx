@@ -75,8 +75,6 @@ export function NotificationBell({ align = 'right' }: { align?: 'left' | 'right'
                 
             if (error) {
                 console.error('Failed to save push subscription to Supabase:', error);
-            } else {
-                console.log('Push subscription saved successfully.');
             }
         } catch (err) {
             console.error('Failed to subscribe to push notifications:', err);
