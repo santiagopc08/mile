@@ -584,6 +584,7 @@ export function Mahjong() {
     const [hasPausedForMessage, setHasPausedForMessage] = useState(false);
     const [dockIds, setDockIds] = useState<string[]>([]);
     const [gameLost, setGameLost] = useState(false);
+    const [lostReason, setLostReason] = useState<'dock' | 'bomb' | null>(null);
     const [undoStack, setUndoStack] = useState<string[][]>([]);
     const [timerActive, setTimerActive] = useState(false);
     const [leaderboard, setLeaderboard] = useState<{ el: LeaderboardEntry[]; ella: LeaderboardEntry[] }>({ el: [], ella: [] });
@@ -729,6 +730,7 @@ export function Mahjong() {
                 const { exploded, updatedTiles } = tickBombs(prev);
                 if (exploded) {
                     setGameLost(true);
+                    setLostReason('bomb');
                     setTimerActive(false);
                     if (bombTickRef.current) clearInterval(bombTickRef.current);
                 }
@@ -1450,6 +1452,7 @@ export function Mahjong() {
         if (ghostTickRef.current) clearInterval(ghostTickRef.current);
         if (smokeTimerRef.current) clearTimeout(smokeTimerRef.current);
         setGameLost(false);
+        setLostReason(null);
         setTimerActive(false);
         timerRef.current?.resetTime();
         setScoreSaved(false);
@@ -1667,6 +1670,7 @@ export function Mahjong() {
             const updatedDock = [...dockIds, id];
             if (dockIds.length >= 2) {
                 setGameLost(true);
+                setLostReason('dock');
                 setDockIds(updatedDock);
                 setUndoStack(us => [...us, [id]]);
                 setTimerActive(false);
@@ -1704,6 +1708,7 @@ export function Mahjong() {
             if (smokeTimerRef.current) clearTimeout(smokeTimerRef.current);
 
             setGameLost(false);
+            setLostReason(null);
             setTimerActive(false);
             timerRef.current?.resetTime();
             setScoreSaved(false);
@@ -2047,6 +2052,18 @@ export function Mahjong() {
 
             {gameLost && typeof window !== 'undefined' && createPortal(
                 <div className="fixed inset-0 z-[100000] flex items-center justify-center bg-black/75 backdrop-blur-md p-4 overflow-hidden">
+                    {/* Background Loop Video when Bomb explodes */}
+                    {lostReason === 'bomb' && (
+                        <video
+                            src="/vid/Miel_smoke.mp4"
+                            autoPlay
+                            loop
+                            muted
+                            playsInline
+                            className="absolute inset-0 h-full w-full object-cover opacity-60 mix-blend-screen pointer-events-none z-0"
+                        />
+                    )}
+
                     {/* Cyber scanlines */}
                     <div className="absolute inset-0 scanlines-overlay opacity-35 pointer-events-none z-0" />
 
@@ -2069,22 +2086,34 @@ export function Mahjong() {
                         <div className="absolute bottom-0 right-0 h-4 w-4 border-b-2 border-r-2 border-red-500" />
 
                         <div className="mb-6 flex h-16 w-16 rotate-45 items-center justify-center border border-red-500 bg-red-500/10 animate-glitch-flicker">
-                            <RotateCcw className="h-8 w-8 -rotate-45 text-red-400" />
+                            {lostReason === 'bomb' ? (
+                                <span className="h-8 w-8 -rotate-45 text-2xl flex items-center justify-center select-none pointer-events-none">💣</span>
+                            ) : (
+                                <RotateCcw className="h-8 w-8 -rotate-45 text-red-400" />
+                            )}
                         </div>
-                        <h3 className="mb-2 text-3xl font-black uppercase tracking-normal text-white md:text-4xl animate-glitch-text">Sin Espacio</h3>
-                        <p className="mb-8 text-center text-sm font-light tracking-normal text-[#a88a7e]">Tu bandeja se ha llenado con cartas sin emparejar.</p>
+                        <h3 className="mb-2 text-3xl font-black uppercase tracking-normal text-white md:text-4xl animate-glitch-text">
+                            {lostReason === 'bomb' ? '¡DETONACIÓN!' : 'Sin Espacio'}
+                        </h3>
+                        <p className="mb-8 text-center text-sm font-light tracking-normal text-[#a88a7e]">
+                            {lostReason === 'bomb' 
+                                ? 'Una ficha de bomba ha explotado. El tablero ha quedado destruido.' 
+                                : 'Tu bandeja se ha llenado con cartas sin emparejar.'}
+                        </p>
                         <button
                             onClick={handleRestart}
                             className="w-full bg-red-500 py-4 text-xs font-bold uppercase tracking-[0.18em] text-white transition-all hover:bg-red-600 active:scale-95"
                         >
                             Reintentar
                         </button>
-                        <button
-                            onClick={handleUndo}
-                            className="mt-4 flex w-full items-center justify-center gap-2 border border-white/10 py-3 text-xs font-bold uppercase tracking-[0.18em] text-[#a88a7e] transition-all hover:bg-white/5 hover:text-white active:scale-95"
-                        >
-                            <Undo2 className="h-4 w-4" /> Deshacer
-                        </button>
+                        {lostReason !== 'bomb' && (
+                            <button
+                                onClick={handleUndo}
+                                className="mt-4 flex w-full items-center justify-center gap-2 border border-white/10 py-3 text-xs font-bold uppercase tracking-[0.18em] text-[#a88a7e] transition-all hover:bg-white/5 hover:text-white active:scale-95"
+                            >
+                                <Undo2 className="h-4 w-4" /> Deshacer
+                            </button>
+                        )}
                     </motion.div>
                 </div>,
                 document.body
