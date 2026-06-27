@@ -114,4 +114,51 @@ test.describe('useOnlineStatus hook', () => {
     (global as any).window = originalWindow;
     delete requireCache[require.resolve('react')];
   });
+
+  test('cleans up event listeners with exact handlers on unmount', () => {
+    let effectCallback: any;
+
+    const mockReact = {
+      useState: (initial: any) => [initial, () => {}],
+      useEffect: (cb: any, _deps: any) => { effectCallback = cb; }
+    };
+
+    const requireCache = require.cache;
+    requireCache[require.resolve('react')] = { exports: mockReact } as NodeModule;
+
+    const originalWindow = global.window;
+
+    const addedListeners: Record<string, any> = {};
+    const removedListeners: Record<string, any> = {};
+
+    (global as any).window = {
+      addEventListener: (evt: string, cb: any) => { addedListeners[evt] = cb; },
+      removeEventListener: (evt: string, cb: any) => { removedListeners[evt] = cb; }
+    };
+
+    Object.defineProperty(global, 'navigator', {
+        value: { onLine: true },
+        configurable: true
+    });
+
+    delete requireCache[require.resolve('../../src/hooks/useOnlineStatus')];
+    const { useOnlineStatus } = require('../../src/hooks/useOnlineStatus');
+
+    useOnlineStatus();
+
+    expect(effectCallback).toBeDefined();
+    const cleanup = effectCallback();
+
+    expect(addedListeners['online']).toBeDefined();
+    expect(addedListeners['offline']).toBeDefined();
+
+    cleanup();
+
+    expect(removedListeners['online']).toBe(addedListeners['online']);
+    expect(removedListeners['offline']).toBe(addedListeners['offline']);
+
+    (global as any).window = originalWindow;
+    delete (global as any).navigator;
+    delete requireCache[require.resolve('react')];
+  });
 });
