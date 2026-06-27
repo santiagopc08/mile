@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+import { fetchSafe } from '@/lib/fetch-safe';
+
 
 export async function GET(request: Request) {
     try {
@@ -15,7 +17,7 @@ export async function GET(request: Request) {
         }
 
         // Fetch image on the server side to bypass browser-level CORS
-        const res = await fetch(url);
+        const res = await fetchSafe(url);
         if (!res.ok) {
             return new Response(`Failed to fetch image: ${res.statusText}`, { status: res.status });
         }

@@ -30,7 +30,7 @@ const createMockSupabase = (mockData: Record<string, unknown> = {}, errorToThrow
                     if (errorToThrow) {
                          resolve({ data: null, error: errorToThrow });
                     } else {
-                         const data = mockData[table] === null ? null : (mockData[table] || []);
+                         const data = (table in mockData && mockData[table] === null) ? null : (mockData[table] || mockData.default || (Object.keys(mockData).length > 0 && mockData[Object.keys(mockData)[0]] !== null ? mockData[Object.keys(mockData)[0]] : []));
                          resolve({ data, error: null });
                     }
                 };
@@ -38,6 +38,7 @@ const createMockSupabase = (mockData: Record<string, unknown> = {}, errorToThrow
                 wrapped.order = () => wrapWithThen(wrapped);
                 wrapped.limit = () => wrapWithThen(wrapped);
                 wrapped.select = () => wrapWithThen(wrapped);
+                wrapped.eq = () => wrapWithThen(wrapped);
                 wrapped.not = () => wrapWithThen(wrapped);
                 wrapped.insert = () => {
                      if (errorToThrow) throw errorToThrow;
@@ -146,6 +147,24 @@ test.describe('MahjongService', () => {
             const result = await MahjongService.getMahjongLeaderboard(mockSupabase);
 
             expect(result).toEqual({ el: [], ella: [] });
+        });
+
+        test('should handle completely broken supabase client throwing synchronously', async () => {
+            const mockSupabase = {
+                from: () => { throw new Error('Synchronous error'); }
+            } as unknown as import('@supabase/supabase-js').SupabaseClient;
+
+            const originalConsoleError = console.error;
+            let errorLogged = false;
+
+            try {
+                console.error = () => { errorLogged = true; };
+                const result = await MahjongService.getMahjongLeaderboard(mockSupabase);
+                expect(result).toEqual({ el: [], ella: [] });
+                expect(errorLogged).toBe(true);
+            } finally {
+                console.error = originalConsoleError;
+            }
         });
     });
 

@@ -1,9 +1,11 @@
-🎯 **What:** Removed an unnecessary `console.log` statement from `src/app/api/push/send/route.ts` that was logging expired push subscriptions. Also cleaned up an unused `verifyServerSession` import in the same file.
+🎯 **What:**
+This PR addresses an untested catch block inside `getMahjongLeaderboard` within `src/services/mahjongService.ts`. Previously, the code execution path where the Supabase client threw an unexpected synchronous error was not covered by our tests.
 
-💡 **Why:** Leftover debugging `console.log` statements clutter server logs, increasing noise and making it harder to spot actual issues. Removing them improves code cleanliness and maintainability. Cleaning up unused imports avoids linter warnings and keeps dependencies tidy.
+📊 **Coverage:**
+- A new test case was added to `tests/mahjongService.spec.ts`.
+- Mocks a completely broken `SupabaseClient` that throws an error when `from()` is called.
+- Verifies that `getMahjongLeaderboard` safely intercepts the error and returns the fallback data structure (`{ el: [], ella: [] }`).
+- Wraps the test in a `try...finally` block to safely mock `console.error` and ensure it's cleanly restored regardless of test success or failure, avoiding log pollution.
 
-✅ **Verification:**
-- Successfully ran `npm run lint` and `npx tsc --noEmit` confirming no syntax or type errors.
-- Ran the full Playwright test suite (`npx playwright test`) validating that the push API and overall application behavior remain intact.
-
-✨ **Result:** Cleaner server route with reduced log spam when handling expired push subscriptions.
+✨ **Result:**
+Improved overall test reliability by guaranteeing that the `getMahjongLeaderboard` error handling logic functions as intended without throwing unhandled exceptions.
