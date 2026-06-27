@@ -33,8 +33,17 @@ export default function PlanesPage() {
 
   const stats = useMemo(() => {
     const items = data?.wishlist || [];
-    const active = items.filter((i: any) => i.state !== 'ARCHIVED' && i.state !== 'COMPLETED').length;
-    const completed = items.filter((i: any) => i.state === 'COMPLETED').length;
+    // ⚡ Bolt Optimization: Replace multiple .filter().length with a single O(N) pass
+    // to avoid creating intermediate arrays and reduce GC pressure.
+    let active = 0;
+    let completed = 0;
+    for (const i of items) {
+      if (i.state === 'COMPLETED') {
+        completed++;
+      } else if (i.state !== 'ARCHIVED') {
+        active++;
+      }
+    }
     return { total: items.length, active, completed };
   }, [data?.wishlist]);
 
