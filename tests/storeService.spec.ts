@@ -95,14 +95,29 @@ test.describe('StoreService.getStore success', () => {
 });
 
 test.describe('StoreService.getStore error handling', () => {
-    test('should throw a "Could not read from data store." error when the database query fails', async () => {
+    test('should throw a "Could not read from data store." error and log it when the database query fails', async () => {
         const mockSupabase = {
             from: () => {
                 throw new Error('Database connection failed');
             }
         } as any;
 
-        await expect(StoreService.getStore(mockSupabase)).rejects.toThrow('Could not read from data store.');
+        const originalConsoleError = console.error;
+        let consoleErrorArgs: any[] = [];
+        console.error = (...args) => {
+            consoleErrorArgs.push(args);
+        };
+
+        try {
+            await expect(StoreService.getStore(mockSupabase)).rejects.toThrow('Could not read from data store.');
+
+            expect(consoleErrorArgs.length).toBe(1);
+            expect(consoleErrorArgs[0][0]).toBe('Error during full fetch:');
+            expect(consoleErrorArgs[0][1]).toBeInstanceOf(Error);
+            expect(consoleErrorArgs[0][1].message).toBe('Database connection failed');
+        } finally {
+            console.error = originalConsoleError;
+        }
     });
 });
 
@@ -143,13 +158,28 @@ test.describe('StoreService.updateStore', () => {
         expect(calledMethods).toContain('update');
     });
 
-    test('should throw a "Could not write to data store." error when update fails', async () => {
+    test('should throw a "Could not write to data store." error and log it when update fails', async () => {
         const mockSupabase = {
             from: () => {
                 throw new Error('Database write failed');
             }
         } as any;
 
-        await expect(StoreService.updateStore({ lastPulseAt: '2025-01-01' } as any, mockSupabase)).rejects.toThrow('Could not write to data store.');
+        const originalConsoleError = console.error;
+        let consoleErrorArgs: any[] = [];
+        console.error = (...args) => {
+            consoleErrorArgs.push(args);
+        };
+
+        try {
+            await expect(StoreService.updateStore({ lastPulseAt: '2025-01-01' } as any, mockSupabase)).rejects.toThrow('Could not write to data store.');
+
+            expect(consoleErrorArgs.length).toBe(1);
+            expect(consoleErrorArgs[0][0]).toBe('Failed to update Supabase');
+            expect(consoleErrorArgs[0][1]).toBeInstanceOf(Error);
+            expect(consoleErrorArgs[0][1].message).toBe('Database write failed');
+        } finally {
+            console.error = originalConsoleError;
+        }
     });
 });

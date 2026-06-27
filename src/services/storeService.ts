@@ -479,7 +479,7 @@ export const StoreService = {
 
             return result as AppData;
         } catch (error) {
-            console.error('Failed to fetch from Supabase', error);
+            console.error('Error during full fetch:', error);
             throw new Error('Could not read from data store.');
         }
     },
