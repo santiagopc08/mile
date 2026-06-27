@@ -1,9 +1,11 @@
-🎯 What: Addressed missing error test coverage in `sound.ts` by adding unit tests to verify the engine handles errors during context creation (like those originally reported for `createBufferSource`, but applicable to all audio setup functions like `createOscillator`). Replaced an explicit `any` cast to fix a linting error in `src/lib/sound.ts`.
+🎯 **What:**
+This PR addresses an untested catch block inside `getMahjongLeaderboard` within `src/services/mahjongService.ts`. Previously, the code execution path where the Supabase client threw an unexpected synchronous error was not covered by our tests.
 
-📊 Coverage:
-- `sound.playTick()` successful execution without warnings.
-- Intentionally thrown errors (e.g. from `createOscillator()`) correctly caught and logged via `console.warn`.
-- The `setEnabled(false)` early-exit logic prevents audio initialization.
-- Full type safety inside `sound.spec.ts` matching TypeScript strict configurations.
+📊 **Coverage:**
+- A new test case was added to `tests/mahjongService.spec.ts`.
+- Mocks a completely broken `SupabaseClient` that throws an error when `from()` is called.
+- Verifies that `getMahjongLeaderboard` safely intercepts the error and returns the fallback data structure (`{ el: [], ella: [] }`).
+- Wraps the test in a `try...finally` block to safely mock `console.error` and ensure it's cleanly restored regardless of test success or failure, avoiding log pollution.
 
-✨ Result: Coverage for error catch blocks inside `sound.ts` is now verified, ensuring audio-capable browsers failing during AudioContext operations don't crash the UI thread.
+✨ **Result:**
+Improved overall test reliability by guaranteeing that the `getMahjongLeaderboard` error handling logic functions as intended without throwing unhandled exceptions.
