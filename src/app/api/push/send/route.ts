@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { verifyServerSession } from '@/lib/auth-utils';
+
 import { createServerClient } from '@/lib/supabase';
 import { verifyAuth } from '@/lib/auth';
 import webpush from 'web-push';
@@ -63,7 +63,6 @@ export async function POST(request: Request) {
                 // If endpoint is no longer valid (status 410 Gone or 404 Not Found), remove it
                 const errorObj = err as Record<string, unknown>;
                 if (errorObj.statusCode === 410 || errorObj.statusCode === 404) {
-                    console.log(`Removing expired subscription: ${subRecord.endpoint}`);
                     await supabase
                         .from('push_subscriptions')
                         .delete()
