@@ -1,12 +1,12 @@
 🎯 **What:**
-Fixed a Server-Side Request Forgery (SSRF) vulnerability in the `/api/link-preview` route. The previous implementation used a weak regular expression against the URL's `hostname` to filter out local and private IPs. This was insufficient because attackers could bypass it using DNS records resolving to local IPs (e.g., `localtest.me` -> `127.0.0.1`), alternative IP representations (e.g., `0177.0.0.1` or `[::ffff:127.0.0.1]`), or through HTTP redirects to restricted addresses which `fetch` follows implicitly.
+Fixed a Server-Side Request Forgery (SSRF) vulnerability in the `/api/proxy-image` API route. The route previously used global `fetch(url)` directly on user input without validating the hostname or IP address. I have extracted the existing secure fetch implementation (`fetchSafe`) from `link-preview/route.ts` into a shared module at `src/lib/fetch-safe.ts` and updated both routes to use it.
 
 ⚠️ **Risk:**
-Left unfixed, this vulnerability allowed attackers to send arbitrary HTTP/HTTPS GET requests from the Next.js server to internal network resources, loopback addresses (`127.0.0.1`), or cloud instance metadata services (`169.254.169.254`). This could lead to information disclosure of internal services, bypassing firewall rules, or exposing sensitive cloud provider metadata.
+Without this fix, an attacker could supply URLs resolving to local or private IP addresses (e.g., `http://localhost`, `http://169.254.169.254`, `http://10.0.0.1`) to the `proxy-image` endpoint. Because the fetch executes on the server side, it would bypass firewalls and potentially access internal services, read sensitive metadata instances (in cloud environments), or conduct port scanning against the internal network.
 
 🛡️ **Solution:**
-Implemented a robust SSRF protection mechanism:
-- Switched to manually following redirects in `fetch` (`redirect: 'manual'`) up to a defined limit to prevent DNS rebinding or redirect bypasses.
-- Before each HTTP request, the target hostname's IP addresses are resolved via DNS (`dns.lookup`).
-- All resolved IP addresses are strictly validated against a comprehensive list of restricted subnets, including loopback, private IPv4 (RFC 1918), link-local (169.254.x.x), and private IPv6 ranges.
-- If any resolved IP is deemed unsafe, the request is aborted and a `400 Bad Request` is returned to the user, preventing internal access.
+- Created a shared `src/lib/fetch-safe.ts` module that implements safe fetching.
+- The `fetchSafe` function resolves the hostname using `dns.promises.lookup` and ensures that none of the resolved IP addresses match local (127.x.x.x, ::1), private (10.x.x.x, 192.168.x.x, 172.16.x.x), or link-local (169.254.x.x) address spaces.
+- `proxy-image/route.ts` was updated to import and use `fetchSafe` instead of the insecure global `fetch()`.
+- Refactored `link-preview/route.ts` to also import from the new shared `fetch-safe.ts`, removing duplicated code while preserving the default `User-Agent` and `Accept-Language` headers required for successful web scraping.
+- Maintained all existing link preview SSRF unit tests to guarantee continued security coverage.
