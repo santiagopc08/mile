@@ -358,9 +358,10 @@ interface MahjongCanvasProps {
     dockIds: string[];
     onTilePointerDown: (id: string) => void;
     isMobile: boolean;
+    ghostSolidIds?: Set<string>;
 }
 
-export function MahjongCanvas({ tiles, freeTilesMap, dockIds, onTilePointerDown, isMobile }: MahjongCanvasProps) {
+export function MahjongCanvas({ tiles, freeTilesMap, dockIds, onTilePointerDown, isMobile, ghostSolidIds }: MahjongCanvasProps) {
     const { profile } = useProfile();
     const [explosions, setExplosions] = useState<{ id: string; pos: [number, number, number]; color: string }[]>([]);
     const prevMatchedIdsRef = useRef<Set<string>>(new Set());
@@ -518,6 +519,7 @@ export function MahjongCanvas({ tiles, freeTilesMap, dockIds, onTilePointerDown,
                             dockY={dockY}
                             dockIds={dockIds}
                             onSelect={onTilePointerDown}
+                            isGhostSolid={tile.isGhost ? ghostSolidIds?.has(tile.id) : undefined}
                         />
                     ))}
                 </group>

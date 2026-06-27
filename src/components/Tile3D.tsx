@@ -7,7 +7,7 @@ import { TileState } from './MahjongTile';
 import { useProfile } from '@/context/ProfileContext';
 
 // Hook interno para cargar y formatear texturas en canvas 2D con bordes brutalistas no-planos
-function useTileTexture(tile: TileState, accentColor: string) {
+function useTileTexture(tile: TileState, accentColor: string, mirrorVariant?: 'flipX' | 'flipY' | 'rot90' | 'rot270') {
     const [texture, setTexture] = useState<THREE.Texture | null>(null);
 
     useEffect(() => {
@@ -153,6 +153,16 @@ function useTileTexture(tile: TileState, accentColor: string) {
                     ctx.font = 'bold 92px sans-serif';
                     ctx.fillText('🍾', 128, 128);
                 } else {
+                    // Apply mirror transform before drawing emoji
+                    if (mirrorVariant) {
+                        ctx.save();
+                        ctx.translate(128, 128);
+                        if (mirrorVariant === 'flipX') ctx.scale(-1, 1);
+                        else if (mirrorVariant === 'flipY') ctx.scale(1, -1);
+                        else if (mirrorVariant === 'rot90') ctx.rotate(Math.PI / 2);
+                        else if (mirrorVariant === 'rot270') ctx.rotate(-Math.PI / 2);
+                        ctx.translate(-128, -128);
+                    }
                     const emoji = tile.content.value;
                     const code = emoji.codePointAt(0) || 0;
                     const isTrad = code >= 0x1F000 && code <= 0x1F029;
@@ -349,6 +359,63 @@ function useTileTexture(tile: TileState, accentColor: string) {
                     }
                 }
             }
+                    if (mirrorVariant) {
+                        ctx.restore();
+                    }
+
+            // Draw hardening overlays on top of the content
+            if (tile.isLocked) {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+                ctx.fillRect(14, 14, 228, 228);
+                ctx.font = 'bold 80px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('🔒', 128, 128);
+            }
+            if (tile.isBomb && tile.bombTimer !== undefined) {
+                // Red danger border
+                ctx.strokeStyle = '#ff0000';
+                ctx.lineWidth = 6;
+                ctx.strokeRect(6, 6, 244, 244);
+                // Bomb icon
+                ctx.font = 'bold 48px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('💣', 210, 46);
+                // Timer text
+                ctx.fillStyle = '#ff0000';
+                ctx.font = 'bold 32px monospace';
+                ctx.fillText(`${tile.bombTimer}s`, 210, 86);
+            }
+            if (tile.iceCounter && tile.iceCounter > 0) {
+                ctx.fillStyle = 'rgba(135, 206, 250, 0.45)';
+                ctx.fillRect(14, 14, 228, 228);
+                // Ice crystal border
+                ctx.strokeStyle = '#87ceeb';
+                ctx.lineWidth = 4;
+                ctx.strokeRect(10, 10, 236, 236);
+                // Counter badge
+                ctx.fillStyle = '#003366';
+                ctx.beginPath();
+                ctx.arc(210, 46, 22, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#87ceeb';
+                ctx.font = 'bold 24px monospace';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(`${tile.iceCounter}`, 210, 46);
+                // Snowflake
+                ctx.font = 'bold 36px sans-serif';
+                ctx.fillText('❄️', 46, 46);
+            }
+            if (tile.isSmoked) {
+                ctx.fillStyle = 'rgba(30, 30, 30, 0.7)';
+                ctx.fillRect(14, 14, 228, 228);
+                ctx.font = 'bold 52px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('💨', 128, 128);
+            }
 
             if (active) {
                 tex = new THREE.CanvasTexture(canvas);
@@ -449,7 +516,7 @@ function useTileTexture(tile: TileState, accentColor: string) {
                 tex.dispose();
             }
         };
-    }, [tile.content.value, tile.content.type, accentColor]);
+    }, [tile.content.value, tile.content.type, accentColor, mirrorVariant, tile.isLocked, tile.isBomb, tile.bombTimer, tile.iceCounter, tile.isSmoked]);
 
     return texture;
 }
@@ -463,9 +530,10 @@ interface Tile3DProps {
     dockY: number;
     dockIds: string[];
     onSelect: (id: string) => void;
+    isGhostSolid?: boolean;
 }
 
-export function Tile3D({ tile, isFree, centerX, centerY, boardY, dockY, dockIds, onSelect }: Tile3DProps) {
+export function Tile3D({ tile, isFree, centerX, centerY, boardY, dockY, dockIds, onSelect, isGhostSolid }: Tile3DProps) {
     const { profile } = useProfile();
     const meshRef = useRef<THREE.Group>(null);
     const frontMeshRef = useRef<THREE.Mesh>(null);
@@ -475,7 +543,7 @@ export function Tile3D({ tile, isFree, centerX, centerY, boardY, dockY, dockIds,
     const rawAccentColor = profile === 'ella' ? '#ff4b89' : '#e1ff80'; // Fucsia o Neón
     const backColor = profile === 'ella' ? '#c83b6b' : '#a1c24a';       // Capa trasera del Mahjong
 
-    const texture = useTileTexture(tile, rawAccentColor);
+    const texture = useTileTexture(tile, rawAccentColor, tile.isMirrored);
     const isGolden = tile.content.type === 'custom';
 
     // Spacing en 3D para mapear el grid discreto (2x2 unidades lógicas por ficha)
@@ -527,7 +595,18 @@ export function Tile3D({ tile, isFree, centerX, centerY, boardY, dockY, dockIds,
 
         // Rotación LERP (los del dock se alinean planos)
         const targetRotX = isInDock ? 0 : tile.isSelected ? -0.1 : 0;
-        let targetRotY = isInDock ? 0 : tile.isSelected ? 0.08 : hovered && isFree ? 0.04 : 0;
+        
+        // Flipped-down tiles show the back (rotated 180 degrees around Y) when on the board
+        const isFlipped = !!tile.isFlippedDown && !isInDock;
+        let targetRotY = isInDock 
+            ? 0 
+            : isFlipped 
+                ? Math.PI 
+                : tile.isSelected 
+                    ? 0.08 
+                    : hovered && isFree 
+                        ? 0.04 
+                        : 0;
         
         // Si es dorada y seleccionada, aplicar un suave bamboleo de rotación
         if (isGolden && tile.isSelected) {
@@ -548,20 +627,40 @@ export function Tile3D({ tile, isFree, centerX, centerY, boardY, dockY, dockIds,
                 // Material frontal (índice 4)
                 const frontMat = materials[4];
                 
-                // Asegurar opacidad al 100%
-                materials.forEach(m => { if (m) m.opacity = 1.0; });
+                // Ghost tile opacity animation
+                if (tile.isGhost && !isInDock) {
+                    const ghostOpacity = isGhostSolid ? 1.0 : 0.2;
+                    const currentOp = frontMat.opacity;
+                    const lerpedOp = THREE.MathUtils.lerp(currentOp, ghostOpacity, 5 * safeDelta);
+                    materials.forEach(m => { if (m) m.opacity = lerpedOp; });
+                } else {
+                    materials.forEach(m => { if (m) m.opacity = isBright ? 1.0 : 0.45; });
+                }
 
-                if (tile.isHinted) {
+                if (tile.isBomb && !tile.isMatched) {
+                    // Pulsing red danger glow for bombs
+                    const bombPulse = Math.sin(time * 6) * 0.4 + 0.5;
+                    frontMat.emissive.set('#ff0000');
+                    frontMat.emissiveIntensity = bombPulse;
+                } else if (tile.isHinted) {
                     const clockTime = state.clock.elapsedTime;
-                    const pulse = Math.sin(clockTime * 9) * 0.35 + 0.35; // Rango: 0.0 - 0.7
+                    const pulse = Math.sin(clockTime * 9) * 0.35 + 0.35;
                     frontMat.emissive.set(rawAccentColor);
                     frontMat.emissiveIntensity = pulse;
                 } else if (tile.isSelected) {
                     frontMat.emissive.set(rawAccentColor);
                     frontMat.emissiveIntensity = 0.25;
+                } else if (tile.isGhost && !isGhostSolid && !isInDock) {
+                    // Cyan glow when ghost is translucent
+                    frontMat.emissive.set('#00ffff');
+                    frontMat.emissiveIntensity = 0.3;
+                } else if (tile.iceCounter && tile.iceCounter > 0) {
+                    // Subtle blue emissive for iced tiles
+                    const icePulse = Math.sin(time * 2) * 0.1 + 0.15;
+                    frontMat.emissive.set('#87ceeb');
+                    frontMat.emissiveIntensity = icePulse;
                 } else if (isGolden && isFree && !isInDock) {
-                    // Brillo emisivo dorado constante en fichas doradas libres
-                    const shimmer = Math.sin(time * 3) * 0.12 + 0.18; // Rango: 0.06 - 0.3
+                    const shimmer = Math.sin(time * 3) * 0.12 + 0.18;
                     frontMat.emissive.set('#e5c100');
                     frontMat.emissiveIntensity = shimmer;
                 } else {
