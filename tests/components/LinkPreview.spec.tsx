@@ -105,6 +105,35 @@ test.describe('LinkPreview Component', () => {
         await expect(page.locator('.lucide-image')).toBeVisible();
     });
 
+
+    test('should display error state on network failure (catch block)', async ({ page }) => {
+        await page.route('/api/link-preview*', async (route) => {
+            await route.abort('failed');
+        });
+
+        await page.goto('/test-components/link-preview?url=https://example.com');
+
+        const link = page.locator('text="Abrir Link"');
+        await expect(link).toBeVisible();
+        await expect(link).toHaveAttribute('href', 'https://example.com');
+    });
+
+    test('should display error state on JSON parse failure (catch block)', async ({ page }) => {
+        await page.route('/api/link-preview*', async (route) => {
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: 'this-is-invalid-json'
+            });
+        });
+
+        await page.goto('/test-components/link-preview?url=https://example.com');
+
+        const link = page.locator('text="Abrir Link"');
+        await expect(link).toBeVisible();
+        await expect(link).toHaveAttribute('href', 'https://example.com');
+    });
+
     test('should cache successful responses in localStorage', async ({ page }) => {
         let apiCallCount = 0;
         await page.route('/api/link-preview*', async (route) => {
