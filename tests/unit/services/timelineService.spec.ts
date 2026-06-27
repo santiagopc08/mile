@@ -98,6 +98,29 @@ test.describe('TimelineService', () => {
         }
     });
 
+    test('uploadTimelineImage should handle unexpected exception during upload', async () => {
+        // Suppress console.error during this test
+        const originalConsoleError = console.error;
+        console.error = () => {};
+
+        const mockError = new Error('Unexpected throw');
+        // create a custom mock where upload throws directly
+        const supabase = createMockSupabase();
+        supabase.storage.from = (bucket: string) => ({
+            upload: async () => { throw mockError; },
+            getPublicUrl: (path: string) => ({ data: { publicUrl: `https://mock-supabase.com/storage/v1/object/public/${bucket}/${path}` } })
+        });
+
+        const mockFile = new File([''], 'test-image.png', { type: 'image/png' });
+
+        try {
+            await expect(TimelineService.uploadTimelineImage(mockFile, supabase)).rejects.toThrow('Could not upload image.');
+        } finally {
+            // Restore console.error
+            console.error = originalConsoleError;
+        }
+    });
+
     test('addEventComment should insert comment', async () => {
         const supabase = createMockSupabase();
 
