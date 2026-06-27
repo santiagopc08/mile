@@ -47,6 +47,16 @@ export const TaskCard = ({
   const clockColor = isLateOrOverflow ? 'text-red-500' : 'text-emerald-500';
   const isCollapsed = task.status === 'done' || task.status === 'skipped';
 
+  let checkedActionsCount = 0;
+  if (!isCollapsed && task.actions) {
+    for (const a of task.actions) if (a.checked) checkedActionsCount++;
+  }
+
+  let checkedValidationsCount = 0;
+  if (!isCollapsed && task.validations) {
+    for (const v of task.validations) if (v.checked) checkedValidationsCount++;
+  }
+
   // Edit state
   const [editTaskText, setEditTaskText] = useState(task.text);
   const [editTaskCategory, setEditTaskCategory] = useState(task.category);
@@ -196,12 +206,12 @@ export const TaskCard = ({
             <div className="flex items-center gap-2">
               {!isCollapsed && task.actions && task.actions.length > 0 && (
                 <button onClick={() => setExpandedTaskId(expandedTaskId === task.id ? null : task.id)} className={`text-[7px] font-mono uppercase font-bold hover:text-${accentClass} transition-colors leading-none flex items-center gap-1 text-stone-500`}>
-                  ACT · ✓ {task.actions.filter(a => a.checked).length}/{task.actions.length}
+                  ACT · ✓ {checkedActionsCount}/{task.actions.length}
                 </button>
               )}
               {!isCollapsed && task.validations && task.validations.length > 0 && (
                 <button onClick={() => setExpandedTaskId(expandedTaskId === task.id ? null : task.id)} className={`text-[7px] font-mono uppercase font-bold hover:text-${accentClass} transition-colors leading-none flex items-center gap-1 text-stone-500`}>
-                  VLD · ✓ {task.validations.filter(v => v.checked).length}/{task.validations.length}
+                  VLD · ✓ {checkedValidationsCount}/{task.validations.length}
                 </button>
               )}
             </div>
