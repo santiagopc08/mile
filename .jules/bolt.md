@@ -9,6 +9,7 @@
 ## 2026-06-23 - Pre-calculate map keys/values outside render loops
 **Learning:** Evaluating Object.keys() or Object.values() inside an array .map() inside a React component's return function creates significant O(N) evaluation overhead for every iteration of the outer map.
 **Action:** Hoist the Object.keys/values generation to a pre-calculated constant outside the map function to evaluate it once per render cycle instead of O(N) times.
-## 2024-05-18 - Eliminating Waterfall Queries in Promise.all structures
-**Learning:** When fetching aggregated data across multiple backend tables (like in `storeService.ts`), it's easy to accidentally introduce a waterfall request if a later query is appended *after* a large `Promise.all` block. In `storeService.ts`, the `daily_tracking` data was fetched sequentially, adding an extra roundtrip delay to the `/api/store` payload generation.
-**Action:** Always verify that all independent data fetching promises are grouped into the same `Promise.all` block to ensure maximum concurrent execution, measurably reducing API latency.
+ 
+## 2024-07-28 - Avoid Array spreads on mapped property values
+**Learning:** Calculating bounds or maximums using `Math.max(...array.map(item => item.value))` forces V8 to allocate two intermediate O(N) structures: a temporary array for `.map()` output, and a spread argument array (which can hit the JavaScript engine stack limit `Maximum call stack size exceeded` for large arrays).
+**Action:** Replace `Math.max(...array.map(...))` inside React components with a standard O(N) `for...of` loop tracking the min/max incrementally to eliminate the garbage collection overhead and stack overflow risk.

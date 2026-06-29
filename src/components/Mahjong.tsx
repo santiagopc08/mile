@@ -8,11 +8,24 @@ import { StoreService } from '@/services/storeService';
 import { MahjongService } from '@/services/mahjongService';
 import { NotificationService } from '@/services/notificationService';
 import { useProfile } from '@/context/ProfileContext';
-import { Undo2, Trophy, RotateCcw, Lightbulb, Sparkles } from 'lucide-react';
+import { Undo2, Trophy, RotateCcw, Lightbulb, Sparkles, Flame } from 'lucide-react';
 import { AnimatedBrutalistCorners } from '@/components/ui/AnimatedBrutalistCorners';
 import MahjongTimer, { MahjongTimerHandle } from './MahjongTimer';
 import { TileState, TileContent, TileVisual } from './MahjongTile';
 import { MahjongCanvas } from './MahjongCanvas';
+import {
+    getUnlockedMechanics,
+    selectActiveMechanicsForGame,
+    applyHardeningToBoard,
+    getGhostSolidIds,
+    tickBombs,
+    processIceOnMatch,
+    processLockUnlock,
+    clearSmoke,
+    triggerNewSmokeBomb,
+    applyGravityCollapse,
+    HardeningMechanic
+} from './hardeningEngine';
 
 const TILESETS: Record<string, { name: string; icon: string; minGames: number; tiles: string[] }> = {
     traditional: {
@@ -28,7 +41,7 @@ const TILESETS: Record<string, { name: string; icon: string; minGames: number; t
     romance: {
         name: "Amor",
         icon: "💖",
-        minGames: 10,
+        minGames: 15,
         tiles: [
             "💖", "💝", "💘", "💞", "💟", "💌", "💋", "💍", "🌹", "💐", "🥂", "🍫", "🎈", "🧸", "❤️", "💑",
             "👩‍❤️‍👨", "👰‍♀️", "🤵‍♂️", "🍾", "🧁", "🕯️", "🎁", "✨", "🎀", "🕊️", "💓", "💕", "❤️‍🔥", "💋", "💍", "💖"
@@ -37,7 +50,7 @@ const TILESETS: Record<string, { name: string; icon: string; minGames: number; t
     animals: {
         name: "Animales",
         icon: "🐱",
-        minGames: 20,
+        minGames: 30,
         tiles: [
             "🐱", "🐶", "🦊", "🐼", "🐨", "🐰", "🐻", "🐯", "🦁", "🐸", "🐵", "🐧", "🐦", "🐤", "🦄", "🐙",
             "🐳", "🐬", "🐝", "🦋", "🐞", "🦕", "🐆", "🦓", "🐘", "🐪", "🦒", "🦘", "🦦", "🦉", "🐢", "🦀"
@@ -46,7 +59,7 @@ const TILESETS: Record<string, { name: string; icon: string; minGames: number; t
     sweets: {
         name: "Dulces",
         icon: "🍰",
-        minGames: 30,
+        minGames: 45,
         tiles: [
             "🍎", "🍓", "🍊", "🍇", "🍉", "🍌", "🍒", "🍑", "🥑", "🍕", "🍔", "🍟", "🌮", "🍣", "🍤", "🥞",
             "🍩", "🧁", "🍦", "🍧", "🍪", "🍿", "☕️", "🍹", "🍬", "🍭", "🍫", "🍰", "🥧", "🍯", "🍮", "🥐"
@@ -55,7 +68,7 @@ const TILESETS: Record<string, { name: string; icon: string; minGames: number; t
     nature: {
         name: "Naturaleza",
         icon: "🌸",
-        minGames: 40,
+        minGames: 60,
         tiles: [
             "🌸", "🌻", "🌷", "🌺", "🌼", "🍂", "🍁", "🍀", "🍄", "🌲", "🌴", "🌵", "🌊", "☀️", "🌙", "⭐️",
             "🪐", "💫", "✨", "🌈", "🏔️", "🌋", "🏖️", "🪵", "🌱", "☘️", "🎋", "🍃", "🌬️", "❄️", "⛈️", "☔️"
@@ -64,7 +77,7 @@ const TILESETS: Record<string, { name: string; icon: string; minGames: number; t
     hobbies: {
         name: "Hobbies",
         icon: "🎮",
-        minGames: 50,
+        minGames: 75,
         tiles: [
             "🎮", "🎲", "🧩", "🎨", "🎭", "🎬", "🎧", "🎤", "🎸", "🎹", "⚽️", "🏀", "🎾", "🏹", "✈️", "⛵️",
             "🛹", "🚲", "🏎️", "🎳", "🎯", "🕹️", "🎰", "🎼", "🎻", "🎷", "🥁", "🧶", "🧵", "🎨", "🎬", "🎧"
@@ -73,7 +86,7 @@ const TILESETS: Record<string, { name: string; icon: string; minGames: number; t
     magic: {
         name: "Magia",
         icon: "🔮",
-        minGames: 60,
+        minGames: 90,
         tiles: [
             "🔮", "🧿", "🪄", "🧪", "🕯️", "🛸", "🚀", "☄️", "🌟", "⚜️", "🗝️", "🧧", "🏮", "🧙‍♂️", "🧙‍♀️", "🧚‍♂️",
             "🧚‍♀️", "🧞‍♂️", "🧞‍♀️", "🧛‍♂️", "🧛‍♀️", "🧟‍♂️", "🧟‍♀️", "🦄", "🐉", "🐲", "🏰", "📜", "⚗️", "🧪", "🧿", "🔮"
@@ -82,7 +95,7 @@ const TILESETS: Record<string, { name: string; icon: string; minGames: number; t
     cosmic: {
         name: "Espacio",
         icon: "🛸",
-        minGames: 70,
+        minGames: 105,
         tiles: [
             "🛸", "🚀", "🪐", "🌌", "☄️", "🛰️", "👨‍🚀", "👩‍🚀", "👽", "👾", "🤖", "🌟", "🌍", "📡", "🔭", "🌑",
             "🌒", "🌓", "🌔", "🌕", "🌖", "🌗", "🌘", "🪐", "💫", "✨", "🌟", "🌌", "🚀", "🛸", "🌍", "🛰️"
@@ -91,7 +104,7 @@ const TILESETS: Record<string, { name: string; icon: string; minGames: number; t
     app_special: {
         name: "Mieljong",
         icon: "📲",
-        minGames: 80,
+        minGames: 120,
         tiles: [
             "🍾", "🧠", "🏆", "⏱️", "⏳", "⏰", "🀄", "📅", "💬", "🗺️", "📍", "🏥", "🩺", "🐈‍⬛", "🐈", "💰",
             "💵", "🎂", "🎈", "🏠", "🚪", "🗒️", "✏️", "🌊", "💖", "💝", "🎁", "✨", "🌟", "💫", "🧸",
@@ -102,7 +115,7 @@ const TILESETS: Record<string, { name: string; icon: string; minGames: number; t
     travel: {
         name: "Viajes",
         icon: "✈️",
-        minGames: 90,
+        minGames: 135,
         tiles: [
             "✈️", "🛳️", "🚗", "🚲", "🗺️", "📍", "📸", "🗽", "🗼", "🏰", "🏔️", "🏖️", "⛺", "🎒", "🚞", "🚆",
             "🚢", "🛩️", "🚁", "🧳", "🚏", "🗻", "🏜️", "🏝️", "🏕️", "🛖", "🛶", "🚠", "🎢", "🚂"
@@ -111,7 +124,7 @@ const TILESETS: Record<string, { name: string; icon: string; minGames: number; t
     celebration: {
         name: "Fiesta",
         icon: "🎉",
-        minGames: 100,
+        minGames: 150,
         tiles: [
             "🎉", "🎊", "🎈", "🎂", "🍾", "🥂", "🍹", "🍺", "🍷", "🍕", "🍔", "🍿", "🎭", "💃", "🕺", "🎆",
             "🎇", "🎁", "🕯️", "🧁", "🍩", "🍪", "🍫", "🍬", "🍭", "🎼", "🎤", "🎧", "🎷", "🎸"
@@ -120,7 +133,7 @@ const TILESETS: Record<string, { name: string; icon: string; minGames: number; t
     fruits: {
         name: "Frutas",
         icon: "🍇",
-        minGames: 110,
+        minGames: 165,
         tiles: [
             "🍇", "🍈", "🍉", "🍊", "🍋", "🍌", "🍍", "🥭", "🍎", "🍏", "🍐", "🍑", "🍒", "🍓", "🫐", "🥝",
             "🍅", "🫒", "🥥", "🥑", "🍆", "🥔", "🥕", "🌽", "🌶️", "🫑", "🥒", "🥬", "🥦", "🍄"
@@ -129,7 +142,7 @@ const TILESETS: Record<string, { name: string; icon: string; minGames: number; t
     mythology: {
         name: "Mitología",
         icon: "🐉",
-        minGames: 120,
+        minGames: 180,
         tiles: [
             "🐉", "🐲", "🦄", "🧜‍♀️", "🧜‍♂️", "🧚‍♀️", "🧚‍♂️", "🧙‍♀️", "🧙‍♂️", "🧛‍♀️", "🧛‍♂️", "🧟‍♀️", "🧟‍♂️", "🧞‍♀️", "🧞‍♂️",
             "👻", "💀", "👽", "👾", "🤖", "👹", "👺", "🦁", "🦅", "🐺", "🦊", "🐻", "🐼", "🐯", "🐍"
@@ -138,7 +151,7 @@ const TILESETS: Record<string, { name: string; icon: string; minGames: number; t
     sports: {
         name: "Deportes",
         icon: "⚽",
-        minGames: 130,
+        minGames: 195,
         tiles: [
             "⚽", "🏀", "🏈", "⚾", "🥎", "🎾", "🏐", "🏉", "🥏", "🎱", "🪀", "🏓", "🏸", "🏒", "🏑", "🥍",
             "🏏", "🏹", "🎣", "🥊", "🥋", "🛹", "🛼", "🚴", "🏆", "🥇", "🥈", "🥉", "🎖️", "🎗️"
@@ -147,7 +160,7 @@ const TILESETS: Record<string, { name: string; icon: string; minGames: number; t
     weather: {
         name: "Clima",
         icon: "⚡",
-        minGames: 140,
+        minGames: 210,
         tiles: [
             "☀️", "🌙", "☁️", "⛅", "⛈️", "🌤️", "🌥️", "🌦️", "🌧️", "🌨️", "🌩️", "🌪️", "🌫️", "🌬️", "🌀", "🌈",
             "☔", "⚡", "❄️", "🔥", "💧", "🌊", "🍂", "🍁", "🍀", "🌸", "🌻", "🌷", "🍃", "🪵"
@@ -156,7 +169,7 @@ const TILESETS: Record<string, { name: string; icon: string; minGames: number; t
     miel_santi: {
         name: "Miel",
         icon: "🍯",
-        minGames: 150,
+        minGames: 225,
         tiles: [
             "🍯", "🐻", "🐝", "👩‍❤️‍👨", "💑", "💍", "🏠", "🍾", "🥂", "💖", "💝", "💌", "✨", "🌟", "🎂", "💋",
             "🧸", "🐾", "🐱", "🐶", "🏥", "🩺", "💬", "🗺️", "📍", "🚪", "🗒️", "✏️", "🌊", "🎁"
@@ -571,6 +584,7 @@ export function Mahjong() {
     const [hasPausedForMessage, setHasPausedForMessage] = useState(false);
     const [dockIds, setDockIds] = useState<string[]>([]);
     const [gameLost, setGameLost] = useState(false);
+    const [lostReason, setLostReason] = useState<'dock' | 'bomb' | null>(null);
     const [undoStack, setUndoStack] = useState<string[][]>([]);
     const [timerActive, setTimerActive] = useState(false);
     const [leaderboard, setLeaderboard] = useState<{ el: LeaderboardEntry[]; ella: LeaderboardEntry[] }>({ el: [], ella: [] });
@@ -579,6 +593,80 @@ export function Mahjong() {
     const [isMatchPulse, setIsMatchPulse] = useState(false);
     const [progressParticles, setProgressParticles] = useState<{ id: number; angle: number; speed: number; rotate: number }[]>([]);
     const [completedGamesCount, setCompletedGamesCount] = useState(0);
+
+    // Fire combo streak states
+    const [streakCombo, setStreakCombo] = useState(0);
+    const [streakTimeRemaining, setStreakTimeRemaining] = useState(0);
+    const [comboSign, setComboSign] = useState<{ id: number; text: string } | null>(null);
+    const streakTimerRef = useRef<NodeJS.Timeout | null>(null);
+    const comboTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Effect for the fire combo countdown
+    useEffect(() => {
+        if (streakCombo === 0 || streakTimeRemaining <= 0) return;
+
+        streakTimerRef.current = setTimeout(() => {
+            setStreakTimeRemaining(prev => {
+                if (prev <= 1) {
+                    // Time ran out! Fire goes off.
+                    setStreakCombo(0);
+                    setComboSign(null);
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+
+        return () => {
+            if (streakTimerRef.current) clearTimeout(streakTimerRef.current);
+        };
+    }, [streakCombo, streakTimeRemaining]);
+
+    const triggerStreakCombo = useCallback((newCombo: number) => {
+        setStreakCombo(newCombo);
+        
+        const duration = 5;
+        setStreakTimeRemaining(duration);
+
+        // Gaming signs
+        let comboText = "";
+        if (newCombo === 1) {
+            comboText = "¡CHISPA ENCENDIDA!";
+        } else if (newCombo === 2) {
+            comboText = "¡BRASA ARDIENTE!";
+        } else if (newCombo === 3) {
+            comboText = "¡LLAMA ALTA!";
+        } else if (newCombo === 4) {
+            comboText = "¡LLAMARADA TOTAL!";
+        } else if (newCombo === 5) {
+            comboText = "¡TABLERO EN LLAMAS!";
+        } else {
+            comboText = `¡COMBO x${newCombo}!`;
+        }
+
+        if (comboTimeoutRef.current) {
+            clearTimeout(comboTimeoutRef.current);
+        }
+        setComboSign({ id: Date.now(), text: comboText });
+        comboTimeoutRef.current = setTimeout(() => {
+            setComboSign(null);
+        }, 1500);
+    }, []);
+
+    const resetFireStreak = useCallback(() => {
+        setStreakCombo(0);
+        setComboSign(null);
+        if (comboTimeoutRef.current) clearTimeout(comboTimeoutRef.current);
+        if (streakTimerRef.current) clearTimeout(streakTimerRef.current);
+    }, []);
+
+    // ─── Hardening Mechanics State ───────────────────────────────────────────
+    const [ghostSolidIds, setGhostSolidIds] = useState<Set<string>>(new Set());
+    const ghostElapsedRef = useRef(0);
+    const bombTickRef = useRef<NodeJS.Timeout | null>(null);
+    const ghostTickRef = useRef<NodeJS.Timeout | null>(null);
+    const smokeTimerRef = useRef<NodeJS.Timeout | null>(null);
+    const matchCountSinceSmoke = useRef(0);
 
     const activeTileset = useMemo(() => {
         let activeKey = 'traditional';
@@ -607,8 +695,54 @@ export function Mahjong() {
     const [todayRevealedBottle, setTodayRevealedBottle] = useState<any | null>(null);
     const [allScores, setAllScores] = useState<any[]>([]);
     const [partnerCompletedGames, setPartnerCompletedGames] = useState(0);
-    const level = 1 + Math.floor(completedGamesCount / 10);
-    const partnerLevel = 1 + Math.floor(partnerCompletedGames / 10);
+    const level = 1 + Math.floor(completedGamesCount / 15);
+    const partnerLevel = 1 + Math.floor(partnerCompletedGames / 15);
+
+    const [activeMechanics, setActiveMechanics] = useState<HardeningMechanic[]>([]);
+
+    // Ghost phase timer — toggles every 5 seconds
+    useEffect(() => {
+        if (!activeMechanics.includes('ghost') || !timerActive) {
+            if (ghostTickRef.current) clearInterval(ghostTickRef.current);
+            return;
+        }
+
+        ghostTickRef.current = setInterval(() => {
+            ghostElapsedRef.current += 1;
+            setGhostSolidIds(getGhostSolidIds(tiles, ghostElapsedRef.current));
+        }, 1000);
+
+        return () => {
+            if (ghostTickRef.current) clearInterval(ghostTickRef.current);
+        };
+    }, [activeMechanics, timerActive, tiles]);
+
+    // Bomb countdown timer — decrements every second
+    useEffect(() => {
+        const hasBombs = activeMechanics.includes('bomb') && tiles.some(t => t.isBomb && !t.isMatched && (t.bombTimer ?? 0) > 0);
+        if (!hasBombs || !timerActive) {
+            if (bombTickRef.current) clearInterval(bombTickRef.current);
+            return;
+        }
+
+        bombTickRef.current = setInterval(() => {
+            setTiles(prev => {
+                const { exploded, updatedTiles } = tickBombs(prev);
+                if (exploded) {
+                    setGameLost(true);
+                    setLostReason('bomb');
+                    setTimerActive(false);
+                    if (bombTickRef.current) clearInterval(bombTickRef.current);
+                }
+                return updatedTiles;
+            });
+        }, 1000);
+
+        return () => {
+            if (bombTickRef.current) clearInterval(bombTickRef.current);
+        };
+    }, [activeMechanics, timerActive, tiles]);
+
     const [dailyPlayRecord, setDailyPlayRecord] = useState<any | null>(null);
     const [dailyStats, setDailyStats] = useState<{ el: any | null; ella: any | null }>({ el: null, ella: null });
     const [historicDailyStats, setHistoricDailyStats] = useState<{
@@ -864,7 +998,13 @@ export function Mahjong() {
                 });
 
                 const myLevelScores = parsedLevelScores.filter(s => s.profile === pKey && s.parsedLevel === level);
-                const bestTimeForLevel = myLevelScores.length > 0 ? Math.min(...myLevelScores.map(s => s.time_seconds)) : null;
+                // ⚡ Bolt Optimization: Calculate best time in single O(N) pass instead of mapping and spreading Math.min
+                let bestTimeForLevel: number | null = null;
+                for (const s of myLevelScores) {
+                    if (bestTimeForLevel === null || s.time_seconds < bestTimeForLevel) {
+                        bestTimeForLevel = s.time_seconds;
+                    }
+                }
                 const isRecord = bestTimeForLevel === null || time < bestTimeForLevel;
                 setIsNewRecord(isRecord);
 
@@ -896,22 +1036,29 @@ export function Mahjong() {
     const containerRef = useRef<HTMLDivElement>(null);
     const [scale, setScale] = useState(1);
 
-    const boardSpanX = useMemo(() => {
-        if (tiles.length === 0) return 18;
-        const xs = tiles.map(t => t.x);
-        return Math.max(...xs) - Math.min(...xs);
-    }, [tiles]);
+    // ⚡ Bolt Optimization: Calculate board bounds in a single O(N) pass instead of multiple map+Math.max loops
+    const { boardSpanX, boardSpanY, centerX } = useMemo(() => {
+        if (tiles.length === 0) {
+            return { boardSpanX: 18, boardSpanY: 14, centerX: 9 };
+        }
 
-    const boardSpanY = useMemo(() => {
-        if (tiles.length === 0) return 14;
-        const ys = tiles.map(t => t.y);
-        return Math.max(...ys) - Math.min(...ys);
-    }, [tiles]);
+        let minX = Infinity;
+        let maxX = -Infinity;
+        let minY = Infinity;
+        let maxY = -Infinity;
 
-    const centerX = useMemo(() => {
-        if (tiles.length === 0) return 9;
-        const xs = tiles.map(t => t.x);
-        return (Math.min(...xs) + Math.max(...xs)) / 2;
+        for (const t of tiles) {
+            if (t.x < minX) minX = t.x;
+            if (t.x > maxX) maxX = t.x;
+            if (t.y < minY) minY = t.y;
+            if (t.y > maxY) maxY = t.y;
+        }
+
+        return {
+            boardSpanX: maxX - minX,
+            boardSpanY: maxY - minY,
+            centerX: (minX + maxX) / 2
+        };
     }, [tiles]);
 
     useEffect(() => {
@@ -1066,6 +1213,7 @@ export function Mahjong() {
         setMatchedCount(0);
         setUndoStack([]);
         setDockIds([]);
+        resetFireStreak();
         setGameLost(false);
         setTimerActive(false);
         timerRef.current?.resetTime();
@@ -1092,7 +1240,7 @@ export function Mahjong() {
         }
         setEventDetailsMap(detailsMap);
 
-        const level = 1 + Math.floor(completedGamesCount / 10);
+        const level = 1 + Math.floor(completedGamesCount / 15);
         const tilesCount = getTargetTilesForLevel(level);
         const pairsCount = tilesCount / 2;
         const pairs: TileContent[] = [];
@@ -1241,7 +1389,7 @@ export function Mahjong() {
         }
         setCurrentLayout(selectedLayout);
 
-        const level = 1 + Math.floor(completedGamesCount / 10);
+        const level = 1 + Math.floor(completedGamesCount / 15);
         const tilesCount = getTargetTilesForLevel(level);
         const pairsCount = tilesCount / 2;
         const pairs: TileContent[] = [];
@@ -1285,12 +1433,39 @@ export function Mahjong() {
                 isHinted: false
             }));
         }
+        
+        // Flipped-down tiles on the last 5 levels of each 15-game set (indices 10 to 14)
+        const isFlippedLevel = (completedGamesCount % 15) >= 10;
+        if (isFlippedLevel && initialTiles) {
+            initialTiles = initialTiles.map((t, idx) => ({
+                ...t,
+                isFlippedDown: idx % 2 === 0
+            }));
+        }
+
+        // Apply hardening mechanics based on level (solo mode only)
+        let selectedMechanics: HardeningMechanic[] = [];
+        if (initialTiles && gameMode === 'solo') {
+            selectedMechanics = selectActiveMechanicsForGame(level);
+            initialTiles = applyHardeningToBoard(initialTiles, selectedMechanics, level);
+        }
+        setActiveMechanics(selectedMechanics);
+
         setInitialDeal(initialTiles);
         setTiles(initialTiles);
         setMatchedCount(0);
         setUndoStack([]);
         setDockIds([]);
+        resetFireStreak();
+        // Reset hardening timers
+        ghostElapsedRef.current = 0;
+        setGhostSolidIds(new Set());
+        matchCountSinceSmoke.current = 0;
+        if (bombTickRef.current) clearInterval(bombTickRef.current);
+        if (ghostTickRef.current) clearInterval(ghostTickRef.current);
+        if (smokeTimerRef.current) clearTimeout(smokeTimerRef.current);
         setGameLost(false);
+        setLostReason(null);
         setTimerActive(false);
         timerRef.current?.resetTime();
         setScoreSaved(false);
@@ -1374,6 +1549,12 @@ export function Mahjong() {
         const tile = tilesById.get(id);
         if (!tile || tile.isMatched || !freeTilesMap.get(id)) return;
 
+        // Hardening click blocks
+        if (tile.isLocked) return;
+        if (tile.iceCounter && tile.iceCounter > 0) return;
+        if (tile.isGhost && !ghostSolidIds.has(tile.id)) return;
+        if (tile.isSmoked) return;
+
         isProcessingRef.current = true;
         requestAnimationFrame(() => { isProcessingRef.current = false; });
         if (!timerActive && matchedCount < tiles.length) { setTimerActive(true); }
@@ -1391,7 +1572,7 @@ export function Mahjong() {
         }
 
         if (matchingDockId && matchingDockTile) {
-            const updatedTiles = tiles.map(t => {
+            let processedTiles = tiles.map(t => {
                 if (t.id === matchingDockTile.id || t.id === tile.id) {
                     return { ...t, isMatched: true, isSelected: false };
                 }
@@ -1399,10 +1580,52 @@ export function Mahjong() {
             });
             const updatedDock = dockIds.filter(did => did !== matchingDockId);
 
+            // ─── Hardening match processing (solo mode) ───
+            if (gameMode === 'solo') {
+                // Ice: thaw adjacent tiles
+                if (activeMechanics.includes('ice')) {
+                    processedTiles = processIceOnMatch(processedTiles, tile, matchingDockTile);
+                }
+                // Padlock: unlock if key pair matched
+                if (activeMechanics.includes('padlock')) {
+                    processedTiles = processLockUnlock(processedTiles, tile);
+                    processedTiles = processLockUnlock(processedTiles, matchingDockTile);
+                }
+                // Bomb: defuse if bomb tile was matched
+                processedTiles = processedTiles.map(t => {
+                    if ((t.id === tile.id || t.id === matchingDockTile.id) && t.isBomb) {
+                        return { ...t, isBomb: false, bombTimer: undefined };
+                    }
+                    return t;
+                });
+                // Gravity: collapse unsupported tiles
+                if (activeMechanics.includes('gravity')) {
+                    processedTiles = applyGravityCollapse(processedTiles);
+                }
+                // Smoke: trigger new smoke after every 4 matches
+                if (activeMechanics.includes('smoke')) {
+                    matchCountSinceSmoke.current += 1;
+                    if (matchCountSinceSmoke.current >= 4) {
+                        matchCountSinceSmoke.current = 0;
+                        const { tiles: smokedTiles } = triggerNewSmokeBomb(processedTiles);
+                        processedTiles = smokedTiles;
+                        // Clear smoke after 15 seconds
+                        if (smokeTimerRef.current) clearTimeout(smokeTimerRef.current);
+                        smokeTimerRef.current = setTimeout(() => {
+                            setTiles(prev => clearSmoke(prev));
+                        }, 15000);
+                    }
+                }
+            }
+
             setUndoStack(us => [...us, [matchingDockTile.id, tile.id]]);
             setMatchedCount(mc => mc + 2);
             setDockIds(updatedDock);
-            setTiles(updatedTiles);
+            setTiles(processedTiles);
+
+            // Fire streak combo logic
+            const nextCombo = streakCombo + 1;
+            triggerStreakCombo(nextCombo);
 
             // Sync to Coop Game in DB & Auto-Turn Pass
             if (gameMode === 'coop' && activeCoopGame) {
@@ -1411,7 +1634,7 @@ export function Mahjong() {
                 if (newMatchedCount === halfMatched) {
                     const nextTurn = coopTurn === 'el' ? 'ella' : 'el';
                     setCoopTurn(nextTurn);
-                    MahjongService.updateCoopGame(activeCoopGame.id, updatedTiles, updatedDock, nextTurn, profile as 'el' | 'ella');
+                    MahjongService.updateCoopGame(activeCoopGame.id, processedTiles, updatedDock, nextTurn, profile as 'el' | 'ella');
 
                     const target = profile === 'el' ? 'ella' : 'el';
                     const authorName = profile === 'el' ? 'Santiago' : 'Milena';
@@ -1422,7 +1645,7 @@ export function Mahjong() {
                     ).catch(console.error);
                     alert(`¡Has completado la mitad del tablero (${halfMatched} fichas)! El turno pasa automáticamente a tu pareja.`);
                 } else {
-                    MahjongService.updateCoopGame(activeCoopGame.id, updatedTiles, updatedDock, coopTurn, profile as 'el' | 'ella');
+                    MahjongService.updateCoopGame(activeCoopGame.id, processedTiles, updatedDock, coopTurn, profile as 'el' | 'ella');
                 }
             }
 
@@ -1460,6 +1683,7 @@ export function Mahjong() {
             const updatedDock = [...dockIds, id];
             if (dockIds.length >= 2) {
                 setGameLost(true);
+                setLostReason('dock');
                 setDockIds(updatedDock);
                 setUndoStack(us => [...us, [id]]);
                 setTimerActive(false);
@@ -1486,7 +1710,18 @@ export function Mahjong() {
             setMatchedCount(0);
             setUndoStack([]);
             setDockIds([]);
+            resetFireStreak();
+            
+            // Reset hardening timers
+            ghostElapsedRef.current = 0;
+            setGhostSolidIds(new Set());
+            matchCountSinceSmoke.current = 0;
+            if (bombTickRef.current) clearInterval(bombTickRef.current);
+            if (ghostTickRef.current) clearInterval(ghostTickRef.current);
+            if (smokeTimerRef.current) clearTimeout(smokeTimerRef.current);
+
             setGameLost(false);
+            setLostReason(null);
             setTimerActive(false);
             timerRef.current?.resetTime();
             setScoreSaved(false);
@@ -1615,10 +1850,16 @@ export function Mahjong() {
             }
 
             const elScores = parsedLevelScores.filter(s => s.profile === 'el' && s.parsedLevel === elLvl);
-            const elTime = elScores.length > 0 ? Math.min(...elScores.map(s => s.time_seconds)) : null;
+            let elTime: number | null = null;
+            for (const s of elScores) {
+                if (elTime === null || s.time_seconds < elTime) elTime = s.time_seconds;
+            }
 
             const ellaScores = parsedLevelScores.filter(s => s.profile === 'ella' && s.parsedLevel === ellaLvl);
-            const ellaTime = ellaScores.length > 0 ? Math.min(...ellaScores.map(s => s.time_seconds)) : null;
+            let ellaTime: number | null = null;
+            for (const s of ellaScores) {
+                if (ellaTime === null || s.time_seconds < ellaTime) ellaTime = s.time_seconds;
+            }
 
             comparisons.push({
                 levelLabel: offset === 0 ? 'Nivel Actual' : `Nivel ${currentWinnerLvl}`,
@@ -1634,6 +1875,32 @@ export function Mahjong() {
 
     return (
         <div className="relative flex w-full flex-col items-center justify-center overflow-hidden max-md:overflow-visible">
+
+            {/* Floating gaming brutalist combo sign overlay */}
+            <AnimatePresence>
+                {comboSign && (
+                    <motion.div
+                        key={comboSign.id}
+                        initial={{ opacity: 0, x: -150, scale: 0.7 }}
+                        animate={{ opacity: 1, x: 0, scale: 1.1 }}
+                        exit={{ opacity: 0, x: 150, scale: 0.7 }}
+                        transition={{ type: 'spring', stiffness: 220, damping: 11 }}
+                        className="fixed top-[28%] left-1/2 -translate-x-1/2 z-[9999] pointer-events-none select-none"
+                    >
+                        {/* Shadow box */}
+                        <div className="absolute inset-0 translate-x-[6px] translate-y-[6px] bg-[#ff4500] border-2 border-black shadow-[0_0_30px_rgba(255,69,0,0.6)]" />
+                        {/* Main box */}
+                        <div className="relative border-2 border-white bg-black/95 px-8 py-4 text-center">
+                            <div className="font-mono text-xs font-black uppercase text-orange-500/70 tracking-widest mb-1 animate-pulse">
+                                Racha de Fuego
+                            </div>
+                            <div className="font-sans font-black text-xl md:text-2xl uppercase tracking-wider text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+                                {comboSign.text}
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* Modo de Juego Tab Selector */}
             <div className="flex gap-2 mb-4 bg-black/40 p-1 border border-white/5 font-mono text-[10px] md:text-xs z-10">
@@ -1753,17 +2020,17 @@ export function Mahjong() {
                     )}
                 </div>
 
-                {/* Level Progress Bar: 0 to 10 games completed for current level */}
+                {/* Level Progress Bar: 0 to 15 games completed for current level */}
                 <div className="w-full max-w-[280px] md:max-w-[340px] flex flex-col gap-1.5 font-mono text-[9px] text-[#a88a7e] select-none">
                     <div className="flex justify-between uppercase tracking-wider font-bold">
                         <span>Progreso Nivel</span>
-                        <span style={{ color: accentColor }}>{completedGamesCount % 10}/10 juegos</span>
+                        <span style={{ color: accentColor }}>{completedGamesCount % 15}/15 juegos</span>
                     </div>
                     <div className="relative h-[4px] w-full bg-white/10 overflow-hidden border border-white/5">
                         <motion.div
                             className="absolute left-0 top-0 bottom-0 origin-left"
                             initial={{ width: 0 }}
-                            animate={{ width: `${(completedGamesCount % 10) * 10}%` }}
+                            animate={{ width: `${(completedGamesCount % 15) * (100 / 15)}%` }}
                             transition={{ type: 'spring', stiffness: 80, damping: 18 }}
                             style={{
                                 backgroundColor: accentColor,
@@ -1772,10 +2039,50 @@ export function Mahjong() {
                         />
                     </div>
                 </div>
+
+                {/* Hardening Mechanics Badges */}
+                {activeMechanics.length > 0 && gameMode === 'solo' && (
+                    <div className="flex flex-wrap gap-1.5 mt-1 justify-center">
+                        {activeMechanics.map(m => {
+                            const info: Record<string, { icon: string; label: string; color: string }> = {
+                                mirror: { icon: '🪞', label: 'ESPEJO', color: '#c084fc' },
+                                ghost: { icon: '👻', label: 'FANTASMA', color: '#22d3ee' },
+                                padlock: { icon: '🔒', label: 'CANDADO', color: '#facc15' },
+                                ice: { icon: '🧊', label: 'HIELO', color: '#87ceeb' },
+                                bomb: { icon: '💣', label: 'BOMBA', color: '#ef4444' },
+                                smoke: { icon: '💨', label: 'HUMO', color: '#9ca3af' },
+                                gravity: { icon: '🏗️', label: 'GRAVEDAD', color: '#f97316' },
+                            };
+                            const { icon, label, color } = info[m] || { icon: '?', label: m, color: '#fff' };
+                            return (
+                                <div
+                                    key={m}
+                                    className="flex items-center gap-0.5 px-1.5 py-0.5 border font-mono text-[8px] font-black uppercase tracking-wider select-none"
+                                    style={{ borderColor: color + '66', color, backgroundColor: color + '15' }}
+                                >
+                                    <span>{icon}</span>
+                                    <span>{label}</span>
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
             </div>
 
             {gameLost && typeof window !== 'undefined' && createPortal(
                 <div className="fixed inset-0 z-[100000] flex items-center justify-center bg-black/75 backdrop-blur-md p-4 overflow-hidden">
+                    {/* Background Loop Video when Bomb explodes */}
+                    {lostReason === 'bomb' && (
+                        <video
+                            src="/vid/Miel_smoke.mp4"
+                            autoPlay
+                            loop
+                            muted
+                            playsInline
+                            className="absolute inset-0 h-full w-full object-cover opacity-60 mix-blend-screen pointer-events-none z-0"
+                        />
+                    )}
+
                     {/* Cyber scanlines */}
                     <div className="absolute inset-0 scanlines-overlay opacity-35 pointer-events-none z-0" />
 
@@ -1798,22 +2105,34 @@ export function Mahjong() {
                         <div className="absolute bottom-0 right-0 h-4 w-4 border-b-2 border-r-2 border-red-500" />
 
                         <div className="mb-6 flex h-16 w-16 rotate-45 items-center justify-center border border-red-500 bg-red-500/10 animate-glitch-flicker">
-                            <RotateCcw className="h-8 w-8 -rotate-45 text-red-400" />
+                            {lostReason === 'bomb' ? (
+                                <span className="h-8 w-8 -rotate-45 text-2xl flex items-center justify-center select-none pointer-events-none">💣</span>
+                            ) : (
+                                <RotateCcw className="h-8 w-8 -rotate-45 text-red-400" />
+                            )}
                         </div>
-                        <h3 className="mb-2 text-3xl font-black uppercase tracking-normal text-white md:text-4xl animate-glitch-text">Sin Espacio</h3>
-                        <p className="mb-8 text-center text-sm font-light tracking-normal text-[#a88a7e]">Tu bandeja se ha llenado con cartas sin emparejar.</p>
+                        <h3 className="mb-2 text-3xl font-black uppercase tracking-normal text-white md:text-4xl animate-glitch-text">
+                            {lostReason === 'bomb' ? '¡DETONACIÓN!' : 'Sin Espacio'}
+                        </h3>
+                        <p className="mb-8 text-center text-sm font-light tracking-normal text-[#a88a7e]">
+                            {lostReason === 'bomb' 
+                                ? 'Una ficha de bomba ha explotado. El tablero ha quedado destruido.' 
+                                : 'Tu bandeja se ha llenado con cartas sin emparejar.'}
+                        </p>
                         <button
                             onClick={handleRestart}
                             className="w-full bg-red-500 py-4 text-xs font-bold uppercase tracking-[0.18em] text-white transition-all hover:bg-red-600 active:scale-95"
                         >
                             Reintentar
                         </button>
-                        <button
-                            onClick={handleUndo}
-                            className="mt-4 flex w-full items-center justify-center gap-2 border border-white/10 py-3 text-xs font-bold uppercase tracking-[0.18em] text-[#a88a7e] transition-all hover:bg-white/5 hover:text-white active:scale-95"
-                        >
-                            <Undo2 className="h-4 w-4" /> Deshacer
-                        </button>
+                        {lostReason !== 'bomb' && (
+                            <button
+                                onClick={handleUndo}
+                                className="mt-4 flex w-full items-center justify-center gap-2 border border-white/10 py-3 text-xs font-bold uppercase tracking-[0.18em] text-[#a88a7e] transition-all hover:bg-white/5 hover:text-white active:scale-95"
+                            >
+                                <Undo2 className="h-4 w-4" /> Deshacer
+                            </button>
+                        )}
                     </motion.div>
                 </div>,
                 document.body
@@ -2366,19 +2685,43 @@ export function Mahjong() {
 
                 {/* --- 3D BRUTALIST HUD: PAIR COUNTER (TOP RIGHT OF DOCK) --- */}
                 <div className="absolute top-[50px] left-[calc(50%+100px)] md:top-[62px] md:left-[calc(50%+155px)] right-auto z-20 select-none group">
+                    {/* Remaining fire countdown timer */}
+                    {streakCombo > 0 && (
+                        <div className="absolute -top-[24px] left-0 right-0 text-center font-mono text-[9px] font-black text-orange-500 animate-pulse bg-black/90 border border-orange-500/40 px-1 py-0.5 shadow-[0_0_8px_rgba(255,80,0,0.3)] rounded-sm">
+                            🔥 {streakTimeRemaining}s
+                        </div>
+                    )}
                     {/* 3D shadow/extrusion */}
                     <div
-                        className="absolute inset-0 translate-x-[3px] translate-y-[3px] border-2 border-black transition-transform duration-200"
-                        style={{ backgroundColor: accentColor }}
+                        className="absolute inset-0 translate-x-[3px] translate-y-[3px] border-2 border-black transition-all duration-200"
+                        style={{ backgroundColor: streakCombo > 0 ? '#ff4500' : accentColor }}
                     />
                     {/* Foreground container */}
                     <div
-                        className={`relative flex items-center gap-1.5 md:gap-2 border-2 border-white bg-[#0a0a0a] px-2 py-1 md:px-3.5 md:py-2 transition-all duration-200 group-hover:-translate-x-[1px] group-hover:-translate-y-[1px] ${isMatchPulse ? 'scale-105' : 'scale-100'
-                            }`}
+                        className={`relative flex items-center gap-1.5 md:gap-2 border-2 bg-[#0a0a0a] px-2 py-1 md:px-3.5 md:py-2 transition-all duration-200 group-hover:-translate-x-[1px] group-hover:-translate-y-[1px] ${
+                            isMatchPulse ? 'scale-105' : 'scale-100'
+                        }`}
                         style={{
-                            boxShadow: isMatchPulse ? `0 0 15px ${accentColor}80` : 'none'
+                            borderColor: streakCombo > 0 ? '#ff4500' : '#ffffff',
+                            boxShadow: streakCombo > 0 
+                                ? '0 0 15px rgba(255, 69, 0, 0.4)' 
+                                : isMatchPulse 
+                                    ? `0 0 15px ${accentColor}80` 
+                                    : 'none'
                         }}
                     >
+                        {/* Glowing/pulsing Flame icon next to the number */}
+                        {streakCombo > 0 && (
+                            <motion.div
+                                key={streakCombo}
+                                initial={{ scale: 3 }}
+                                animate={{ scale: 1 }}
+                                transition={{ type: "spring", stiffness: 200, damping: 10 }}
+                                className="text-orange-500 mr-0.5"
+                            >
+                                <Flame className="h-4 w-4 fill-orange-500 text-orange-500 animate-bounce" />
+                            </motion.div>
+                        )}
                         <div className="flex flex-col items-start leading-none">
                             <span className="text-[7px] md:text-[9px] font-bold uppercase tracking-[0.15em] text-[#a88a7e] mb-0.5">Parejas</span>
                             <div className="flex items-baseline gap-1 font-mono tracking-normal">
@@ -2397,7 +2740,7 @@ export function Mahjong() {
                         </div>
                         <Trophy
                             className={`h-3.5 w-3.5 md:h-4.5 md:w-4.5 transition-transform duration-300 ${isMatchPulse ? 'rotate-12 scale-125' : 'rotate-0'}`}
-                            style={{ color: accentColor }}
+                            style={{ color: streakCombo > 0 ? '#ff4500' : accentColor }}
                         />
                     </div>
                 </div>
@@ -2466,6 +2809,7 @@ export function Mahjong() {
                     dockIds={dockIds}
                     onTilePointerDown={handleTilePointerDown}
                     isMobile={isMobile}
+                    ghostSolidIds={ghostSolidIds}
                 />
             </div>
         </div>

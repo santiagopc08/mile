@@ -19,6 +19,16 @@ export interface TileState {
     isMatched: boolean;
     isSelected: boolean;
     isHinted?: boolean;
+    isFlippedDown?: boolean;
+    // Hardening mechanics
+    isMirrored?: 'flipX' | 'flipY' | 'rot90' | 'rot270';
+    isGhost?: boolean;
+    lockId?: string;
+    isLocked?: boolean;
+    iceCounter?: number;
+    isBomb?: boolean;
+    bombTimer?: number;
+    isSmoked?: boolean;
 }
 
 export const TileVisual = memo(({ tile }: { tile: TileState }) => {

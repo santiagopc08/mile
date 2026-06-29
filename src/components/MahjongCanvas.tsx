@@ -358,9 +358,10 @@ interface MahjongCanvasProps {
     dockIds: string[];
     onTilePointerDown: (id: string) => void;
     isMobile: boolean;
+    ghostSolidIds?: Set<string>;
 }
 
-export function MahjongCanvas({ tiles, freeTilesMap, dockIds, onTilePointerDown, isMobile }: MahjongCanvasProps) {
+export function MahjongCanvas({ tiles, freeTilesMap, dockIds, onTilePointerDown, isMobile, ghostSolidIds }: MahjongCanvasProps) {
     const { profile } = useProfile();
     const [explosions, setExplosions] = useState<{ id: string; pos: [number, number, number]; color: string }[]>([]);
     const prevMatchedIdsRef = useRef<Set<string>>(new Set());
@@ -382,12 +383,18 @@ export function MahjongCanvas({ tiles, freeTilesMap, dockIds, onTilePointerDown,
                 dockY: 4.8
             };
         }
-        const xs = tiles.map(t => t.x);
-        const ys = tiles.map(t => t.y);
-        const minX = Math.min(...xs);
-        const maxX = Math.max(...xs);
-        const minY = Math.min(...ys);
-        const maxY = Math.max(...ys);
+
+        // ⚡ Bolt Optimization: Single O(N) pass for boundary detection
+        let minX = Infinity;
+        let maxX = -Infinity;
+        let minY = Infinity;
+        let maxY = -Infinity;
+        for (const t of tiles) {
+            if (t.x < minX) minX = t.x;
+            if (t.x > maxX) maxX = t.x;
+            if (t.y < minY) minY = t.y;
+            if (t.y > maxY) maxY = t.y;
+        }
 
         const spacingX = 0.49;
         const spacingY = 0.53;
@@ -518,6 +525,7 @@ export function MahjongCanvas({ tiles, freeTilesMap, dockIds, onTilePointerDown,
                             dockY={dockY}
                             dockIds={dockIds}
                             onSelect={onTilePointerDown}
+                            isGhostSolid={tile.isGhost ? ghostSolidIds?.has(tile.id) : undefined}
                         />
                     ))}
                 </group>
