@@ -13,3 +13,7 @@
 ## 2024-07-28 - Avoid Array spreads on mapped property values
 **Learning:** Calculating bounds or maximums using `Math.max(...array.map(item => item.value))` forces V8 to allocate two intermediate O(N) structures: a temporary array for `.map()` output, and a spread argument array (which can hit the JavaScript engine stack limit `Maximum call stack size exceeded` for large arrays).
 **Action:** Replace `Math.max(...array.map(...))` inside React components with a standard O(N) `for...of` loop tracking the min/max incrementally to eliminate the garbage collection overhead and stack overflow risk.
+
+## $(date +%Y-%m-%d) - [Bolt Optimization] Optimize React rendering overhead with single O(N) pass useMemo
+**Learning:** Found pre-existing array filtering patterns inside React functional components that iterated the same dataset multiple times to classify data sets (e.g., `toVisit` vs `visited`). Running multiple `.filter()` methods without memoization forces unnecessary garbage collection and repeated O(2*N) iterations on every single re-render.
+**Action:** Replace consecutive `.filter()` calls used for multi-partitioning arrays with a single O(N) `for...of` loop encapsulated inside a `useMemo` hook to reduce time complexity to O(N) and minimize object allocation/garbage collection spikes inside React components.
