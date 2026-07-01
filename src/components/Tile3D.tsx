@@ -81,7 +81,7 @@ function useTileTexture(tile: TileState, accentColor: string, mirrorVariant?: 'f
             }
         };
 
-        const isCanvasRender = ['traditional', 'bottle_message', 'calendar_date', 'clock_time'].includes(tile.content.type);
+        const isCanvasRender = ['traditional', 'bottle_message', 'calendar_date', 'clock_time', 'drawing_tile'].includes(tile.content.type);
 
         if (isCanvasRender) {
             // Fondo
@@ -91,6 +91,13 @@ function useTileTexture(tile: TileState, accentColor: string, mirrorVariant?: 'f
                 tealGrad.addColorStop(0.5, '#004d4d');
                 tealGrad.addColorStop(1, '#001a1a');
                 ctx.fillStyle = tealGrad;
+                ctx.fillRect(0, 0, 256, 256);
+            } else if (tile.content.type === 'drawing_tile') {
+                const purpleGrad = ctx.createLinearGradient(0, 0, 256, 256);
+                purpleGrad.addColorStop(0, '#5b21b6');
+                purpleGrad.addColorStop(0.5, '#3b0764');
+                purpleGrad.addColorStop(1, '#1e1b4b');
+                ctx.fillStyle = purpleGrad;
                 ctx.fillRect(0, 0, 256, 256);
             } else if (tile.content.type === 'calendar_date') {
                 ctx.fillStyle = '#1c1917'; // stone-900
@@ -152,6 +159,10 @@ function useTileTexture(tile: TileState, accentColor: string, mirrorVariant?: 'f
                 if (tile.content.type === 'bottle_message') {
                     ctx.font = 'bold 92px sans-serif';
                     ctx.fillText('🍾', 128, 128);
+                } else if (tile.content.type === 'drawing_tile') {
+                    ctx.font = 'bold 92px sans-serif';
+                    const icon = tile.content.value === 'draw' ? '✏️' : '🖼️';
+                    ctx.fillText(icon, 128, 128);
                 } else {
                     // Apply mirror transform before drawing emoji
                     if (mirrorVariant) {
@@ -562,6 +573,8 @@ export function Tile3D({ tile, isFree, centerX, centerY, boardY, dockY, dockIds,
     const dockIndex = dockIds.indexOf(tile.id);
     const isInDock = dockIndex !== -1;
     const isBright = isFree || isInDock; // Las fichas en el dock no deben verse opacas ni translúcidas
+    const isFlipped = !!tile.isFlippedDown && !isInDock;
+    const isBlackSpot = isFlipped && !isFree;
 
     // Calcular posición final objetivo (target)
     let targetX = posX;
@@ -596,8 +609,6 @@ export function Tile3D({ tile, isFree, centerX, centerY, boardY, dockY, dockIds,
         // Rotación LERP (los del dock se alinean planos)
         const targetRotX = isInDock ? 0 : tile.isSelected ? -0.1 : 0;
         
-        // Flipped-down tiles show the back (rotated 180 degrees around Y) when on the board
-        const isFlipped = !!tile.isFlippedDown && !isInDock;
         let targetRotY = isInDock 
             ? 0 
             : isFlipped 
@@ -634,7 +645,7 @@ export function Tile3D({ tile, isFree, centerX, centerY, boardY, dockY, dockIds,
                     const lerpedOp = THREE.MathUtils.lerp(currentOp, ghostOpacity, 5 * safeDelta);
                     materials.forEach(m => { if (m) m.opacity = lerpedOp; });
                 } else {
-                    materials.forEach(m => { if (m) m.opacity = isBright ? 1.0 : 0.45; });
+                    materials.forEach(m => { if (m) m.opacity = isBlackSpot ? 1.0 : (isBright ? 1.0 : 0.45); });
                 }
 
                 if (tile.isBomb && !tile.isMatched) {
@@ -704,17 +715,17 @@ export function Tile3D({ tile, isFree, centerX, centerY, boardY, dockY, dockIds,
             {/* 1. PLACA TRASERA DE ACCENTO / SOPORTE */}
             {/* Sobresale ligeramente para dar un detalle visual 3D escalonado (stepped lip) que atrapa la luz */}
             <mesh
-                castShadow
-                receiveShadow
+                castShadow={!isBlackSpot}
+                receiveShadow={!isBlackSpot}
                 position={[0, 0, -0.06]}
             >
                 <boxGeometry args={[0.96, 1.04, 0.12]} />
                 <meshStandardMaterial
-                    color={isGolden ? '#ffd700' : isBright ? backColor : '#323232'}
-                    roughness={isGolden ? 0.15 : 0.3}
-                    metalness={isGolden ? 0.95 : 0.3}
+                    color={isBlackSpot ? '#000000' : (isGolden ? '#ffd700' : isBright ? backColor : '#323232')}
+                    roughness={isBlackSpot ? 1.0 : (isGolden ? 0.15 : 0.3)}
+                    metalness={isBlackSpot ? 0.0 : (isGolden ? 0.95 : 0.3)}
                     transparent
-                    opacity={isBright ? 1.0 : 0.45}
+                    opacity={isBlackSpot ? 1.0 : (isBright ? 1.0 : 0.45)}
                 />
             </mesh>
 
@@ -722,8 +733,8 @@ export function Tile3D({ tile, isFree, centerX, centerY, boardY, dockY, dockIds,
             {/* Ligeramente más pequeño en ancho y alto (0.90 x 0.98) para generar el relieve 3D brutalista */}
             <mesh
                 ref={frontMeshRef}
-                castShadow
-                receiveShadow
+                castShadow={!isBlackSpot}
+                receiveShadow={!isBlackSpot}
                 position={[0, 0, 0.09]}
             >
                 <boxGeometry args={[0.90, 0.98, 0.18]} />
@@ -731,57 +742,57 @@ export function Tile3D({ tile, isFree, centerX, centerY, boardY, dockY, dockIds,
                 {/* Laterales (Índices 0-3): Cerámica carbón brutalista u oro metálico */}
                 <meshStandardMaterial
                     attach="material-0"
-                    color={isGolden ? '#ffd700' : isBright ? '#161616' : '#0d0d0d'}
-                    roughness={isGolden ? 0.15 : 0.4}
-                    metalness={isGolden ? 0.95 : 0.1}
+                    color={isBlackSpot ? '#000000' : (isGolden ? '#ffd700' : isBright ? '#161616' : '#0d0d0d')}
+                    roughness={isBlackSpot ? 1.0 : (isGolden ? 0.15 : 0.4)}
+                    metalness={isBlackSpot ? 0.0 : (isGolden ? 0.95 : 0.1)}
                     transparent
-                    opacity={isBright ? 1.0 : 0.45}
+                    opacity={isBlackSpot ? 1.0 : (isBright ? 1.0 : 0.45)}
                 />
                 <meshStandardMaterial
                     attach="material-1"
-                    color={isGolden ? '#ffd700' : isBright ? '#161616' : '#0d0d0d'}
-                    roughness={isGolden ? 0.15 : 0.4}
-                    metalness={isGolden ? 0.95 : 0.1}
+                    color={isBlackSpot ? '#000000' : (isGolden ? '#ffd700' : isBright ? '#161616' : '#0d0d0d')}
+                    roughness={isBlackSpot ? 1.0 : (isGolden ? 0.15 : 0.4)}
+                    metalness={isBlackSpot ? 0.0 : (isGolden ? 0.95 : 0.1)}
                     transparent
-                    opacity={isBright ? 1.0 : 0.45}
+                    opacity={isBlackSpot ? 1.0 : (isBright ? 1.0 : 0.45)}
                 />
                 <meshStandardMaterial
                     attach="material-2"
-                    color={isGolden ? '#ffd700' : isBright ? '#161616' : '#0d0d0d'}
-                    roughness={isGolden ? 0.15 : 0.4}
-                    metalness={isGolden ? 0.95 : 0.1}
+                    color={isBlackSpot ? '#000000' : (isGolden ? '#ffd700' : isBright ? '#161616' : '#0d0d0d')}
+                    roughness={isBlackSpot ? 1.0 : (isGolden ? 0.15 : 0.4)}
+                    metalness={isBlackSpot ? 0.0 : (isGolden ? 0.95 : 0.1)}
                     transparent
-                    opacity={isBright ? 1.0 : 0.45}
+                    opacity={isBlackSpot ? 1.0 : (isBright ? 1.0 : 0.45)}
                 />
                 <meshStandardMaterial
                     attach="material-3"
-                    color={isGolden ? '#ffd700' : isBright ? '#161616' : '#0d0d0d'}
-                    roughness={isGolden ? 0.15 : 0.4}
-                    metalness={isGolden ? 0.95 : 0.1}
+                    color={isBlackSpot ? '#000000' : (isGolden ? '#ffd700' : isBright ? '#161616' : '#0d0d0d')}
+                    roughness={isBlackSpot ? 1.0 : (isGolden ? 0.15 : 0.4)}
+                    metalness={isBlackSpot ? 0.0 : (isGolden ? 0.95 : 0.1)}
                     transparent
-                    opacity={isBright ? 1.0 : 0.45}
+                    opacity={isBlackSpot ? 1.0 : (isBright ? 1.0 : 0.45)}
                 />
                 
                 {/* Cara Frontal (+Z, Índice 4): Textura con el símbolo o foto */}
                 <meshStandardMaterial
                     key={texture ? 'loaded' : 'loading'}
                     attach="material-4"
-                    map={texture || undefined}
-                    color={isBright ? '#ffffff' : '#777777'}
-                    roughness={0.15}
-                    metalness={isGolden ? 0.5 : 0.05}
+                    map={isBlackSpot ? undefined : (texture || undefined)}
+                    color={isBlackSpot ? '#000000' : (isBright ? '#ffffff' : '#777777')}
+                    roughness={isBlackSpot ? 1.0 : 0.15}
+                    metalness={isBlackSpot ? 0.0 : (isGolden ? 0.5 : 0.05)}
                     transparent
-                    opacity={isBright ? 1.0 : 0.4}
+                    opacity={isBlackSpot ? 1.0 : (isBright ? 1.0 : 0.4)}
                 />
 
                 {/* Cara Trasera (-Z, Índice 5): Acoplado al cuerpo, color oscuro interno */}
                 <meshStandardMaterial
                     attach="material-5"
-                    color={isGolden ? '#ffd700' : isBright ? '#161616' : '#0d0d0d'}
-                    roughness={isGolden ? 0.15 : 0.4}
-                    metalness={isGolden ? 0.95 : 0.1}
+                    color={isBlackSpot ? '#000000' : (isGolden ? '#ffd700' : isBright ? '#161616' : '#0d0d0d')}
+                    roughness={isBlackSpot ? 1.0 : (isGolden ? 0.15 : 0.4)}
+                    metalness={isBlackSpot ? 0.0 : (isGolden ? 0.95 : 0.1)}
                     transparent
-                    opacity={isBright ? 1.0 : 0.45}
+                    opacity={isBlackSpot ? 1.0 : (isBright ? 1.0 : 0.45)}
                 />
             </mesh>
         </group>

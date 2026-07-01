@@ -1176,3 +1176,16 @@ textarea {
   background-size: 100% 4px, 6px 100%;
 }
 
+/* Fullscreen mode support for the Mahjong game container */
+:fullscreen, :-webkit-full-screen {
+  max-width: 100vw !important;
+  width: 100vw !important;
+  max-height: 100vh !important;
+  height: 100vh !important;
+  border: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+}
+
+

@@ -9,6 +9,7 @@ export const MahjongService = {
         timeSeconds: number,
         layout: string,
         tileCount: number,
+        highestCombo: number = 0,
         supabase: SupabaseClient = defaultSupabase
     ): Promise<void> {
         try {
@@ -16,7 +17,8 @@ export const MahjongService = {
                 profile,
                 time_seconds: timeSeconds,
                 layout,
-                tile_count: tileCount
+                tile_count: tileCount,
+                highest_combo: highestCombo
             });
         } catch (e) {
             console.error('Failed to save mahjong score:', e);
@@ -446,6 +448,60 @@ export const MahjongService = {
         } catch (e) {
             console.error('Failed to calculate total games completed count:', e);
             return 0;
+        }
+    },
+
+    async saveDrawing(
+        sender: 'el' | 'ella',
+        drawingData: string,
+        caption?: string,
+        supabase: SupabaseClient = defaultSupabase
+    ): Promise<boolean> {
+        try {
+            const { error } = await supabase
+                .from('mahjong_drawings')
+                .insert({
+                    sender,
+                    drawing_data: drawingData,
+                    caption
+                });
+            if (error) {
+                console.error('Error saving drawing:', error);
+                return false;
+            }
+            return true;
+        } catch (e) {
+            console.error('Failed to save drawing:', e);
+            return false;
+        }
+    },
+
+    async getTodayDrawing(
+        sender: 'el' | 'ella',
+        supabase: SupabaseClient = defaultSupabase
+    ): Promise<any | null> {
+        try {
+            const localMidnight = new Date();
+            localMidnight.setHours(0, 0, 0, 0);
+            const isoMidnight = localMidnight.toISOString();
+
+            const { data, error } = await supabase
+                .from('mahjong_drawings')
+                .select('*')
+                .eq('sender', sender)
+                .gte('created_at', isoMidnight)
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .maybeSingle();
+
+            if (error) {
+                console.error('Error fetching today drawing:', error);
+                return null;
+            }
+            return data;
+        } catch (e) {
+            console.error('Failed to get today drawing:', e);
+            return null;
         }
     }
 };

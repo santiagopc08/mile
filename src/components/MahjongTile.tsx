@@ -6,7 +6,7 @@ import { useProfile } from '@/context/ProfileContext';
 import Image from 'next/image';
 
 export interface TileContent {
-    type: 'custom' | 'local_image' | 'traditional' | 'bottle_message' | 'calendar_date' | 'clock_time';
+    type: 'custom' | 'local_image' | 'traditional' | 'bottle_message' | 'calendar_date' | 'clock_time' | 'drawing_tile';
     value: string;
 }
 

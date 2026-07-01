@@ -445,6 +445,7 @@ interface LeaderboardEntry {
     time_seconds: number;
     layout: string;
     created_at: string;
+    highest_combo?: number;
 }
 
 function isSlotFree(
@@ -585,6 +586,8 @@ export function Mahjong() {
     const [dockIds, setDockIds] = useState<string[]>([]);
     const [gameLost, setGameLost] = useState(false);
     const [lostReason, setLostReason] = useState<'dock' | 'bomb' | null>(null);
+    const [isReturningFlipped, setIsReturningFlipped] = useState(false);
+    const [maxGameCombo, setMaxGameCombo] = useState(0);
     const [undoStack, setUndoStack] = useState<string[][]>([]);
     const [timerActive, setTimerActive] = useState(false);
     const [leaderboard, setLeaderboard] = useState<{ el: LeaderboardEntry[]; ella: LeaderboardEntry[] }>({ el: [], ella: [] });
@@ -624,6 +627,7 @@ export function Mahjong() {
 
     const triggerStreakCombo = useCallback((newCombo: number) => {
         setStreakCombo(newCombo);
+        setMaxGameCombo(prev => Math.max(prev, newCombo));
         
         const duration = 5;
         setStreakTimeRemaining(duration);
@@ -745,6 +749,11 @@ export function Mahjong() {
 
     const [dailyPlayRecord, setDailyPlayRecord] = useState<any | null>(null);
     const [dailyStats, setDailyStats] = useState<{ el: any | null; ella: any | null }>({ el: null, ella: null });
+    const [todaySentDrawing, setTodaySentDrawing] = useState<any | null>(null);
+    const [todayReceivedDrawing, setTodayReceivedDrawing] = useState<any | null>(null);
+    const [drawingModalOpen, setDrawingModalOpen] = useState(false);
+    const [revealDrawingModalOpen, setRevealDrawingModalOpen] = useState(false);
+    const [revealedDrawingData, setRevealedDrawingData] = useState<any | null>(null);
     const [historicDailyStats, setHistoricDailyStats] = useState<{
         el: { completed: number; failed: number; bestTime: number | null };
         ella: { completed: number; failed: number; bestTime: number | null };
@@ -851,6 +860,14 @@ export function Mahjong() {
 
         const historic = await MahjongService.getDailyPuzzleHistoricCounts();
         setHistoricDailyStats(historic);
+
+        // Fetch today's drawings
+        const sentDrawing = await MahjongService.getTodayDrawing(profile as 'el' | 'ella');
+        setTodaySentDrawing(sentDrawing);
+
+        const partnerKey = profile === 'el' ? 'ella' : 'el';
+        const receivedDrawing = await MahjongService.getTodayDrawing(partnerKey);
+        setTodayReceivedDrawing(receivedDrawing);
     };
 
     const handleStartDailyGame = async () => {
@@ -964,7 +981,8 @@ export function Mahjong() {
                         profile as 'el' | 'ella',
                         time,
                         'daily',
-                        tiles.length
+                        tiles.length,
+                        maxGameCombo
                     ).then(() => {
                         MahjongService.getMahjongLeaderboard().then(setLeaderboard).catch(() => { });
                         if (isRecord) {
@@ -987,7 +1005,7 @@ export function Mahjong() {
                 const pKey = profile as 'el' | 'ella';
 
                 // Parse scores to find our best time at the current level
-                const parsedLevelScores = allScores.map(score => {
+                const parsedLevelScores = allScores.filter(s => s.layout !== 'daily').map(score => {
                     let parsedLevel = 1;
                     if (score.layout && score.layout.includes(':')) {
                         parsedLevel = parseInt(score.layout.split(':')[1], 10) || 1;
@@ -1008,7 +1026,8 @@ export function Mahjong() {
                         profile as 'el' | 'ella',
                         time,
                         `${currentLayout}:${level}`,
-                        tiles.length
+                        tiles.length,
+                        maxGameCombo
                     ).then(() => {
                         MahjongService.getAllMahjongScores().then(setAllScores).catch(() => { });
                         MahjongService.getTotalGamesCompletedCount(profile as 'el' | 'ella')
@@ -1025,7 +1044,7 @@ export function Mahjong() {
                 }
             }
         }
-    }, [matchedCount, tiles.length, timerActive, profile, scoreSaved, currentLayout, leaderboard, gameMode, activeCoopGame, level, allScores]);
+    }, [matchedCount, tiles.length, timerActive, profile, scoreSaved, currentLayout, leaderboard, gameMode, activeCoopGame, level, allScores, maxGameCombo]);
 
     const containerRef = useRef<HTMLDivElement>(null);
     const [scale, setScale] = useState(1);
@@ -1156,8 +1175,37 @@ export function Mahjong() {
             });
         }
 
-        // Fill remaining pairs with traditional emojis to hit 32 tiles (16 pairs)
-        const targetTiles = 32;
+        // Inject drawing tiles (match every game until 00:00)
+        if (todayReceivedDrawing) {
+            pairs.push({
+                type: 'drawing_tile',
+                value: 'reveal'
+            });
+        }
+        if (todaySentDrawing) {
+            pairs.push({
+                type: 'drawing_tile',
+                value: 'reveal_own'
+            });
+        }
+        if (!todaySentDrawing) {
+            pairs.push({
+                type: 'drawing_tile',
+                value: 'draw'
+            });
+        }
+
+        // Generate coordinates for daily challenge (64 pairs = 128 tiles on desktop)
+        const mobileState = typeof window !== 'undefined' && window.innerWidth <= 768;
+        let finalCoords = generateCoordinates('random', 128);
+        if (mobileState) {
+            finalCoords = filterCoordsByColumns(finalCoords, 8);
+            if (finalCoords.length % 2 !== 0) {
+                finalCoords = finalCoords.slice(0, finalCoords.length - 1);
+            }
+        }
+
+        const targetTiles = finalCoords.length;
         const pairsCount = targetTiles / 2;
 
         let emojiIdx = 0;
@@ -1165,20 +1213,6 @@ export function Mahjong() {
             pairs.push({ type: 'traditional', value: activeTileset.tiles[emojiIdx % activeTileset.tiles.length] });
             emojiIdx++;
         }
-
-        // Generate coordinates for a compact 8x8 layout of 32 tiles
-        const rawCoords: { x: number, y: number, z: number }[] = [];
-        for (let x = 2; x <= 8; x += 2) {
-            for (let y = 2; y <= 8; y += 2) {
-                rawCoords.push({ x, y, z: 0 });
-            }
-        }
-        for (let x = 4; x <= 6; x += 2) {
-            for (let y = 4; y <= 6; y += 2) {
-                rawCoords.push({ x, y, z: 1 });
-            }
-        }
-        const finalCoords = rawCoords.slice(0, 32);
 
         let initialTiles = generateSolvableBoard(finalCoords, pairs);
         if (!initialTiles) {
@@ -1202,6 +1236,8 @@ export function Mahjong() {
         setDockIds([]);
         resetFireStreak();
         setGameLost(false);
+        setLostReason(null);
+        setIsReturningFlipped(false);
         setTimerActive(false);
         timerRef.current?.resetTime();
         setScoreSaved(false);
@@ -1390,6 +1426,26 @@ export function Mahjong() {
             });
         }
 
+        // Inject drawing tiles (match every game until 00:00)
+        if (todayReceivedDrawing) {
+            pairs.push({
+                type: 'drawing_tile',
+                value: 'reveal'
+            });
+        }
+        if (todaySentDrawing) {
+            pairs.push({
+                type: 'drawing_tile',
+                value: 'reveal_own'
+            });
+        }
+        if (!todaySentDrawing) {
+            pairs.push({
+                type: 'drawing_tile',
+                value: 'draw'
+            });
+        }
+
         for (let i = 0; i < Math.min(fetchedImages.length, pairsCount - pairs.length); i++) {
             const img = fetchedImages[i];
             pairs.push({
@@ -1451,8 +1507,10 @@ export function Mahjong() {
         if (bombTickRef.current) clearInterval(bombTickRef.current);
         if (ghostTickRef.current) clearInterval(ghostTickRef.current);
         if (smokeTimerRef.current) clearTimeout(smokeTimerRef.current);
+        setMaxGameCombo(0);
         setGameLost(false);
         setLostReason(null);
+        setIsReturningFlipped(false);
         setTimerActive(false);
         timerRef.current?.resetTime();
         setScoreSaved(false);
@@ -1530,7 +1588,7 @@ export function Mahjong() {
 
 
     const handleTilePointerDown = useCallback((id: string) => {
-        if (isProcessingRef.current || gameLost) return;
+        if (isProcessingRef.current || gameLost || isReturningFlipped) return;
         if (gameMode === 'coop' && activeCoopGame && coopTurn !== profile) return; // lock board actions out of turn
         if (dockIds.includes(id)) return;
         const tile = tilesById.get(id);
@@ -1541,6 +1599,29 @@ export function Mahjong() {
         if (tile.iceCounter && tile.iceCounter > 0) return;
         if (tile.isGhost && !ghostSolidIds.has(tile.id)) return;
         if (tile.isSmoked) return;
+
+        // Fullscreen activation when a match is started / played on first tile click
+        if (typeof window !== 'undefined') {
+            const container = containerRef.current || document.documentElement;
+            if (container && !document.fullscreenElement) {
+                container.requestFullscreen().catch(() => {});
+            }
+        }
+
+        // Memory game mechanic: if we have 2 unmatched flipped-down cards, return them to board
+        const flippedInDock = dockIds.map(dId => tilesById.get(dId)).find(t => t?.isFlippedDown && !t.isMatched);
+        if (tile.isFlippedDown && flippedInDock && flippedInDock.content.value !== tile.content.value) {
+            // Add clicked tile to the dock temporarily so player sees it
+            const updatedDock = [...dockIds, id];
+            setDockIds(updatedDock);
+            setIsReturningFlipped(true);
+
+            setTimeout(() => {
+                setDockIds(currentDock => currentDock.filter(dId => dId !== id && dId !== flippedInDock.id));
+                setIsReturningFlipped(false);
+            }, 1000);
+            return;
+        }
 
         isProcessingRef.current = true;
         requestAnimationFrame(() => { isProcessingRef.current = false; });
@@ -1666,6 +1747,29 @@ export function Mahjong() {
                     setBottleNoteModal(true);
                 });
             }
+
+            // Si es un dibujo especial (drawing_tile)
+            if (tile.content.type === 'drawing_tile') {
+                setTimerActive(false); // Pausar temporizador
+                const actionType = tile.content.value; // 'draw' | 'reveal' | 'reveal_own'
+                if (actionType === 'draw') {
+                    setDrawingModalOpen(true);
+                } else if (actionType === 'reveal') {
+                    setRevealedDrawingData({
+                        sender: profile === 'el' ? 'Milena' : 'Santiago',
+                        image: todayReceivedDrawing?.drawing_data,
+                        caption: todayReceivedDrawing?.caption || '¡Mira lo que te dibujé! 💖'
+                    });
+                    setRevealDrawingModalOpen(true);
+                } else if (actionType === 'reveal_own') {
+                    setRevealedDrawingData({
+                        sender: profile === 'el' ? 'Santiago' : 'Milena',
+                        image: todaySentDrawing?.drawing_data,
+                        caption: todaySentDrawing?.caption || 'Tu dibujo de hoy ✨'
+                    });
+                    setRevealDrawingModalOpen(true);
+                }
+            }
         } else {
             const updatedDock = [...dockIds, id];
             if (dockIds.length >= 2) {
@@ -1689,7 +1793,7 @@ export function Mahjong() {
                 }
             }
         }
-    }, [tilesById, gameLost, dockIds, tiles, freeTilesMap, timerActive, matchedCount, eventDetailsMap, gameMode, activeCoopGame, coopTurn, profile, pendingReceivedBottle]);
+    }, [tilesById, gameLost, dockIds, tiles, freeTilesMap, timerActive, matchedCount, eventDetailsMap, gameMode, activeCoopGame, coopTurn, profile, pendingReceivedBottle, isReturningFlipped]);
 
     const handleRestart = () => {
         if (initialDeal) {
@@ -1707,8 +1811,10 @@ export function Mahjong() {
             if (ghostTickRef.current) clearInterval(ghostTickRef.current);
             if (smokeTimerRef.current) clearTimeout(smokeTimerRef.current);
 
+            setMaxGameCombo(0);
             setGameLost(false);
             setLostReason(null);
+            setIsReturningFlipped(false);
             setTimerActive(false);
             timerRef.current?.resetTime();
             setScoreSaved(false);
@@ -1789,7 +1895,7 @@ export function Mahjong() {
     const layoutName = gameMode === 'coop' ? 'Cooperativo' : gameMode === 'daily' ? 'Diario' : (LAYOUT_INFO[currentLayout]?.name || currentLayout);
 
     const parsedLevelScores = useMemo(() => {
-        return allScores.map(score => {
+        return allScores.filter(s => s.layout !== 'daily').map(score => {
             let parsedLevel = 1;
             let parsedLayout = score.layout;
             if (score.layout && score.layout.includes(':')) {
@@ -1816,6 +1922,8 @@ export function Mahjong() {
             ellaLvl: number;
             elTime: number | null;
             ellaTime: number | null;
+            elCombo: number;
+            ellaCombo: number;
         }[] = [];
 
         for (let offset = 0; offset < 3; offset++) {
@@ -1838,16 +1946,20 @@ export function Mahjong() {
 
             const elScores = parsedLevelScores.filter(s => s.profile === 'el' && s.parsedLevel === elLvl);
             const elTime = elScores.length > 0 ? Math.min(...elScores.map(s => s.time_seconds)) : null;
+            const elCombo = elScores.length > 0 ? Math.max(...elScores.map(s => s.highest_combo || 0)) : 0;
 
             const ellaScores = parsedLevelScores.filter(s => s.profile === 'ella' && s.parsedLevel === ellaLvl);
             const ellaTime = ellaScores.length > 0 ? Math.min(...ellaScores.map(s => s.time_seconds)) : null;
+            const ellaCombo = ellaScores.length > 0 ? Math.max(...ellaScores.map(s => s.highest_combo || 0)) : 0;
 
             comparisons.push({
                 levelLabel: offset === 0 ? 'Nivel Actual' : `Nivel ${currentWinnerLvl}`,
                 elLvl,
                 ellaLvl,
                 elTime,
-                ellaTime
+                ellaTime,
+                elCombo,
+                ellaCombo
             });
         }
 
@@ -1866,7 +1978,7 @@ export function Mahjong() {
                         animate={{ opacity: 1, x: 0, scale: 1.1 }}
                         exit={{ opacity: 0, x: 150, scale: 0.7 }}
                         transition={{ type: 'spring', stiffness: 220, damping: 11 }}
-                        className="fixed top-[28%] left-1/2 -translate-x-1/2 z-[9999] pointer-events-none select-none"
+                        className="fixed top-[14%] left-1/2 -translate-x-1/2 z-[9999] pointer-events-none select-none"
                     >
                         {/* Shadow box */}
                         <div className="absolute inset-0 translate-x-[6px] translate-y-[6px] bg-[#ff4500] border-2 border-black shadow-[0_0_30px_rgba(255,69,0,0.6)]" />
@@ -2256,12 +2368,20 @@ export function Mahjong() {
                             </motion.div>
                         )}
 
-                        <div className="relative mb-6 w-full border border-white/10 bg-[#050505] p-4">
+                        <div className="relative mb-6 w-full border border-white/10 bg-[#050505] p-4 flex justify-around items-center">
                             <div className="text-center">
                                 <span className="mb-1 block text-[10px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Tu Tiempo</span>
                                 <span className="font-mono text-3xl tracking-normal text-white">{formatTime(timerRef.current?.getTime() || 0)}</span>
                                 <span className={`mt-1 block text-[10px] font-bold uppercase ${profile === 'ella' ? 'text-user-b' : 'text-user-a'}`}>
                                     {profile === 'el' ? 'Santiago' : 'Mile'}
+                                </span>
+                            </div>
+                            <div className="border-l border-white/10 h-10" />
+                            <div className="text-center">
+                                <span className="mb-1 block text-[10px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Racha Máxima</span>
+                                <span className="font-mono text-3xl tracking-normal" style={{ color: accentColor }}>🔥 {maxGameCombo}</span>
+                                <span className="mt-1 block text-[10px] font-bold uppercase text-orange-500">
+                                    Combo
                                 </span>
                             </div>
                         </div>
@@ -2274,9 +2394,14 @@ export function Mahjong() {
                                         <div className="space-y-1.5">
                                             <span className="block text-center text-[10px] font-bold uppercase tracking-wider text-user-a">Él</span>
                                             {leaderboard.el.length > 0 ? leaderboard.el.slice(0, 3).map((s, i) => (
-                                                <div key={i} className="flex items-center justify-between border border-white/10 bg-[#0a0a0a] px-3 py-1.5 text-xs">
-                                                    <span className="font-mono text-white/35">#{i + 1}</span>
-                                                    <span className="font-mono tabular-nums tracking-normal text-white">{formatTime(s.time_seconds)}</span>
+                                                <div key={i} className="flex items-center justify-between border border-white/10 bg-[#0a0a0a] px-3 py-1.5 text-xs font-mono">
+                                                    <span className="text-white/35">#{i + 1}</span>
+                                                    <div className="flex items-center gap-1.5">
+                                                        <span className="tabular-nums tracking-normal text-white">{formatTime(s.time_seconds)}</span>
+                                                        {s.highest_combo !== undefined && s.highest_combo > 0 && (
+                                                            <span className="text-orange-500 text-[10px] font-bold">🔥{s.highest_combo}</span>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             )) : (
                                                 <p className="text-center text-[10px] italic text-white/30">Sin récords</p>
@@ -2285,9 +2410,14 @@ export function Mahjong() {
                                         <div className="space-y-1.5">
                                             <span className="block text-center text-[10px] font-bold uppercase tracking-wider text-user-b">Ella</span>
                                             {leaderboard.ella.length > 0 ? leaderboard.ella.slice(0, 3).map((s, i) => (
-                                                <div key={i} className="flex items-center justify-between border border-white/10 bg-[#0a0a0a] px-3 py-1.5 text-xs">
-                                                    <span className="font-mono text-white/35">#{i + 1}</span>
-                                                    <span className="font-mono tabular-nums tracking-normal text-white">{formatTime(s.time_seconds)}</span>
+                                                <div key={i} className="flex items-center justify-between border border-white/10 bg-[#0a0a0a] px-3 py-1.5 text-xs font-mono">
+                                                    <span className="text-white/35">#{i + 1}</span>
+                                                    <div className="flex items-center gap-1.5">
+                                                        <span className="tabular-nums tracking-normal text-white">{formatTime(s.time_seconds)}</span>
+                                                        {s.highest_combo !== undefined && s.highest_combo > 0 && (
+                                                            <span className="text-orange-500 text-[10px] font-bold">🔥{s.highest_combo}</span>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             )) : (
                                                 <p className="text-center text-[10px] italic text-white/30">Sin récords</p>
@@ -2309,9 +2439,13 @@ export function Mahjong() {
                                                     {comp.levelLabel}
                                                 </div>
                                                 <div className="flex w-full justify-center gap-3 text-white">
-                                                    <span className="text-user-a font-bold">el lvl {comp.elLvl} {elTimeStr}</span>
+                                                    <span className="text-user-a font-bold">
+                                                        el lvl {comp.elLvl} {elTimeStr} {comp.elCombo > 0 && <span className="text-orange-500 font-bold text-[10px]">🔥{comp.elCombo}</span>}
+                                                    </span>
                                                     <span className="text-white/20">|</span>
-                                                    <span className="text-user-b font-bold">ella lvl {comp.ellaLvl} {ellaTimeStr}</span>
+                                                    <span className="text-user-b font-bold">
+                                                        ella lvl {comp.ellaLvl} {ellaTimeStr} {comp.ellaCombo > 0 && <span className="text-orange-500 font-bold text-[10px]">🔥{comp.ellaCombo}</span>}
+                                                    </span>
                                                 </div>
                                             </div>
                                         );
@@ -2792,7 +2926,286 @@ export function Mahjong() {
                     isMobile={isMobile}
                     ghostSolidIds={ghostSolidIds}
                 />
+
+                {/* Modal para Dibujar */}
+                {drawingModalOpen && (
+                    <DrawingCanvasModal
+                        profile={profile as 'el' | 'ella'}
+                        accentColor={accentColor}
+                        onClose={() => {
+                            setDrawingModalOpen(false);
+                            if (!gameLost && matchedCount < tiles.length) {
+                                setTimerActive(true);
+                            }
+                        }}
+                        onSave={async (dataUrl, caption) => {
+                            const success = await MahjongService.saveDrawing(profile as 'el' | 'ella', dataUrl, caption);
+                            if (success) {
+                                alert('¡Tu dibujo ha sido enviado a tu pareja!');
+                                const target = profile === 'el' ? 'ella' : 'el';
+                                const senderName = profile === 'el' ? 'Santiago' : 'Milena';
+                                NotificationService.addNotification(
+                                    target,
+                                    'drawing_sent',
+                                    `¡${senderName} te ha enviado un dibujo especial! Encuéntralo en tu tablero. 🎨`
+                                ).catch(e => console.error(e));
+                                refreshConnectionFeatures();
+                            }
+                            setDrawingModalOpen(false);
+                            if (!gameLost && matchedCount < tiles.length) {
+                                setTimerActive(true);
+                            }
+                        }}
+                    />
+                )}
+
+                {/* Modal para Revelar Dibujo */}
+                {revealDrawingModalOpen && revealedDrawingData && (
+                    <RevealDrawingModal
+                        data={revealedDrawingData}
+                        onClose={() => {
+                            setRevealDrawingModalOpen(false);
+                            setRevealedDrawingData(null);
+                            if (!gameLost && matchedCount < tiles.length) {
+                                setTimerActive(true);
+                            }
+                        }}
+                    />
+                )}
             </div>
         </div>
     );
 }
+
+interface DrawingCanvasModalProps {
+    profile: 'el' | 'ella';
+    accentColor: string;
+    onClose: () => void;
+    onSave: (dataUrl: string, caption: string) => void;
+}
+
+const DrawingCanvasModal: React.FC<DrawingCanvasModalProps> = ({ profile, accentColor, onClose, onSave }) => {
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const [color, setColor] = useState('#ffffff');
+    const [thickness, setThickness] = useState(4);
+    const [caption, setCaption] = useState('');
+    const isDrawingRef = useRef(false);
+    const lastPosRef = useRef({ x: 0, y: 0 });
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        ctx.fillStyle = '#0a0a0a';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }, []);
+
+    const getCoordinates = (e: React.PointerEvent<HTMLCanvasElement>) => {
+        const canvas = canvasRef.current;
+        if (!canvas) return { x: 0, y: 0 };
+        const rect = canvas.getBoundingClientRect();
+        const x = ((e.clientX - rect.left) / rect.width) * canvas.width;
+        const y = ((e.clientY - rect.top) / rect.height) * canvas.height;
+        return { x, y };
+    };
+
+    const handlePointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
+        e.preventDefault();
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        canvas.setPointerCapture(e.pointerId);
+        
+        isDrawingRef.current = true;
+        const pos = getCoordinates(e);
+        lastPosRef.current = pos;
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y, thickness / 2, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+    };
+
+    const handlePointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
+        if (!isDrawingRef.current) return;
+        e.preventDefault();
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        const pos = getCoordinates(e);
+
+        ctx.beginPath();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = thickness;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.moveTo(lastPosRef.current.x, lastPosRef.current.y);
+        ctx.lineTo(pos.x, pos.y);
+        ctx.stroke();
+
+        lastPosRef.current = pos;
+    };
+
+    const handlePointerUp = (e: React.PointerEvent<HTMLCanvasElement>) => {
+        if (!isDrawingRef.current) return;
+        const canvas = canvasRef.current;
+        if (canvas) {
+            canvas.releasePointerCapture(e.pointerId);
+        }
+        isDrawingRef.current = false;
+    };
+
+    const handleClear = () => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        ctx.fillStyle = '#0a0a0a';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    };
+
+    const handleSend = () => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const dataUrl = canvas.toDataURL('image/png');
+        onSave(dataUrl, caption);
+    };
+
+    return (
+        <div className="fixed inset-0 z-[100099] flex items-center justify-center bg-black/80 p-4 backdrop-blur-md font-mono">
+            <div className="relative w-full max-w-lg border border-purple-500/40 bg-[#0d0914] p-5 shadow-[0_0_40px_rgba(139,92,246,0.25)] flex flex-col">
+                <div className="absolute top-0 left-0 h-3 w-3 border-t-2 border-l-2 border-purple-400" />
+                <div className="absolute top-0 right-0 h-3 w-3 border-t-2 border-r-2 border-purple-400" />
+                <div className="absolute bottom-0 left-0 h-3 w-3 border-b-2 border-l-2 border-purple-400" />
+                <div className="absolute bottom-0 right-0 h-3 w-3 border-b-2 border-r-2 border-purple-400" />
+
+                <h3 className="mb-2 text-xl font-bold uppercase tracking-wider text-purple-400">
+                    Lienzo de Amor 🎨
+                </h3>
+                <p className="mb-4 text-xs leading-relaxed text-slate-400">
+                    ¡Dibuja algo especial para tu pareja! Tu dibujo aparecerá en su tablero de juego hoy.
+                </p>
+
+                <div className="relative w-full border border-purple-500/20 bg-black overflow-hidden flex justify-center items-center">
+                    <canvas
+                        ref={canvasRef}
+                        width={400}
+                        height={300}
+                        className="touch-none cursor-crosshair max-w-full"
+                        onPointerDown={handlePointerDown}
+                        onPointerMove={handlePointerMove}
+                        onPointerUp={handlePointerUp}
+                    />
+                </div>
+
+                <div className="mt-4 flex flex-wrap gap-4 items-center justify-between">
+                    <div className="flex gap-2">
+                        {['#ffffff', '#ef4444', '#3b82f6', '#eab308', '#22c55e', '#d946ef'].map((c) => (
+                            <button
+                                key={c}
+                                onClick={() => setColor(c)}
+                                className={`w-6 h-6 border transition-all ${color === c ? 'border-white scale-110' : 'border-transparent hover:scale-105'}`}
+                                style={{ backgroundColor: c }}
+                            />
+                        ))}
+                    </div>
+
+                    <div className="flex items-center gap-2 text-xs text-white">
+                        <span>Grosor:</span>
+                        {[2, 4, 8, 14].map((t) => (
+                            <button
+                                key={t}
+                                onClick={() => setThickness(t)}
+                                className={`px-2 py-0.5 border ${thickness === t ? 'border-purple-400 text-purple-400' : 'border-white/10 text-white/50 hover:bg-white/5'}`}
+                            >
+                                {t === 2 ? 'Fino' : t === 4 ? 'Med' : t === 8 ? 'Grueso' : 'Max'}
+                            </button>
+                        ))}
+                    </div>
+
+                    <button
+                        onClick={handleClear}
+                        className="px-3 py-1 border border-red-500/30 text-red-400 text-xs uppercase tracking-wider hover:bg-red-500/10 transition-all"
+                    >
+                        Limpiar
+                    </button>
+                </div>
+
+                <input
+                    type="text"
+                    value={caption}
+                    onChange={(e) => setCaption(e.target.value)}
+                    placeholder="Escribe un mensaje o dedicatoria aquí... (opcional)"
+                    className="w-full mt-4 border border-purple-500/20 bg-black/50 p-2.5 text-xs text-white focus:border-purple-500 focus:outline-none placeholder:text-purple-900/60"
+                />
+
+                <div className="mt-5 flex gap-3">
+                    <button
+                        onClick={handleSend}
+                        className="flex-1 bg-purple-600 py-2.5 text-xs font-black uppercase tracking-wider text-white hover:bg-purple-500 active:scale-95 transition-all"
+                    >
+                        Enviar Dibujo 🎨
+                    </button>
+                    <button
+                        onClick={onClose}
+                        className="border border-white/10 px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-slate-400 hover:bg-white/5 active:scale-95 transition-all"
+                    >
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+interface RevealDrawingModalProps {
+    data: { sender: string; image: string; caption: string };
+    onClose: () => void;
+}
+
+const RevealDrawingModal: React.FC<RevealDrawingModalProps> = ({ data, onClose }) => {
+    return (
+        <div className="fixed inset-0 z-[100099] flex items-center justify-center bg-black/85 p-4 backdrop-blur-md font-mono">
+            <div className="relative w-full max-w-md border border-purple-500/40 bg-[#0d0914] p-6 shadow-[0_0_40px_rgba(139,92,246,0.3)] flex flex-col items-center">
+                <div className="absolute top-0 left-0 h-3 w-3 border-t-2 border-l-2 border-purple-400" />
+                <div className="absolute top-0 right-0 h-3 w-3 border-t-2 border-r-2 border-purple-400" />
+                <div className="absolute bottom-0 left-0 h-3 w-3 border-b-2 border-l-2 border-purple-400" />
+                <div className="absolute bottom-0 right-0 h-3 w-3 border-b-2 border-r-2 border-purple-400" />
+
+                <h3 className="mb-1 text-lg font-bold uppercase tracking-wider text-purple-400 text-center">
+                    Dibujo de {data.sender} 🖼️
+                </h3>
+                <span className="mb-4 text-[10px] text-slate-500 uppercase tracking-widest">
+                    Regalo Especial de Hoy
+                </span>
+
+                <div className="relative w-full border border-purple-500/20 bg-black aspect-[4/3] p-1 flex justify-center items-center">
+                    {data.image ? (
+                        <img
+                            src={data.image}
+                            alt="Dibujo de amor"
+                            className="w-full h-full object-contain"
+                        />
+                    ) : (
+                        <div className="text-slate-600 text-xs italic">No se pudo cargar el dibujo</div>
+                    )}
+                </div>
+
+                <p className="w-full mt-4 text-center text-xs leading-relaxed text-purple-200 border-t border-purple-500/10 pt-4 italic">
+                    "{data.caption}"
+                </p>
+
+                <button
+                    onClick={onClose}
+                    className="w-full mt-6 bg-purple-600 py-2.5 text-xs font-black uppercase tracking-[0.15em] text-white hover:bg-purple-500 active:scale-95 transition-all"
+                >
+                    Cerrar Dibujo ✨
+                </button>
+            </div>
+        </div>
+    );
+};
