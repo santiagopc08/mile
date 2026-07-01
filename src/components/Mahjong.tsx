@@ -1016,7 +1016,13 @@ export function Mahjong() {
                 });
 
                 const myLevelScores = parsedLevelScores.filter(s => s.profile === pKey && s.parsedLevel === level);
-                const bestTimeForLevel = myLevelScores.length > 0 ? Math.min(...myLevelScores.map(s => s.time_seconds)) : null;
+                // ⚡ Bolt Optimization: Calculate best time in single O(N) pass instead of mapping and spreading Math.min
+                let bestTimeForLevel: number | null = null;
+                for (const s of myLevelScores) {
+                    if (bestTimeForLevel === null || s.time_seconds < bestTimeForLevel) {
+                        bestTimeForLevel = s.time_seconds;
+                    }
+                }
                 const isRecord = bestTimeForLevel === null || time < bestTimeForLevel;
                 setIsNewRecord(isRecord);
 
@@ -1049,22 +1055,29 @@ export function Mahjong() {
     const containerRef = useRef<HTMLDivElement>(null);
     const [scale, setScale] = useState(1);
 
-    const boardSpanX = useMemo(() => {
-        if (tiles.length === 0) return 18;
-        const xs = tiles.map(t => t.x);
-        return Math.max(...xs) - Math.min(...xs);
-    }, [tiles]);
+    // ⚡ Bolt Optimization: Calculate board bounds in a single O(N) pass instead of multiple map+Math.max loops
+    const { boardSpanX, boardSpanY, centerX } = useMemo(() => {
+        if (tiles.length === 0) {
+            return { boardSpanX: 18, boardSpanY: 14, centerX: 9 };
+        }
 
-    const boardSpanY = useMemo(() => {
-        if (tiles.length === 0) return 14;
-        const ys = tiles.map(t => t.y);
-        return Math.max(...ys) - Math.min(...ys);
-    }, [tiles]);
+        let minX = Infinity;
+        let maxX = -Infinity;
+        let minY = Infinity;
+        let maxY = -Infinity;
 
-    const centerX = useMemo(() => {
-        if (tiles.length === 0) return 9;
-        const xs = tiles.map(t => t.x);
-        return (Math.min(...xs) + Math.max(...xs)) / 2;
+        for (const t of tiles) {
+            if (t.x < minX) minX = t.x;
+            if (t.x > maxX) maxX = t.x;
+            if (t.y < minY) minY = t.y;
+            if (t.y > maxY) maxY = t.y;
+        }
+
+        return {
+            boardSpanX: maxX - minX,
+            boardSpanY: maxY - minY,
+            centerX: (minX + maxX) / 2
+        };
     }, [tiles]);
 
     useEffect(() => {
@@ -1945,12 +1958,20 @@ export function Mahjong() {
             }
 
             const elScores = parsedLevelScores.filter(s => s.profile === 'el' && s.parsedLevel === elLvl);
-            const elTime = elScores.length > 0 ? Math.min(...elScores.map(s => s.time_seconds)) : null;
-            const elCombo = elScores.length > 0 ? Math.max(...elScores.map(s => s.highest_combo || 0)) : 0;
+            let elTime: number | null = null;
+            let elCombo = 0;
+            for (const s of elScores) {
+                if (elTime === null || s.time_seconds < elTime) elTime = s.time_seconds;
+                if ((s.highest_combo || 0) > elCombo) elCombo = s.highest_combo || 0;
+            }
 
             const ellaScores = parsedLevelScores.filter(s => s.profile === 'ella' && s.parsedLevel === ellaLvl);
-            const ellaTime = ellaScores.length > 0 ? Math.min(...ellaScores.map(s => s.time_seconds)) : null;
-            const ellaCombo = ellaScores.length > 0 ? Math.max(...ellaScores.map(s => s.highest_combo || 0)) : 0;
+            let ellaTime: number | null = null;
+            let ellaCombo = 0;
+            for (const s of ellaScores) {
+                if (ellaTime === null || s.time_seconds < ellaTime) ellaTime = s.time_seconds;
+                if ((s.highest_combo || 0) > ellaCombo) ellaCombo = s.highest_combo || 0;
+            }
 
             comparisons.push({
                 levelLabel: offset === 0 ? 'Nivel Actual' : `Nivel ${currentWinnerLvl}`,

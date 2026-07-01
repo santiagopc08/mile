@@ -244,16 +244,28 @@ export const StoreService = {
                 ? supabase.from('event_comments').select('*').order('created_at', { ascending: true })
                 : Promise.resolve({ data: null });
 
+            // Daily Tracking Logic setup
+            const timeZoneOffset = (new Date()).getTimezoneOffset() * 60000;
+            const localDate = new Date(Date.now() - timeZoneOffset);
+            const todayStr = localDate.toISOString().split('T')[0];
+            const yesterdayDate = new Date(localDate.getTime() - 24 * 60 * 60 * 1000);
+            const yesterdayStr = yesterdayDate.toISOString().split('T')[0];
+
+            // ⚡ Bolt Optimization: Move daily_tracking query into the main Promise.all to prevent a waterfall request
+            const trackingPromise = shouldFetch('daily_tracking')
+                ? supabase.from('daily_tracking').select('*').in('date', [todayStr, yesterdayStr])
+                : Promise.resolve({ data: null });
+
             const [
                 eventsRes, notesRes, commitmentsRes, victoriesRes, settingsRes,
                 listeningRes, tasksRes, wishlistRes,
                 objectivesRes, contribRes, reactionsRes, activityRes, habitsRes,
-                allocationsRes, eventCommentsRes
+                allocationsRes, eventCommentsRes, trackingRes
             ] = await Promise.all([
                 eventsPromise, notesPromise, commitmentsPromise, victoriesPromise, settingsPromise,
                 listeningPromise, tasksPromise, wishlistPromise,
                 objectivesPromise, contribPromise, reactionsPromise, activityPromise, habitsPromise,
-                allocationsPromise, eventCommentsPromise
+                allocationsPromise, eventCommentsPromise, trackingPromise
             ]);
 
             const settings = settingsRes?.data || { connection_date: new Date().toISOString(), last_update: new Date().toISOString() };
@@ -265,19 +277,7 @@ export const StoreService = {
 
             const finalCommitments = commitmentsRes?.data || [];
 
-            // Daily Tracking Logic
-            const timeZoneOffset = (new Date()).getTimezoneOffset() * 60000;
-            const localDate = new Date(Date.now() - timeZoneOffset);
-            const todayStr = localDate.toISOString().split('T')[0];
-
-            const yesterdayDate = new Date(localDate.getTime() - 24 * 60 * 60 * 1000);
-            const yesterdayStr = yesterdayDate.toISOString().split('T')[0];
-
-            let trackingData: any[] = [];
-            if (shouldFetch('daily_tracking')) {
-                const trackingRes = await supabase.from('daily_tracking').select('*').in('date', [todayStr, yesterdayStr]);
-                trackingData = trackingRes.data || [];
-            }
+            let trackingData: any[] = trackingRes?.data || [];
 
             // ⚡ Bolt Optimization: Replace O(N) array finds with a single O(N) pass mapping by date
             const trackingByDate: Record<string, typeof trackingData[0]> = {};
