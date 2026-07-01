@@ -89,19 +89,9 @@ export function GeospatialPlanTracker() {
   // Calculate map center from locations or default to Bogotá
   const mapCenter = useMemo(() => {
     if (locations.length === 0) return { lat: 6.2442, lng: -75.5812 };
-
-    // ⚡ Bolt Optimization: Single O(N) pass replacing multiple .reduce() iterations
-    let sumLat = 0;
-    let sumLng = 0;
-    for (const l of locations) {
-      sumLat += l.latitud;
-      sumLng += l.longitud;
-    }
-
-    return {
-      lat: sumLat / locations.length,
-      lng: sumLng / locations.length
-    };
+    const avgLat = locations.reduce((sum, l) => sum + l.latitud, 0) / locations.length;
+    const avgLng = locations.reduce((sum, l) => sum + l.longitud, 0) / locations.length;
+    return { lat: avgLat, lng: avgLng };
   }, [locations]);
 
   if (!GOOGLE_MAPS_API_KEY) {
@@ -209,16 +199,8 @@ function LocationLists({ locations, onSelect }: {
   locations: Ubicacion[],
   onSelect: (id: string) => void
 }) {
-  // ⚡ Bolt Optimization: Replace multiple .filter() passes with single O(N) useMemo loop
-  const { toVisitList, visitedList } = useMemo(() => {
-    const toVisit: Ubicacion[] = [];
-    const visited: Ubicacion[] = [];
-    for (const l of locations) {
-      if (l.status === 'to-visit') toVisit.push(l);
-      else if (l.status === 'visited') visited.push(l);
-    }
-    return { toVisitList: toVisit, visitedList: visited };
-  }, [locations]);
+  const toVisitList = locations.filter(l => l.status === 'to-visit');
+  const visitedList = locations.filter(l => l.status === 'visited');
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-8">
