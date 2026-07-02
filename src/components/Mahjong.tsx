@@ -265,18 +265,21 @@ function generateCoordinates(type: LayoutType, target: number) {
         }
 
         // Fill remaining coordinates to reach exactly `target`
-        let fillIdx = 0;
-        let safety = 0;
-        while (coords.length < target && safety < 3000) {
-            const x = (fillIdx % (width / 2)) * 2;
-            const y = Math.floor(fillIdx / (width / 2)) * 2;
-            const key = `${x},${y},0`;
-            if (!coordSet.has(key)) {
-                coordSet.add(key);
-                coords.push({ x, y, z: 0 });
+        for (let z = 0; z < maxLayers; z++) {
+            for (let y = 0; y < height; y += 2) {
+                for (let x = 0; x < width; x += 2) {
+                    if (coords.length >= target) break;
+                    const key = `${x},${y},${z}`;
+                    if (!coordSet.has(key)) {
+                        if (z === 0 || coordSet.has(`${x},${y},${z - 1}`)) {
+                            coordSet.add(key);
+                            coords.push({ x, y, z });
+                        }
+                    }
+                }
+                if (coords.length >= target) break;
             }
-            fillIdx++;
-            safety++;
+            if (coords.length >= target) break;
         }
         return coords.slice(0, target);
     }
@@ -871,6 +874,7 @@ export function Mahjong() {
     };
 
     const handleStartDailyGame = async () => {
+        requestGameFullscreen();
         if (!profile) return;
         const dateStr = getLocalDateString();
         const success = await MahjongService.startDailyPuzzle(profile as 'el' | 'ella', dateStr);
@@ -1105,6 +1109,20 @@ export function Mahjong() {
         };
     }, [isMobile, boardSpanX, tiles]);
 
+
+    const requestGameFullscreen = () => {
+        if (typeof window !== 'undefined') {
+            const container = containerRef.current || document.documentElement;
+            if (container && !document.fullscreenElement) {
+                if (typeof container.requestFullscreen === 'function') {
+                    container.requestFullscreen().catch(() => {});
+                } else if (typeof (container as any).webkitRequestFullscreen === 'function') {
+                    (container as any).webkitRequestFullscreen();
+                }
+            }
+        }
+    };
+
     const getDailyEvent = async () => {
         try {
             const today = new Date();
@@ -1259,6 +1277,7 @@ export function Mahjong() {
     };
 
     const handleStartCoopGame = async (selectedLayout: LayoutType) => {
+        requestGameFullscreen();
         setIsLoaded(false);
         const mobileState = window.innerWidth <= 768;
         const images = await MahjongService.getMahjongImages();
@@ -1617,7 +1636,11 @@ export function Mahjong() {
         if (typeof window !== 'undefined') {
             const container = containerRef.current || document.documentElement;
             if (container && !document.fullscreenElement) {
-                container.requestFullscreen().catch(() => {});
+                if (typeof container.requestFullscreen === 'function') {
+                    container.requestFullscreen().catch(() => {});
+                } else if (typeof (container as any).webkitRequestFullscreen === 'function') {
+                    (container as any).webkitRequestFullscreen();
+                }
             }
         }
 
@@ -2022,6 +2045,7 @@ export function Mahjong() {
                     onClick={() => {
                         setGameMode('solo');
                         setIsLoaded(false);
+                        requestGameFullscreen();
                     }}
                     className={`px-3 py-1.5 transition-all ${gameMode === 'solo' ? 'bg-white/10 text-white font-bold' : 'text-white/40 hover:text-white/75'}`}
                 >
@@ -2046,6 +2070,7 @@ export function Mahjong() {
                     onClick={() => {
                         setGameMode('daily');
                         setIsLoaded(false);
+                        requestGameFullscreen();
                     }}
                     className={`px-3 py-1.5 transition-all ${gameMode === 'daily' ? 'bg-white/10 text-white font-bold' : 'text-white/40 hover:text-white/75'}`}
                 >
