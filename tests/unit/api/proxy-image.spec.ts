@@ -80,4 +80,21 @@ test.describe('Proxy Image API Security', () => {
         expect(res.status).toBe(200);
         expect(res.headers.get('Content-Type')).toBe('image/jpeg');
     });
+    test('should handle fetch errors gracefully', async () => {
+        const originalConsoleError = console.error;
+        console.error = () => {};
+        try {
+            global.fetch = async () => {
+                throw new Error('Test fetch error');
+            };
+            const req = createRequest('https://example.com/image.jpg');
+            const res = await GET(req);
+
+            expect(res.status).toBe(500);
+            const text = await res.text();
+            expect(text).toBe('Error proxying image');
+        } finally {
+            console.error = originalConsoleError;
+        }
+    });
 });
