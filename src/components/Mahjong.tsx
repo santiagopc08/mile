@@ -579,6 +579,7 @@ export function Mahjong() {
         return layouts[Math.floor(Math.random() * layouts.length)];
     });
     const [isLoaded, setIsLoaded] = useState(false);
+    const [hasStarted, setHasStarted] = useState(false);
     const [matchedCount, setMatchedCount] = useState(0);
     const [isMobile, setIsMobile] = useState(false);
     const [initialDeal, setInitialDeal] = useState<TileState[] | null>(null);
@@ -1274,6 +1275,7 @@ export function Mahjong() {
         setScoreSaved(false);
         setIsNewRecord(false);
         setIsLoaded(true);
+        setHasStarted(false);
     };
 
     const handleStartCoopGame = async (selectedLayout: LayoutType) => {
@@ -1366,6 +1368,7 @@ export function Mahjong() {
             setScoreSaved(false);
             setIsNewRecord(false);
             setIsLoaded(true);
+        setHasStarted(false);
         }
     };
 
@@ -1400,6 +1403,7 @@ export function Mahjong() {
         setScoreSaved(false);
         setIsNewRecord(false);
         setIsLoaded(true);
+        setHasStarted(false);
     };
 
     const initializeGame = async (layoutParam?: LayoutType) => {
@@ -1410,6 +1414,7 @@ export function Mahjong() {
             } else {
                 setActiveCoopGame(null);
                 setIsLoaded(true);
+        setHasStarted(false);
             }
             return;
         }
@@ -1548,6 +1553,7 @@ export function Mahjong() {
         setScoreSaved(false);
         setIsNewRecord(false);
         setIsLoaded(true);
+        setHasStarted(false);
     };
 
     useEffect(() => {
@@ -2964,6 +2970,22 @@ export function Mahjong() {
 
                 <div className="h-6" />
 
+
+                {isLoaded && !hasStarted && (
+                    <div className="absolute inset-0 z-[1000] flex items-center justify-center bg-black/80 backdrop-blur-sm">
+                        <button
+                            onClick={() => {
+                                requestGameFullscreen();
+                                setHasStarted(true);
+                                setTimerActive(true);
+                            }}
+                            className="bg-purple-600 px-8 py-4 text-xl font-black uppercase tracking-[0.2em] text-white hover:bg-purple-500 active:scale-95 transition-all shadow-[0_0_30px_rgba(139,92,246,0.6)] hover:shadow-[0_0_50px_rgba(139,92,246,0.8)] border border-purple-400"
+                        >
+                            INICIAR JUEGO 🀄
+                        </button>
+                    </div>
+                )}
+
                 <MahjongCanvas
                     tiles={tiles}
                     freeTilesMap={freeTilesMap}
@@ -2971,6 +2993,7 @@ export function Mahjong() {
                     onTilePointerDown={handleTilePointerDown}
                     isMobile={isMobile}
                     ghostSolidIds={ghostSolidIds}
+                    hasStarted={hasStarted}
                 />
 
                 {/* Modal para Dibujar */}
