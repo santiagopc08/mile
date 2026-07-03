@@ -1009,25 +1009,25 @@ export function Mahjong() {
             } else {
                 const pKey = profile as 'el' | 'ella';
 
-                // Parse scores to find our best time at the current level
-                const parsedLevelScores = allScores.filter(s => s.layout !== 'daily').map(score => {
+                // ⚡ Bolt Optimization: Calculate best time in single O(N) pass instead of multiple intermediate map/filter arrays
+                let bestTimeForLevel: number | null = null;
+                for (const score of allScores) {
+                    if (score.layout === 'daily' || score.profile !== pKey) continue;
+
                     let parsedLevel = 1;
                     if (score.layout && score.layout.includes(':')) {
                         parsedLevel = parseInt(score.layout.split(':')[1], 10) || 1;
                     } else {
                         parsedLevel = score.tile_count === 96 ? 3 : score.tile_count === 88 ? 2 : 1;
                     }
-                    return { ...score, parsedLevel };
-                });
 
-                const myLevelScores = parsedLevelScores.filter(s => s.profile === pKey && s.parsedLevel === level);
-                // ⚡ Bolt Optimization: Calculate best time in single O(N) pass instead of mapping and spreading Math.min
-                let bestTimeForLevel: number | null = null;
-                for (const s of myLevelScores) {
-                    if (bestTimeForLevel === null || s.time_seconds < bestTimeForLevel) {
-                        bestTimeForLevel = s.time_seconds;
+                    if (parsedLevel === level) {
+                        if (bestTimeForLevel === null || score.time_seconds < bestTimeForLevel) {
+                            bestTimeForLevel = score.time_seconds;
+                        }
                     }
                 }
+
                 const isRecord = bestTimeForLevel === null || time < bestTimeForLevel;
                 setIsNewRecord(isRecord);
 

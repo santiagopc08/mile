@@ -83,7 +83,8 @@ test.describe('MahjongService', () => {
                             profile: 'el',
                             time_seconds: 120,
                             layout: 'classic',
-                            tile_count: 144
+                            tile_count: 144,
+                            highest_combo: 0
                         });
                         return Promise.resolve();
                     }
