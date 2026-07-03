@@ -17,3 +17,7 @@
 ## 2026-07-03 - Optimize intermediate chained map/filter arrays
 **Learning:** In React useEffects tracking state changes like game completions, calculating derived results using chained `.filter().map().filter()` on potentially large arrays creates substantial temporary memory allocations and repeats O(N) operations.
 **Action:** Replace intermediate array chaining with a single O(N) `for...of` pass containing early exits (`continue`) and incremental aggregations.
+
+## 2024-05-18 - Optimize React State Deletion
+**Learning:** While using a `Map` or `Object` conceptually provides O(1) deletion, doing so in React state still requires copying the entire Map or Object (`new Map(prev)` or `{...prev}`) to maintain immutability and trigger re-renders. In V8 (Node/Chrome), copying these structures is an O(N) operation that is significantly slower and more memory intensive than simply cloning an array and splicing out the element at the target index.
+**Action:** When optimizing deletion in React array state, prefer finding the index (`findIndex`) and replacing/splicing on a shallow array clone (`const next = [...prev]; next.splice(idx, 1);`) instead of restructuring the entire state to an Object/Map or using `.filter()`.
