@@ -359,9 +359,10 @@ interface MahjongCanvasProps {
     onTilePointerDown: (id: string) => void;
     isMobile: boolean;
     ghostSolidIds?: Set<string>;
+    hasStarted: boolean;
 }
 
-export function MahjongCanvas({ tiles, freeTilesMap, dockIds, onTilePointerDown, isMobile, ghostSolidIds }: MahjongCanvasProps) {
+export function MahjongCanvas({ tiles, freeTilesMap, dockIds, onTilePointerDown, isMobile, ghostSolidIds, hasStarted }: MahjongCanvasProps) {
     const { profile } = useProfile();
     const [explosions, setExplosions] = useState<{ id: string; pos: [number, number, number]; color: string }[]>([]);
     const prevMatchedIdsRef = useRef<Set<string>>(new Set());
@@ -488,12 +489,12 @@ export function MahjongCanvas({ tiles, freeTilesMap, dockIds, onTilePointerDown,
                 <DockSlots dockY={dockY} accentColor={rawAccentColor} />
 
                 {/* Iluminación Estética */}
-                <ambientLight intensity={0.45} />
+                <ambientLight intensity={0.65} />
 
                 {/* Luz Principal (Sombras dinámicas) */}
                 <directionalLight
-                    position={[4.2, 9, 8.5]}
-                    intensity={1.65}
+                    position={[2, 14, 4]}
+                    intensity={1.2}
                     castShadow
                     shadow-mapSize-width={1024}
                     shadow-mapSize-height={1024}
@@ -508,7 +509,7 @@ export function MahjongCanvas({ tiles, freeTilesMap, dockIds, onTilePointerDown,
                 {/* Luz de Contorno / Relleno Púrpura */}
                 <directionalLight
                     position={[-5, -4, 4]}
-                    intensity={0.4}
+                    intensity={0.6}
                     color={profile === 'ella' ? '#ff8fb2' : '#d2f960'}
                 />
 
@@ -526,6 +527,7 @@ export function MahjongCanvas({ tiles, freeTilesMap, dockIds, onTilePointerDown,
                             dockIds={dockIds}
                             onSelect={onTilePointerDown}
                             isGhostSolid={tile.isGhost ? ghostSolidIds?.has(tile.id) : undefined}
+                        hasStarted={hasStarted}
                         />
                     ))}
                 </group>

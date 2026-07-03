@@ -157,7 +157,7 @@ function useTileTexture(tile: TileState, accentColor: string, mirrorVariant?: 'f
                 ctx.shadowBlur = 0; // Reset
             } else {
                 if (tile.content.type === 'bottle_message') {
-                    ctx.font = 'bold 92px sans-serif';
+                    ctx.font = 'bold 120px sans-serif';
                     ctx.fillText('🍾', 128, 128);
                 } else if (tile.content.type === 'drawing_tile') {
                     ctx.font = 'bold 92px sans-serif';
@@ -184,17 +184,17 @@ function useTileTexture(tile: TileState, accentColor: string, mirrorVariant?: 'f
                             const windChars = ["東", "南", "西", "北"];
                             const windStr = windChars[code - 0x1F000];
                             ctx.fillStyle = accentColor;
-                            ctx.font = 'bold 115px sans-serif';
+                            ctx.font = 'bold 140px sans-serif';
                             ctx.fillText(windStr, 128, 128);
                         } else if (code === 0x1F004) {
                             // Red Dragon: 🀄 (中)
                             ctx.fillStyle = '#ff4b4b';
-                            ctx.font = 'bold 120px sans-serif';
+                            ctx.font = 'bold 140px sans-serif';
                             ctx.fillText('中', 128, 128);
                         } else if (code === 0x1F005) {
                             // Green Dragon: 🀅 (發)
                             ctx.fillStyle = '#39ff14';
-                            ctx.font = 'bold 120px sans-serif';
+                            ctx.font = 'bold 140px sans-serif';
                             ctx.fillText('發', 128, 128);
                         } else if (code === 0x1F006) {
                             // White Dragon: 🀆
@@ -217,7 +217,7 @@ function useTileTexture(tile: TileState, accentColor: string, mirrorVariant?: 'f
                             // Bamboos: 🀐 (1) to 🀘 (9)
                             const count = code - 0x1F010 + 1;
                             if (count === 1) {
-                                ctx.font = 'bold 95px sans-serif';
+                                ctx.font = 'bold 140px sans-serif';
                                 ctx.fillText('🦚', 128, 128);
                             } else {
                                 const drawStick = (sx: number, sy: number, sw: number, sh: number, color: string) => {
@@ -286,9 +286,14 @@ function useTileTexture(tile: TileState, accentColor: string, mirrorVariant?: 'f
                                     }
                                 }
                             }
-                        } else if (code >= 0x1F019 && code <= 0x1F021) {
+                        ctx.restore();
+                            } else if (code >= 0x1F019 && code <= 0x1F021) {
                             // Dots (Circles): 🀙 (1) to 🀡 (9)
                             const count = code - 0x1F019 + 1;
+                            ctx.save();
+                            ctx.translate(128, 128);
+                            ctx.scale(1.4, 1.4);
+                            ctx.translate(-128, -128);
                             const drawDot = (cx: number, cy: number, r: number, color: string) => {
                                 ctx.fillStyle = color;
                                 ctx.beginPath();
@@ -354,18 +359,19 @@ function useTileTexture(tile: TileState, accentColor: string, mirrorVariant?: 'f
                                     drawDot(181, 65 + r * 63, 16, blue);
                                 }
                             }
+                        ctx.restore();
                         } else if (code >= 0x1F022 && code <= 0x1F029) {
                             const flowerEmojis: Record<number, string> = {
                                 0x1F022: "🌸", 0x1F023: "☀️", 0x1F024: "🍁", 0x1F025: "❄️",
                                 0x1F026: "🌺", 0x1F027: "🪻", 0x1F028: "🎋", 0x1F029: "🌼"
                             };
                             const flEmoji = flowerEmojis[code] || emoji;
-                            ctx.font = 'bold 95px sans-serif';
+                            ctx.font = 'bold 130px sans-serif';
                             ctx.fillText(flEmoji, 128, 128);
                         }
                     } else {
                         ctx.fillStyle = '#ffffff';
-                        ctx.font = 'bold 92px sans-serif';
+                        ctx.font = 'bold 120px sans-serif';
                         ctx.fillText(emoji, 128, 128);
                     }
                 }
@@ -503,7 +509,7 @@ function useTileTexture(tile: TileState, accentColor: string, mirrorVariant?: 'f
                 drawBordersAndTicks(isGolden);
 
                 ctx.fillStyle = isGolden ? '#937500' : '#e74c3c';
-                ctx.font = 'bold 120px sans-serif';
+                ctx.font = 'bold 140px sans-serif';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillText(isGolden ? '✨' : '🖼️', 128, 128);
@@ -542,9 +548,10 @@ interface Tile3DProps {
     dockIds: string[];
     onSelect: (id: string) => void;
     isGhostSolid?: boolean;
+    hasStarted: boolean;
 }
 
-export function Tile3D({ tile, isFree, centerX, centerY, boardY, dockY, dockIds, onSelect, isGhostSolid }: Tile3DProps) {
+export function Tile3D({ tile, isFree, centerX, centerY, boardY, dockY, dockIds, onSelect, isGhostSolid, hasStarted }: Tile3DProps) {
     const { profile } = useProfile();
     const meshRef = useRef<THREE.Group>(null);
     const frontMeshRef = useRef<THREE.Mesh>(null);
@@ -562,7 +569,7 @@ export function Tile3D({ tile, isFree, centerX, centerY, boardY, dockY, dockIds,
     // Spacing ajustado matemáticamente a 0.49 en X y 0.53 en Y para mantener un espaciado brutalista perfecto
     const spacingX = 0.49;
     const spacingY = 0.53;
-    const spacingZ = 0.24;
+    const spacingZ = 0.46;
 
     // Calcular posición base en el tablero
     const posX = (tile.x - centerX) * spacingX;
@@ -589,6 +596,25 @@ export function Tile3D({ tile, isFree, centerX, centerY, boardY, dockY, dockIds,
     }
 
     // Animación suave usando LERP por frame
+
+    const isFirstRender = useRef(true);
+    useEffect(() => {
+        if (meshRef.current && !hasStarted && isFirstRender.current) {
+            isFirstRender.current = false;
+            // Set starting position high up
+            meshRef.current.position.set(
+                posX + (Math.random() - 0.5) * 8,
+                posY + (Math.random() - 0.5) * 8,
+                baseZ + 20 + Math.random() * 10
+            );
+            meshRef.current.rotation.set(
+                Math.random() * Math.PI,
+                Math.random() * Math.PI,
+                Math.random() * Math.PI
+            );
+        }
+    }, [hasStarted, posX, posY, baseZ]);
+
     useFrame((state, delta) => {
         if (!meshRef.current) return;
 
@@ -717,9 +743,9 @@ export function Tile3D({ tile, isFree, centerX, centerY, boardY, dockY, dockIds,
             <mesh
                 castShadow={!isBlackSpot}
                 receiveShadow={!isBlackSpot}
-                position={[0, 0, -0.06]}
+                position={[0, 0, -0.1]}
             >
-                <boxGeometry args={[0.96, 1.04, 0.12]} />
+                <boxGeometry args={[0.96, 1.04, 0.20]} />
                 <meshStandardMaterial
                     color={isBlackSpot ? '#000000' : (isGolden ? '#ffd700' : isBright ? backColor : '#323232')}
                     roughness={isBlackSpot ? 1.0 : (isGolden ? 0.15 : 0.3)}
@@ -735,9 +761,9 @@ export function Tile3D({ tile, isFree, centerX, centerY, boardY, dockY, dockIds,
                 ref={frontMeshRef}
                 castShadow={!isBlackSpot}
                 receiveShadow={!isBlackSpot}
-                position={[0, 0, 0.09]}
+                position={[0, 0, 0.12]}
             >
-                <boxGeometry args={[0.90, 0.98, 0.18]} />
+                <boxGeometry args={[0.90, 0.98, 0.24]} />
                 
                 {/* Laterales (Índices 0-3): Cerámica carbón brutalista u oro metálico */}
                 <meshStandardMaterial
