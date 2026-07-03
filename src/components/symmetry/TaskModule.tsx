@@ -75,6 +75,16 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
     return statsMap;
   }, [tasks, visibleObjectives]);
 
+  // ⚡ Bolt Optimization: Pre-calculate map lookups outside the render loop
+  const visibleObjectivesWithStats = useMemo(() => {
+    return visibleObjectives.map(obj => {
+      const stats = objectiveStats.get(obj.id) || { taskCount: 0, pendingCount: 0, totalEst: 0, totalAct: 0 };
+      const completedCount = stats.taskCount - stats.pendingCount;
+      const objColor = obj.author === 'ella' ? 'user-a' : 'user-b';
+      return { obj, stats, completedCount, objColor };
+    });
+  }, [visibleObjectives, objectiveStats]);
+
   const [newObjective, setNewObjective] = useState('');
   const [newObjectiveAuthor, setNewObjectiveAuthor] = useState<'el' | 'ella'>(profile || 'el');
 
@@ -277,12 +287,7 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
-            {visibleObjectives.map(obj => {
-              const stats = objectiveStats.get(obj.id) || { taskCount: 0, pendingCount: 0, totalEst: 0, totalAct: 0 };
-              const completedCount = stats.taskCount - stats.pendingCount;
-
-              const objColor = obj.author === 'ella' ? 'user-a' : 'user-b';
-
+            {visibleObjectivesWithStats.map(({ obj, stats, completedCount, objColor }) => {
               return (
                 <div key={obj.id} className={`flex flex-col gap-1 border px-2 py-[2px] transition-all ${obj.is_complete ? 'border-emerald-500 bg-emerald-500/5 opacity-50' : `border-${objColor}/30 bg-${objColor}/5`}`}>
                   <div className="flex items-center gap-2">

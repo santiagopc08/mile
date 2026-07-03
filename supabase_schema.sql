@@ -159,3 +159,20 @@ ALTER TABLE blood_pressure ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Auth Full Access Blood Pressure" ON blood_pressure FOR ALL TO authenticated USING (auth.jwt() ->> 'email' IN ('el@mile.app', 'ella@mile.app')) WITH CHECK (auth.jwt() ->> 'email' IN ('el@mile.app', 'ella@mile.app'));
 
 
+-- Table for Device Tokens
+CREATE TABLE IF NOT EXISTS device_tokens (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL,
+    token UUID NOT NULL UNIQUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE device_tokens ENABLE ROW LEVEL SECURITY;
+-- For device_tokens, it should only be accessible for auth verifying maybe
+-- Or since it's just 'el' and 'ella', they can have access. But really this is just an internal table for server verification.
+-- But using RLS might not be needed if accessed via service role.
+-- But for consistency:
+CREATE POLICY "Auth Full Access Device Tokens" ON device_tokens FOR ALL TO authenticated USING (auth.jwt() ->> 'email' IN ('el@mile.app', 'ella@mile.app')) WITH CHECK (auth.jwt() ->> 'email' IN ('el@mile.app', 'ella@mile.app'));
+
+CREATE INDEX IF NOT EXISTS device_tokens_token_idx ON device_tokens(token);
+CREATE INDEX IF NOT EXISTS device_tokens_user_id_idx ON device_tokens(user_id);
