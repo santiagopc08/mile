@@ -17,3 +17,10 @@
 ## 2026-07-03 - Optimize intermediate chained map/filter arrays
 **Learning:** In React useEffects tracking state changes like game completions, calculating derived results using chained `.filter().map().filter()` on potentially large arrays creates substantial temporary memory allocations and repeats O(N) operations.
 **Action:** Replace intermediate array chaining with a single O(N) `for...of` pass containing early exits (`continue`) and incremental aggregations.
+
+## 2025-03-02 - [O(N) Set Optimization for Dates]
+**Learning:** Instantiating `new Date()` inside an O(N) loop is slow and creates unnecessary garbage collection overhead when the dates can be compared lexically as YYYY-MM-DD strings.
+**Action:** When filtering dates inside loops, format the comparison boundary (e.g. `startOfWeekStr`) outside the loop and use lexical string comparison (`dateStr >= startOfWeekStr`) for ~28x speedup.
+## 2024-05-30 - Map Lookup inside React Render Loop
+**Learning:** Performing multiple Map `.get()` lookups inside an array `.map()` call that executes on every React render loop can cause a minor but frequent CPU overhead, which scales poorly as the array size increases.
+**Action:** Extract these derivations into a `useMemo` hook that runs only when the dependencies change, returning an array of pre-calculated state objects that the render loop can cheaply iterate over.

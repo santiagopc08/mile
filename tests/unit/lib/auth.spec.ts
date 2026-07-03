@@ -39,11 +39,15 @@ const setupMocks = (
         exports: {
             createServerClient: () => ({
                 auth: {
-                    getUser: mockGetUser,
-                    admin: {
-                        listUsers: mockListUsers
-                    }
-                }
+                    getUser: mockGetUser
+                },
+                from: (_table: string) => ({
+                    select: (_columns: string) => ({
+                        eq: (_column: string, _value: string) => ({
+                            single: mockListUsers // reuse the variable for simplicity
+                        })
+                    })
+                })
             })
         }
     } as any;
@@ -79,7 +83,7 @@ test.describe('verifyAuth', () => {
                 expect(token).toBe('valid_token');
                 return { data: { user: { email: 'el@mile.app' } }, error: null };
             },
-            async () => ({ data: { users: [] }, error: null })
+            async () => ({ data: null, error: new Error('not found') })
         );
 
         const { verifyAuth } = require('../../../src/lib/auth.ts');
@@ -95,7 +99,7 @@ test.describe('verifyAuth', () => {
                 expect(token).toBe('valid_token');
                 return { data: { user: { email: 'ella@mile.app' } }, error: null };
             },
-            async () => ({ data: { users: [] }, error: null })
+            async () => ({ data: null, error: new Error('not found') })
         );
 
         const { verifyAuth } = require('../../../src/lib/auth.ts');
@@ -108,12 +112,7 @@ test.describe('verifyAuth', () => {
             { 'authorization': 'Bearer valid_token' },
             { 'mile_device_token': 'test_token' },
             async () => ({ data: { user: { email: 'wrong@example.com' } }, error: null }),
-            async () => ({
-                data: {
-                    users: [{ user_metadata: { device_tokens: ['test_token'] } }]
-                },
-                error: null
-            })
+            async () => ({ data: { id: 'some-id' }, error: null })
         );
 
         const { verifyAuth } = require('../../../src/lib/auth.ts');
@@ -126,12 +125,7 @@ test.describe('verifyAuth', () => {
             { 'authorization': 'Bearer valid_token' },
             { 'mile_device_token': 'test_token' },
             async () => ({ data: { user: null }, error: new Error('Invalid token') }),
-            async () => ({
-                data: {
-                    users: [{ user_metadata: { device_tokens: ['test_token'] } }]
-                },
-                error: null
-            })
+            async () => ({ data: { id: 'some-id' }, error: null })
         );
 
         const { verifyAuth } = require('../../../src/lib/auth.ts');
@@ -149,13 +143,8 @@ test.describe('verifyAuth', () => {
             setupMocks(
                 {},
                 { 'mile_device_token': 'test_token' },
-                async () => ({}),
-                async () => ({
-                    data: {
-                        users: [{ user_metadata: { device_tokens: ['test_token'] } }]
-                    },
-                    error: null
-                }),
+                async () => ({ data: null, error: new Error('not found') }),
+                async () => ({ data: { id: 'some-id' }, error: null }),
                 true // shouldHeadersThrow
             );
 
@@ -173,7 +162,7 @@ test.describe('verifyAuth', () => {
         setupMocks(
             {},
             {},
-            async () => ({}),
+            async () => ({ data: null, error: new Error('not found') }),
             async () => ({})
         );
 
@@ -187,7 +176,7 @@ test.describe('verifyAuth', () => {
             {},
             { 'mile_device_token': 'test_token' },
             async () => ({}),
-            async () => ({ data: { users: null }, error: new Error('DB Error') })
+            async () => ({ data: null, error: new Error('DB Error') })
         );
 
         const { verifyAuth } = require('../../../src/lib/auth.ts');
@@ -200,12 +189,7 @@ test.describe('verifyAuth', () => {
             {},
             { 'mile_device_token': 'test_token' },
             async () => ({}),
-            async () => ({
-                data: {
-                    users: [{ user_metadata: { device_tokens: ['other_token'] } }]
-                },
-                error: null
-            })
+            async () => ({ data: null, error: new Error('not found') })
         );
 
         const { verifyAuth } = require('../../../src/lib/auth.ts');
@@ -218,15 +202,7 @@ test.describe('verifyAuth', () => {
             {},
             { 'mile_device_token': 'test_token' },
             async () => ({}),
-            async () => ({
-                data: {
-                    users: [
-                        { user_metadata: { device_tokens: ['other_token'] } },
-                        { user_metadata: { device_tokens: ['test_token', 'another'] } }
-                    ]
-                },
-                error: null
-            })
+            async () => ({ data: { id: 'some-id' }, error: null })
         );
 
         const { verifyAuth } = require('../../../src/lib/auth.ts');

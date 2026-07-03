@@ -663,8 +663,16 @@ export default function BirthdayScrollContainer({ setBgmTempMute }: BirthdayScro
   }, []);
 
   // Filter 8 events with photos to display in the Polaroid Deck
+  // Optimized: use a loop that breaks early to avoid O(N) traversal and intermediate array creation.
   const polaroidEvents = useMemo(() => {
-    return events.filter(e => e.imageUrl).slice(0, 8);
+    const result = [];
+    for (const e of events) {
+      if (e.imageUrl) {
+        result.push(e);
+        if (result.length === 8) break;
+      }
+    }
+    return result;
   }, [events]);
 
   // Web Audio API Microphone analyzer loop

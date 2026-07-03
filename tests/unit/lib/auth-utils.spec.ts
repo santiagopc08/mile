@@ -29,11 +29,13 @@ const setupMocks = (
         loaded: true,
         exports: {
             createServerClient: () => ({
-                auth: {
-                    admin: {
-                        listUsers: mockListUsers
-                    }
-                }
+                from: (_table: string) => ({
+                    select: (_columns: string) => ({
+                        eq: (_column: string, _value: string) => ({
+                            single: mockListUsers // reuse the variable for simplicity
+                        })
+                    })
+                })
             })
         }
     } as any;
@@ -64,14 +66,7 @@ test.describe('verifyServerSession', () => {
     test('valid UUID token matched in listUsers returns true', async () => {
         setupMocks(
             { 'mile_device_token': '123e4567-e89b-12d3-a456-426614174000' },
-            async () => ({
-                data: {
-                    users: [
-                        { user_metadata: { device_tokens: ['123e4567-e89b-12d3-a456-426614174000'] } }
-                    ]
-                },
-                error: null
-            })
+            async () => ({ data: { id: 'some-id' }, error: null })
         );
 
         const { verifyServerSession } = require('../../../src/lib/auth-utils.ts');
@@ -82,7 +77,7 @@ test.describe('verifyServerSession', () => {
     test('missing cookie returns false', async () => {
         setupMocks(
             {},
-            async () => ({})
+            async () => ({ data: null, error: new Error('not found') })
         );
 
         const { verifyServerSession } = require('../../../src/lib/auth-utils.ts');
@@ -93,14 +88,7 @@ test.describe('verifyServerSession', () => {
     test('non-UUID token returns false', async () => {
         setupMocks(
             { 'mile_device_token': 'invalid_token_format' },
-            async () => ({
-                data: {
-                    users: [
-                        { user_metadata: { device_tokens: ['invalid_token_format'] } }
-                    ]
-                },
-                error: null
-            })
+            async () => ({ data: { id: 'some-id' }, error: null })
         );
 
         const { verifyServerSession } = require('../../../src/lib/auth-utils.ts');
@@ -111,7 +99,7 @@ test.describe('verifyServerSession', () => {
     test('listUsers error returns false', async () => {
         setupMocks(
             { 'mile_device_token': '123e4567-e89b-12d3-a456-426614174000' },
-            async () => ({ data: { users: null }, error: new Error('DB Error') })
+            async () => ({ data: null, error: new Error('DB Error') })
         );
 
         const { verifyServerSession } = require('../../../src/lib/auth-utils.ts');
@@ -122,14 +110,7 @@ test.describe('verifyServerSession', () => {
     test('valid UUID token not matched in listUsers returns false', async () => {
         setupMocks(
             { 'mile_device_token': '123e4567-e89b-12d3-a456-426614174000' },
-            async () => ({
-                data: {
-                    users: [
-                        { user_metadata: { device_tokens: ['different-uuid-here'] } }
-                    ]
-                },
-                error: null
-            })
+            async () => ({ data: null, error: new Error('not found') })
         );
 
         const { verifyServerSession } = require('../../../src/lib/auth-utils.ts');
@@ -140,7 +121,7 @@ test.describe('verifyServerSession', () => {
     test('cookies exception throws error', async () => {
         setupMocks(
             {},
-            async () => ({}),
+            async () => ({ data: null, error: new Error('not found') }),
             true // shouldCookiesThrow
         );
 

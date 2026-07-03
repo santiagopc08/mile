@@ -161,11 +161,21 @@ export function NotificationBell({ align = 'right' }: { align?: 'left' | 'right'
                             triggerDesktopNotification(newNotif);
                         }
                     } else if (payload.eventType === 'UPDATE') {
-                        setNotifications((prev) =>
-                            prev.map((n) => (n.id === payload.new.id ? payload.new : n))
-                        );
+                        setNotifications((prev) => {
+                            const idx = prev.findIndex((n) => n.id === payload.new.id);
+                            if (idx === -1) return prev;
+                            const next = [...prev];
+                            next[idx] = payload.new;
+                            return next;
+                        });
                     } else if (payload.eventType === 'DELETE') {
-                        setNotifications((prev) => prev.filter((n) => n.id !== payload.old.id));
+                        setNotifications((prev) => {
+                            const idx = prev.findIndex((n) => n.id === payload.old.id);
+                            if (idx === -1) return prev;
+                            const next = [...prev];
+                            next.splice(idx, 1);
+                            return next;
+                        });
                     }
                 }
             )
@@ -183,7 +193,13 @@ export function NotificationBell({ align = 'right' }: { align?: 'left' | 'right'
     const handleRead = async (id: string) => {
         try {
             await NotificationService.markNotificationRead(id);
-            setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+            setNotifications(prev => {
+                const idx = prev.findIndex(n => n.id === id);
+                if (idx === -1) return prev;
+                const next = [...prev];
+                next[idx] = { ...next[idx], read: true };
+                return next;
+            });
         } catch (err) {
             console.error('Failed to mark read:', err);
         }
