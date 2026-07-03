@@ -1,5 +1,12 @@
 import { cookies } from 'next/headers';
 import { createServerClient } from '@/lib/supabase';
+import crypto from 'crypto';
+
+function secureCompare(a: string, b: string): boolean {
+    const hashA = crypto.createHash('sha256').update(a).digest();
+    const hashB = crypto.createHash('sha256').update(b).digest();
+    return crypto.timingSafeEqual(hashA, hashB);
+}
 
 export async function verifyServerSession() {
     const cookieStore = await cookies();
