@@ -21,9 +21,10 @@ const MECHANIC_THRESHOLDS: { mechanic: HardeningMechanic; minLevel: number }[] =
 ];
 
 export function getUnlockedMechanics(level: number): HardeningMechanic[] {
-    return MECHANIC_THRESHOLDS
-        .filter(t => level >= t.minLevel)
-        .map(t => t.mechanic);
+    return MECHANIC_THRESHOLDS.reduce((acc, t) => {
+        if (level >= t.minLevel) acc.push(t.mechanic);
+        return acc;
+    }, [] as HardeningMechanic[]);
 }
 
 export function selectActiveMechanicsForGame(level: number): HardeningMechanic[] {
