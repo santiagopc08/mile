@@ -22,14 +22,22 @@ export async function GET(request: Request) {
             return new Response(`Failed to fetch image: ${res.statusText}`, { status: res.status });
         }
 
+        const contentType = res.headers.get('Content-Type') || 'image/jpeg';
+
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/avif'];
+        if (!allowedTypes.some(type => contentType.toLowerCase().startsWith(type))) {
+            return new Response('Invalid image content type', { status: 400 });
+        }
+
         const blob = await res.blob();
         
         // Return image content with CORS and cache headers
         return new NextResponse(blob, {
             status: 200,
             headers: {
-                'Content-Type': res.headers.get('Content-Type') || 'image/jpeg',
-                'Cache-Control': 'public, max-age=31536000, immutable'
+                'Content-Type': contentType,
+                'Cache-Control': 'public, max-age=31536000, immutable',
+                'X-Content-Type-Options': 'nosniff'
             }
         });
     } catch (error) {
