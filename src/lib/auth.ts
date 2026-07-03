@@ -1,5 +1,12 @@
 import { cookies, headers } from 'next/headers';
 import { createServerClient } from '@/lib/supabase';
+import crypto from 'crypto';
+
+function secureCompare(a: string, b: string): boolean {
+    const hashA = crypto.createHash('sha256').update(a).digest();
+    const hashB = crypto.createHash('sha256').update(b).digest();
+    return crypto.timingSafeEqual(hashA, hashB);
+}
 
 export async function verifyAuth() {
     try {
@@ -34,17 +41,19 @@ export async function verifyAuth() {
             return false;
         }
 
+        let isAuthorized = false;
         for (const user of users) {
             const tokens = user.user_metadata?.device_tokens || [];
-            if (tokens.includes(deviceToken)) {
-                return true;
+            for (const token of tokens) {
+                if (secureCompare(token, deviceToken)) {
+                    isAuthorized = true;
+                }
             }
         }
 
-        return false;
+        return isAuthorized;
     } catch (e) {
         console.error('Error verifying auth via cookie:', e);
         return false;
     }
 }
-

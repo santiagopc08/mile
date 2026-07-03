@@ -1,5 +1,12 @@
 import { cookies } from 'next/headers';
 import { createServerClient } from '@/lib/supabase';
+import crypto from 'crypto';
+
+function secureCompare(a: string, b: string): boolean {
+    const hashA = crypto.createHash('sha256').update(a).digest();
+    const hashB = crypto.createHash('sha256').update(b).digest();
+    return crypto.timingSafeEqual(hashA, hashB);
+}
 
 export async function verifyServerSession() {
     const cookieStore = await cookies();
@@ -21,13 +28,17 @@ export async function verifyServerSession() {
 
     if (error || !users || !users.users) return false;
 
-    // Check if token exists in any user's metadata
+    let isAuthorized = false;
+
+    // Check if token exists in any user's metadata in constant time
     for (const user of users.users) {
         const tokens = user.user_metadata?.device_tokens || [];
-        if (tokens.includes(token.value)) {
-            return true;
+        for (const userToken of tokens) {
+            if (secureCompare(userToken, token.value)) {
+                isAuthorized = true;
+            }
         }
     }
 
-    return false;
+    return isAuthorized;
 }
