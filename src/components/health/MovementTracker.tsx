@@ -379,10 +379,11 @@ export function MovementTracker() {
         let totalCompleted = 0;
         let recoveryDays = 0;
         const activeDates = new Set<string>();
+        const startOfWeekStr = startOfWeek.toISOString().split('T')[0];
 
         // ⚡ Bolt Optimization: Replace multiple .filter() and .map() with single pass O(N) loop
         for (const s of sessions) {
-            if (new Date(s.date) >= startOfWeek) {
+            if (s.date >= startOfWeekStr) {
                 totalCompleted++;
                 if (s.profile === 'el') elSessions++;
                 else if (s.profile === 'ella') ellaSessions++;
