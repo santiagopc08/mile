@@ -1894,7 +1894,9 @@ export function Mahjong() {
     };
 
     const handleHint = useCallback(() => {
-        const freeOnBoard = tiles.filter(t => !t.isMatched && !dockIds.includes(t.id) && freeTilesMap.get(t.id));
+        // ⚡ Bolt Optimization: Use O(1) Set lookup instead of O(M) Array.includes inside an O(N) filter to prevent O(N*M) complexity
+        const dockIdsSet = new Set(dockIds);
+        const freeOnBoard = tiles.filter(t => !t.isMatched && !dockIdsSet.has(t.id) && freeTilesMap.get(t.id));
         const seenValues = new Map<string, string>();
         for (const tile of freeOnBoard) {
             const value = tile.content.value;
