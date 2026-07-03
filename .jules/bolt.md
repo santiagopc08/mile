@@ -1,3 +1,3 @@
-## 2024-05-18 - Avoid O(N*M) lookups inside `.filter()` calls
-**Learning:** Checking for element existence inside a `.filter()` using `Array.includes()` on another array results in O(N*M) time complexity. This is especially bad in frequently called UI functions like game event handlers or hint engines.
-**Action:** Always pre-convert lookup arrays to a `Set` (O(1) lookup) *before* the `.filter()` operation to reduce complexity to O(N).
+## 2024-05-30 - Map Lookup inside React Render Loop
+**Learning:** Performing multiple Map `.get()` lookups inside an array `.map()` call that executes on every React render loop can cause a minor but frequent CPU overhead, which scales poorly as the array size increases.
+**Action:** Extract these derivations into a `useMemo` hook that runs only when the dependencies change, returning an array of pre-calculated state objects that the render loop can cheaply iterate over.
