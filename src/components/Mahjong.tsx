@@ -1560,9 +1560,10 @@ export function Mahjong() {
         if (!isLoaded) { initializeGame(); }
     }, [isLoaded, gameMode]);
 
-    const { freeTilesMap, tilesById } = useMemo(() => {
+    const { freeTilesMap, tilesById, dockTilesByValue } = useMemo(() => {
         const freeMap = new Map<string, boolean>();
         const idMap = new Map<string, TileState>();
+        const dockTilesByValue = new Map<string, TileState>();
         const dockSet = new Set(dockIds);
         const grid = new Set<number>();
 
@@ -1621,7 +1622,11 @@ export function Mahjong() {
 
             freeMap.set(tile.id, !hasRight);
         }
-        return { freeTilesMap: freeMap, tilesById: idMap };
+        for (const id of dockIds) {
+            const t = idMap.get(id);
+            if (t) dockTilesByValue.set(t.content.value, t);
+        }
+        return { freeTilesMap: freeMap, tilesById: idMap, dockTilesByValue };
     }, [tiles, dockIds]);
 
 
@@ -1669,17 +1674,9 @@ export function Mahjong() {
         requestAnimationFrame(() => { isProcessingRef.current = false; });
         if (!timerActive && matchedCount < tiles.length) { setTimerActive(true); }
 
-        // ⚡ Bolt Optimization: Replace find with O(1) dock checks
-        let matchingDockTile: TileState | undefined = undefined;
-        let matchingDockId: string | undefined = undefined;
-        for (const dId of dockIds) {
-            const dt = tilesById.get(dId);
-            if (dt && dt.content.value === tile.content.value) {
-                matchingDockTile = dt;
-                matchingDockId = dt.id;
-                break;
-            }
-        }
+        // ⚡ Bolt Optimization: O(1) dock checks using pre-calculated map
+        const matchingDockTile = dockTilesByValue.get(tile.content.value);
+        const matchingDockId = matchingDockTile?.id;
 
         if (matchingDockId && matchingDockTile) {
             let processedTiles = tiles.map(t => {
@@ -1894,7 +1891,9 @@ export function Mahjong() {
     };
 
     const handleHint = useCallback(() => {
-        const freeOnBoard = tiles.filter(t => !t.isMatched && !dockIds.includes(t.id) && freeTilesMap.get(t.id));
+        // ⚡ Bolt Optimization: Use O(1) Set lookup instead of O(M) Array.includes inside an O(N) filter to prevent O(N*M) complexity
+        const dockIdsSet = new Set(dockIds);
+        const freeOnBoard = tiles.filter(t => !t.isMatched && !dockIdsSet.has(t.id) && freeTilesMap.get(t.id));
         const seenValues = new Map<string, string>();
         for (const tile of freeOnBoard) {
             const value = tile.content.value;

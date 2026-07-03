@@ -27,18 +27,36 @@ export async function POST(request: Request) {
         // Generate a secure device token
         const deviceToken = crypto.randomUUID();
 
-        // Store device token in Supabase (we can create a table for this, or just use user metadata)
-        // For simplicity without schema changes, we can store it in user_metadata
+        // Store device token securely in the device_tokens table
         if (signInData.user) {
-             const metadata = signInData.user.user_metadata || {};
-             const tokens = metadata.device_tokens || [];
-             tokens.push(deviceToken);
-             // Keep only last 5 tokens to prevent metadata bloat
-             if (tokens.length > 5) tokens.shift();
+             const userId = signInData.user.id;
 
-             await adminSupabase.auth.admin.updateUserById(signInData.user.id, {
-                 user_metadata: { ...metadata, device_tokens: tokens }
-             });
+             // Insert the new token
+             const { error: insertError } = await adminSupabase
+                 .from('device_tokens')
+                 .insert({ user_id: userId, token: deviceToken });
+
+             if (insertError) {
+                 console.error('Failed to store device token:', insertError);
+                 // We might still want to proceed, but ideally this shouldn't fail
+             }
+
+             // Enforce limit of 5 tokens per user
+             const { data: existingTokens } = await adminSupabase
+                 .from('device_tokens')
+                 .select('id')
+                 .eq('user_id', userId)
+                 .order('created_at', { ascending: false });
+
+             if (existingTokens && existingTokens.length > 5) {
+                 const tokensToDelete = existingTokens.slice(5).map(t => t.id);
+                 if (tokensToDelete.length > 0) {
+                     await adminSupabase
+                         .from('device_tokens')
+                         .delete()
+                         .in('id', tokensToDelete);
+                 }
+             }
         }
 
         // Set the device token as a long-lived HttpOnly cookie

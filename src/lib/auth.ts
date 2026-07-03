@@ -28,20 +28,17 @@ export async function verifyAuth() {
         }
 
         const supabase = createServerClient();
-        const { data: { users }, error } = await supabase.auth.admin.listUsers();
+        const { data, error } = await supabase
+            .from('device_tokens')
+            .select('id')
+            .eq('token', deviceToken)
+            .single();
 
-        if (error || !users) {
+        if (error || !data) {
             return false;
         }
 
-        for (const user of users) {
-            const tokens = user.user_metadata?.device_tokens || [];
-            if (tokens.includes(deviceToken)) {
-                return true;
-            }
-        }
-
-        return false;
+        return true;
     } catch (e) {
         console.error('Error verifying auth via cookie:', e);
         return false;

@@ -20,17 +20,36 @@ export async function POST(request: Request) {
         const cookieStore = await cookies();
         let deviceToken = cookieStore.get('mile_device_token')?.value;
 
-        // If no device token cookie exists, generate one and update user metadata
+        // If no device token cookie exists, generate one and store securely in device_tokens table
         if (!deviceToken) {
             deviceToken = crypto.randomUUID();
-            const metadata = user.user_metadata || {};
-            const tokens = metadata.device_tokens || [];
-            if (!tokens.includes(deviceToken)) {
-                tokens.push(deviceToken);
-                if (tokens.length > 5) tokens.shift();
-                await adminSupabase.auth.admin.updateUserById(user.id, {
-                    user_metadata: { ...metadata, device_tokens: tokens }
-                });
+
+            const userId = user.id;
+
+            // Insert the new token
+            const { error: insertError } = await adminSupabase
+                .from('device_tokens')
+                .insert({ user_id: userId, token: deviceToken });
+
+            if (insertError) {
+                console.error('Failed to store sync device token:', insertError);
+            }
+
+            // Enforce limit of 5 tokens per user
+            const { data: existingTokens } = await adminSupabase
+                .from('device_tokens')
+                .select('id')
+                .eq('user_id', userId)
+                .order('created_at', { ascending: false });
+
+            if (existingTokens && existingTokens.length > 5) {
+                const tokensToDelete = existingTokens.slice(5).map(t => t.id);
+                if (tokensToDelete.length > 0) {
+                    await adminSupabase
+                        .from('device_tokens')
+                        .delete()
+                        .in('id', tokensToDelete);
+                }
             }
         }
 
