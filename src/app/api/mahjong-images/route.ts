@@ -5,7 +5,7 @@ import path from 'path';
 export async function GET() {
     try {
         const directoryPath = path.join(process.cwd(), 'public', 'img');
-        const results: string[] = [];
+        let results: string[] = [];
 
         try {
             // Asynchronously check if the directory exists and is accessible
@@ -14,24 +14,25 @@ export async function GET() {
             // Asynchronously read all subdirectories in public/img
             const categories = await fs.readdir(directoryPath, { withFileTypes: true });
 
-            const resultsArrays = await Promise.all(categories.map(async (category) => {
+            const resultsArrays = await Promise.all(categories.map((category) => {
                 if (category.isDirectory()) {
                     const subDirPath = path.join(directoryPath, category.name);
-                    const files = await fs.readdir(subDirPath);
-                    const validFiles: string[] = [];
-                    for (const file of files) {
-                        if (file.endsWith('.png') || file.endsWith('.jpg') || file.endsWith('.jpeg')) {
-                            validFiles.push(`/img/${category.name}/${file}`);
+                    return fs.readdir(subDirPath).then(files => {
+                        const validFiles: string[] = [];
+                        for (const file of files) {
+                            if (file.endsWith('.png') || file.endsWith('.jpg') || file.endsWith('.jpeg')) {
+                                validFiles.push(`/img/${category.name}/${file}`);
+                            }
                         }
-                    }
-                    return validFiles;
+                        return validFiles;
+                    });
                 } else if (category.name.endsWith('.png') || category.name.endsWith('.jpg') || category.name.endsWith('.jpeg')) {
                     return [`/img/${category.name}`];
                 }
                 return [];
             }));
 
-            results.push(...resultsArrays.flat());
+            results = resultsArrays.flat();
         } catch (error) {
             // Folder not found or not accessible
             console.warn('img directory is not accessible:', error);

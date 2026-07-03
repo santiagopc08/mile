@@ -277,7 +277,7 @@ export const StoreService = {
 
             const finalCommitments = commitmentsRes?.data || [];
 
-            let trackingData: any[] = trackingRes?.data || [];
+            const trackingData: any[] = trackingRes?.data || [];
 
             // ⚡ Bolt Optimization: Replace O(N) array finds with a single O(N) pass mapping by date
             const trackingByDate: Record<string, typeof trackingData[0]> = {};
@@ -434,20 +434,28 @@ export const StoreService = {
             }
 
             if (shouldFetch('victories')) {
-                result.victoriesEl = allVictories.filter((v: any) => v.author === 'el').map((v: any) => ({
-                    id: v.id,
-                    text: v.text,
-                    author: v.author,
-                    created_at: v.created_at || v.createdAt,
-                    createdAt: v.created_at || v.createdAt
-                }));
-                result.victoriesElla = allVictories.filter((v: any) => v.author === 'ella').map((v: any) => ({
-                    id: v.id,
-                    text: v.text,
-                    author: v.author,
-                    created_at: v.created_at || v.createdAt,
-                    createdAt: v.created_at || v.createdAt
-                }));
+                // ⚡ Bolt Optimization: Replace double filter().map() with a single O(N) pass to reduce intermediate arrays
+                result.victoriesEl = [];
+                result.victoriesElla = [];
+                for (const v of allVictories) {
+                    if (v.author === 'el') {
+                        result.victoriesEl.push({
+                            id: v.id,
+                            text: v.text,
+                            author: v.author,
+                            created_at: v.created_at || v.createdAt,
+                            createdAt: v.created_at || v.createdAt
+                        });
+                    } else if (v.author === 'ella') {
+                        result.victoriesElla.push({
+                            id: v.id,
+                            text: v.text,
+                            author: v.author,
+                            created_at: v.created_at || v.createdAt,
+                            createdAt: v.created_at || v.createdAt
+                        });
+                    }
+                }
             }
 
             if (shouldFetch('app_settings')) {
