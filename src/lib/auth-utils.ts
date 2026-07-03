@@ -14,20 +14,17 @@ export async function verifyServerSession() {
         return false;
     }
 
-    // Strictly you could verify token with DB, but just checking its presence might be minimum enough for this simple app
-    // We can query supabase for users having this device token
+    // Verify token exists securely in the device_tokens table
     const supabase = createServerClient();
-    const { data: users, error } = await supabase.auth.admin.listUsers();
+    const { data, error } = await supabase
+        .from('device_tokens')
+        .select('id')
+        .eq('token', token.value)
+        .single();
 
-    if (error || !users || !users.users) return false;
-
-    // Check if token exists in any user's metadata
-    for (const user of users.users) {
-        const tokens = user.user_metadata?.device_tokens || [];
-        if (tokens.includes(token.value)) {
-            return true;
-        }
+    if (error || !data) {
+        return false;
     }
 
-    return false;
+    return true;
 }

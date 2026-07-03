@@ -277,7 +277,7 @@ export const StoreService = {
 
             const finalCommitments = commitmentsRes?.data || [];
 
-            let trackingData: any[] = trackingRes?.data || [];
+            const trackingData: any[] = trackingRes?.data || [];
 
             // ⚡ Bolt Optimization: Replace O(N) array finds with a single O(N) pass mapping by date
             const trackingByDate: Record<string, typeof trackingData[0]> = {};
