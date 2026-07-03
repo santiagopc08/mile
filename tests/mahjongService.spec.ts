@@ -83,14 +83,15 @@ test.describe('MahjongService', () => {
                             profile: 'el',
                             time_seconds: 120,
                             layout: 'classic',
-                            tile_count: 144
+                            tile_count: 144,
+                            highest_combo: 0
                         });
                         return Promise.resolve();
                     }
                 })
             } as unknown as import('@supabase/supabase-js').SupabaseClient;
 
-            await MahjongService.saveMahjongScore('el', 120, 'classic', 144, mockSupabaseWithInsert);
+            await MahjongService.saveMahjongScore('el', 120, 'classic', 144, 0, mockSupabaseWithInsert);
             expect(insertCalled).toBe(true);
         });
 
@@ -101,7 +102,7 @@ test.describe('MahjongService', () => {
             const mockSupabase = createMockSupabase({}, new Error('Insert failed'));
 
             // Should not throw
-            await MahjongService.saveMahjongScore('ella', 90, 'turtle', 144, mockSupabase);
+            await MahjongService.saveMahjongScore('ella', 90, 'turtle', 144, 0, mockSupabase);
             expect(errorLogged).toBe(true);
         });
     });
