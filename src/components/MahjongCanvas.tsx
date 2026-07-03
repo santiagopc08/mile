@@ -468,7 +468,12 @@ export function MahjongCanvas({ tiles, freeTilesMap, dockIds, onTilePointerDown,
             setExplosions(prev => [...prev, ...newExplosions]);
         }
 
-        prevMatchedIdsRef.current = new Set(tiles.filter(t => t.isMatched).map(t => t.id));
+        // ⚡ Bolt Optimization: Replace double-pass filter/map with single-pass O(N) iteration
+        const matchedSet = new Set<string>();
+        for (const t of tiles) {
+            if (t.isMatched) matchedSet.add(t.id);
+        }
+        prevMatchedIdsRef.current = matchedSet;
         prevDockIdsRef.current = [...dockIds];
     }, [tiles, dockIds, centerX, centerY, boardY, dockY, profile]);
 

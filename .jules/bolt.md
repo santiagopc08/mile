@@ -17,3 +17,6 @@
 ## 2026-07-03 - Optimize intermediate chained map/filter arrays
 **Learning:** In React useEffects tracking state changes like game completions, calculating derived results using chained `.filter().map().filter()` on potentially large arrays creates substantial temporary memory allocations and repeats O(N) operations.
 **Action:** Replace intermediate array chaining with a single O(N) `for...of` pass containing early exits (`continue`) and incremental aggregations.
+## 2024-10-27 - Double-pass Iteration Optimization in MahjongCanvas
+**Learning:** Chaining `.filter().map()` before initializing a `Set` forces V8 to allocate two intermediate arrays, degrading performance and increasing GC pressure on hot render paths.
+**Action:** Replace `new Set(arr.filter(cond).map(prop))` with a single `for...of` loop adding items directly to a new `Set` instance.
