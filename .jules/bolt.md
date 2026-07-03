@@ -24,3 +24,7 @@
 ## 2024-05-30 - Map Lookup inside React Render Loop
 **Learning:** Performing multiple Map `.get()` lookups inside an array `.map()` call that executes on every React render loop can cause a minor but frequent CPU overhead, which scales poorly as the array size increases.
 **Action:** Extract these derivations into a `useMemo` hook that runs only when the dependencies change, returning an array of pre-calculated state objects that the render loop can cheaply iterate over.
+
+## $(date +%Y-%m-%d) - Batched Promise.all to prevent unbounded concurrency
+**Learning:** Using `Promise.all` with a `.map` over an array of unknown size can cause unbounded concurrency, potentially exhausting connections, memory, or triggering rate limits on upstream APIs.
+**Action:** When executing concurrent tasks on a dynamically sized array, implement a batching mechanism using a `for` loop and `slice` to control the maximum number of concurrent executions.
