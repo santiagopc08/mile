@@ -46,11 +46,28 @@ export async function resolveSafeIP(hostname: string): Promise<string> {
     throw new Error('Private or local addresses are not allowed');
 }
 
+const validateCache = new Map<string, { isValid: boolean; expiresAt: number }>();
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
 export async function validateHostname(hostname: string): Promise<boolean> {
+    const now = Date.now();
+    const cached = validateCache.get(hostname);
+    if (cached && cached.expiresAt > now) {
+        return cached.isValid;
+    }
+
     try {
-        await resolveSafeIP(hostname);
+        const addrs = await dns.lookup(hostname, { all: true });
+        for (const addr of addrs) {
+            if (isLocalOrPrivateIP(addr.address)) {
+                validateCache.set(hostname, { isValid: false, expiresAt: now + CACHE_TTL_MS });
+                return false;
+            }
+        }
+        validateCache.set(hostname, { isValid: true, expiresAt: now + CACHE_TTL_MS });
         return true;
     } catch {
+        // We don't cache errors to allow transient failures to recover
         return false;
     }
 }
