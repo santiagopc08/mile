@@ -1,4 +1,7 @@
 import dns from 'dns/promises';
+import * as http from 'http';
+import * as https from 'https';
+import { Readable } from 'stream';
 
 export function isLocalOrPrivateIP(ip: string): boolean {
     if (ip.startsWith('::ffff:')) {
@@ -29,17 +32,25 @@ export function isLocalOrPrivateIP(ip: string): boolean {
     );
 }
 
-export async function validateHostname(hostname: string): Promise<boolean> {
+export async function resolveSafeIP(hostname: string): Promise<string> {
     try {
         const addrs = await dns.lookup(hostname, { all: true });
         for (const addr of addrs) {
-            if (isLocalOrPrivateIP(addr.address)) {
-                return false;
+            if (!isLocalOrPrivateIP(addr.address)) {
+                return addr.address;
             }
         }
-        return true;
     } catch {
         // Block if DNS resolution fails to prevent bypasses
+    }
+    throw new Error('Private or local addresses are not allowed');
+}
+
+export async function validateHostname(hostname: string): Promise<boolean> {
+    try {
+        await resolveSafeIP(hostname);
+        return true;
+    } catch {
         return false;
     }
 }
@@ -54,10 +65,7 @@ export async function fetchSafe(targetUrl: string, options: RequestInit = {}, ma
         throw new Error('Invalid URL scheme');
     }
 
-    const isValid = await validateHostname(url.hostname);
-    if (!isValid) {
-        throw new Error('Private or local addresses are not allowed');
-    }
+    const ip = await resolveSafeIP(url.hostname);
 
     // Preserve default headers used originally for link previews
     const defaultHeaders = {
@@ -65,23 +73,78 @@ export async function fetchSafe(targetUrl: string, options: RequestInit = {}, ma
         'Accept-Language': 'en-US,en;q=0.9'
     };
 
-    const res = await fetch(url.toString(), {
-        ...options,
+    const requestOptions = {
+        hostname: ip,
+        port: url.port || (url.protocol === 'https:' ? 443 : 80),
+        path: url.pathname + url.search,
+        method: options.method || 'GET',
         headers: {
             ...defaultHeaders,
-            ...options.headers
-        },
-        redirect: 'manual'
-    });
+            ...((options.headers || {}) as Record<string, string>),
+            Host: url.hostname // Important for virtual hosting
+        } as http.OutgoingHttpHeaders,
+        // Important: set servername for SNI in HTTPS!
+        ...(url.protocol === 'https:' ? { servername: url.hostname } : {})
+    };
 
-    if (res.status >= 300 && res.status < 400) {
-        const location = res.headers.get('location');
-        if (!location) {
-            return res;
+    return new Promise((resolve, reject) => {
+        const client = url.protocol === 'https:' ? https : http;
+        const req = client.request(requestOptions, (res) => {
+            const status = res.statusCode || 200;
+
+            // Handle redirects (matching previous fetchSafe behavior with redirect: 'manual')
+            if (status >= 300 && status < 400) {
+                const location = res.headers.location;
+                if (!location) {
+                    resolve(createResponse(res, url.toString()));
+                    return;
+                }
+                const nextUrl = new URL(location, url).toString();
+                // To prevent memory leaks, we should consume or destroy the stream
+                res.resume();
+                resolve(fetchSafe(nextUrl, options, maxRedirects - 1));
+                return;
+            }
+
+            resolve(createResponse(res, url.toString()));
+        });
+
+        req.on('error', reject);
+        req.setTimeout(10000, () => {
+            req.destroy(new Error('Request timeout'));
+        });
+
+        // Handle body if present in options
+        if (options.body) {
+            req.write(options.body);
         }
-        const nextUrl = new URL(location, url).toString();
-        return fetchSafe(nextUrl, options, maxRedirects - 1);
+
+        req.end();
+    });
+}
+
+function createResponse(res: http.IncomingMessage, finalUrl: string): Response {
+    const headers = new Headers();
+    for (const [key, value] of Object.entries(res.headers)) {
+        if (Array.isArray(value)) {
+            value.forEach(v => headers.append(key, v));
+        } else if (value) {
+            headers.set(key, value);
+        }
     }
 
-    return res;
+    const webStream = Readable.toWeb(res) as ReadableStream<Uint8Array>;
+
+    const webRes = new Response(webStream, {
+        status: res.statusCode,
+        statusText: res.statusMessage,
+        headers
+    });
+
+    // We also need to attach the final URL so `res.url` works for link preview
+    if (finalUrl) {
+        Object.defineProperty(webRes, 'url', { value: finalUrl });
+    }
+
+    return webRes;
 }

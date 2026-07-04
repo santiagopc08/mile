@@ -4,7 +4,7 @@ test.describe('LinkPreview Component', () => {
 
     test.beforeEach(async ({ page }) => {
         // Clear local storage before each test
-        await page.goto('/test-components/link-preview');
+        await page.goto('http://localhost:3000/test-components/link-preview');
         await page.evaluate(() => localStorage.clear());
     });
 
