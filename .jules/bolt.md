@@ -24,3 +24,7 @@
 ## 2024-05-30 - Map Lookup inside React Render Loop
 **Learning:** Performing multiple Map `.get()` lookups inside an array `.map()` call that executes on every React render loop can cause a minor but frequent CPU overhead, which scales poorly as the array size increases.
 **Action:** Extract these derivations into a `useMemo` hook that runs only when the dependencies change, returning an array of pre-calculated state objects that the render loop can cheaply iterate over.
+
+## 2024-07-03 - Batch Push Notification Sends
+**Learning:** Sending all push notifications in parallel with `Promise.all` across a large userbase can exhaust resources, cause rate limiting from push services, and consume excessive memory.
+**Action:** When making bulk external API calls, process them in batches (e.g. 50 at a time) to cap concurrent connections and memory usage.
