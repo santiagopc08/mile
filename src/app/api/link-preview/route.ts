@@ -119,6 +119,11 @@ export async function GET(request: Request) {
                         query = titleMatch[1];
                     }
 
+                    // Sanitize query to prevent abuse, injection, or excessive length
+                    if (query) {
+                        query = query.replace(/<[^>]*>?/gm, '').substring(0, 200).trim();
+                    }
+
                     if (query && GOOGLE_MAPS_API_KEY) {
                         const placesRes = await fetch('https://places.googleapis.com/v1/places:searchText', {
                             method: 'POST',
