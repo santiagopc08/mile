@@ -9,22 +9,12 @@ test.describe('Link Preview API SSRF Protections', () => {
     test('should allow valid public HTTP/HTTPS URLs', async () => {
         // We do not want to actually hit the network if possible, but the route tries to fetch.
         // We will mock fetch to simulate a successful request.
-        const originalFetch = global.fetch;
-        global.fetch = async (url, options) => {
-            return new Response('<html><head><title>Test</title></head><body></body></html>', {
-                status: 200,
-                headers: { 'Content-Type': 'text/html' }
-            });
-        };
-
-        const req = createRequest('https://google.com');
+        const req = createRequest('https://example.com');
         const res = await GET(req);
-
-        global.fetch = originalFetch; // restore
 
         expect(res.status).toBe(200);
         const data = await res.json();
-        expect(data.title).toBe('Test');
+        expect(data.title).toBe('Example Domain');
     });
 
     test('should reject invalid URL schemes', async () => {
