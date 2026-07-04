@@ -171,34 +171,44 @@ export function WishlistModule() {
                     // for the same URL within the backfill batch.
                     const urlCache = new Map<string, Promise<any>>();
 
-                    const fetchResults = await Promise.all(
-                        itemsToFetch.map(async ({ item, url, expectedStatus }) => {
-                            try {
-                                let fetchPromise = urlCache.get(url);
-                                if (!fetchPromise) {
-                                    fetchPromise = fetch(`/api/link-preview?url=${encodeURIComponent(url)}`).then(res => {
-                                        if (!res.ok) throw new Error('Network response was not ok');
-                                        return res.json();
-                                    });
-                                    urlCache.set(url, fetchPromise);
-                                }
+                    const fetchResults: any[] = []; // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    // ⚡ Bolt Optimization: Batch requests to avoid unbounded concurrent fetches
+                    // which can exhaust connections, memory, or trigger rate limits.
+                    const batchSize = 5;
+                    for (let i = 0; i < itemsToFetch.length; i += batchSize) {
+                        const batch = itemsToFetch.slice(i, i + batchSize);
+                        const batchResults = await Promise.all(
+                            batch.map(async ({ item, url, expectedStatus }) => {
+                                try {
+                                    let fetchPromise = urlCache.get(url);
+                                    if (!fetchPromise) {
+                                        fetchPromise = fetch(`/api/link-preview?url=${encodeURIComponent(url)}`).then(res => {
+                                            if (!res.ok) throw new Error('Network response was not ok');
+                                            return res.json();
+                                        });
+                                        urlCache.set(url, fetchPromise);
+                                    }
 
-                                const resData = await fetchPromise;
-                                if (resData.coords && typeof resData.coords.lat === 'number' && typeof resData.coords.lng === 'number') {
-                                    return {
-                                        nombre: item.title,
-                                        latitud: resData.coords.lat,
-                                        longitud: resData.coords.lng,
-                                        created_by: item.author || 'el',
-                                        status: expectedStatus
-                                    };
+                                    const resData = await fetchPromise;
+                                    if (resData.coords && typeof resData.coords.lat === 'number' && typeof resData.coords.lng === 'number') {
+                                        return {
+                                            nombre: item.title,
+                                            latitud: resData.coords.lat,
+                                            longitud: resData.coords.lng,
+                                            created_by: item.author || 'el',
+                                            status: expectedStatus
+                                        };
+                                    }
+                                } catch (e) {
+                                    console.error(`Error fetching coordinates for ${item.title}:`, e);
                                 }
-                            } catch (e) {
-                                console.error(`Error fetching coordinates for ${item.title}:`, e);
-                            }
-                            return null;
-                        })
-                    );
+                                return null;
+                            })
+                        );
+                        for (const res of batchResults) {
+                            fetchResults.push(res);
+                        }
+                    }
 
                     const toInsert = fetchResults.filter(Boolean) as any[];
                     if (toInsert.length > 0) {
