@@ -28,3 +28,7 @@
 ## 2024-07-03 - Batch Push Notification Sends
 **Learning:** Sending all push notifications in parallel with `Promise.all` across a large userbase can exhaust resources, cause rate limiting from push services, and consume excessive memory.
 **Action:** When making bulk external API calls, process them in batches (e.g. 50 at a time) to cap concurrent connections and memory usage.
+
+## 2024-07-29 - Array Filter-Map Optimization Caveats
+**Learning:** When replacing `.filter().map()` chains with single-pass loops to avoid intermediate array allocations, it's critical to correctly handle edge cases where the filter is empty. Defaulting to an O(N) copy instead of an O(1) reference assignment when no filter is applied causes a performance regression. Also, avoid unnecessary type coercions (like converting number IDs to string IDs) when inserting items into Sets, as this breaks subsequent `Set.has()` checks which use strict equality.
+**Action:** When implementing single-pass array optimizations, always ensure the default/no-filter path remains an O(1) reference assignment, and strictly preserve the data types of the elements being mapped or added to Sets.

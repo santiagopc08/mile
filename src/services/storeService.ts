@@ -517,16 +517,31 @@ export const StoreService = {
                     tableCache.set(tableName, existingRecords);
                 }
 
+                // ⚡ Bolt Optimization: Replace chained filter().map() with single O(N) pass, preserving original types
                 let existing = existingRecords;
-                if (filter && Object.keys(filter).length > 0) {
-                    existing = existingRecords.filter(item => {
-                        for (const key in filter) {
-                            if (item[key] !== filter[key]) return false;
+                const existingIds = new Set();
+
+                const filterKeys = filter ? Object.keys(filter) : [];
+                if (filterKeys.length > 0) {
+                    existing = [];
+                    for (const item of existingRecords) {
+                        let match = true;
+                        for (const key of filterKeys) {
+                            if (item[key] !== filter[key]) {
+                                match = false;
+                                break;
+                            }
                         }
-                        return true;
-                    });
+                        if (match) {
+                            existing.push(item);
+                            existingIds.add(item.id);
+                        }
+                    }
+                } else {
+                    for (const item of existingRecords) {
+                        existingIds.add(item.id);
+                    }
                 }
-                const existingIds = new Set(existing.map((r: Record<string, unknown>) => r.id));
 
                 const toUpsert: any[] = [];
                 const toInsert: any[] = [];
