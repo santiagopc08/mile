@@ -704,8 +704,12 @@ export const StoreService = {
                     existingRows = (data || []) as unknown as Record<string, unknown>[];
                     tableCache.set('persistent_listening', existingRows);
                 }
-                const existingTopics = new Set(existingRows.map((r: Record<string, unknown>) => r.topic));
-                const existingIds = new Set(existingRows.map((r: Record<string, unknown>) => r.id));
+                const existingTopics = new Set<unknown>();
+                const existingIds = new Set<unknown>();
+                for (const r of existingRows) {
+                    existingTopics.add(r.topic);
+                    existingIds.add(r.id);
+                }
 
                 await syncTable('persistent_listening', newData.persistentListening.map(l => ({
                     id: l.id,
