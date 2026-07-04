@@ -212,7 +212,25 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
 
   const deleteObjective = (id: string) => {
     updateData({ objectives: objectives.filter(o => o.id !== id) as Objective[] });
-    updateData({ tasks: tasks.map(t => t.objective_id === id ? { ...t, objective_id: undefined } : t) as Task[] });
+
+    // ⚡ Bolt Optimization: Replace O(N) map allocation with lazy clone only on match
+    let hasMatch = false;
+    for (let i = 0; i < tasks.length; i++) {
+      if (tasks[i].objective_id === id) {
+        hasMatch = true;
+        break;
+      }
+    }
+
+    if (hasMatch) {
+      const updatedTasks = [...tasks];
+      for (let i = 0; i < updatedTasks.length; i++) {
+        if (updatedTasks[i].objective_id === id) {
+          updatedTasks[i] = { ...updatedTasks[i], objective_id: undefined } as Task;
+        }
+      }
+      updateData({ tasks: updatedTasks });
+    }
   };
 
   const handleEditSave = (updatedTask: Task) => {
