@@ -61,11 +61,15 @@ export const MahjongService = {
     },
 
 
-    async getMahjongImages(supabase: SupabaseClient = defaultSupabase): Promise<{ url: string, source: 'supabase' | 'local', title?: string, description?: string, date?: string }[]> {
+    async getMahjongImages(supabase: SupabaseClient = defaultSupabase, signal?: AbortSignal): Promise<{ url: string, source: 'supabase' | 'local', title?: string, description?: string, date?: string }[]> {
         try {
+            const query = supabase.from('events').select('image_url, title, description, date').not('image_url', 'is', null);
+            if (signal) {
+                query.abortSignal(signal);
+            }
             const [eventsRes, localRes] = await Promise.all([
-                supabase.from('events').select('image_url, title, description, date').not('image_url', 'is', null),
-                fetch('/api/mahjong-images').then(r => r.json()).catch(() => [])
+                query,
+                fetch('/api/mahjong-images', { signal }).then(r => r.json()).catch(() => [])
             ]);
 
             const eventData = eventsRes.data || [];

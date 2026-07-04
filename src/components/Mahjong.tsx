@@ -1124,14 +1124,14 @@ export function Mahjong() {
         }
     };
 
-    const getDailyEvent = async () => {
+    const getDailyEvent = async (signal?: AbortSignal) => {
         try {
             const today = new Date();
             const month = String(today.getMonth() + 1).padStart(2, '0');
             const day = String(today.getDate()).padStart(2, '0');
             const targetString = `-${month}-${day}`; // e.g. "-06-25"
 
-            const images = await MahjongService.getMahjongImages();
+            const images = await MahjongService.getMahjongImages(undefined, signal);
             const eventImages = images.filter(img => img.source === 'supabase' && img.date);
 
             // Find match in date string
@@ -1149,9 +1149,9 @@ export function Mahjong() {
         }
     };
 
-    const initializeDailyGame = async () => {
+    const initializeDailyGame = async (signal?: AbortSignal) => {
         // Fetch daily event
-        const dailyEvent = await getDailyEvent();
+        const dailyEvent = await getDailyEvent(signal);
         const pairs: TileContent[] = [];
 
         if (dailyEvent) {
@@ -1372,8 +1372,8 @@ export function Mahjong() {
         }
     };
 
-    const handleLoadCoopGame = async (game: any) => {
-        const images = await MahjongService.getMahjongImages();
+    const handleLoadCoopGame = async (game: any, signal?: AbortSignal) => {
+        const images = await MahjongService.getMahjongImages(undefined, signal);
         const detailsMap = new Map<string, { title: string; description: string; date: string }>();
         for (const img of images) {
             if (img.source === 'supabase' && img.url) {
@@ -1406,11 +1406,11 @@ export function Mahjong() {
         setHasStarted(false);
     };
 
-    const initializeGame = async (layoutParam?: LayoutType) => {
+    const initializeGame = async (layoutParam?: LayoutType, signal?: AbortSignal) => {
         if (gameMode === 'coop') {
             const activeGame = await MahjongService.getActiveCoopGame();
             if (activeGame) {
-                await handleLoadCoopGame(activeGame);
+                await handleLoadCoopGame(activeGame, signal);
             } else {
                 setActiveCoopGame(null);
                 setIsLoaded(true);
@@ -1420,12 +1420,12 @@ export function Mahjong() {
         }
 
         if (gameMode === 'daily') {
-            await initializeDailyGame();
+            await initializeDailyGame(signal);
             return;
         }
 
         const mobileState = window.innerWidth <= 768;
-        const images = await MahjongService.getMahjongImages();
+        const images = await MahjongService.getMahjongImages(undefined, signal);
 
         // Registrar metadatos de recuerdos de Supabase
         const detailsMap = new Map<string, { title: string; description: string; date: string }>();
@@ -1557,7 +1557,9 @@ export function Mahjong() {
     };
 
     useEffect(() => {
-        if (!isLoaded) { initializeGame(); }
+        const abortController = new AbortController();
+        if (!isLoaded) { initializeGame(undefined, abortController.signal); }
+        return () => abortController.abort();
     }, [isLoaded, gameMode]);
 
     const { freeTilesMap, tilesById, dockTilesByValue } = useMemo(() => {
