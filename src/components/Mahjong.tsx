@@ -1658,7 +1658,15 @@ export function Mahjong() {
         }
 
         // Memory game mechanic: if we have 2 unmatched flipped-down cards, return them to board
-        const flippedInDock = dockIds.map(dId => tilesById.get(dId)).find(t => t?.isFlippedDown && !t.isMatched);
+        // ⚡ Bolt Optimization: Replace dockIds.map().find() with a single-pass loop to avoid intermediate array allocation
+        let flippedInDock = undefined;
+        for (const dId of dockIds) {
+            const t = tilesById.get(dId);
+            if (t?.isFlippedDown && !t.isMatched) {
+                flippedInDock = t;
+                break;
+            }
+        }
         if (tile.isFlippedDown && flippedInDock && flippedInDock.content.value !== tile.content.value) {
             // Add clicked tile to the dock temporarily so player sees it
             const updatedDock = [...dockIds, id];
