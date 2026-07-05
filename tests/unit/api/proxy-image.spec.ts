@@ -1,28 +1,36 @@
 import { test, expect } from '@playwright/test';
-import { GET } from '../../../src/app/api/proxy-image/route';
 
 test.describe('Proxy Image API Security', () => {
     const createRequest = (urlParam: string) => {
         return new Request(`http://localhost/api/proxy-image?url=${encodeURIComponent(urlParam)}`);
     };
 
-    let originalFetch: typeof global.fetch;
+    const fetchSafeModulePath = require.resolve('../../../src/lib/fetch-safe');
+    let originalFetchSafe: unknown;
 
     test.beforeEach(() => {
-        originalFetch = global.fetch;
+        originalFetchSafe = require.cache[fetchSafeModulePath];
     });
 
     test.afterEach(() => {
-        global.fetch = originalFetch;
+        if (originalFetchSafe) {
+            require.cache[fetchSafeModulePath] = originalFetchSafe;
+        } else {
+            delete require.cache[fetchSafeModulePath];
+        }
     });
 
     const mockFetchWithContentType = (contentType: string) => {
-        global.fetch = async () => {
-            return new Response(Buffer.from('fake-data'), {
-                status: 200,
-                headers: { 'Content-Type': contentType }
-            });
-        };
+        require.cache[fetchSafeModulePath] = {
+            exports: {
+                fetchSafe: async () => {
+                    return new Response(Buffer.from('fake-data'), {
+                        status: 200,
+                        headers: { 'Content-Type': contentType }
+                    });
+                }
+            }
+        } as NodeJS.Module;
     };
 
     test('should allow valid image types and include nosniff header', async () => {
@@ -30,8 +38,11 @@ test.describe('Proxy Image API Security', () => {
 
         for (const type of allowedTypes) {
             mockFetchWithContentType(type);
+                        delete require.cache[require.resolve('../../../src/app/api/proxy-image/route')];
+                        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const { GET: mockGET } = require('../../../src/app/api/proxy-image/route');
             const req = createRequest('https://example.com/image.jpg');
-            const res = await GET(req);
+            const res = await mockGET(req);
 
             expect(res.status).toBe(200);
             expect(res.headers.get('Content-Type')).toBe(type);
@@ -41,8 +52,11 @@ test.describe('Proxy Image API Security', () => {
 
     test('should reject text/html', async () => {
         mockFetchWithContentType('text/html; charset=utf-8');
+                delete require.cache[require.resolve('../../../src/app/api/proxy-image/route')];
+                        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const { GET: mockGET } = require('../../../src/app/api/proxy-image/route');
         const req = createRequest('https://example.com/page.html');
-        const res = await GET(req);
+        const res = await mockGET(req);
 
         expect(res.status).toBe(400);
         const text = await res.text();
@@ -51,8 +65,11 @@ test.describe('Proxy Image API Security', () => {
 
     test('should reject image/svg+xml (prevent XSS)', async () => {
         mockFetchWithContentType('image/svg+xml');
+                delete require.cache[require.resolve('../../../src/app/api/proxy-image/route')];
+                        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const { GET: mockGET } = require('../../../src/app/api/proxy-image/route');
         const req = createRequest('https://example.com/image.svg');
-        const res = await GET(req);
+        const res = await mockGET(req);
 
         expect(res.status).toBe(400);
         const text = await res.text();
@@ -61,21 +78,31 @@ test.describe('Proxy Image API Security', () => {
 
     test('should reject application/javascript', async () => {
         mockFetchWithContentType('application/javascript');
+                delete require.cache[require.resolve('../../../src/app/api/proxy-image/route')];
+                        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const { GET: mockGET } = require('../../../src/app/api/proxy-image/route');
         const req = createRequest('https://example.com/script.js');
-        const res = await GET(req);
+        const res = await mockGET(req);
 
         expect(res.status).toBe(400);
     });
 
     test('should fallback to image/jpeg if no content type and allow it', async () => {
-        global.fetch = async () => {
-            return new Response(Buffer.from('fake-data'), {
-                status: 200,
-                headers: {} // No content-type header
-            });
-        };
+        require.cache[fetchSafeModulePath] = {
+            exports: {
+                fetchSafe: async () => {
+                    return new Response(Buffer.from('fake-data'), {
+                        status: 200,
+                        headers: {} // No content-type header
+                    });
+                }
+            }
+        } as NodeJS.Module;
+                delete require.cache[require.resolve('../../../src/app/api/proxy-image/route')];
+                        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const { GET: mockGET } = require('../../../src/app/api/proxy-image/route');
         const req = createRequest('https://example.com/image.jpg');
-        const res = await GET(req);
+        const res = await mockGET(req);
 
         expect(res.status).toBe(200);
         expect(res.headers.get('Content-Type')).toBe('image/jpeg');
@@ -84,11 +111,18 @@ test.describe('Proxy Image API Security', () => {
         const originalConsoleError = console.error;
         console.error = () => {};
         try {
-            global.fetch = async () => {
-                throw new Error('Test fetch error');
-            };
+            require.cache[fetchSafeModulePath] = {
+                exports: {
+                    fetchSafe: async () => {
+                        throw new Error('Test fetch error');
+                    }
+                }
+            } as NodeJS.Module;
+                        delete require.cache[require.resolve('../../../src/app/api/proxy-image/route')];
+                        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const { GET: mockGET } = require('../../../src/app/api/proxy-image/route');
             const req = createRequest('https://example.com/image.jpg');
-            const res = await GET(req);
+            const res = await mockGET(req);
 
             expect(res.status).toBe(500);
             const text = await res.text();
