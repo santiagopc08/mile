@@ -1945,23 +1945,28 @@ export function Mahjong() {
 
     const layoutName = gameMode === 'coop' ? 'Cooperativo' : gameMode === 'daily' ? 'Diario' : (LAYOUT_INFO[currentLayout]?.name || currentLayout);
 
+    // ⚡ Bolt Optimization: Replace .filter().map() chain with a single pass O(N) loop to avoid intermediate array allocations
     const parsedLevelScores = useMemo(() => {
-        return allScores.filter(s => s.layout !== 'daily').map(score => {
-            let parsedLevel = 1;
-            let parsedLayout = score.layout;
-            if (score.layout && score.layout.includes(':')) {
-                const parts = score.layout.split(':');
-                parsedLayout = parts[0];
-                parsedLevel = parseInt(parts[1], 10) || 1;
-            } else {
-                parsedLevel = score.tile_count === 96 ? 3 : score.tile_count === 88 ? 2 : 1;
+        const result = [];
+        for (const score of allScores) {
+            if (score.layout !== 'daily') {
+                let parsedLevel = 1;
+                let parsedLayout = score.layout;
+                if (score.layout && score.layout.includes(':')) {
+                    const parts = score.layout.split(':');
+                    parsedLayout = parts[0];
+                    parsedLevel = parseInt(parts[1], 10) || 1;
+                } else {
+                    parsedLevel = score.tile_count === 96 ? 3 : score.tile_count === 88 ? 2 : 1;
+                }
+                result.push({
+                    ...score,
+                    parsedLayout,
+                    parsedLevel
+                });
             }
-            return {
-                ...score,
-                parsedLayout,
-                parsedLevel
-            };
-        });
+        }
+        return result;
     }, [allScores]);
 
     const levelComparisons = useMemo(() => {
@@ -1995,20 +2000,20 @@ export function Mahjong() {
                 elLvl = Math.min(partnerMaxLvl, currentWinnerLvl);
             }
 
-            const elScores = parsedLevelScores.filter(s => s.profile === 'el' && s.parsedLevel === elLvl);
+            // ⚡ Bolt Optimization: Replace multiple .filter() calls with a single pass O(N) loop
             let elTime: number | null = null;
             let elCombo = 0;
-            for (const s of elScores) {
-                if (elTime === null || s.time_seconds < elTime) elTime = s.time_seconds;
-                if ((s.highest_combo || 0) > elCombo) elCombo = s.highest_combo || 0;
-            }
-
-            const ellaScores = parsedLevelScores.filter(s => s.profile === 'ella' && s.parsedLevel === ellaLvl);
             let ellaTime: number | null = null;
             let ellaCombo = 0;
-            for (const s of ellaScores) {
-                if (ellaTime === null || s.time_seconds < ellaTime) ellaTime = s.time_seconds;
-                if ((s.highest_combo || 0) > ellaCombo) ellaCombo = s.highest_combo || 0;
+
+            for (const s of parsedLevelScores) {
+                if (s.profile === 'el' && s.parsedLevel === elLvl) {
+                    if (elTime === null || s.time_seconds < elTime) elTime = s.time_seconds;
+                    if ((s.highest_combo || 0) > elCombo) elCombo = s.highest_combo || 0;
+                } else if (s.profile === 'ella' && s.parsedLevel === ellaLvl) {
+                    if (ellaTime === null || s.time_seconds < ellaTime) ellaTime = s.time_seconds;
+                    if ((s.highest_combo || 0) > ellaCombo) ellaCombo = s.highest_combo || 0;
+                }
             }
 
             comparisons.push({
