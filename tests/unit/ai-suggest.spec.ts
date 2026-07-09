@@ -1,6 +1,6 @@
 process.env.NEXT_PUBLIC_MOCK_AUTH = 'true';
 import { test, expect } from '@playwright/test';
-import { POST } from '../../src/app/api/ai-suggest/route';
+
 
 test.describe('AI Suggest API', () => {
 
@@ -13,6 +13,8 @@ test.describe('AI Suggest API', () => {
 
   test('should return 400 if taskText is missing', async () => {
     const req = createMockRequest({ field: 'actions' });
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { POST } = require('../../src/app/api/ai-suggest/route');
     const response = await POST(req);
 
     expect(response.status).toBe(400);
@@ -22,6 +24,8 @@ test.describe('AI Suggest API', () => {
 
   test('should return suggestions for "comprar" keyword', async () => {
     const req = createMockRequest({ taskText: 'comprar leche', field: 'actions' });
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { POST } = require('../../src/app/api/ai-suggest/route');
     const response = await POST(req);
 
     expect(response.status).toBe(200);
@@ -36,6 +40,8 @@ test.describe('AI Suggest API', () => {
 
   test('should return suggestions for "estudiar" keyword', async () => {
     const req = createMockRequest({ taskText: 'estudiar matemáticas', field: 'actions' });
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { POST } = require('../../src/app/api/ai-suggest/route');
     const response = await POST(req);
 
     expect(response.status).toBe(200);
@@ -50,6 +56,8 @@ test.describe('AI Suggest API', () => {
 
   test('should return suggestions for "bug" keyword', async () => {
     const req = createMockRequest({ taskText: 'fix bug in login', field: 'actions' });
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { POST } = require('../../src/app/api/ai-suggest/route');
     const response = await POST(req);
 
     expect(response.status).toBe(200);
@@ -64,6 +72,8 @@ test.describe('AI Suggest API', () => {
 
   test('should return suggestions for "email" keyword', async () => {
     const req = createMockRequest({ taskText: 'enviar email a cliente', field: 'actions' });
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { POST } = require('../../src/app/api/ai-suggest/route');
     const response = await POST(req);
 
     expect(response.status).toBe(200);
@@ -78,6 +88,8 @@ test.describe('AI Suggest API', () => {
 
   test('should return fallback suggestions if no keyword matches', async () => {
     const req = createMockRequest({ taskText: 'limpiar la casa', field: 'actions' });
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { POST } = require('../../src/app/api/ai-suggest/route');
     const response = await POST(req);
 
     expect(response.status).toBe(200);
@@ -92,6 +104,8 @@ test.describe('AI Suggest API', () => {
 
   test('should return validations suggestions', async () => {
     const req = createMockRequest({ taskText: 'hacer ejercicio', field: 'validations' });
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { POST } = require('../../src/app/api/ai-suggest/route');
     const response = await POST(req);
 
     expect(response.status).toBe(200);
@@ -110,6 +124,8 @@ test.describe('AI Suggest API', () => {
         // No body
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { POST } = require('../../src/app/api/ai-suggest/route');
     const response = await POST(req);
 
     expect(response.status).toBe(500);
