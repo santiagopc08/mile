@@ -32,3 +32,7 @@
 ## 2024-07-29 - Array Filter-Map Optimization Caveats
 **Learning:** When replacing `.filter().map()` chains with single-pass loops to avoid intermediate array allocations, it's critical to correctly handle edge cases where the filter is empty. Defaulting to an O(N) copy instead of an O(1) reference assignment when no filter is applied causes a performance regression. Also, avoid unnecessary type coercions (like converting number IDs to string IDs) when inserting items into Sets, as this breaks subsequent `Set.has()` checks which use strict equality.
 **Action:** When implementing single-pass array optimizations, always ensure the default/no-filter path remains an O(1) reference assignment, and strictly preserve the data types of the elements being mapped or added to Sets.
+
+## 2024-07-09 - Avoid redundant filter operations in nested loops
+**Learning:** Performing array `.filter()` inside a loop (e.g., repeatedly filtering an array to compute level-specific comparisons) triggers redundant O(N) scans.
+**Action:** Replace nested `.filter()` calls with a single O(N) pass loop containing conditional statements (`if/else if`) to incrementally update all necessary variables, significantly improving loop efficiency.
