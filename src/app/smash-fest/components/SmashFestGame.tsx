@@ -80,8 +80,11 @@ function BoxNode({ node, onTrigger }: { node: LevelNode; onTrigger: () => void }
     return unsubscribe;
   }, [api]);
 
+  const hasTriggered = useRef(false);
+
   useFrame(() => {
-      if (node.isMemoryBlock && position.current[1] < 1) { // Threshold for falling
+      if (!hasTriggered.current && node.isMemoryBlock && position.current[1] < 1) { // Threshold for falling
+          hasTriggered.current = true;
           onTrigger();
       }
   })
@@ -113,8 +116,11 @@ function CylinderNode({ node, onTrigger }: { node: LevelNode; onTrigger: () => v
       return unsubscribe;
     }, [api]);
 
+    const hasTriggered = useRef(false);
+
     useFrame(() => {
-        if (node.isMemoryBlock && position.current[1] < 1) {
+        if (!hasTriggered.current && node.isMemoryBlock && position.current[1] < 1) {
+            hasTriggered.current = true;
             onTrigger();
         }
     })
