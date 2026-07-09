@@ -1946,22 +1946,27 @@ export function Mahjong() {
     const layoutName = gameMode === 'coop' ? 'Cooperativo' : gameMode === 'daily' ? 'Diario' : (LAYOUT_INFO[currentLayout]?.name || currentLayout);
 
     const parsedLevelScores = useMemo(() => {
-        return allScores.filter(s => s.layout !== 'daily').map(score => {
-            let parsedLevel = 1;
-            let parsedLayout = score.layout;
-            if (score.layout && score.layout.includes(':')) {
-                const parts = score.layout.split(':');
-                parsedLayout = parts[0];
-                parsedLevel = parseInt(parts[1], 10) || 1;
-            } else {
-                parsedLevel = score.tile_count === 96 ? 3 : score.tile_count === 88 ? 2 : 1;
+        // ⚡ Bolt Optimization: Replace .filter().map() with single O(N) pass loop
+        const result = [];
+        for (const score of allScores) {
+            if (score.layout !== 'daily') {
+                let parsedLevel = 1;
+                let parsedLayout = score.layout;
+                if (score.layout && score.layout.includes(':')) {
+                    const parts = score.layout.split(':');
+                    parsedLayout = parts[0];
+                    parsedLevel = parseInt(parts[1], 10) || 1;
+                } else {
+                    parsedLevel = score.tile_count === 96 ? 3 : score.tile_count === 88 ? 2 : 1;
+                }
+                result.push({
+                    ...score,
+                    parsedLayout,
+                    parsedLevel
+                });
             }
-            return {
-                ...score,
-                parsedLayout,
-                parsedLevel
-            };
-        });
+        }
+        return result;
     }, [allScores]);
 
     const levelComparisons = useMemo(() => {
