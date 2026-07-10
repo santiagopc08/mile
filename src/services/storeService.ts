@@ -411,7 +411,7 @@ export const StoreService = {
             }
 
             if (shouldFetch('notes')) {
-                result.notes = (notesRes?.data || []).map((n: any) => ({
+                result.notes = (notesRes?.data || []).map((n: { id: string; text: string; author?: string }) => ({
                     id: n.id,
                     text: n.text,
                     author: n.author || 'el'
