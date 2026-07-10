@@ -157,9 +157,13 @@ export default function SmashFestGame({ levelId, onMemoryBlockTriggered }: Smash
   const [level, setLevel] = useState<LevelSchema | null>(null);
   const [projectiles, setProjectiles] = useState<{ id: number; pos: [number, number, number]; vel: [number, number, number] }[]>([]);
   const [projId, setProjId] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadLevel() {
+      setIsLoading(true);
+      setError(null);
       const { data, error } = await supabase
         .from("smash_fest_levels")
         .select("*")
@@ -168,14 +172,27 @@ export default function SmashFestGame({ levelId, onMemoryBlockTriggered }: Smash
 
       if (error) {
         console.error("Failed to load level", error);
+        setError(error.message);
       } else if (data) {
         setLevel(data as LevelSchema);
       }
+      setIsLoading(false);
     }
     loadLevel();
   }, [levelId]);
 
-  if (!level) return null;
+  if (isLoading) {
+    return <div className="flex w-full h-full items-center justify-center text-white">Loading Level Data...</div>;
+  }
+
+  if (error || !level) {
+    return (
+      <div className="flex w-full h-full flex-col items-center justify-center text-white text-center px-4">
+        <h2 className="text-xl font-bold mb-2 text-red-400">Error Loading Level</h2>
+        <p className="text-sm opacity-80">{error || "Level not found"}</p>
+      </div>
+    );
+  }
 
   const handleShoot = (pos: [number, number, number], vel: [number, number, number]) => {
     setProjectiles((prev) => [...prev, { id: projId, pos, vel }]);
