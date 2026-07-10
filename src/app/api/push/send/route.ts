@@ -58,23 +58,27 @@ export async function POST(request: Request) {
         // 3. Send in batches to all active subscriptions to avoid rate limiting
         const BATCH_SIZE = 50;
         for (let i = 0; i < subscriptions.length; i += BATCH_SIZE) {
-            const batch = subscriptions.slice(i, i + BATCH_SIZE);
-            const sendPromises = batch.map(async (subRecord: Record<string, unknown>) => {
-                try {
-                    await webpush.sendNotification(subRecord.subscription as webpush.PushSubscription, payload);
-                } catch (err: unknown) {
-                    // If endpoint is no longer valid (status 410 Gone or 404 Not Found), remove it
-                    const errorObj = err as Record<string, unknown>;
-                    if (errorObj.statusCode === 410 || errorObj.statusCode === 404) {
-                        await supabase
-                            .from('push_subscriptions')
-                            .delete()
-                            .eq('id', subRecord.id);
-                    } else {
-                        console.error(`Error sending push notification to ${subRecord.endpoint}:`, err);
-                    }
-                }
-            });
+            const sendPromises: Promise<any>[] = [];
+            const endBatch = Math.min(i + BATCH_SIZE, subscriptions.length);
+
+            for (let j = i; j < endBatch; j++) {
+                const subRecord = subscriptions[j] as Record<string, unknown>;
+                const sendPromise = webpush.sendNotification(subRecord.subscription as webpush.PushSubscription, payload)
+                    .catch(async (err: unknown) => {
+                        // If endpoint is no longer valid (status 410 Gone or 404 Not Found), remove it
+                        const errorObj = err as Record<string, unknown>;
+                        if (errorObj.statusCode === 410 || errorObj.statusCode === 404) {
+                            await supabase
+                                .from('push_subscriptions')
+                                .delete()
+                                .eq('id', subRecord.id);
+                        } else {
+                            console.error(`Error sending push notification to ${subRecord.endpoint}:`, err);
+                        }
+                    });
+
+                sendPromises.push(sendPromise);
+            }
 
             await Promise.all(sendPromises);
         }
