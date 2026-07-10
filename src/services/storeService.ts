@@ -690,7 +690,7 @@ export const StoreService = {
                 const todayCompleted = newData.commitments.filter(c => c.completed).length;
                 const timeZoneOffset = (new Date()).getTimezoneOffset() * 60000;
                 const todayStr = new Date(Date.now() - timeZoneOffset).toISOString().split('T')[0];
-                await supabase.from('daily_tracking').upsert({ date: todayStr, completed_count: todayCompleted });
+                syncPromises.push(supabase.from('daily_tracking').upsert({ date: todayStr, completed_count: todayCompleted }).then(() => undefined));
             }
 
             // Victories (Shared handling for El and Ella)
@@ -705,58 +705,60 @@ export const StoreService = {
             if (newData.victoriesEl !== undefined) syncPromises.push(handleVictories(newData.victoriesEl, 'el'));
             if (newData.victoriesElla !== undefined) syncPromises.push(handleVictories(newData.victoriesElla, 'ella'));
 
-
-
-            await Promise.all(syncPromises);
-
+            // ⚡ Bolt Optimization: Eliminate waterfall requests by making sequential logic concurrent
             // Persistent Listening
             if (newData.persistentListening !== undefined) {
-                let existingRows: Record<string, unknown>[] = [];
-                if (tableCache.has('persistent_listening')) {
-                    existingRows = tableCache.get('persistent_listening')!;
-                } else {
-                    const { data } = await supabase.from('persistent_listening').select('id, topic');
-                    existingRows = (data || []) as unknown as Record<string, unknown>[];
-                    tableCache.set('persistent_listening', existingRows);
-                }
-                const existingTopics = new Set<unknown>();
-                const existingIds = new Set<unknown>();
-                for (const r of existingRows) {
-                    existingTopics.add(r.topic);
-                    existingIds.add(r.id);
-                }
-
-                await syncTable('persistent_listening', newData.persistentListening.map(l => ({
-                    id: l.id,
-                    topic: l.topic,
-                    reflection: l.reflection,
-                    date: l.date,
-                    author: l.author || 'el'
-                })));
-
-                // Notifications for new reflections
-                const notificationsToInsert = [];
-                for (const item of newData.persistentListening) {
-                    if (!existingIds.has(item.id) && !existingTopics.has(item.topic)) {
-                        notificationsToInsert.push({
-                            target_profile: 'ella',
-                            type: 'escucha',
-                            message: `Él agregó una nueva reflexión a la Escucha Persistente: "${item.topic}".`
-                        });
+                syncPromises.push((async () => {
+                    let existingRows: Record<string, unknown>[] = [];
+                    if (tableCache.has('persistent_listening')) {
+                        existingRows = tableCache.get('persistent_listening')!;
+                    } else {
+                        const { data } = await supabase.from('persistent_listening').select('id, topic');
+                        existingRows = (data || []) as unknown as Record<string, unknown>[];
+                        tableCache.set('persistent_listening', existingRows);
                     }
-                }
+                    const existingTopics = new Set<unknown>();
+                    const existingIds = new Set<unknown>();
+                    for (const r of existingRows) {
+                        existingTopics.add(r.topic);
+                        existingIds.add(r.id);
+                    }
 
-                if (notificationsToInsert.length > 0) {
-                    await supabase.from('notifications').insert(notificationsToInsert);
-                }
+                    await syncTable('persistent_listening', newData.persistentListening!.map(l => ({
+                        id: l.id,
+                        topic: l.topic,
+                        reflection: l.reflection,
+                        date: l.date,
+                        author: l.author || 'el'
+                    })));
+
+                    // Notifications for new reflections
+                    const notificationsToInsert = [];
+                    for (const item of newData.persistentListening!) {
+                        if (!existingIds.has(item.id) && !existingTopics.has(item.topic)) {
+                            notificationsToInsert.push({
+                                target_profile: 'ella',
+                                type: 'escucha',
+                                message: `Él agregó una nueva reflexión a la Escucha Persistente: "${item.topic}".`
+                            });
+                        }
+                    }
+
+                    if (notificationsToInsert.length > 0) {
+                        await supabase.from('notifications').insert(notificationsToInsert);
+                    }
+                })());
             }
 
             // Update App Settings
             if (newData.lastPulseAt !== undefined) {
-                await supabase.from("app_settings").update({ last_pulse_at: newData.lastPulseAt }).eq("id", 1);
+                syncPromises.push(supabase.from("app_settings").update({ last_pulse_at: newData.lastPulseAt }).eq("id", 1).then(() => undefined));
             }
 
-            await supabase.from('app_settings').update({ last_update: new Date().toISOString() }).eq('id', 1);
+            syncPromises.push(supabase.from('app_settings').update({ last_update: new Date().toISOString() }).eq('id', 1).then(() => undefined));
+
+            // ⚡ Bolt Optimization: Await all remaining isolated database updates concurrently
+            await Promise.all(syncPromises);
 
         } catch (error) {
             console.error('Failed to update Supabase', error);
