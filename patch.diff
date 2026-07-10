@@ -1,0 +1,11 @@
+--- src/app/api/login/route.ts
++++ src/app/api/login/route.ts
+@@ -25,7 +25,7 @@
+         }
+
+         // Generate a secure device token
+-        const deviceToken = crypto.randomUUID();
++        const deviceToken = crypto.randomBytes(32).toString('hex');
+
+         // Store device token securely in the device_tokens table
+         if (signInData.user) {
