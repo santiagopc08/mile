@@ -166,7 +166,7 @@ const MahjongTile = memo(({ tile, isFree, onPointerDown, positionStyle }: Mahjon
             }}
             className={`
                 tile-item flex items-center justify-center overflow-hidden rounded-none
-                shadow-none transition-transform duration-300
+                shadow-none
                 ${isFree
                     ? `cursor-pointer border-[#4b403a] hover:border-${accentClass} hover:brightness-125 active:scale-95`
                     : 'cursor-not-allowed border-white/10 opacity-35 grayscale-[0.9] brightness-50'}

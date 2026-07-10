@@ -36,9 +36,9 @@ function CameraRig({ boardWidth, boardHeight }: CameraRigProps) {
         const targetY = isMobileDevice ? -0.38 : -0.25; // Centrado ligeramente ajustado para maximizar espacio vertical y separar los botones
 
         // Interpolación suave de la posición de la cámara (Parallax)
-        camera.position.x = THREE.MathUtils.lerp(camera.position.x, x * 0.35, 8 * safeDelta);
-        camera.position.y = THREE.MathUtils.lerp(camera.position.y, targetY + y * 0.28, 8 * safeDelta);
-        camera.position.z = THREE.MathUtils.lerp(camera.position.z, targetZ, 8 * safeDelta);
+        camera.position.x = THREE.MathUtils.damp(camera.position.x, x * 0.35, 8, safeDelta);
+        camera.position.y = THREE.MathUtils.damp(camera.position.y, targetY + y * 0.28, 8, safeDelta);
+        camera.position.z = THREE.MathUtils.damp(camera.position.z, targetZ, 8, safeDelta);
 
         // Apuntar suavemente al centro del tablero
         camera.lookAt(0, 0, 0);
