@@ -171,14 +171,17 @@ export function WishlistModule() {
                     // for the same URL within the backfill batch.
                     const urlCache = new Map<string, Promise<any>>();
 
-                    const fetchResults: any[] = []; // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const fetchResults: any[] = [];
                     // ⚡ Bolt Optimization: Batch requests to avoid unbounded concurrent fetches
                     // which can exhaust connections, memory, or trigger rate limits.
                     const batchSize = 5;
                     for (let i = 0; i < itemsToFetch.length; i += batchSize) {
-                        const batch = itemsToFetch.slice(i, i + batchSize);
-                        const batchResults = await Promise.all(
-                            batch.map(async ({ item, url, expectedStatus }) => {
+                        const batchPromises = [];
+                        const endIdx = Math.min(i + batchSize, itemsToFetch.length);
+                        for (let j = i; j < endIdx; j++) {
+                            const { item, url, expectedStatus } = itemsToFetch[j];
+                            batchPromises.push((async () => {
                                 try {
                                     let fetchPromise = urlCache.get(url);
                                     if (!fetchPromise) {
@@ -203,8 +206,9 @@ export function WishlistModule() {
                                     console.error(`Error fetching coordinates for ${item.title}:`, e);
                                 }
                                 return null;
-                            })
-                        );
+                            })());
+                        }
+                        const batchResults = await Promise.all(batchPromises);
                         for (const res of batchResults) {
                             fetchResults.push(res);
                         }
