@@ -25,6 +25,14 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Missing target or message' }, { status: 400 });
         }
 
+        if (typeof target !== 'string' || typeof message !== 'string' || (type !== undefined && typeof type !== 'string')) {
+            return NextResponse.json({ error: 'Invalid input types' }, { status: 400 });
+        }
+
+        if (target.length > 50 || message.length > 1000 || (type && type.length > 50)) {
+            return NextResponse.json({ error: 'Input exceeds maximum length' }, { status: 400 });
+        }
+
         if (!vapidPublicKey || !vapidPrivateKey) {
             console.error('VAPID keys are missing from server environment.');
             return NextResponse.json({ error: 'Push service not configured' }, { status: 500 });

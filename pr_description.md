@@ -1,0 +1,3 @@
+🎯 **What:** The `/api/push/send` endpoint lacked proper input validation for the `target`, `message`, and `type` fields received in the request JSON payload.
+⚠️ **Risk:** The endpoint was vulnerable to potential abuse where an attacker could send overly large strings, causing denial of service (DoS) by exhausting server memory or database resources. Additionally, non-string inputs could potentially cause unhandled exceptions in string-specific methods further down the pipeline.
+🛡️ **Solution:** Added explicit type checks to ensure all input fields are strings (or undefined in the case of `type`), and introduced maximum length limitations (`target`: max 50 chars, `message`: max 1000 chars, `type`: max 50 chars) to mitigate excessively large payload attacks.
