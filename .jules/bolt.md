@@ -1,4 +1,3 @@
-## YYYY-MM-DD - Fix Smash Fest Loading State
-
-**Learning:** The `SmashFestGame` component was returning `null` when it failed to load data from Supabase, leading to a blank screen. Also, a required schema for `smash_fest_levels` was missing from the deployed database.
-**Action:** Implemented `isLoading` and `error` states in `SmashFestGame` to surface network/database errors instead of silent failures. In future tasks, ensure components dealing with external async data provide explicit error handling states.
+## 2025-01-20 - Prevent Database Waterfalls in Concurrent Blocks
+**Learning:** In backend services managing bulk sync updates (like storeService), sequentially awaiting operations or database updates at the end of a method creates a significant bottleneck (waterfall request pattern).
+**Action:** When performing complex synchronizations with a shared `Promise.all` execution bucket (like `syncPromises`), manually group supplementary independent queries (like tracking updates and standalone DB writes) by hoisting them and pushing them into the concurrent Promise pool, rather than waiting for `Promise.all` to resolve and executing them sequentially afterwards. Moreover, if consecutive updates hit the same table (e.g. `app_settings`), bundle them into a single update request.
