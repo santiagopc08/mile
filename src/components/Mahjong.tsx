@@ -1113,7 +1113,7 @@ export function Mahjong() {
 
     const requestGameFullscreen = () => {
         if (typeof window !== 'undefined') {
-            const container = containerRef.current || document.documentElement;
+            const container = document.documentElement;
             if (container && !document.fullscreenElement) {
                 if (typeof container.requestFullscreen === 'function') {
                     container.requestFullscreen().catch(() => {});
@@ -1647,7 +1647,7 @@ export function Mahjong() {
 
         // Fullscreen activation when a match is started / played on first tile click
         if (typeof window !== 'undefined') {
-            const container = containerRef.current || document.documentElement;
+            const container = document.documentElement;
             if (container && !document.fullscreenElement) {
                 if (typeof container.requestFullscreen === 'function') {
                     container.requestFullscreen().catch(() => {});
