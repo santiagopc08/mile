@@ -135,7 +135,9 @@ export function WishlistModule() {
 
                 const locationMap = new Map(currentLocations.map(l => [`${l.nombre.toLowerCase()}||${l.created_by}`, l]));
                 let mutated = false;
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const itemsToFetchMap = new Map<string, { item: any; url: string; expectedStatus: string }>();
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const itemsToUpdateMap = new Map<string, any>();
 
                 for (const item of items) {
@@ -169,27 +171,31 @@ export function WishlistModule() {
                 if (itemsToFetch.length > 0) {
                     // ⚡ Bolt Optimization: Use an in-memory Promise cache to deduplicate concurrent requests
                     // for the same URL within the backfill batch.
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     const urlCache = new Map<string, Promise<any>>();
 
-                    const fetchResults: any[] = []; // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const fetchResults: any[] = [];
                     // ⚡ Bolt Optimization: Batch requests to avoid unbounded concurrent fetches
                     // which can exhaust connections, memory, or trigger rate limits.
                     const batchSize = 5;
                     for (let i = 0; i < itemsToFetch.length; i += batchSize) {
                         const batch = itemsToFetch.slice(i, i + batchSize);
                         const batchResults = await Promise.all(
-                            batch.map(async ({ item, url, expectedStatus }) => {
-                                try {
-                                    let fetchPromise = urlCache.get(url);
-                                    if (!fetchPromise) {
-                                        fetchPromise = fetch(`/api/link-preview?url=${encodeURIComponent(url)}`).then(res => {
-                                            if (!res.ok) throw new Error('Network response was not ok');
-                                            return res.json();
-                                        });
-                                        urlCache.set(url, fetchPromise);
-                                    }
+                            batch.map(({ item, url, expectedStatus }) => {
+                                // ⚡ Bolt Optimization: Replace .map(async () => await asyncOp()) with .map(() => asyncOp().then().catch())
+                                // to minimize intermediate promise instantiation overhead
+                                let fetchPromise = urlCache.get(url);
+                                if (!fetchPromise) {
+                                    fetchPromise = fetch(`/api/link-preview?url=${encodeURIComponent(url)}`).then(res => {
+                                        if (!res.ok) throw new Error('Network response was not ok');
+                                        return res.json();
+                                    });
+                                    urlCache.set(url, fetchPromise);
+                                }
 
-                                    const resData = await fetchPromise;
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                return fetchPromise.then((resData: any) => {
                                     if (resData.coords && typeof resData.coords.lat === 'number' && typeof resData.coords.lng === 'number') {
                                         return {
                                             nombre: item.title,
@@ -199,10 +205,11 @@ export function WishlistModule() {
                                             status: expectedStatus
                                         };
                                     }
-                                } catch (e) {
+                                    return null;
+                                }).catch(e => {
                                     console.error(`Error fetching coordinates for ${item.title}:`, e);
-                                }
-                                return null;
+                                    return null;
+                                });
                             })
                         );
                         for (const res of batchResults) {
@@ -210,6 +217,7 @@ export function WishlistModule() {
                         }
                     }
 
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     const toInsert = fetchResults.filter(Boolean) as any[];
                     if (toInsert.length > 0) {
                         const { error: insertError } = await supabase.from('ubicaciones').insert(toInsert);
@@ -240,6 +248,7 @@ export function WishlistModule() {
 
         const timer = setTimeout(performBackfill, 2000);
         return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [mapItemsHash]);
 
     const filteredItems = useMemo(() => {
