@@ -202,7 +202,10 @@ const LAYOUT_INFO: Record<LayoutType, { name: string; description: string; tiles
 };
 
 function filterCoordsByColumns(coords: { x: number; y: number; z: number }[], maxCols: number) {
-    const uniqueX = Array.from(new Set(coords.map(c => c.x))).sort((a, b) => a - b);
+    // ⚡ Bolt Optimization: Replace coords.map().Set() with single pass O(N) loop
+    const uniqueXSet = new Set<number>();
+    for (const c of coords) uniqueXSet.add(c.x);
+    const uniqueX = Array.from(uniqueXSet).sort((a, b) => a - b);
     if (uniqueX.length <= maxCols) return coords;
 
     const diff = uniqueX.length - maxCols;
@@ -341,7 +344,9 @@ function generateCoordinates(type: LayoutType, target: number) {
         }
         // Fill core spaces to reach target
         let i = 0;
-        const coordSet = new Set(coords.map(c => `${c.x},${c.y},${c.z}`));
+        // ⚡ Bolt Optimization: Replace coords.map().Set() with single pass O(N) loop
+        const coordSet = new Set<string>();
+        for (const c of coords) coordSet.add(`${c.x},${c.y},${c.z}`);
         while (coords.length < target && i < 200) {
             const x = 4 + (i % 4) * 2;
             const y = 4 + Math.floor(i / 4) * 2;
