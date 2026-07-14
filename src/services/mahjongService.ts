@@ -37,10 +37,18 @@ export const MahjongService = {
 
             if (error || !data) return { el: [], ella: [] };
 
-            return {
-                el: data.filter(s => s.profile === 'el').slice(0, 5),
-                ella: data.filter(s => s.profile === 'ella').slice(0, 5)
-            };
+            // ⚡ Bolt Optimization: Single-pass O(N) allocation replacement for .filter().slice()
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const el: any[] = [];
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const ella: any[] = [];
+            for (const s of data) {
+                if (s.profile === 'el' && el.length < 5) el.push(s);
+                else if (s.profile === 'ella' && ella.length < 5) ella.push(s);
+                if (el.length === 5 && ella.length === 5) break;
+            }
+
+            return { el, ella };
         } catch (e) {
             console.error('Failed to fetch mahjong leaderboard:', e);
             return { el: [], ella: [] };
