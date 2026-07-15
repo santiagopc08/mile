@@ -202,7 +202,10 @@ const LAYOUT_INFO: Record<LayoutType, { name: string; description: string; tiles
 };
 
 function filterCoordsByColumns(coords: { x: number; y: number; z: number }[], maxCols: number) {
-    const uniqueX = Array.from(new Set(coords.map(c => c.x))).sort((a, b) => a - b);
+    // ⚡ Bolt Optimization: Replace coords.map().Set() with single pass O(N) loop
+    const uniqueXSet = new Set<number>();
+    for (const c of coords) uniqueXSet.add(c.x);
+    const uniqueX = Array.from(uniqueXSet).sort((a, b) => a - b);
     if (uniqueX.length <= maxCols) return coords;
 
     const diff = uniqueX.length - maxCols;
@@ -341,7 +344,9 @@ function generateCoordinates(type: LayoutType, target: number) {
         }
         // Fill core spaces to reach target
         let i = 0;
-        const coordSet = new Set(coords.map(c => `${c.x},${c.y},${c.z}`));
+        // ⚡ Bolt Optimization: Replace coords.map().Set() with single pass O(N) loop
+        const coordSet = new Set<string>();
+        for (const c of coords) coordSet.add(`${c.x},${c.y},${c.z}`);
         while (coords.length < target && i < 200) {
             const x = 4 + (i % 4) * 2;
             const y = 4 + Math.floor(i / 4) * 2;
@@ -1113,7 +1118,7 @@ export function Mahjong() {
 
     const requestGameFullscreen = () => {
         if (typeof window !== 'undefined') {
-            const container = containerRef.current || document.documentElement;
+            const container = document.documentElement;
             if (container && !document.fullscreenElement) {
                 if (typeof container.requestFullscreen === 'function') {
                     container.requestFullscreen().catch(() => {});
@@ -1647,7 +1652,7 @@ export function Mahjong() {
 
         // Fullscreen activation when a match is started / played on first tile click
         if (typeof window !== 'undefined') {
-            const container = containerRef.current || document.documentElement;
+            const container = document.documentElement;
             if (container && !document.fullscreenElement) {
                 if (typeof container.requestFullscreen === 'function') {
                     container.requestFullscreen().catch(() => {});
@@ -1945,8 +1950,8 @@ export function Mahjong() {
 
     const layoutName = gameMode === 'coop' ? 'Cooperativo' : gameMode === 'daily' ? 'Diario' : (LAYOUT_INFO[currentLayout]?.name || currentLayout);
 
+    // ⚡ Bolt Optimization: Replace .filter().map() chain with a single pass O(N) loop to avoid intermediate array allocations
     const parsedLevelScores = useMemo(() => {
-        // ⚡ Bolt Optimization: Replace .filter().map() with single O(N) pass loop
         const result = [];
         for (const score of allScores) {
             if (score.layout !== 'daily') {
@@ -2000,20 +2005,20 @@ export function Mahjong() {
                 elLvl = Math.min(partnerMaxLvl, currentWinnerLvl);
             }
 
-            const elScores = parsedLevelScores.filter(s => s.profile === 'el' && s.parsedLevel === elLvl);
+            // ⚡ Bolt Optimization: Replace multiple .filter() calls with a single pass O(N) loop
             let elTime: number | null = null;
             let elCombo = 0;
-            for (const s of elScores) {
-                if (elTime === null || s.time_seconds < elTime) elTime = s.time_seconds;
-                if ((s.highest_combo || 0) > elCombo) elCombo = s.highest_combo || 0;
-            }
-
-            const ellaScores = parsedLevelScores.filter(s => s.profile === 'ella' && s.parsedLevel === ellaLvl);
             let ellaTime: number | null = null;
             let ellaCombo = 0;
-            for (const s of ellaScores) {
-                if (ellaTime === null || s.time_seconds < ellaTime) ellaTime = s.time_seconds;
-                if ((s.highest_combo || 0) > ellaCombo) ellaCombo = s.highest_combo || 0;
+
+            for (const s of parsedLevelScores) {
+                if (s.profile === 'el' && s.parsedLevel === elLvl) {
+                    if (elTime === null || s.time_seconds < elTime) elTime = s.time_seconds;
+                    if ((s.highest_combo || 0) > elCombo) elCombo = s.highest_combo || 0;
+                } else if (s.profile === 'ella' && s.parsedLevel === ellaLvl) {
+                    if (ellaTime === null || s.time_seconds < ellaTime) ellaTime = s.time_seconds;
+                    if ((s.highest_combo || 0) > ellaCombo) ellaCombo = s.highest_combo || 0;
+                }
             }
 
             comparisons.push({

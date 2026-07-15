@@ -1,34 +1,10 @@
-## 2024-06-25 - Refactoring Complex Game Board Generation
-**Learning:** Overly complex nested loops containing both business logic and array mutation (`splice`) significantly reduce readability and increase cyclomatic complexity.
-**Action:** Extract inner iteration/attempt logic into clearly named helper functions, and replace in-place reverse-loop array mutations with functional `.filter()` re-assignments.
+## YYYY-MM-DD - Fix Smash Fest Loading State
 
-## 2025-02-23 - Optimize O(N*M) array iterations within React renders
-**Learning:** In highly interactive React components (like the Mahjong game and Task modules), mapping over small arrays (e.g., `[0, 1, 2]`) and performing an O(N) lookup internally (e.g., `Array.from(map.values()).find()`) executes the O(N) conversion repeatedly inside the loop block. This creates an O(N*M) allocation and iteration bottleneck that significantly slows down render cycles.
-**Action:** When performing searches against collections inside a render loop, always pre-calculate or convert derived `Map` or `Set` iterators to arrays *before* the `.map()` loop to ensure single-pass O(N) execution instead of O(N*M). Additionally, replace double-pass O(N) state mutations (`.find` then `.map`) with single-pass `.findIndex` modifications.
-
-## 2026-06-23 - Pre-calculate map keys/values outside render loops
-**Learning:** Evaluating Object.keys() or Object.values() inside an array .map() inside a React component's return function creates significant O(N) evaluation overhead for every iteration of the outer map.
-**Action:** Hoist the Object.keys/values generation to a pre-calculated constant outside the map function to evaluate it once per render cycle instead of O(N) times.
- 
-## 2024-07-28 - Avoid Array spreads on mapped property values
-**Learning:** Calculating bounds or maximums using `Math.max(...array.map(item => item.value))` forces V8 to allocate two intermediate O(N) structures: a temporary array for `.map()` output, and a spread argument array (which can hit the JavaScript engine stack limit `Maximum call stack size exceeded` for large arrays).
-**Action:** Replace `Math.max(...array.map(...))` inside React components with a standard O(N) `for...of` loop tracking the min/max incrementally to eliminate the garbage collection overhead and stack overflow risk.
-
-## 2026-07-03 - Optimize intermediate chained map/filter arrays
-**Learning:** In React useEffects tracking state changes like game completions, calculating derived results using chained `.filter().map().filter()` on potentially large arrays creates substantial temporary memory allocations and repeats O(N) operations.
-**Action:** Replace intermediate array chaining with a single O(N) `for...of` pass containing early exits (`continue`) and incremental aggregations.
-
-## 2025-03-02 - [O(N) Set Optimization for Dates]
-**Learning:** Instantiating `new Date()` inside an O(N) loop is slow and creates unnecessary garbage collection overhead when the dates can be compared lexically as YYYY-MM-DD strings.
-**Action:** When filtering dates inside loops, format the comparison boundary (e.g. `startOfWeekStr`) outside the loop and use lexical string comparison (`dateStr >= startOfWeekStr`) for ~28x speedup.
-## 2024-05-30 - Map Lookup inside React Render Loop
-**Learning:** Performing multiple Map `.get()` lookups inside an array `.map()` call that executes on every React render loop can cause a minor but frequent CPU overhead, which scales poorly as the array size increases.
-**Action:** Extract these derivations into a `useMemo` hook that runs only when the dependencies change, returning an array of pre-calculated state objects that the render loop can cheaply iterate over.
-
-## 2024-07-03 - Batch Push Notification Sends
-**Learning:** Sending all push notifications in parallel with `Promise.all` across a large userbase can exhaust resources, cause rate limiting from push services, and consume excessive memory.
-**Action:** When making bulk external API calls, process them in batches (e.g. 50 at a time) to cap concurrent connections and memory usage.
-
-## 2024-07-29 - Array Filter-Map Optimization Caveats
-**Learning:** When replacing `.filter().map()` chains with single-pass loops to avoid intermediate array allocations, it's critical to correctly handle edge cases where the filter is empty. Defaulting to an O(N) copy instead of an O(1) reference assignment when no filter is applied causes a performance regression. Also, avoid unnecessary type coercions (like converting number IDs to string IDs) when inserting items into Sets, as this breaks subsequent `Set.has()` checks which use strict equality.
-**Action:** When implementing single-pass array optimizations, always ensure the default/no-filter path remains an O(1) reference assignment, and strictly preserve the data types of the elements being mapped or added to Sets.
+**Learning:** The `SmashFestGame` component was returning `null` when it failed to load data from Supabase, leading to a blank screen. Also, a required schema for `smash_fest_levels` was missing from the deployed database.
+**Action:** Implemented `isLoading` and `error` states in `SmashFestGame` to surface network/database errors instead of silent failures. In future tasks, ensure components dealing with external async data provide explicit error handling states.
+## 2023-10-27 - Intermediate Array Allocations
+**Learning:** Chaining `.map().Set()`, `.map().find()`, and `.filter().slice()` results in hidden O(N) array copies, creating unnecessary GC pressure and memory allocations. Similarly, `.map(async () => await op())` instantiates redundant promise wrappers for pass-through async calls. Wrapping state updates in `setTimeout` inside a `useEffect` is an anti-pattern.
+**Action:** Replace `Array.from(new Set(arr.map(prop)))` with a `for...of` loop directly calling `set.add(prop)`. Replace `.map().find()` with a `for...of` loop. Replace `batch.map(async () => await op())` with `batch.map(() => op().then().catch())`. Ensure scratch files are deleted before submit.
+## 2024-11-20 - Array Reduction Optimization
+**Learning:** Double `.reduce()` calls in React `useMemo` hooks inside rendering paths (like `mapCenter` in `GeospatialPlanTracker`) cause unnecessary O(2N) iteration and intermediate array callbacks.
+**Action:** Replace adjacent `.reduce()` calls calculating different aggregates over the same array with a single `for...of` loop to calculate all aggregates simultaneously in O(N).

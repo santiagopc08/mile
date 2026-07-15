@@ -346,7 +346,14 @@ export default function Home() {
 
                 {/* Specific Action Buttons */}
                 <div className="w-full grid grid-cols-2 gap-2 pt-3 border-t border-white/5 relative z-20">
-                  <Link href="/juego" className="col-span-2 group/link flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2.5 py-2 text-[9.5px] sm:text-xs font-mono uppercase tracking-wider text-white transition-all rounded-none w-full min-w-0">
+                  <Link href="/smash-fest" className="group/link flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2.5 py-2 text-[9.5px] sm:text-xs font-mono uppercase tracking-wider text-white transition-all rounded-none w-full min-w-0">
+                    <span className="flex items-center gap-1.5 min-w-0">
+                      <Gamepad2 className="w-3.5 h-3.5 text-[#a88a7e] group-hover/link:text-[var(--color-profile-accent)] transition-colors shrink-0 animate-opt-dance-13" />
+                      <span className="truncate">Smash Fest</span>
+                    </span>
+                    <ArrowRight className="w-3 h-3 animate-slide-loop shrink-0" />
+                  </Link>
+                  <Link href="/juego" className="group/link group/link flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2.5 py-2 text-[9.5px] sm:text-xs font-mono uppercase tracking-wider text-white transition-all rounded-none w-full min-w-0">
                     <span className="flex items-center gap-1.5 min-w-0">
                       <Gamepad2 className="w-3.5 h-3.5 text-[#a88a7e] group-hover/link:text-[var(--color-profile-accent)] transition-colors shrink-0 animate-opt-dance-12" />
                       <span className="truncate">Jugar Mahjong</span>

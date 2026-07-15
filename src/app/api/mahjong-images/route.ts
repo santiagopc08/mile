@@ -5,7 +5,7 @@ import path from 'path';
 export async function GET() {
     try {
         const directoryPath = path.join(process.cwd(), 'public', 'img');
-        let results: string[] = [];
+        const results: string[] = [];
 
         try {
             // Asynchronously check if the directory exists and is accessible
@@ -14,25 +14,36 @@ export async function GET() {
             // Asynchronously read all subdirectories in public/img
             const categories = await fs.readdir(directoryPath, { withFileTypes: true });
 
-            const resultsArrays = await Promise.all(categories.map((category) => {
-                if (category.isDirectory()) {
-                    const subDirPath = path.join(directoryPath, category.name);
-                    return fs.readdir(subDirPath).then(files => {
-                        const validFiles: string[] = [];
-                        for (const file of files) {
-                            if (file.endsWith('.png') || file.endsWith('.jpg') || file.endsWith('.jpeg')) {
-                                validFiles.push(`/img/${category.name}/${file}`);
+            const batchSize = 100;
+            for (let i = 0; i < categories.length; i += batchSize) {
+                const batchPromises: Promise<string[]>[] = [];
+                for (let j = 0; j < batchSize && i + j < categories.length; j++) {
+                    const category = categories[i + j];
+                    if (category.isDirectory()) {
+                        const subDirPath = path.join(directoryPath, category.name);
+                        batchPromises.push(fs.readdir(subDirPath).then(files => {
+                            const validFiles: string[] = [];
+                            for (const file of files) {
+                                if (file.endsWith('.png') || file.endsWith('.jpg') || file.endsWith('.jpeg')) {
+                                    validFiles.push(`/img/${category.name}/${file}`);
+                                }
                             }
-                        }
-                        return validFiles;
-                    });
-                } else if (category.name.endsWith('.png') || category.name.endsWith('.jpg') || category.name.endsWith('.jpeg')) {
-                    return [`/img/${category.name}`];
+                            return validFiles;
+                        }));
+                    } else if (category.name.endsWith('.png') || category.name.endsWith('.jpg') || category.name.endsWith('.jpeg')) {
+                        batchPromises.push(Promise.resolve([`/img/${category.name}`]));
+                    }
                 }
-                return [];
-            }));
 
-            results = resultsArrays.flat();
+                if (batchPromises.length > 0) {
+                    const batchResults = await Promise.all(batchPromises);
+                    for (const res of batchResults) {
+                        for (const item of res) {
+                            results.push(item);
+                        }
+                    }
+                }
+            }
         } catch (error) {
             // Folder not found or not accessible
             console.warn('img directory is not accessible:', error);
