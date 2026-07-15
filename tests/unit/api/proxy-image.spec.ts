@@ -8,8 +8,11 @@ test.describe('Proxy Image API Security', () => {
     const fetchSafeModulePath = require.resolve('../../../src/lib/fetch-safe');
     let originalFetchSafe: unknown;
 
+    let originalSupabaseUrl: string | undefined;
     test.beforeEach(() => {
         originalFetchSafe = require.cache[fetchSafeModulePath];
+        originalSupabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://example.com';
     });
 
     test.afterEach(() => {
@@ -17,6 +20,11 @@ test.describe('Proxy Image API Security', () => {
             require.cache[fetchSafeModulePath] = originalFetchSafe;
         } else {
             delete require.cache[fetchSafeModulePath];
+        if (originalSupabaseUrl !== undefined) {
+            process.env.NEXT_PUBLIC_SUPABASE_URL = originalSupabaseUrl;
+        } else {
+            delete process.env.NEXT_PUBLIC_SUPABASE_URL;
+        }
         }
     });
 
@@ -85,6 +93,32 @@ test.describe('Proxy Image API Security', () => {
         const res = await mockGET(req);
 
         expect(res.status).toBe(400);
+    });
+
+    test('should reject URLs not in allowlist (prevent SSRF/Open Proxy)', async () => {
+        try {
+            delete require.cache[require.resolve('../../../src/app/api/proxy-image/route')];
+            // eslint-disable-next-line @typescript-eslint/no-require-imports
+            const { GET: mockGET } = require('../../../src/app/api/proxy-image/route');
+
+            // Unrelated domain
+            const req = createRequest('https://evil.com/image.jpg');
+            const res = await mockGET(req);
+
+            expect(res.status).toBe(403);
+            const text = await res.text();
+            expect(text).toBe('Forbidden: URL not in allowlist');
+
+            // Trusted domain
+            mockFetchWithContentType('image/jpeg');
+            delete require.cache[require.resolve('../../../src/app/api/proxy-image/route')];
+            const { GET: mockGET2 } = require('../../../src/app/api/proxy-image/route');
+            const reqTrusted = createRequest('https://example.com/image.jpg');
+            const resTrusted = await mockGET2(reqTrusted);
+            expect(resTrusted.status).toBe(200);
+        } finally {
+            // Restore happens in afterEach
+        }
     });
 
     test('should fallback to image/jpeg if no content type and allow it', async () => {

@@ -16,6 +16,12 @@ export async function GET(request: Request) {
             return new Response('Invalid url scheme', { status: 400 });
         }
 
+        // Security fix: Restrict open proxy to allowed origin (Supabase storage)
+        const allowedOrigin = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        if (!allowedOrigin || !url.startsWith(allowedOrigin)) {
+            return new Response('Forbidden: URL not in allowlist', { status: 403 });
+        }
+
         // Fetch image on the server side to bypass browser-level CORS
         const res = await fetchSafe(url);
         if (!res.ok) {
