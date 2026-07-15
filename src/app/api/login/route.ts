@@ -25,7 +25,7 @@ export async function POST(request: Request) {
         }
 
         // Generate a secure device token
-        const deviceToken = crypto.randomUUID();
+        const deviceToken = crypto.randomBytes(32).toString('hex');
 
         // Store device token securely in the device_tokens table
         if (signInData.user) {

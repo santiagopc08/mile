@@ -47,9 +47,11 @@ export const BiometricVault = () => {
     const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([]);
 
     useEffect(() => {
-        setIsClient(true);
-        const stored = localStorage.getItem('symmetry_biometrics');
-        if (stored) setState(JSON.parse(stored));
+        setTimeout(() => {
+            setIsClient(true);
+            const stored = localStorage.getItem('symmetry_biometrics');
+            if (stored) setState(JSON.parse(stored));
+        }, 0);
     }, []);
 
     const saveState = (newState: BiometricState) => {
@@ -119,8 +121,12 @@ export const BiometricVault = () => {
 
         // Tendencias
         const recentCycles = validCycles.slice(-3);
+
+        // ⚡ Bolt Optimization: Cache decrypted symptoms to avoid redundant expensive decrypt calls inside nested loops
+        const recentDecryptedSymptoms = recentCycles.map(c => decrypt(c.symptoms_enc));
+
         const frequentSymptoms = FLO_SYMPTOMS.filter(sym => {
-            const count = recentCycles.filter(c => decrypt(c.symptoms_enc).includes(sym)).length;
+            const count = recentDecryptedSymptoms.filter(symptomsStr => symptomsStr.includes(sym)).length;
             return count >= 2;
         });
 

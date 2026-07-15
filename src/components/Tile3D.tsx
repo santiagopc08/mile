@@ -628,9 +628,9 @@ export function Tile3D({ tile, isFree, centerX, centerY, boardY, dockY, dockIds,
         }
 
         // Interpolación LERP de posición en los 3 ejes (funciona para ir y volver del dock)
-        meshRef.current.position.x = THREE.MathUtils.lerp(meshRef.current.position.x, targetX, 11 * safeDelta);
-        meshRef.current.position.y = THREE.MathUtils.lerp(meshRef.current.position.y, targetY, 11 * safeDelta);
-        meshRef.current.position.z = THREE.MathUtils.lerp(meshRef.current.position.z, targetZ, 11 * safeDelta);
+        meshRef.current.position.x = THREE.MathUtils.damp(meshRef.current.position.x, targetX, 11, safeDelta);
+        meshRef.current.position.y = THREE.MathUtils.damp(meshRef.current.position.y, targetY, 11, safeDelta);
+        meshRef.current.position.z = THREE.MathUtils.damp(meshRef.current.position.z, targetZ, 11, safeDelta);
 
         // Rotación LERP (los del dock se alinean planos)
         const targetRotX = isInDock ? 0 : tile.isSelected ? -0.1 : 0;
@@ -650,12 +650,12 @@ export function Tile3D({ tile, isFree, centerX, centerY, boardY, dockY, dockIds,
             targetRotY += Math.sin(time * 6) * 0.15;
         }
 
-        meshRef.current.rotation.x = THREE.MathUtils.lerp(meshRef.current.rotation.x, targetRotX, 9 * safeDelta);
-        meshRef.current.rotation.y = THREE.MathUtils.lerp(meshRef.current.rotation.y, targetRotY, 9 * safeDelta);
+        meshRef.current.rotation.x = THREE.MathUtils.damp(meshRef.current.rotation.x, targetRotX, 9, safeDelta);
+        meshRef.current.rotation.y = THREE.MathUtils.damp(meshRef.current.rotation.y, targetRotY, 9, safeDelta);
 
         // LERP de escala
         const targetScale = 1.0;
-        meshRef.current.scale.setScalar(THREE.MathUtils.lerp(meshRef.current.scale.x, targetScale, 10 * safeDelta));
+        meshRef.current.scale.setScalar(THREE.MathUtils.damp(meshRef.current.scale.x, targetScale, 10, safeDelta));
 
         // Animación de pulso luminiscente en el Mesh frontal
         if (frontMeshRef.current) {
@@ -668,7 +668,7 @@ export function Tile3D({ tile, isFree, centerX, centerY, boardY, dockY, dockIds,
                 if (tile.isGhost && !isInDock) {
                     const ghostOpacity = isGhostSolid ? 1.0 : 0.2;
                     const currentOp = frontMat.opacity;
-                    const lerpedOp = THREE.MathUtils.lerp(currentOp, ghostOpacity, 5 * safeDelta);
+                    const lerpedOp = THREE.MathUtils.damp(currentOp, ghostOpacity, 5, safeDelta);
                     materials.forEach(m => { if (m) m.opacity = lerpedOp; });
                 } else {
                     materials.forEach(m => { if (m) m.opacity = isBlackSpot ? 1.0 : (isBright ? 1.0 : 0.45); });
