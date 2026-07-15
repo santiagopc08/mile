@@ -277,7 +277,7 @@ export const StoreService = {
 
             const finalCommitments = commitmentsRes?.data || [];
 
-            const trackingData: any[] = trackingRes?.data || [];
+            const trackingData: { date: string; completed_count: number }[] = trackingRes?.data || [];
 
             // ⚡ Bolt Optimization: Replace O(N) array finds with a single O(N) pass mapping by date
             const trackingByDate: Record<string, typeof trackingData[0]> = {};
@@ -289,23 +289,23 @@ export const StoreService = {
 
             const allVictories = victoriesRes?.data || [];
 
-            const allContributions = (contribRes?.data || []) as any[];
+            const allContributions = (contribRes?.data || []) as { id: string; wishlist_item_id: string; contributor: string; amount: number; note?: string; created_at: string }[];
             // ⚡ Bolt Optimization: Replace reduce with a direct O(N) loop to minimize callbacks and array copies
-            const contribsByWishlistId: Record<string, any[]> = {};
+            const contribsByWishlistId: Record<string, { id: string; wishlist_item_id: string; contributor: string; amount: number; note?: string; created_at: string }[]> = {};
             for (const c of allContributions) {
                 (contribsByWishlistId[c.wishlist_item_id] ??= []).push(c);
             }
 
-            const allReactions = (reactionsRes?.data || []) as any[];
+            const allReactions = (reactionsRes?.data || []) as { id: string; wishlist_item_id: string; reactor: string; type: ReactionType }[];
             // ⚡ Bolt Optimization: Replace reduce with a direct O(N) loop to minimize callbacks and array copies
-            const reactionsByWishlistId: Record<string, any[]> = {};
+            const reactionsByWishlistId: Record<string, { id: string; wishlist_item_id: string; reactor: string; type: ReactionType }[]> = {};
             for (const r of allReactions) {
                 (reactionsByWishlistId[r.wishlist_item_id] ??= []).push(r);
             }
 
 
 
-            const result: any = {};
+            const result: Partial<AppData> = {};
 
             if (shouldFetch('wishlist')) {
                 result.wishlist = (wishlistRes?.data || []).map(w => {
@@ -327,19 +327,19 @@ export const StoreService = {
                         isPriority: w.is_priority || false,
                         goalCategory: w.goal_category || 'Experiences',
                         shared: w.shared || false,
-                        reactions: itemReactions.map((r: any) => ({ id: r.id, wishlistItemId: r.wishlist_item_id, reactor: r.reactor, type: r.type })),
-                        contributions: itemContribs.map((c: any) => ({ id: c.id, wishlistItemId: c.wishlist_item_id, contributor: c.contributor, amount: c.amount, note: c.note, createdAt: c.created_at })),
+                        reactions: itemReactions.map((r: { id: string; wishlist_item_id: string; reactor: string; type: ReactionType }) => ({ id: r.id, wishlistItemId: r.wishlist_item_id, reactor: r.reactor, type: r.type })),
+                        contributions: itemContribs.map((c: { id: string; wishlist_item_id: string; contributor: string; amount: number; note?: string; created_at: string }) => ({ id: c.id, wishlistItemId: c.wishlist_item_id, contributor: c.contributor, amount: c.amount, note: c.note, createdAt: c.created_at })),
                         createdAt: w.created_at || undefined,
                     } as WishlistItem;
                 });
             }
 
             if (shouldFetch('wishlist_activity')) {
-                result.wishlistActivity = (activityRes?.data || []).map((a: any) => ({ id: a.id, wishlistItemId: a.wishlist_item_id, actor: a.actor, action: a.action, detail: a.detail, createdAt: a.created_at }));
+                result.wishlistActivity = (activityRes?.data || []).map((a: { id: string; wishlist_item_id: string; actor: string; action: string; detail?: string; created_at: string }) => ({ id: a.id, wishlistItemId: a.wishlist_item_id, actor: a.actor, action: a.action, detail: a.detail, createdAt: a.created_at }));
             }
 
             if (shouldFetch('health_habits')) {
-                result.healthHabits = (habitsRes?.data || []).map((h: any) => ({
+                result.healthHabits = (habitsRes?.data || []).map((h: { id: string; profile: string; date: string; habit_type: string; cost: number; severity: "low" | "medium" | "high"; note?: string; created_at: string }) => ({
                     id: h.id,
                     profile: h.profile,
                     date: h.date,
@@ -385,7 +385,7 @@ export const StoreService = {
                 const rawEvents = eventsRes?.data || [];
 
                 // ⚡ Bolt Optimization: Replace reduce with a direct O(N) loop to minimize callbacks and array copies
-                const commentsByEventId: Record<string, any[]> = {};
+                const commentsByEventId: Record<string, EventComment[]> = {};
                 const eventCommentsData = eventCommentsRes?.data || [];
                 for (const c of eventCommentsData) {
                     (commentsByEventId[c.event_id] ??= []).push({
@@ -397,7 +397,7 @@ export const StoreService = {
                     });
                 }
 
-                result.events = rawEvents.map((e: any) => ({
+                result.events = rawEvents.map((e: { id: string; title: string; date: string; description: string; image_url?: string; author?: string; tags?: string[]; reactions?: Record<string, string[]> }) => ({
                     id: e.id,
                     title: e.title,
                     date: e.date,
@@ -419,7 +419,7 @@ export const StoreService = {
             }
 
             if (shouldFetch('commitments')) {
-                result.commitments = finalCommitments.map((c: any) => ({
+                result.commitments = finalCommitments.map((c: { id: string; text: string; is_active: boolean; author: string }) => ({
                     id: c.id,
                     text: c.text,
                     completed: !c.is_active,
@@ -463,7 +463,7 @@ export const StoreService = {
             }
 
             if (shouldFetch('persistent_listening')) {
-                result.persistentListening = (listeningRes?.data || []).map((l: any) => ({
+                result.persistentListening = (listeningRes?.data || []).map((l: { id: string; topic: string; reflection: string; date: string; author: string }) => ({
                     id: l.id,
                     topic: l.topic,
                     reflection: l.reflection,
@@ -473,7 +473,7 @@ export const StoreService = {
             }
 
             if (shouldFetch('allocations')) {
-                result.allocations = (allocationsRes?.data || []).map((a: any) => ({
+                result.allocations = (allocationsRes?.data || []).map((a: { id: string; amount: number; description: string; category: string; date: string; profile: string }) => ({
                     id: a.id,
                     amount: a.amount,
                     description: a.description,
@@ -498,7 +498,7 @@ export const StoreService = {
             const tableCache = new Map<string, Record<string, unknown>[]>();
 
             // Helper for Upsert/Delete pattern
-            const syncTable = async (tableName: string, incomingItems: any[], filter: any = {}) => {
+            const syncTable = async (tableName: string, incomingItems: Record<string, unknown>[], filter: Record<string, unknown> = {}) => {
                 if (!incomingItems) return;
 
                 let existingRecords: Record<string, unknown>[] = [];
@@ -543,19 +543,19 @@ export const StoreService = {
                     }
                 }
 
-                const toUpsert: any[] = [];
-                const toInsert: any[] = [];
+                const toUpsert: Record<string, unknown>[] = [];
+                const toInsert: Record<string, unknown>[] = [];
 
                 const incomingIds = new Set<string>();
                 const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
                 for (const item of incomingItems) {
                     if (item.id) {
-                        incomingIds.add(item.id);
+                        incomingIds.add(item.id as string);
                     }
 
                     // Check if item.id is a UUID (Supabase generated) or a temporary numeric ID (Date.now())
-                    const isUuid = item.id && uuidRegex.test(item.id);
+                    const isUuid = item.id && typeof item.id === 'string' && uuidRegex.test(item.id);
 
                     if (item.id && isUuid) {
                         if (existingIds.has(item.id)) {
@@ -564,7 +564,7 @@ export const StoreService = {
                             toInsert.push(item);
                         }
                     } else {
-                        const { id, ...rest } = item;
+                        const { id: _id, ...rest } = item;
                         // If it's a temp ID, we don't send it to Supabase so it generates a new UUID
                         toInsert.push(rest);
                     }
@@ -619,7 +619,7 @@ export const StoreService = {
                     priority: t.priority || null,
                     estimated_time: t.estimated_time,
                     actual_time: t.actual_time,
-                    objective_id: (t as any).objectiveId || (t as any).objective_id || null,
+                    objective_id: (t as unknown as Record<string, unknown>).objectiveId || t.objective_id || null,
                     due_date: t.due_date,
                     actions: t.actions || [],
                     validations: t.validations || [],
@@ -649,7 +649,7 @@ export const StoreService = {
                     description: a.description,
                     category: a.category,
                     date: a.date,
-                    profile: (a as any).profile || 'el',
+                    profile: (a as unknown as Record<string, unknown>).profile || 'el',
                     created_at: new Date().toISOString()
                 }))));
             }
