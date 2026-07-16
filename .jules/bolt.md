@@ -8,3 +8,6 @@
 ## 2024-11-20 - Array Reduction Optimization
 **Learning:** Double `.reduce()` calls in React `useMemo` hooks inside rendering paths (like `mapCenter` in `GeospatialPlanTracker`) cause unnecessary O(2N) iteration and intermediate array callbacks.
 **Action:** Replace adjacent `.reduce()` calls calculating different aggregates over the same array with a single `for...of` loop to calculate all aggregates simultaneously in O(N).
+## 2024-07-16 - Avoid Spreading Array Methods that Return New Arrays
+**Learning:** Using the spread operator (`...`) on methods that already return a new array (like `.map()` or `.filter()`) inside an array literal (e.g., `[...arr.map(...)]`) creates a redundant intermediate array allocation, wasting memory and CPU cycles in V8.
+**Action:** When performing array transformations, assign the result of `.map()` or `.filter()` directly instead of unnecessarily spreading it into a new array.
