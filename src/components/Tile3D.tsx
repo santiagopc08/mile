@@ -605,6 +605,13 @@ export function Tile3D({ tile, isFree, centerX, centerY, boardY, dockY, dockIds,
 
     const entryDelayRef = useRef(0);
     const startTimeRef = useRef<number | null>(null);
+    const wasInDockRef = useRef(false);
+    const dockMoveRef = useRef<{
+        active: boolean;
+        start: number;
+        from: [number, number, number];
+        to: [number, number, number];
+    }>({ active: false, start: 0, from: [0, 0, 0], to: [0, 0, 0] });
     useEffect(() => {
         if (meshRef.current && !hasStarted) {
             const numericId = Number(tile.id.replace(/\D/g, '')) || 0;
@@ -640,6 +647,22 @@ export function Tile3D({ tile, isFree, centerX, centerY, boardY, dockY, dockIds,
             startTimeRef.current = time;
         }
 
+        if (isInDock && !wasInDockRef.current) {
+            dockMoveRef.current = {
+                active: true,
+                start: time,
+                from: [
+                    meshRef.current.position.x,
+                    meshRef.current.position.y,
+                    meshRef.current.position.z
+                ],
+                to: [targetX, targetY, targetZ]
+            };
+        } else if (!isInDock && wasInDockRef.current) {
+            dockMoveRef.current.active = false;
+        }
+        wasInDockRef.current = isInDock;
+
         // Si es una ficha dorada libre, flotar suavemente arriba y abajo
         if (isGolden && isFree && !isInDock) {
             targetZ += Math.sin(time * 4) * 0.04;
@@ -648,18 +671,36 @@ export function Tile3D({ tile, isFree, centerX, centerY, boardY, dockY, dockIds,
         const elapsedSinceStart = hasStarted && startTimeRef.current !== null ? time - startTimeRef.current : 0;
         const entryDelay = hasStarted ? entryDelayRef.current : 0;
         const entryActive = hasStarted && elapsedSinceStart < entryDelay;
-        const settleSpeed = entryActive ? 0.01 : (isInDock ? 13 : 10.5);
+        const settleSpeed = entryActive ? 0.01 : (isInDock ? 10.5 : 10.5);
 
-        // Interpolación LERP de posición en los 3 ejes (funciona para ir y volver del dock)
-        meshRef.current.position.x = THREE.MathUtils.damp(meshRef.current.position.x, targetX, settleSpeed, safeDelta);
-        meshRef.current.position.y = THREE.MathUtils.damp(meshRef.current.position.y, targetY, settleSpeed, safeDelta);
-        meshRef.current.position.z = THREE.MathUtils.damp(meshRef.current.position.z, targetZ, settleSpeed, safeDelta);
+        if (dockMoveRef.current.active) {
+            const move = dockMoveRef.current;
+            const moveDuration = 0.54;
+            const t = Math.min(1, (time - move.start) / moveDuration);
+            const eased = 1 - Math.pow(1 - t, 3);
+            const arc = Math.sin(t * Math.PI) * 0.72;
+            const drift = Math.sin(t * Math.PI * 2) * 0.035;
+            meshRef.current.position.set(
+                THREE.MathUtils.lerp(move.from[0], move.to[0], eased),
+                THREE.MathUtils.lerp(move.from[1], move.to[1], eased) + drift,
+                THREE.MathUtils.lerp(move.from[2], move.to[2], eased) + arc
+            );
+            if (t >= 1) {
+                dockMoveRef.current.active = false;
+            }
+        } else {
+            // Interpolación LERP de posición en los 3 ejes (funciona para ir y volver del dock)
+            meshRef.current.position.x = THREE.MathUtils.damp(meshRef.current.position.x, targetX, settleSpeed, safeDelta);
+            meshRef.current.position.y = THREE.MathUtils.damp(meshRef.current.position.y, targetY, settleSpeed, safeDelta);
+            meshRef.current.position.z = THREE.MathUtils.damp(meshRef.current.position.z, targetZ, settleSpeed, safeDelta);
+        }
 
         // Rotación LERP (los del dock se alinean planos)
-        const targetRotX = isInDock ? 0 : tile.isSelected ? -0.1 : 0;
+        const dockMoveActive = dockMoveRef.current.active;
+        const targetRotX = isInDock ? (dockMoveActive ? -0.16 : 0) : tile.isSelected ? -0.1 : 0;
         
         let targetRotY = isInDock 
-            ? 0 
+            ? (dockMoveActive ? 0.12 : 0)
             : isFlipped 
                 ? Math.PI 
                 : tile.isSelected 
