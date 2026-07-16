@@ -77,7 +77,7 @@ function DockSlots({ dockY, accentColor }: DockSlotsProps) {
         <group>
             {slotsX.map((posX, idx) => (
                 <mesh key={idx} position={[posX, dockY, 0.01]} receiveShadow>
-                    <planeGeometry args={[0.96, 1.04]} />
+                    <planeGeometry args={[0.82, 1.16]} />
                     <meshStandardMaterial
                         map={texture}
                         transparent
@@ -397,10 +397,10 @@ export function MahjongCanvas({ tiles, freeTilesMap, dockIds, onTilePointerDown,
             if (t.y > maxY) maxY = t.y;
         }
 
-        const spacingX = 0.49;
-        const spacingY = 0.53;
-        const tileWidth = 0.96;
-        const tileHeight = 1.04;
+        const spacingX = 0.43;
+        const spacingY = 0.59;
+        const tileWidth = 0.82;
+        const tileHeight = 1.16;
 
         // Use fixed bounds of 14 columns (width) and 14 rows (height) to keep camera zoom and dock positioning constant across all layouts (strictly 8x8)
         const fixedCols = 14;
@@ -410,7 +410,7 @@ export function MahjongCanvas({ tiles, freeTilesMap, dockIds, onTilePointerDown,
         const height = fixedRows * spacingY + tileHeight;
 
         // Espacio libre físico constante entre el tablero y el dock (reducido en móvil para ganar espacio y zoom)
-        const gap = isMobile ? 0.35 : 0.7;
+        const gap = isMobile ? 0.42 : 0.78;
         const totalHeight = height + gap + tileHeight;
 
         // Centrado de la altura combinada sobre Y = 0
@@ -435,9 +435,9 @@ export function MahjongCanvas({ tiles, freeTilesMap, dockIds, onTilePointerDown,
         if (newlyMatched.length > 0) {
             const rawAccentColor = profile === 'ella' ? '#ff4b89' : '#e1ff80';
 
-            const spacingX = 0.49;
-            const spacingY = 0.53;
-            const spacingZ = 0.24;
+            const spacingX = 0.43;
+            const spacingY = 0.59;
+            const spacingZ = 0.34;
 
             const newExplosions = newlyMatched.map(tile => {
                 // Verificar si la ficha estaba en el dock antes del emparejamiento para detonar la explosión allí
@@ -494,12 +494,12 @@ export function MahjongCanvas({ tiles, freeTilesMap, dockIds, onTilePointerDown,
                 <DockSlots dockY={dockY} accentColor={rawAccentColor} />
 
                 {/* Iluminación Estética */}
-                <ambientLight intensity={0.65} />
+                <ambientLight intensity={0.5} />
 
                 {/* Luz Principal (Sombras dinámicas) */}
                 <directionalLight
-                    position={[2, 14, 4]}
-                    intensity={1.2}
+                    position={[2.5, 13, 6]}
+                    intensity={1.65}
                     castShadow
                     shadow-mapSize-width={1024}
                     shadow-mapSize-height={1024}
@@ -508,14 +508,20 @@ export function MahjongCanvas({ tiles, freeTilesMap, dockIds, onTilePointerDown,
                     shadow-camera-right={7}
                     shadow-camera-top={6}
                     shadow-camera-bottom={-6}
-                    shadow-bias={-0.0006}
+                    shadow-bias={-0.0008}
                 />
 
                 {/* Luz de Contorno / Relleno Púrpura */}
                 <directionalLight
-                    position={[-5, -4, 4]}
-                    intensity={0.6}
+                    position={[-5, -4, 5]}
+                    intensity={0.75}
                     color={profile === 'ella' ? '#ff8fb2' : '#d2f960'}
+                />
+                <pointLight
+                    position={[0, -2.8, 4.5]}
+                    intensity={0.8}
+                    distance={8}
+                    color={rawAccentColor}
                 />
 
                 {/* Renderizar Fichas */}

@@ -1118,7 +1118,7 @@ export function Mahjong() {
 
     const requestGameFullscreen = () => {
         if (typeof window !== 'undefined') {
-            const container = document.documentElement;
+            const container = containerRef.current || document.documentElement;
             if (container && !document.fullscreenElement) {
                 if (typeof container.requestFullscreen === 'function') {
                     container.requestFullscreen().catch(() => {});
@@ -2709,7 +2709,7 @@ export function Mahjong() {
             )}
 
             <div
-                className="relative flex w-full max-w-[880px] max-md:max-w-none max-md:w-screen max-md:shrink-0 h-[690px] max-md:h-[590px] flex-col justify-center overflow-hidden border border-white/10 max-md:border-x-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.05),transparent_42%),linear-gradient(180deg,rgba(255,255,255,0.03),transparent)] transition-all duration-200"
+                className={`relative flex w-full ${hasStarted ? 'max-w-none h-[100dvh] max-md:h-[100dvh]' : 'max-w-[880px] h-[690px] max-md:h-[590px]'} max-md:max-w-none max-md:w-screen max-md:shrink-0 flex-col justify-center overflow-hidden border border-white/10 max-md:border-x-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.06),transparent_44%),linear-gradient(180deg,rgba(255,255,255,0.035),transparent)] transition-all duration-500`}
                 ref={containerRef}
             >
                 <div className="pointer-events-none absolute inset-0 bg-dot-matrix opacity-70" />

@@ -6,6 +6,13 @@ import * as THREE from 'three';
 import { TileState } from './MahjongTile';
 import { useProfile } from '@/context/ProfileContext';
 
+const TILE_WIDTH = 0.82;
+const TILE_HEIGHT = 1.16;
+const TILE_BACK_DEPTH = 0.28;
+const TILE_FACE_WIDTH = 0.76;
+const TILE_FACE_HEIGHT = 1.08;
+const TILE_FACE_DEPTH = 0.32;
+
 // Hook interno para cargar y formatear texturas en canvas 2D con bordes brutalistas no-planos
 function useTileTexture(tile: TileState, accentColor: string, mirrorVariant?: 'flipX' | 'flipY' | 'rot90' | 'rot270') {
     const [texture, setTexture] = useState<THREE.Texture | null>(null);
@@ -564,12 +571,11 @@ export function Tile3D({ tile, isFree, centerX, centerY, boardY, dockY, dockIds,
     const texture = useTileTexture(tile, rawAccentColor, tile.isMirrored);
     const isGolden = tile.content.type === 'custom';
 
-    // Spacing en 3D para mapear el grid discreto (2x2 unidades lógicas por ficha)
-    // Rediseño de proporciones: fichas menos altas / más anchas (ancho: 0.96, alto: 1.04)
-    // Spacing ajustado matemáticamente a 0.49 en X y 0.53 en Y para mantener un espaciado brutalista perfecto
-    const spacingX = 0.49;
-    const spacingY = 0.53;
-    const spacingZ = 0.46;
+    // Spacing en 3D para mapear el grid discreto. Las fichas ahora son más verticales
+    // y el eje Z separa más las capas para que la pila se lea con profundidad real.
+    const spacingX = 0.43;
+    const spacingY = 0.59;
+    const spacingZ = 0.62;
 
     // Calcular posición base en el tablero
     const posX = (tile.x - centerX) * spacingX;
@@ -597,23 +603,32 @@ export function Tile3D({ tile, isFree, centerX, centerY, boardY, dockY, dockIds,
 
     // Animación suave usando LERP por frame
 
-    const isFirstRender = useRef(true);
+    const entryDelayRef = useRef(0);
+    const startTimeRef = useRef<number | null>(null);
     useEffect(() => {
-        if (meshRef.current && !hasStarted && isFirstRender.current) {
-            isFirstRender.current = false;
-            // Set starting position high up
+        if (meshRef.current && !hasStarted) {
+            const numericId = Number(tile.id.replace(/\D/g, '')) || 0;
+            entryDelayRef.current = (numericId % 16) * 0.018 + tile.z * 0.045;
+            // Set starting position high up with enough rotation to make the deal feel physical.
             meshRef.current.position.set(
-                posX + (Math.random() - 0.5) * 8,
-                posY + (Math.random() - 0.5) * 8,
-                baseZ + 20 + Math.random() * 10
+                posX + (Math.random() - 0.5) * 9,
+                posY + (Math.random() - 0.5) * 9,
+                baseZ + 18 + Math.random() * 12
             );
             meshRef.current.rotation.set(
                 Math.random() * Math.PI,
                 Math.random() * Math.PI,
                 Math.random() * Math.PI
             );
+            meshRef.current.scale.setScalar(0.18);
         }
-    }, [hasStarted, posX, posY, baseZ]);
+    }, [hasStarted, posX, posY, baseZ, tile.id, tile.z]);
+
+    useEffect(() => {
+        if (hasStarted) {
+            startTimeRef.current = null;
+        }
+    }, [hasStarted]);
 
     useFrame((state, delta) => {
         if (!meshRef.current) return;
@@ -621,16 +636,24 @@ export function Tile3D({ tile, isFree, centerX, centerY, boardY, dockY, dockIds,
         // Limitar delta para evitar saltos bruscos en caídas de frame
         const safeDelta = Math.min(delta, 0.1);
         const time = state.clock.elapsedTime;
+        if (hasStarted && startTimeRef.current === null) {
+            startTimeRef.current = time;
+        }
 
         // Si es una ficha dorada libre, flotar suavemente arriba y abajo
         if (isGolden && isFree && !isInDock) {
             targetZ += Math.sin(time * 4) * 0.04;
         }
 
+        const elapsedSinceStart = hasStarted && startTimeRef.current !== null ? time - startTimeRef.current : 0;
+        const entryDelay = hasStarted ? entryDelayRef.current : 0;
+        const entryActive = hasStarted && elapsedSinceStart < entryDelay;
+        const settleSpeed = entryActive ? 0.01 : (isInDock ? 13 : 10.5);
+
         // Interpolación LERP de posición en los 3 ejes (funciona para ir y volver del dock)
-        meshRef.current.position.x = THREE.MathUtils.damp(meshRef.current.position.x, targetX, 11, safeDelta);
-        meshRef.current.position.y = THREE.MathUtils.damp(meshRef.current.position.y, targetY, 11, safeDelta);
-        meshRef.current.position.z = THREE.MathUtils.damp(meshRef.current.position.z, targetZ, 11, safeDelta);
+        meshRef.current.position.x = THREE.MathUtils.damp(meshRef.current.position.x, targetX, settleSpeed, safeDelta);
+        meshRef.current.position.y = THREE.MathUtils.damp(meshRef.current.position.y, targetY, settleSpeed, safeDelta);
+        meshRef.current.position.z = THREE.MathUtils.damp(meshRef.current.position.z, targetZ, settleSpeed, safeDelta);
 
         // Rotación LERP (los del dock se alinean planos)
         const targetRotX = isInDock ? 0 : tile.isSelected ? -0.1 : 0;
@@ -650,12 +673,13 @@ export function Tile3D({ tile, isFree, centerX, centerY, boardY, dockY, dockIds,
             targetRotY += Math.sin(time * 6) * 0.15;
         }
 
-        meshRef.current.rotation.x = THREE.MathUtils.damp(meshRef.current.rotation.x, targetRotX, 9, safeDelta);
-        meshRef.current.rotation.y = THREE.MathUtils.damp(meshRef.current.rotation.y, targetRotY, 9, safeDelta);
+        meshRef.current.rotation.x = THREE.MathUtils.damp(meshRef.current.rotation.x, targetRotX, entryActive ? 0.01 : 8.5, safeDelta);
+        meshRef.current.rotation.y = THREE.MathUtils.damp(meshRef.current.rotation.y, targetRotY, entryActive ? 0.01 : 8.5, safeDelta);
+        meshRef.current.rotation.z = THREE.MathUtils.damp(meshRef.current.rotation.z, 0, entryActive ? 0.01 : 8, safeDelta);
 
         // LERP de escala
-        const targetScale = 1.0;
-        meshRef.current.scale.setScalar(THREE.MathUtils.damp(meshRef.current.scale.x, targetScale, 10, safeDelta));
+        const targetScale = hovered && isFree && !isInDock ? 1.035 : 1.0;
+        meshRef.current.scale.setScalar(THREE.MathUtils.damp(meshRef.current.scale.x, targetScale, entryActive ? 0.01 : 11, safeDelta));
 
         // Animación de pulso luminiscente en el Mesh frontal
         if (frontMeshRef.current) {
@@ -743,9 +767,9 @@ export function Tile3D({ tile, isFree, centerX, centerY, boardY, dockY, dockIds,
             <mesh
                 castShadow={!isBlackSpot}
                 receiveShadow={!isBlackSpot}
-                position={[0, 0, -0.1]}
+                position={[0.045, -0.045, -0.16]}
             >
-                <boxGeometry args={[0.96, 1.04, 0.20]} />
+                <boxGeometry args={[TILE_WIDTH, TILE_HEIGHT, TILE_BACK_DEPTH]} />
                 <meshStandardMaterial
                     color={isBlackSpot ? '#000000' : (isGolden ? '#ffd700' : isBright ? backColor : '#323232')}
                     roughness={isBlackSpot ? 1.0 : (isGolden ? 0.15 : 0.3)}
@@ -761,9 +785,9 @@ export function Tile3D({ tile, isFree, centerX, centerY, boardY, dockY, dockIds,
                 ref={frontMeshRef}
                 castShadow={!isBlackSpot}
                 receiveShadow={!isBlackSpot}
-                position={[0, 0, 0.12]}
+                position={[0, 0, 0.15]}
             >
-                <boxGeometry args={[0.90, 0.98, 0.24]} />
+                <boxGeometry args={[TILE_FACE_WIDTH, TILE_FACE_HEIGHT, TILE_FACE_DEPTH]} />
                 
                 {/* Laterales (Índices 0-3): Cerámica carbón brutalista u oro metálico */}
                 <meshStandardMaterial
