@@ -692,7 +692,7 @@ export const StoreService = {
                 const todayStr = new Date(Date.now() - timeZoneOffset).toISOString().split('T')[0];
                 // ⚡ Bolt Optimization: Group daily_tracking query into the concurrent Promise.all
                 syncPromises.push(
-                    supabase.from('daily_tracking').upsert({ date: todayStr, completed_count: todayCompleted }).then(() => {})
+                    (async () => { await supabase.from('daily_tracking').upsert({ date: todayStr, completed_count: todayCompleted }); })()
                 );
             }
 
