@@ -553,7 +553,7 @@ export function MahjongCanvas({ tiles, freeTilesMap, dockIds, onTilePointerDown,
     return (
         <div className="relative h-full w-full select-none" style={{ minHeight: isMobile ? '400px' : '520px' }}>
             <Canvas
-                shadows={{ type: THREE.PCFShadowMap }} // Se define tipo de shadow map explícito para eliminar warning de deprecación de PCFSoftShadowMap
+                shadows={{ type: THREE.PCFSoftShadowMap }} 
                 camera={{ fov: 50, position: [0, -0.6, 6.2], near: 0.1, far: 50 }}
                 gl={{ antialias: true, alpha: true }}
                 style={{ background: 'transparent' }}
@@ -565,21 +565,22 @@ export function MahjongCanvas({ tiles, freeTilesMap, dockIds, onTilePointerDown,
                 <DockSlots dockY={dockY} accentColor={rawAccentColor} />
 
                 {/* Iluminación Estética */}
-                <ambientLight intensity={0.5} />
+                <ambientLight intensity={0.6} />
 
-                {/* Luz Principal (Sombras dinámicas) */}
+                {/* Luz Principal (Sombras dinámicas suaves) */}
                 <directionalLight
-                    position={[2.5, 13, 6]}
-                    intensity={1.65}
+                    position={[1.5, 11, 3.5]}
+                    intensity={1.25}
                     castShadow
-                    shadow-mapSize-width={1024}
-                    shadow-mapSize-height={1024}
-                    shadow-camera-far={20}
-                    shadow-camera-left={-7}
-                    shadow-camera-right={7}
-                    shadow-camera-top={6}
-                    shadow-camera-bottom={-6}
-                    shadow-bias={-0.0008}
+                    shadow-mapSize-width={2048}
+                    shadow-mapSize-height={2048}
+                    shadow-camera-far={25}
+                    shadow-camera-left={-10}
+                    shadow-camera-right={10}
+                    shadow-camera-top={10}
+                    shadow-camera-bottom={-10}
+                    shadow-bias={-0.0005}
+                    shadow-radius={4}
                 />
 
                 {/* Luz de Contorno / Relleno Púrpura */}

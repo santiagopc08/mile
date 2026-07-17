@@ -9,8 +9,8 @@ import { useProfile } from '@/context/ProfileContext';
 const TILE_WIDTH = 0.82;
 const TILE_HEIGHT = 1.16;
 const TILE_BACK_DEPTH = 0.28;
-const TILE_FACE_WIDTH = 0.76;
-const TILE_FACE_HEIGHT = 1.08;
+const TILE_FACE_WIDTH = 0.82;
+const TILE_FACE_HEIGHT = 1.16;
 const TILE_FACE_DEPTH = 0.32;
 
 // Hook interno para cargar y formatear texturas en canvas 2D con bordes brutalistas no-planos
@@ -469,25 +469,30 @@ function useTileTexture(tile: TileState, accentColor: string, mirrorVariant?: 'f
                     ctx.fillRect(0, 0, 256, 256);
                 }
 
-                // Dibujar imagen con recorte tipo 'cover' ajustado para dejar espacio a la doble línea de borde delgada (maximizando la imagen)
-                const margin = 14;
-                const size = 228;
+                // Dibujar imagen con estrategia 'contain' ajustada para contrarrestar el estiramiento 3D
+                const margin = 26; // Mayor margen para hacer la imagen más pequeña
+                const size = 256 - margin * 2; // 204
 
-                const imgRatio = img.width / img.height;
-                let sWidth = img.width;
-                let sHeight = img.height;
-                let sx = 0;
-                let sy = 0;
-
-                if (imgRatio > 1) {
-                    sWidth = img.height;
-                    sx = (img.width - sWidth) / 2;
+                const correctionFactor = TILE_FACE_HEIGHT / TILE_FACE_WIDTH;
+                const imgAspect = img.width / img.height;
+                const targetCanvasAspect = imgAspect * correctionFactor;
+                
+                let drawW = size;
+                let drawH = size;
+                let drawX = margin;
+                let drawY = margin;
+                
+                if (targetCanvasAspect > 1) {
+                    // Más ancho que alto -> reducimos altura
+                    drawH = size / targetCanvasAspect;
+                    drawY = margin + (size - drawH) / 2;
                 } else {
-                    sHeight = img.width;
-                    sy = (img.height - sHeight) / 2;
+                    // Más alto que ancho -> reducimos anchura
+                    drawW = size * targetCanvasAspect;
+                    drawX = margin + (size - drawW) / 2;
                 }
 
-                ctx.drawImage(img, sx, sy, sWidth, sHeight, margin, margin, size, size);
+                ctx.drawImage(img, 0, 0, img.width, img.height, drawX, drawY, drawW, drawH);
 
                 // Aplicar el marco de borde y las marcas visuales por encima
                 drawBordersAndTicks(isGolden);
@@ -804,11 +809,10 @@ export function Tile3D({ tile, isFree, centerX, centerY, boardY, dockY, dockIds,
             }}
         >
             {/* 1. PLACA TRASERA DE ACCENTO / SOPORTE */}
-            {/* Sobresale ligeramente para dar un detalle visual 3D escalonado (stepped lip) que atrapa la luz */}
             <mesh
-                castShadow={!isBlackSpot}
-                receiveShadow={!isBlackSpot}
-                position={[0.045, -0.045, -0.16]}
+                castShadow={isBright && !isBlackSpot}
+                receiveShadow={true}
+                position={[0, 0, -0.15]}
             >
                 <boxGeometry args={[TILE_WIDTH, TILE_HEIGHT, TILE_BACK_DEPTH]} />
                 <meshStandardMaterial
@@ -821,19 +825,19 @@ export function Tile3D({ tile, isFree, centerX, centerY, boardY, dockY, dockIds,
             </mesh>
 
             {/* 2. PLACA FRONTAL (Mosaico de Juego principal) */}
-            {/* Ligeramente más pequeño en ancho y alto (0.90 x 0.98) para generar el relieve 3D brutalista */}
+            {/* Cara frontal con textura blanca/hueso para parecer ficha de mahjong real */}
             <mesh
                 ref={frontMeshRef}
-                castShadow={!isBlackSpot}
-                receiveShadow={!isBlackSpot}
+                castShadow={isBright && !isBlackSpot}
+                receiveShadow={true}
                 position={[0, 0, 0.15]}
             >
                 <boxGeometry args={[TILE_FACE_WIDTH, TILE_FACE_HEIGHT, TILE_FACE_DEPTH]} />
                 
-                {/* Laterales (Índices 0-3): Cerámica carbón brutalista u oro metálico */}
+                {/* Laterales (Índices 0-3): Color hueso/blanco */}
                 <meshStandardMaterial
                     attach="material-0"
-                    color={isBlackSpot ? '#000000' : (isGolden ? '#ffd700' : isBright ? '#161616' : '#0d0d0d')}
+                    color={isBlackSpot ? '#000000' : (isGolden ? '#ffd700' : isBright ? '#fdfcf0' : '#dcdbc7')}
                     roughness={isBlackSpot ? 1.0 : (isGolden ? 0.15 : 0.4)}
                     metalness={isBlackSpot ? 0.0 : (isGolden ? 0.95 : 0.1)}
                     transparent
@@ -841,7 +845,7 @@ export function Tile3D({ tile, isFree, centerX, centerY, boardY, dockY, dockIds,
                 />
                 <meshStandardMaterial
                     attach="material-1"
-                    color={isBlackSpot ? '#000000' : (isGolden ? '#ffd700' : isBright ? '#161616' : '#0d0d0d')}
+                    color={isBlackSpot ? '#000000' : (isGolden ? '#ffd700' : isBright ? '#fdfcf0' : '#dcdbc7')}
                     roughness={isBlackSpot ? 1.0 : (isGolden ? 0.15 : 0.4)}
                     metalness={isBlackSpot ? 0.0 : (isGolden ? 0.95 : 0.1)}
                     transparent
@@ -849,7 +853,7 @@ export function Tile3D({ tile, isFree, centerX, centerY, boardY, dockY, dockIds,
                 />
                 <meshStandardMaterial
                     attach="material-2"
-                    color={isBlackSpot ? '#000000' : (isGolden ? '#ffd700' : isBright ? '#161616' : '#0d0d0d')}
+                    color={isBlackSpot ? '#000000' : (isGolden ? '#ffd700' : isBright ? '#fdfcf0' : '#dcdbc7')}
                     roughness={isBlackSpot ? 1.0 : (isGolden ? 0.15 : 0.4)}
                     metalness={isBlackSpot ? 0.0 : (isGolden ? 0.95 : 0.1)}
                     transparent
@@ -857,7 +861,7 @@ export function Tile3D({ tile, isFree, centerX, centerY, boardY, dockY, dockIds,
                 />
                 <meshStandardMaterial
                     attach="material-3"
-                    color={isBlackSpot ? '#000000' : (isGolden ? '#ffd700' : isBright ? '#161616' : '#0d0d0d')}
+                    color={isBlackSpot ? '#000000' : (isGolden ? '#ffd700' : isBright ? '#fdfcf0' : '#dcdbc7')}
                     roughness={isBlackSpot ? 1.0 : (isGolden ? 0.15 : 0.4)}
                     metalness={isBlackSpot ? 0.0 : (isGolden ? 0.95 : 0.1)}
                     transparent
@@ -869,17 +873,17 @@ export function Tile3D({ tile, isFree, centerX, centerY, boardY, dockY, dockIds,
                     key={texture ? 'loaded' : 'loading'}
                     attach="material-4"
                     map={isBlackSpot ? undefined : (texture || undefined)}
-                    color={isBlackSpot ? '#000000' : (isBright ? '#ffffff' : '#777777')}
+                    color={isBlackSpot ? '#000000' : (isBright ? '#ffffff' : '#dcdbc7')}
                     roughness={isBlackSpot ? 1.0 : 0.15}
                     metalness={isBlackSpot ? 0.0 : (isGolden ? 0.5 : 0.05)}
                     transparent
                     opacity={isBlackSpot ? 1.0 : (isBright ? 1.0 : 0.4)}
                 />
 
-                {/* Cara Trasera (-Z, Índice 5): Acoplado al cuerpo, color oscuro interno */}
+                {/* Cara Trasera (-Z, Índice 5): Igual al borde */}
                 <meshStandardMaterial
                     attach="material-5"
-                    color={isBlackSpot ? '#000000' : (isGolden ? '#ffd700' : isBright ? '#161616' : '#0d0d0d')}
+                    color={isBlackSpot ? '#000000' : (isGolden ? '#ffd700' : isBright ? '#fdfcf0' : '#dcdbc7')}
                     roughness={isBlackSpot ? 1.0 : (isGolden ? 0.15 : 0.4)}
                     metalness={isBlackSpot ? 0.0 : (isGolden ? 0.95 : 0.1)}
                     transparent
