@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
-import { isLocalOrPrivateIP } from '../../../src/lib/fetch-safe';
+import { isLocalOrPrivateIP, resolveSafeIP } from '../../../src/lib/fetch-safe';
+import dns from 'dns/promises';
 
 test.describe('isLocalOrPrivateIP', () => {
     test('identifies IPv4 loopback addresses', () => {
@@ -74,5 +75,27 @@ test.describe('isLocalOrPrivateIP', () => {
     test('identifies public IPv6 addresses', () => {
         expect(isLocalOrPrivateIP('2001:4860:4860::8888')).toBe(false);
         expect(isLocalOrPrivateIP('2606:4700:4700::1111')).toBe(false);
+    });
+});
+
+test.describe('resolveSafeIP', () => {
+    let originalLookup: typeof dns.lookup;
+
+    test.beforeEach(() => {
+        originalLookup = dns.lookup;
+    });
+
+    test.afterEach(() => {
+        dns.lookup = originalLookup;
+    });
+
+    test('throws when DNS resolution fails to prevent bypasses', async () => {
+        // Use an explicit type cast to unknown, then to the required function signature
+        // This avoids the typescript-eslint/no-unsafe-function-type linting error.
+        dns.lookup = (async () => {
+            throw new Error('Simulated DNS failure');
+        }) as unknown as typeof dns.lookup;
+
+        await expect(resolveSafeIP('example.com')).rejects.toThrow('Private or local addresses are not allowed');
     });
 });
