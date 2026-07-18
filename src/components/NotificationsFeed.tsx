@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { Activity, Check, CheckSquare, Trash2 } from 'lucide-react';
-import { StoreService } from '@/services/storeService';
 import { NotificationService } from '@/services/notificationService';
 import { useProfile } from '@/context/ProfileContext';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -12,8 +11,6 @@ export function NotificationsFeed() {
     const { profile } = useProfile();
     const [notifications, setNotifications] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-
-    const activeColor = profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)';
 
     const fetchNotifications = async () => {
         if (!profile) return;
