@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase as defaultSupabase } from '@/lib/supabase';
-import { StoreService } from '@/services/storeService';
 import { MahjongService } from '@/services/mahjongService';
 import { NotificationService } from '@/services/notificationService';
 import { useProfile } from '@/context/ProfileContext';
