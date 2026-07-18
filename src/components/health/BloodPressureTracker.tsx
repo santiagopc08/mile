@@ -5,7 +5,6 @@ import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Activity, Heart, Plus, TrendingUp, TrendingDown, Clipboard, User, Clock } from 'lucide-react';
 import { useProfile } from '@/context/ProfileContext';
-import { StoreService } from '@/services/storeService';
 import { NotificationService } from '@/services/notificationService';
 import { AnimatedBrutalistCorners } from '@/components/ui/AnimatedBrutalistCorners';
 import { sound } from '@/lib/sound';
