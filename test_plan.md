@@ -1,2 +1,0 @@
-- Verify layout geometry changes locally.
-- Confirm fullscreen targets global window directly in browser APIs.

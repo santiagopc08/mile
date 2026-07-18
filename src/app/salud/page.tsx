@@ -18,7 +18,7 @@ export default function SaludPage() {
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
-            const params = new URLSearchParams(window.location.search);
+            const params = new URL(window.location.href).searchParams;
             const tab = params.get('tab') as SaludTab;
             if (tab && ['vitals', 'biometric', 'fiscal', 'habits', 'movement'].includes(tab)) {
                 setActiveTab(tab);

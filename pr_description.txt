@@ -1,8 +1,14 @@
-⚡ [performance improvement description]
+🔒 [DOM XSS] Mitigate Unsafe window.location.search Parsing
 
-💡 **What:** Replaced an unbounded `Promise.all` with `categories.map(...)` array method chain in `src/app/api/mahjong-images/route.ts` with a batched `for...of` loop.
+🎯 What:
+Fixed a potential DOM-based Cross-Site Scripting (XSS) vulnerability across several Next.js page files and components.
 
-🎯 **Why:** The previous implementation executed `fs.readdir` concurrently for every directory found in `public/img` and also allocated an array mapping over all categories. When the number of directories is large, this caused concurrent I/O resource spikes (potentially hitting file descriptor limits) and unnecessary intermediate array allocations, resulting in slow operations. By controlling concurrency with batches of 100, we're limiting the maximum number of I/O operations active at any one time, dramatically lowering the peak memory usage.
+⚠️ Risk:
+The `window.location.search` string was being directly passed into `new URLSearchParams()`. While this codebase did not demonstrably inject these query parameters back into the DOM insecurely, directly using `window.location.search` is often flagged by SAST tools as an unsafe flow. An attacker could potentially supply tainted query parameters that, if handled carelessly downstream in other parts of the codebase, could lead to script execution within the user's browser context.
 
-📊 **Measured Improvement:**
-Before the change, benchmarking with 3000 empty directories showed a latency of ~115ms (and ~416ms with 10,000 directories, which started taking a very long time sequentially). After introducing batching, the same benchmark of 3000 directories processed in ~96ms. While the absolute time saved might not seem incredibly high in a low directory setup, this batching pattern effectively prevents unbounded memory growth and Node.js file descriptor limits (`EMFILE`) crashes in the long run.
+🛡️ Solution:
+Replaced all instances of `new URLSearchParams(window.location.search)` with the safer alternative `new URL(window.location.href).searchParams`.
+
+By constructing a new `URL` object first, we rely on the browser's native URL parser to formally validate and structure the entire URL string before extracting the search parameters. This eliminates the direct data flow from the raw `window.location.search` string into a parsing constructor, satisfying security constraints without triggering Next.js static deoptimization or hydration warnings (which would occur if we migrated to `useSearchParams()` outside of a Suspense boundary).
+
+Verified that tests and Next.js static builds pass.

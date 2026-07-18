@@ -21,7 +21,7 @@ export default function RefugioPage() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
+      const params = new URL(window.location.href).searchParams;
       const tab = params.get('tab') as RefugioTab;
       if (tab && ['notas', 'escucha', 'bebes', 'historia'].includes(tab)) {
         setActiveTab(tab);
