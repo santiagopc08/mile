@@ -11,7 +11,7 @@ import { useProfile } from '@/context/ProfileContext';
 import { Undo2, Trophy, RotateCcw, Lightbulb, Sparkles, Flame } from 'lucide-react';
 import { AnimatedBrutalistCorners } from '@/components/ui/AnimatedBrutalistCorners';
 import MahjongTimer, { MahjongTimerHandle } from './MahjongTimer';
-import { TileState, TileContent, TileVisual } from './MahjongTile';
+import { TileState, TileContent } from './MahjongTile';
 import { MahjongCanvas } from './MahjongCanvas';
 import {
     getUnlockedMechanics,
