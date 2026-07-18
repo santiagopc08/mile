@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Target, TrendingDown, Clock, Activity } from 'lucide-react';
+import { Activity } from 'lucide-react';
 import { MovementSession } from './types';
 
 interface ProgressAnalyticsProps {

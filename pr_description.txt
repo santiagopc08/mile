@@ -1,14 +1,7 @@
-🔒 [DOM XSS] Mitigate Unsafe window.location.search Parsing
+🎯 **What:** Removed unused imports (`Target`, `TrendingDown`, `Clock`) from `lucide-react` in `src/components/health/movement/ProgressAnalytics.tsx`.
 
-🎯 What:
-Fixed a potential DOM-based Cross-Site Scripting (XSS) vulnerability across several Next.js page files and components.
+💡 **Why:** Unused imports clutter the codebase and can slightly increase bundle size or parsing time. Removing them improves maintainability, readability, and overall code health.
 
-⚠️ Risk:
-The `window.location.search` string was being directly passed into `new URLSearchParams()`. While this codebase did not demonstrably inject these query parameters back into the DOM insecurely, directly using `window.location.search` is often flagged by SAST tools as an unsafe flow. An attacker could potentially supply tainted query parameters that, if handled carelessly downstream in other parts of the codebase, could lead to script execution within the user's browser context.
+✅ **Verification:** Verified the code health issue was resolved by checking the file contents. Ran the full `Playwright` test suite, which passed without regressions. Verified the remaining import (`Activity`) is functioning correctly.
 
-🛡️ Solution:
-Replaced all instances of `new URLSearchParams(window.location.search)` with the safer alternative `new URL(window.location.href).searchParams`.
-
-By constructing a new `URL` object first, we rely on the browser's native URL parser to formally validate and structure the entire URL string before extracting the search parameters. This eliminates the direct data flow from the raw `window.location.search` string into a parsing constructor, satisfying security constraints without triggering Next.js static deoptimization or hydration warnings (which would occur if we migrated to `useSearchParams()` outside of a Suspense boundary).
-
-Verified that tests and Next.js static builds pass.
+✨ **Result:** A cleaner component file with improved maintainability and no unused dependencies.
