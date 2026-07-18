@@ -196,9 +196,7 @@ export function NotificationBell({ align = 'right' }: { align?: 'left' | 'right'
             setNotifications(prev => {
                 const idx = prev.findIndex(n => n.id === id);
                 if (idx === -1) return prev;
-                const next = [...prev];
-                next[idx] = { ...next[idx], read: true };
-                return next;
+                return prev.with(idx, { ...prev[idx], read: true });
             });
         } catch (err) {
             console.error('Failed to mark read:', err);
