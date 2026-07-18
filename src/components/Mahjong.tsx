@@ -1118,7 +1118,7 @@ export function Mahjong() {
 
     const requestGameFullscreen = () => {
         if (typeof window !== 'undefined') {
-            const container = document.documentElement;
+            const container = containerRef.current || document.documentElement;
             if (container && !document.fullscreenElement) {
                 if (typeof container.requestFullscreen === 'function') {
                     container.requestFullscreen().catch(() => {});
@@ -2709,7 +2709,7 @@ export function Mahjong() {
             )}
 
             <div
-                className="relative flex w-full max-w-[880px] max-md:max-w-none max-md:w-screen max-md:shrink-0 h-[690px] max-md:h-[590px] flex-col justify-center overflow-hidden border border-white/10 max-md:border-x-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.05),transparent_42%),linear-gradient(180deg,rgba(255,255,255,0.03),transparent)] transition-all duration-200"
+                className={`flex w-full ${hasStarted ? 'fixed inset-0 z-[9999] h-[100dvh] w-[100dvw] bg-[#050505] max-w-none' : 'relative max-w-[880px] h-[690px] max-md:h-[590px]'} max-md:max-w-none max-md:w-screen max-md:shrink-0 flex-col justify-center overflow-hidden border border-white/10 max-md:border-x-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.06),transparent_44%),linear-gradient(180deg,rgba(255,255,255,0.035),transparent)] transition-all duration-500`}
                 ref={containerRef}
             >
                 <div className="pointer-events-none absolute inset-0 bg-dot-matrix opacity-70" />
@@ -2900,12 +2900,37 @@ export function Mahjong() {
                         {streakCombo > 0 && (
                             <motion.div
                                 key={streakCombo}
-                                initial={{ scale: 3 }}
-                                animate={{ scale: 1 }}
-                                transition={{ type: "spring", stiffness: 200, damping: 10 }}
-                                className="text-orange-500 mr-0.5"
+                                initial={{ scale: 2.8, rotate: -18 }}
+                                animate={{ scale: [1.18, 0.96, 1.08], rotate: [-8, 8, -4] }}
+                                transition={{ duration: 0.9, repeat: Infinity, repeatType: 'mirror', ease: 'easeInOut' }}
+                                className="relative mr-0.5 text-orange-500"
                             >
-                                <Flame className="h-4 w-4 fill-orange-500 text-orange-500 animate-bounce" />
+                                <span className="absolute inset-0 rounded-full bg-orange-500/45 blur-md" />
+                                {Array.from({ length: Math.min(5, Math.max(1, streakCombo)) }).map((_, idx) => (
+                                    <motion.span
+                                        key={idx}
+                                        className="pointer-events-none absolute left-1/2 top-1/2 h-1 w-1 rounded-full bg-yellow-300"
+                                        initial={{ x: 0, y: 0, opacity: 0, scale: 0.4 }}
+                                        animate={{
+                                            x: (idx - 2) * 5,
+                                            y: [-2, -13 - idx * 2],
+                                            opacity: [0, 0.95, 0],
+                                            scale: [0.5, 1.1, 0.25]
+                                        }}
+                                        transition={{
+                                            duration: 0.7 + idx * 0.08,
+                                            repeat: Infinity,
+                                            delay: idx * 0.1,
+                                            ease: 'easeOut'
+                                        }}
+                                    />
+                                ))}
+                                <Flame
+                                    className="relative h-4 w-4 md:h-5 md:w-5 fill-orange-500 text-orange-500 drop-shadow-[0_0_8px_rgba(255,106,0,0.85)]"
+                                    style={{
+                                        filter: `drop-shadow(0 0 ${Math.min(14, 6 + streakCombo * 1.3)}px rgba(255,106,0,0.9))`
+                                    }}
+                                />
                             </motion.div>
                         )}
                         <div className="flex flex-col items-start leading-none">
@@ -3013,6 +3038,7 @@ export function Mahjong() {
                     isMobile={isMobile}
                     ghostSolidIds={ghostSolidIds}
                     hasStarted={hasStarted}
+                    streakCombo={streakCombo}
                 />
 
                 {/* Modal para Dibujar */}

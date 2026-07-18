@@ -687,12 +687,16 @@ export const StoreService = {
                 }))));
 
                 // Update tracking
-                const todayCompleted = newData.commitments.filter(c => c.completed).length;
+                // ⚡ Bolt Optimization: Replace .filter().length with O(N) loop to prevent intermediate array allocations
+                let todayCompleted = 0;
+                for (const c of newData.commitments) {
+                    if (c.completed) todayCompleted++;
+                }
                 const timeZoneOffset = (new Date()).getTimezoneOffset() * 60000;
                 const todayStr = new Date(Date.now() - timeZoneOffset).toISOString().split('T')[0];
                 // ⚡ Bolt Optimization: Group daily_tracking query into the concurrent Promise.all
                 syncPromises.push(
-                    supabase.from('daily_tracking').upsert({ date: todayStr, completed_count: todayCompleted }).then(() => {})
+                    (async () => { await supabase.from('daily_tracking').upsert({ date: todayStr, completed_count: todayCompleted }); })()
                 );
             }
 

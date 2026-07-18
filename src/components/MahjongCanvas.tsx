@@ -77,7 +77,7 @@ function DockSlots({ dockY, accentColor }: DockSlotsProps) {
         <group>
             {slotsX.map((posX, idx) => (
                 <mesh key={idx} position={[posX, dockY, 0.01]} receiveShadow>
-                    <planeGeometry args={[0.96, 1.04]} />
+                    <planeGeometry args={[0.82, 1.16]} />
                     <meshStandardMaterial
                         map={texture}
                         transparent
@@ -99,19 +99,77 @@ interface Particle {
     rot: [number, number, number];
     rotVel: [number, number, number];
     scale: number;
-    shape: 'pixel' | 'bar';
+    life: number;
+    delay: number;
+    shape: 'spark' | 'ember' | 'bar';
 }
 
 interface ExplosionProps {
     position: [number, number, number];
     color: string;
+    combo: number;
     onComplete: () => void;
 }
 
-function MatchExplosion({ position, color, onComplete }: ExplosionProps) {
+function easeOutCubic(t: number) {
+    return 1 - Math.pow(1 - t, 3);
+}
+
+function FlameBurst({ position, combo, color }: { position: [number, number, number]; combo: number; color: string }) {
+    const flameRef = useRef<THREE.Group>(null);
+    const flameCount = Math.min(12, 3 + combo * 2);
+
+    const flames = useMemo(() => {
+        return Array.from({ length: flameCount }, (_, idx) => {
+            const angle = (idx / flameCount) * Math.PI * 2 + Math.random() * 0.45;
+            const radius = 0.18 + Math.random() * 0.38;
+            return {
+                x: Math.cos(angle) * radius,
+                y: Math.sin(angle) * radius,
+                z: 0.08 + Math.random() * 0.18,
+                scale: 0.32 + Math.random() * 0.22 + combo * 0.025,
+                phase: Math.random() * Math.PI * 2,
+                height: 0.55 + Math.random() * 0.35 + combo * 0.035
+            };
+        });
+    }, [combo, flameCount]);
+
+    useFrame((state) => {
+        if (!flameRef.current) return;
+        const time = state.clock.elapsedTime;
+        flameRef.current.children.forEach((child, idx) => {
+            const flame = flames[idx];
+            const pulse = 1 + Math.sin(time * 8 + flame.phase) * 0.16;
+            child.scale.set(flame.scale * pulse, flame.height * pulse, flame.scale);
+            child.position.z = flame.z + Math.sin(time * 5 + flame.phase) * 0.035;
+            child.rotation.z = Math.sin(time * 4 + flame.phase) * 0.18;
+        });
+    });
+
+    return (
+        <group ref={flameRef} position={position}>
+            {flames.map((flame, idx) => (
+                <mesh key={idx} position={[flame.x, flame.y, flame.z]} rotation={[0, 0, flame.phase]}>
+                    <coneGeometry args={[0.15, 0.75, 5, 1, true]} />
+                    <meshBasicMaterial
+                        color={idx % 3 === 0 ? '#fff3a3' : idx % 3 === 1 ? '#ff8a00' : color}
+                        transparent
+                        opacity={0.58}
+                        depthWrite={false}
+                        blending={THREE.AdditiveBlending}
+                        side={THREE.DoubleSide}
+                    />
+                </mesh>
+            ))}
+        </group>
+    );
+}
+
+function MatchExplosion({ position, color, combo, onComplete }: ExplosionProps) {
     const groupRef = useRef<THREE.Group>(null);
     const flashRef = useRef<THREE.Mesh>(null);
     const ringRef = useRef<THREE.Mesh>(null);
+    const haloRef = useRef<THREE.Mesh>(null);
     const lightRef = useRef<THREE.PointLight>(null);
 
     // Barras de glitch horizontales y verticales (efecto screen tear)
@@ -119,34 +177,36 @@ function MatchExplosion({ position, color, onComplete }: ExplosionProps) {
     const vBarRef = useRef<THREE.Mesh>(null);
 
     const ageRef = useRef(0);
-    const duration = 0.45; // Animación corta y ultra responsiva
+    const duration = Math.min(0.95, 0.62 + combo * 0.035);
 
     // Generar fragmentos cuadriculados y barras (pixel glitch brutalista)
     const particles = useMemo(() => {
         const arr: Particle[] = [];
-        for (let i = 0; i < 35; i++) {
+        const count = Math.min(96, 46 + combo * 8);
+        for (let i = 0; i < count; i++) {
             const theta = Math.random() * Math.PI * 2;
-            const speed = 4.0 + Math.random() * 6.5; // Expansión rápida y enérgica
+            const speed = 2.8 + Math.random() * (4.4 + combo * 0.22);
 
-            // Movimiento alineado al plano cartesiano
             const velX = Math.cos(theta) * speed;
             const velY = Math.sin(theta) * speed;
-            const velZ = (Math.random() - 0.5) * 1.5;
+            const velZ = 0.25 + Math.random() * (1.2 + combo * 0.08);
 
             arr.push({
                 pos: [...position],
                 vel: [velX, velY, velZ],
                 rot: [0, 0, Math.random() * Math.PI],
-                rotVel: [0, 0, (Math.random() - 0.5) * 25],
-                scale: 0.04 + Math.random() * 0.10,
-                shape: Math.random() > 0.4 ? 'pixel' : 'bar'
+                rotVel: [0, 0, (Math.random() - 0.5) * 14],
+                scale: 0.035 + Math.random() * 0.085,
+                life: 0.65 + Math.random() * 0.35,
+                delay: Math.random() * 0.13,
+                shape: Math.random() > 0.72 ? 'bar' : Math.random() > 0.45 ? 'ember' : 'spark'
             });
         }
-        return arr;
-    }, [position]);
+        return arr.sort((a, b) => a.delay - b.delay);
+    }, [position, combo]);
 
     useFrame((state, delta) => {
-        const safeDelta = Math.min(delta, 0.1);
+        const safeDelta = Math.min(delta, 0.033);
         ageRef.current += safeDelta;
 
         if (ageRef.current >= duration) {
@@ -154,114 +214,107 @@ function MatchExplosion({ position, color, onComplete }: ExplosionProps) {
             return;
         }
 
-        const progress = 1 - (ageRef.current / duration);
+        const elapsed = ageRef.current;
+        const lifeProgress = Math.min(1, elapsed / duration);
+        const progress = 1 - lifeProgress;
+        const eased = easeOutCubic(lifeProgress);
         const time = state.clock.elapsedTime;
 
-        // Efecto glitch: parpadeos de alta frecuencia (RGB shift / signal loss simulation)
-        const isGlitchActive = Math.sin(time * 95) > 0.15;
-        const glitchColor = Math.sin(time * 140) > 0 ? color : (color === '#ffd700' ? '#ff00ff' : '#00ffff');
+        const flameColor = combo >= 3 ? '#ff6a00' : color;
+        const accentPulse = 0.86 + Math.sin(time * 18) * 0.14;
 
         // Luz parpadeante
         if (lightRef.current) {
-            lightRef.current.intensity = isGlitchActive ? progress * 25 : progress * 5;
-            lightRef.current.color.set(glitchColor);
+            lightRef.current.intensity = progress * (18 + combo * 4) * accentPulse;
+            lightRef.current.color.set(flameColor);
         }
 
-        // Esfera central destellante deformada
         if (flashRef.current) {
-            const flashScale = 0.05 + (ageRef.current / 0.15) * 2.8;
-            flashRef.current.scale.set(
-                flashScale * (1 + (isGlitchActive ? 0.5 : 0)),
-                flashScale * (1 - (isGlitchActive ? 0.4 : 0)),
-                flashScale
-            );
+            const flashScale = 0.12 + eased * (1.7 + combo * 0.14);
+            flashRef.current.scale.set(flashScale, flashScale, flashScale);
             const flashMat = flashRef.current.material as THREE.MeshStandardMaterial;
             if (flashMat) {
-                flashMat.opacity = progress * (isGlitchActive ? 0.95 : 0.3);
-                flashMat.emissive.set(glitchColor);
-                flashMat.emissiveIntensity = progress * 4.0;
+                flashMat.opacity = progress * 0.55;
+                flashMat.emissive.set(flameColor);
+                flashMat.emissiveIntensity = progress * (3.5 + combo * 0.3);
             }
         }
 
-        // Shockwave de anillo cuadrado (4 segmentos)
         if (ringRef.current) {
-            const ringScale = 0.1 + (ageRef.current / duration) * 5.2;
-            ringRef.current.scale.set(
-                ringScale * (isGlitchActive ? 1.25 : 1.0),
-                ringScale * (isGlitchActive ? 0.85 : 1.0),
-                1
-            );
+            const ringScale = 0.25 + eased * (4.5 + combo * 0.32);
+            ringRef.current.scale.set(ringScale, ringScale, 1);
             const ringMat = ringRef.current.material as THREE.MeshBasicMaterial;
             if (ringMat) {
-                ringMat.opacity = progress * 0.9;
-                ringMat.color.set(glitchColor);
+                ringMat.opacity = progress * 0.72;
+                ringMat.color.set(flameColor);
             }
         }
 
-        // Animación de la barra de interferencia horizontal (Scanline glitch horizontal)
+        if (haloRef.current) {
+            const haloScale = 0.2 + eased * (2.8 + combo * 0.24);
+            haloRef.current.scale.set(haloScale * 1.18, haloScale, 1);
+            haloRef.current.rotation.z = time * 0.7;
+            const haloMat = haloRef.current.material as THREE.MeshBasicMaterial;
+            if (haloMat) {
+                haloMat.opacity = progress * 0.34;
+                haloMat.color.set(color);
+            }
+        }
+
         if (hBarRef.current) {
-            const hScaleX = 0.2 + (ageRef.current / duration) * 9.0;
-            hBarRef.current.scale.set(hScaleX, 1 + (isGlitchActive ? 3.0 : 0), 1);
-            hBarRef.current.position.y = position[1] + (isGlitchActive ? (Math.random() - 0.5) * 0.35 : 0);
+            const hScaleX = 0.25 + eased * (5.0 + combo * 0.35);
+            hBarRef.current.scale.set(hScaleX, 1 + Math.sin(time * 16) * 0.25, 1);
             const mat = hBarRef.current.material as THREE.MeshBasicMaterial;
             if (mat) {
-                mat.opacity = progress * 0.75;
-                mat.color.set(glitchColor);
+                mat.opacity = progress * 0.42;
+                mat.color.set(flameColor);
             }
         }
 
-        // Animación de la barra de interferencia vertical (Scanline glitch vertical)
         if (vBarRef.current) {
-            const vScaleY = 0.2 + (ageRef.current / duration) * 9.0;
-            vBarRef.current.scale.set(1 + (isGlitchActive ? 3.0 : 0), vScaleY, 1);
-            vBarRef.current.position.x = position[0] + (isGlitchActive ? (Math.random() - 0.5) * 0.35 : 0);
+            const vScaleY = 0.25 + eased * (5.0 + combo * 0.35);
+            vBarRef.current.scale.set(1 + Math.cos(time * 15) * 0.2, vScaleY, 1);
             const mat = vBarRef.current.material as THREE.MeshBasicMaterial;
             if (mat) {
-                mat.opacity = progress * 0.75;
-                mat.color.set(glitchColor);
+                mat.opacity = progress * 0.36;
+                mat.color.set(flameColor);
             }
         }
 
-        // Partículas (Pixeles y Barras de datos)
         if (groupRef.current) {
             const meshes = groupRef.current.children;
 
             particles.forEach((p, idx) => {
                 const mesh = meshes[idx] as THREE.Mesh;
                 if (mesh) {
+                    const localAge = Math.max(0, elapsed - p.delay);
+                    const localProgress = Math.min(1, localAge / (duration * p.life));
+                    const localEase = easeOutCubic(localProgress);
+                    const visible = localAge > 0 && localProgress < 1;
+
                     p.pos[0] += p.vel[0] * safeDelta;
                     p.pos[1] += p.vel[1] * safeDelta;
                     p.pos[2] += p.vel[2] * safeDelta;
 
-                    // Fricción digital
-                    p.vel[0] *= 0.94;
-                    p.vel[1] *= 0.94;
-                    p.vel[2] *= 0.94;
-
-                    // Desplazamiento digital glitch aleatorio
-                    if (isGlitchActive && Math.random() < 0.25) {
-                        p.pos[0] += (Math.random() - 0.5) * 0.18;
-                        p.pos[1] += (Math.random() - 0.5) * 0.18;
-                    }
+                    p.vel[0] *= 0.982;
+                    p.vel[1] *= 0.982;
+                    p.vel[2] = p.vel[2] * 0.965 - safeDelta * 1.6;
 
                     p.rot[2] += p.rotVel[2] * safeDelta;
 
                     mesh.position.set(p.pos[0], p.pos[1], p.pos[2]);
                     mesh.rotation.set(p.rot[0], p.rot[1], p.rot[2]);
 
-                    // Escala no uniforme distorsionada estilo pixel art glitcheado
-                    const baseScale = p.scale * progress;
-                    mesh.scale.set(
-                        baseScale * (Math.random() < 0.12 ? 3.5 : 1.0),
-                        baseScale * (Math.random() < 0.12 ? 0.25 : 1.0),
-                        baseScale
-                    );
+                    const particleFade = visible ? Math.sin(localEase * Math.PI) * (1 - localProgress * 0.35) : 0;
+                    const baseScale = p.scale * particleFade * (1 + combo * 0.045);
+                    const stretch = p.shape === 'bar' ? 3.2 : p.shape === 'ember' ? 1.45 : 1.0;
+                    mesh.scale.set(baseScale * stretch, baseScale * (p.shape === 'bar' ? 0.35 : 1.0), baseScale);
 
                     const mat = mesh.material as THREE.MeshStandardMaterial;
                     if (mat) {
-                        mat.opacity = progress;
-                        mat.emissive.set(glitchColor);
-                        mat.emissiveIntensity = progress * 3.5;
+                        mat.opacity = particleFade;
+                        mat.emissive.set(p.shape === 'ember' ? '#ff7a00' : flameColor);
+                        mat.emissiveIntensity = particleFade * (2.4 + combo * 0.2);
                     }
                 }
             });
@@ -276,13 +329,13 @@ function MatchExplosion({ position, color, onComplete }: ExplosionProps) {
                 position={position}
                 color={color}
                 intensity={16}
-                distance={6.5}
+                distance={7.5 + combo * 0.5}
                 decay={2.2}
             />
 
             {/* Núcleo digital de glitch */}
             <mesh ref={flashRef} position={position}>
-                <sphereGeometry args={[0.45, 8, 8]} />
+                <sphereGeometry args={[0.42, 16, 16]} />
                 <meshStandardMaterial
                     color="#ffffff"
                     emissive={color}
@@ -295,7 +348,7 @@ function MatchExplosion({ position, color, onComplete }: ExplosionProps) {
 
             {/* Anillo de onda digital segmentado (Cuadrado, 4 segmentos) */}
             <mesh ref={ringRef} position={[position[0], position[1], position[2] + 0.02]}>
-                <ringGeometry args={[0.06, 0.45, 4]} />
+                <ringGeometry args={[0.08, 0.42, 48]} />
                 <meshBasicMaterial
                     color={color}
                     transparent
@@ -304,6 +357,20 @@ function MatchExplosion({ position, color, onComplete }: ExplosionProps) {
                     depthWrite={false}
                 />
             </mesh>
+
+            <mesh ref={haloRef} position={[position[0], position[1], position[2] + 0.018]}>
+                <ringGeometry args={[0.16, 0.68, 64]} />
+                <meshBasicMaterial
+                    color={color}
+                    transparent
+                    opacity={0.3}
+                    side={THREE.DoubleSide}
+                    depthWrite={false}
+                    blending={THREE.AdditiveBlending}
+                />
+            </mesh>
+
+            {combo >= 2 && <FlameBurst position={[position[0], position[1], position[2] + 0.15]} combo={combo} color={color} />}
 
             {/* Interferencia horizontal (scanline glitch) */}
             <mesh ref={hBarRef} position={[position[0], position[1], position[2] + 0.015]}>
@@ -331,8 +398,10 @@ function MatchExplosion({ position, color, onComplete }: ExplosionProps) {
             <group ref={groupRef}>
                 {particles.map((p, idx) => (
                     <mesh key={idx}>
-                        {p.shape === 'pixel' ? (
-                            <boxGeometry args={[0.08, 0.08, 0.08]} />
+                        {p.shape === 'spark' ? (
+                            <sphereGeometry args={[0.08, 8, 8]} />
+                        ) : p.shape === 'ember' ? (
+                            <sphereGeometry args={[0.07, 8, 8]} />
                         ) : (
                             <boxGeometry args={[0.22, 0.02, 0.005]} />
                         )}
@@ -360,11 +429,12 @@ interface MahjongCanvasProps {
     isMobile: boolean;
     ghostSolidIds?: Set<string>;
     hasStarted: boolean;
+    streakCombo?: number;
 }
 
-export function MahjongCanvas({ tiles, freeTilesMap, dockIds, onTilePointerDown, isMobile, ghostSolidIds, hasStarted }: MahjongCanvasProps) {
+export function MahjongCanvas({ tiles, freeTilesMap, dockIds, onTilePointerDown, isMobile, ghostSolidIds, hasStarted, streakCombo = 0 }: MahjongCanvasProps) {
     const { profile } = useProfile();
-    const [explosions, setExplosions] = useState<{ id: string; pos: [number, number, number]; color: string }[]>([]);
+    const [explosions, setExplosions] = useState<{ id: string; pos: [number, number, number]; color: string; combo: number }[]>([]);
     const prevMatchedIdsRef = useRef<Set<string>>(new Set());
 
     // En 3D ya no filtramos las fichas en el dock de la pantalla del tablero; dejamos que LERPeen libremente hacia el Dock 3D
@@ -397,10 +467,10 @@ export function MahjongCanvas({ tiles, freeTilesMap, dockIds, onTilePointerDown,
             if (t.y > maxY) maxY = t.y;
         }
 
-        const spacingX = 0.49;
-        const spacingY = 0.53;
-        const tileWidth = 0.96;
-        const tileHeight = 1.04;
+        const spacingX = 0.43;
+        const spacingY = 0.59;
+        const tileWidth = 0.82;
+        const tileHeight = 1.16;
 
         // Use fixed bounds of 14 columns (width) and 14 rows (height) to keep camera zoom and dock positioning constant across all layouts (strictly 8x8)
         const fixedCols = 14;
@@ -410,7 +480,7 @@ export function MahjongCanvas({ tiles, freeTilesMap, dockIds, onTilePointerDown,
         const height = fixedRows * spacingY + tileHeight;
 
         // Espacio libre físico constante entre el tablero y el dock (reducido en móvil para ganar espacio y zoom)
-        const gap = isMobile ? 0.35 : 0.7;
+        const gap = isMobile ? 0.42 : 0.78;
         const totalHeight = height + gap + tileHeight;
 
         // Centrado de la altura combinada sobre Y = 0
@@ -435,9 +505,9 @@ export function MahjongCanvas({ tiles, freeTilesMap, dockIds, onTilePointerDown,
         if (newlyMatched.length > 0) {
             const rawAccentColor = profile === 'ella' ? '#ff4b89' : '#e1ff80';
 
-            const spacingX = 0.49;
-            const spacingY = 0.53;
-            const spacingZ = 0.24;
+            const spacingX = 0.43;
+            const spacingY = 0.59;
+            const spacingZ = 0.34;
 
             const newExplosions = newlyMatched.map(tile => {
                 // Verificar si la ficha estaba en el dock antes del emparejamiento para detonar la explosión allí
@@ -461,7 +531,8 @@ export function MahjongCanvas({ tiles, freeTilesMap, dockIds, onTilePointerDown,
                 return {
                     id: `exp-${tile.id}-${Date.now()}-${Math.random()}`,
                     pos: [posX, posY, posZ] as [number, number, number],
-                    color: tile.content.type === 'custom' ? '#ffd700' : rawAccentColor
+                    color: tile.content.type === 'custom' ? '#ffd700' : rawAccentColor,
+                    combo: Math.max(1, streakCombo)
                 };
             });
 
@@ -475,14 +546,14 @@ export function MahjongCanvas({ tiles, freeTilesMap, dockIds, onTilePointerDown,
         }
         prevMatchedIdsRef.current = matchedSet;
         prevDockIdsRef.current = [...dockIds];
-    }, [tiles, dockIds, centerX, centerY, boardY, dockY, profile]);
+    }, [tiles, dockIds, centerX, centerY, boardY, dockY, profile, streakCombo]);
 
     const rawAccentColor = profile === 'ella' ? '#ff4b89' : '#e1ff80';
 
     return (
         <div className="relative h-full w-full select-none" style={{ minHeight: isMobile ? '400px' : '520px' }}>
             <Canvas
-                shadows={{ type: THREE.PCFShadowMap }} // Se define tipo de shadow map explícito para eliminar warning de deprecación de PCFSoftShadowMap
+                shadows={{ type: THREE.PCFSoftShadowMap }} 
                 camera={{ fov: 50, position: [0, -0.6, 6.2], near: 0.1, far: 50 }}
                 gl={{ antialias: true, alpha: true }}
                 style={{ background: 'transparent' }}
@@ -494,28 +565,35 @@ export function MahjongCanvas({ tiles, freeTilesMap, dockIds, onTilePointerDown,
                 <DockSlots dockY={dockY} accentColor={rawAccentColor} />
 
                 {/* Iluminación Estética */}
-                <ambientLight intensity={0.65} />
+                <ambientLight intensity={0.6} />
 
-                {/* Luz Principal (Sombras dinámicas) */}
+                {/* Luz Principal (Sombras dinámicas suaves) */}
                 <directionalLight
-                    position={[2, 14, 4]}
-                    intensity={1.2}
+                    position={[1.5, 11, 3.5]}
+                    intensity={1.25}
                     castShadow
-                    shadow-mapSize-width={1024}
-                    shadow-mapSize-height={1024}
-                    shadow-camera-far={20}
-                    shadow-camera-left={-7}
-                    shadow-camera-right={7}
-                    shadow-camera-top={6}
-                    shadow-camera-bottom={-6}
-                    shadow-bias={-0.0006}
+                    shadow-mapSize-width={2048}
+                    shadow-mapSize-height={2048}
+                    shadow-camera-far={25}
+                    shadow-camera-left={-10}
+                    shadow-camera-right={10}
+                    shadow-camera-top={10}
+                    shadow-camera-bottom={-10}
+                    shadow-bias={-0.0005}
+                    shadow-radius={4}
                 />
 
                 {/* Luz de Contorno / Relleno Púrpura */}
                 <directionalLight
-                    position={[-5, -4, 4]}
-                    intensity={0.6}
+                    position={[-5, -4, 5]}
+                    intensity={0.75}
                     color={profile === 'ella' ? '#ff8fb2' : '#d2f960'}
+                />
+                <pointLight
+                    position={[0, -2.8, 4.5]}
+                    intensity={0.8}
+                    distance={8}
+                    color={rawAccentColor}
                 />
 
                 {/* Renderizar Fichas */}
@@ -532,7 +610,7 @@ export function MahjongCanvas({ tiles, freeTilesMap, dockIds, onTilePointerDown,
                             dockIds={dockIds}
                             onSelect={onTilePointerDown}
                             isGhostSolid={tile.isGhost ? ghostSolidIds?.has(tile.id) : undefined}
-                        hasStarted={hasStarted}
+                            hasStarted={hasStarted}
                         />
                     ))}
                 </group>
@@ -544,6 +622,7 @@ export function MahjongCanvas({ tiles, freeTilesMap, dockIds, onTilePointerDown,
                             key={exp.id}
                             position={exp.pos}
                             color={exp.color}
+                            combo={exp.combo}
                             onComplete={() => setExplosions(prev => prev.filter(e => e.id !== exp.id))}
                         />
                     ))}
