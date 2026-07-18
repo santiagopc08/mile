@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trash2, Check, Pencil, Clock } from 'lucide-react';
-import { type ChecklistItem } from '@/services/storeService';
 import { FuturisticProgressBar } from '@/components/ui/FuturisticProgressBar';
 import { LiveLinkPreview } from '@/components/LiveLinkPreview';
 import { Task, Objective, categoryStyles, priorityStyles } from './taskTypes';
@@ -65,8 +64,8 @@ export const TaskCard = ({
   const [editActualTime, setEditActualTime] = useState(task.actual_time);
   const [editDueDate, setEditDueDate] = useState(task.due_date || '');
   const [editPriority, setEditPriority] = useState(task.priority || 'medium');
-  const [editActions, setEditActions] = useState<ChecklistItem[]>(task.actions || []);
-  const [editValidations, setEditValidations] = useState<ChecklistItem[]>(task.validations || []);
+  const [editActions, setEditActions] = useState<NonNullable<Task['actions']>>(task.actions || []);
+  const [editValidations, setEditValidations] = useState<NonNullable<Task['actions']>>(task.validations || []);
   const [editDetail, setEditDetail] = useState(task.detail || '');
   const [editTaskAssignee, setEditTaskAssignee] = useState(task.assignee || profile || 'el');
 
