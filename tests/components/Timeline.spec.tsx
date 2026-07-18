@@ -8,7 +8,7 @@ function withFakeReactDispatcher(callback: () => void) {
 
     if (ReactInternals) {
         const prevDispatcher = ReactInternals.H;
-        let mockStates: any[] = [];
+        const mockStates: any[] = [];
         let stateIndex = 0;
 
         ReactInternals.H = {

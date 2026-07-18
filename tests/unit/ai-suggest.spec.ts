@@ -1,8 +1,25 @@
 process.env.NEXT_PUBLIC_MOCK_AUTH = 'true';
 import { test, expect } from '@playwright/test';
 
+const setupSupabaseMock = () => {
+  const supabasePath = require.resolve('../../src/lib/supabase-server.ts');
+  require.cache[supabasePath] = {
+    id: supabasePath,
+    filename: supabasePath,
+    loaded: true,
+    exports: { createServerClient: () => ({}) }
+  } as any;
+};
+
+const cleanupSupabaseMock = () => {
+  const supabasePath = require.resolve('../../src/lib/supabase-server.ts');
+  delete require.cache[supabasePath];
+};
+
 
 test.describe('AI Suggest API', () => {
+  test.beforeEach(() => { setupSupabaseMock(); });
+  test.afterEach(() => { cleanupSupabaseMock(); });
 
   const createMockRequest = (body: any) => {
     return new Request('http://localhost:3000/api/ai-suggest', {

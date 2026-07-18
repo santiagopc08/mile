@@ -2,6 +2,8 @@ import { test, expect } from '@playwright/test';
 
 
 const setupMocks = (authResult: boolean = true) => {
+    const supabasePath = require.resolve('../../../../../src/lib/supabase-server.ts');
+    require.cache[supabasePath] = { id: supabasePath, filename: supabasePath, loaded: true, exports: { createServerClient: () => ({}) } } as any;
     const authPath = require.resolve('../../../../../src/lib/auth.ts');
     require.cache[authPath] = {
         id: authPath,
@@ -15,6 +17,8 @@ const setupMocks = (authResult: boolean = true) => {
 };
 
 const cleanupMocks = () => {
+    const supabasePath = require.resolve('../../../../../src/lib/supabase-server.ts');
+    delete require.cache[supabasePath];
     const authPath = require.resolve('../../../../../src/lib/auth.ts');
     delete require.cache[authPath];
     const routePath = require.resolve('../../../../../src/app/api/push/send/route.ts');

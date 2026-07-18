@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers';
-import { createServerClient } from '@/lib/supabase';
+import { createServerClient } from '@/lib/supabase-server';
 import crypto from 'crypto';
 
 function secureCompare(a: string, b: string): boolean {
