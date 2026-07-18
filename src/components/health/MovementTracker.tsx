@@ -2,9 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useProfile } from '@/context/ProfileContext';
-import { StoreService } from '@/services/storeService';
 import { NotificationService } from '@/services/notificationService';
 import { sound } from '@/lib/sound';
 import { haptics } from '@/lib/haptics';
