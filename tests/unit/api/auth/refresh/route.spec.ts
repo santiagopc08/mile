@@ -24,7 +24,7 @@ const setupMocks = (
     } as any;
 
     // 2. Mock supabase client
-    const supabasePath = require.resolve('../../../../../src/lib/supabase.ts');
+    const supabasePath = require.resolve('../../../../../src/lib/supabase-server.ts');
     require.cache[supabasePath] = {
         id: supabasePath,
         filename: supabasePath,
@@ -45,7 +45,7 @@ const setupMocks = (
 const cleanupMocks = () => {
     const nextHeadersPath = require.resolve('next/headers');
     delete require.cache[nextHeadersPath];
-    const supabasePath = require.resolve('../../../../../src/lib/supabase.ts');
+    const supabasePath = require.resolve('../../../../../src/lib/supabase-server.ts');
     delete require.cache[supabasePath];
 
     // Also delete the route from require cache to ensure it picks up the latest mock inside each test

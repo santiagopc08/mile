@@ -31,7 +31,7 @@ const setupMocks = (
         }
     } as any;
 
-    const supabasePath = require.resolve('../../../src/lib/supabase.ts');
+    const supabasePath = require.resolve('../../../src/lib/supabase-server.ts');
     require.cache[supabasePath] = {
         id: supabasePath,
         filename: supabasePath,
@@ -56,7 +56,7 @@ const setupMocks = (
 const cleanupMocks = () => {
     const nextHeadersPath = require.resolve('next/headers');
     delete require.cache[nextHeadersPath];
-    const supabasePath = require.resolve('../../../src/lib/supabase.ts');
+    const supabasePath = require.resolve('../../../src/lib/supabase-server.ts');
     delete require.cache[supabasePath];
 
     const authPath = require.resolve('../../../src/lib/auth.ts');

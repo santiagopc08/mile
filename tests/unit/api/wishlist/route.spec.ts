@@ -16,7 +16,7 @@ const setupMocks = (
         exports: { verifyAuth: verifyAuthMock }
     } as NodeJS.Module;
 
-    const supabasePath = require.resolve('../../../../src/lib/supabase.ts');
+    const supabasePath = require.resolve('../../../../src/lib/supabase-server.ts');
     require.cache[supabasePath] = {
         id: supabasePath,
         filename: supabasePath,
@@ -53,7 +53,7 @@ const setupMocks = (
 
 const cleanupMocks = () => {
     delete require.cache[require.resolve('../../../../src/lib/auth.ts')];
-    delete require.cache[require.resolve('../../../../src/lib/supabase.ts')];
+    delete require.cache[require.resolve('../../../../src/lib/supabase-server.ts')];
     delete require.cache[require.resolve('../../../../src/services/wishlistService.ts')];
     delete require.cache[require.resolve('../../../../src/services/notificationService.ts')];
     delete require.cache[require.resolve('../../../../src/app/api/wishlist/route.ts')];
