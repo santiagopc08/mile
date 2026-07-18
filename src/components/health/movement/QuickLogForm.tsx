@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Check, Clock, Shield, Compass, Activity, Dumbbell, Zap, Heart, Smile } from 'lucide-react';
+import { Shield, Compass, Activity, Dumbbell, Zap, Heart, Smile } from 'lucide-react';
 import { SessionCategory, DifficultyLevel, EnergyLevel, CompletionStatus, MobilityStatus } from './types';
 
 const CATEGORY_LABELS: Record<SessionCategory, { label: string; icon: any; isTherapy: boolean }> = {
