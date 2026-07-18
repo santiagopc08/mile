@@ -793,7 +793,11 @@ export function Mahjong() {
                         setCoopTurn(newGame.active_turn);
 
                         // Recalculate matched count
-                        const matched = newGame.tiles.filter((t: any) => t.isMatched).length;
+                        // ⚡ Bolt Optimization: Prevent O(N) intermediate array allocation when counting matched tiles
+                        let matched = 0;
+                        for (let i = 0; i < newGame.tiles.length; i++) {
+                            if (newGame.tiles[i].isMatched) matched++;
+                        }
                         setMatchedCount(matched);
 
                         if (newGame.completed_at) {
@@ -1396,7 +1400,12 @@ export function Mahjong() {
         setInitialDeal(game.tiles);
         setDockIds(game.dock_ids || []);
         setCoopTurn(game.active_turn);
-        setMatchedCount(game.tiles.filter((t: any) => t.isMatched).length);
+        // ⚡ Bolt Optimization: Prevent O(N) intermediate array allocation when counting matched tiles
+        let initialMatched = 0;
+        for (let i = 0; i < game.tiles.length; i++) {
+            if (game.tiles[i].isMatched) initialMatched++;
+        }
+        setMatchedCount(initialMatched);
         setCurrentLayout(game.layout as LayoutType);
 
         // Check for pending bottle message
