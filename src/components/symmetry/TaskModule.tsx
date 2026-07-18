@@ -25,16 +25,12 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
   }, [data?.tasks, profile]);
 
   const groupedTasksByStatus = useMemo(() => {
-    const grouped: Record<string, Task[]> = {
-      todo: [],
-      in_progress: [],
-      done: [],
-      skipped: []
-    };
+    const grouped: Record<string, Task[]> = {};
     for (const t of tasks) {
-      if (grouped[t.status]) {
-        grouped[t.status].push(t);
+      if (!grouped[t.status]) {
+        grouped[t.status] = [];
       }
+      grouped[t.status].push(t);
     }
     return grouped;
   }, [tasks]);
