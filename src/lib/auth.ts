@@ -37,11 +37,11 @@ export async function verifyAuth() {
         const supabase = createServerClient();
         const { data, error } = await supabase
             .from('device_tokens')
-            .select('id')
+            .select('id, token')
             .eq('token', deviceToken)
             .single();
 
-        if (error || !data) {
+        if (error || !data || !secureCompare(data.token, deviceToken)) {
             return false;
         }
 

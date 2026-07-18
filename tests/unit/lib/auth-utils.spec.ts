@@ -66,7 +66,7 @@ test.describe('verifyServerSession', () => {
     test('valid UUID token matched in listUsers returns true', async () => {
         setupMocks(
             { 'mile_device_token': '123e4567-e89b-12d3-a456-426614174000' },
-            async () => ({ data: { id: 'some-id' }, error: null })
+            async () => ({ data: { id: 'some-id', token: '123e4567-e89b-12d3-a456-426614174000' }, error: null })
         );
 
         const { verifyServerSession } = require('../../../src/lib/auth-utils.ts');
@@ -88,7 +88,7 @@ test.describe('verifyServerSession', () => {
     test('non-UUID token returns false', async () => {
         setupMocks(
             { 'mile_device_token': 'invalid_token_format' },
-            async () => ({ data: { id: 'some-id' }, error: null })
+            async () => ({ data: { id: 'some-id', token: '123e4567-e89b-12d3-a456-426614174000' }, error: null })
         );
 
         const { verifyServerSession } = require('../../../src/lib/auth-utils.ts');
