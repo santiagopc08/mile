@@ -4,7 +4,7 @@
  * initialization or dynamically during gameplay via tick/process functions.
  */
 
-import { TileState, TileContent } from './MahjongTile';
+import { TileState } from './MahjongTile';
 
 // ─── Mechanic Activation ─────────────────────────────────────────────────────
 
