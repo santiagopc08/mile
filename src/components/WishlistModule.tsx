@@ -6,7 +6,6 @@ import { useProfile } from '@/context/ProfileContext';
 import { Link2, MapPin, Plus, X, Rss } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
-import { StoreService } from '@/services/storeService';
 import { WishlistService } from '@/services/wishlistService';
 import { NotificationService } from '@/services/notificationService';
 import type { WishlistItem, WishlistState, GoalCategory } from '@/services/storeService';
