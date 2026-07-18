@@ -1,4 +1,4 @@
-import { type ChecklistItem } from '@/services/storeService';
+import type { ChecklistItem } from '@/services/storeService';
 
 export interface Task {
   id: string;
