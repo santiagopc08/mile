@@ -116,7 +116,7 @@ export function WishlistModule() {
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
-            const params = new URLSearchParams(window.location.search);
+            const params = new URL(window.location.href).searchParams;
             const action = params.get('action');
             if (action === 'add') {
                 setIsAdding(true);

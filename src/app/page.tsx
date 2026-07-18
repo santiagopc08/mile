@@ -47,7 +47,8 @@ export default function Home() {
   const savingPlansCount = useMemo(() => wishlist.filter(item => item.state === 'SAVING').length, [wishlist]);
   const showBdayBanner = useMemo(() => {
     if (typeof window === 'undefined') return false;
-    const isTest = window.location.search.includes('test=true') || window.location.search.includes('cumple=true');
+    const params = new URL(window.location.href).searchParams;
+    const isTest = params.has('test') || params.has('cumple');
     const today = new Date();
     const isBdayDate = today.getMonth() === 5 && today.getDate() === 17;
     return isTest || (profile === 'ella' && isBdayDate);

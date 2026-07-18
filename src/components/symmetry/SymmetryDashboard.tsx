@@ -145,7 +145,7 @@ export const SymmetryDashboard = () => {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
+      const params = new URL(window.location.href).searchParams;
       const tab = params.get('tab');
       if (tab === 'tasks' || tab === 'finances') {
         setActiveTab(tab);
