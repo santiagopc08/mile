@@ -14,33 +14,29 @@ export async function GET() {
             // Asynchronously read all subdirectories in public/img
             const categories = await fs.readdir(directoryPath, { withFileTypes: true });
 
-            const batchSize = 100;
-            for (let i = 0; i < categories.length; i += batchSize) {
-                const batchPromises: Promise<string[]>[] = [];
-                for (let j = 0; j < batchSize && i + j < categories.length; j++) {
-                    const category = categories[i + j];
-                    if (category.isDirectory()) {
-                        const subDirPath = path.join(directoryPath, category.name);
-                        batchPromises.push(fs.readdir(subDirPath).then(files => {
-                            const validFiles: string[] = [];
-                            for (const file of files) {
-                                if (file.endsWith('.png') || file.endsWith('.jpg') || file.endsWith('.jpeg')) {
-                                    validFiles.push(`/img/${category.name}/${file}`);
-                                }
+            const promises: Promise<string[]>[] = [];
+            for (const category of categories) {
+                if (category.isDirectory()) {
+                    const subDirPath = path.join(directoryPath, category.name);
+                    promises.push(fs.readdir(subDirPath).then(files => {
+                        const validFiles: string[] = [];
+                        for (const file of files) {
+                            if (file.endsWith('.png') || file.endsWith('.jpg') || file.endsWith('.jpeg')) {
+                                validFiles.push(`/img/${category.name}/${file}`);
                             }
-                            return validFiles;
-                        }));
-                    } else if (category.name.endsWith('.png') || category.name.endsWith('.jpg') || category.name.endsWith('.jpeg')) {
-                        batchPromises.push(Promise.resolve([`/img/${category.name}`]));
-                    }
-                }
-
-                if (batchPromises.length > 0) {
-                    const batchResults = await Promise.all(batchPromises);
-                    for (const res of batchResults) {
-                        for (const item of res) {
-                            results.push(item);
                         }
+                        return validFiles;
+                    }));
+                } else if (category.name.endsWith('.png') || category.name.endsWith('.jpg') || category.name.endsWith('.jpeg')) {
+                    promises.push(Promise.resolve([`/img/${category.name}`]));
+                }
+            }
+
+            if (promises.length > 0) {
+                const allResults = await Promise.all(promises);
+                for (const res of allResults) {
+                    for (const item of res) {
+                        results.push(item);
                     }
                 }
             }
