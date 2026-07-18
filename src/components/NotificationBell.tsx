@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Bell, CheckSquare, Trash2, ShieldAlert } from 'lucide-react';
-import { StoreService } from '@/services/storeService';
 import { NotificationService } from '@/services/notificationService';
 import { useProfile } from '@/context/ProfileContext';
 import { motion, AnimatePresence } from 'framer-motion';
