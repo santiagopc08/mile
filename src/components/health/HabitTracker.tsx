@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Pizza, Coffee, Bike, CreditCard, Activity, TrendingDown, Flame, CircleDollarSign } from 'lucide-react';
 import { useStore } from '@/context/StoreContext';
 import { useProfile } from '@/context/ProfileContext';
-import { StoreService } from '@/services/storeService';
 import { HealthService } from '@/services/healthService';
 import { NotificationService } from '@/services/notificationService';
 import type { HealthHabitType, HealthHabit } from '@/services/storeService';
