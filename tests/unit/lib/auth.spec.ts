@@ -112,7 +112,7 @@ test.describe('verifyAuth', () => {
             { 'authorization': 'Bearer valid_token' },
             { 'mile_device_token': 'test_token' },
             async () => ({ data: { user: { email: 'wrong@example.com' } }, error: null }),
-            async () => ({ data: { id: 'some-id' }, error: null })
+            async () => ({ data: { id: 'some-id', token: 'test_token' }, error: null })
         );
 
         const { verifyAuth } = require('../../../src/lib/auth.ts');
@@ -125,7 +125,7 @@ test.describe('verifyAuth', () => {
             { 'authorization': 'Bearer valid_token' },
             { 'mile_device_token': 'test_token' },
             async () => ({ data: { user: null }, error: new Error('Invalid token') }),
-            async () => ({ data: { id: 'some-id' }, error: null })
+            async () => ({ data: { id: 'some-id', token: 'test_token' }, error: null })
         );
 
         const { verifyAuth } = require('../../../src/lib/auth.ts');
@@ -144,7 +144,7 @@ test.describe('verifyAuth', () => {
                 {},
                 { 'mile_device_token': 'test_token' },
                 async () => ({ data: null, error: new Error('not found') }),
-                async () => ({ data: { id: 'some-id' }, error: null }),
+                async () => ({ data: { id: 'some-id', token: 'test_token' }, error: null }),
                 true // shouldHeadersThrow
             );
 
@@ -202,7 +202,7 @@ test.describe('verifyAuth', () => {
             {},
             { 'mile_device_token': 'test_token' },
             async () => ({}),
-            async () => ({ data: { id: 'some-id' }, error: null })
+            async () => ({ data: { id: 'some-id', token: 'test_token' }, error: null })
         );
 
         const { verifyAuth } = require('../../../src/lib/auth.ts');

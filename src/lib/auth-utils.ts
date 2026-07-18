@@ -25,11 +25,11 @@ export async function verifyServerSession() {
     const supabase = createServerClient();
     const { data, error } = await supabase
         .from('device_tokens')
-        .select('id')
+        .select('id, token')
         .eq('token', token.value)
         .single();
 
-    if (error || !data) {
+    if (error || !data || !secureCompare(data.token, token.value)) {
         return false;
     }
 
