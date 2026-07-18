@@ -4,9 +4,14 @@ import * as https from 'https';
 import { Readable } from 'stream';
 
 export function isLocalOrPrivateIP(ip: string): boolean {
-    if (ip.startsWith('::ffff:')) {
-        ip = ip.substring(7);
+    ip = ip.toLowerCase();
+
+    // Normalize IPv4-mapped IPv6 addresses (e.g., ::ffff:127.0.0.1, 0:0:0:0:0:ffff:127.0.0.1)
+    const mappedIpv4Match = ip.match(/^(?:0:0:0:0:0:ffff:|::ffff:)(\d+\.\d+\.\d+\.\d+)$/);
+    if (mappedIpv4Match) {
+        ip = mappedIpv4Match[1];
     }
+
     if (ip.includes('.')) {
         const parts = ip.split('.').map(Number);
         return (
@@ -19,7 +24,6 @@ export function isLocalOrPrivateIP(ip: string): boolean {
             parts[0] === 255
         );
     }
-    ip = ip.toLowerCase();
     return (
         ip === '::1' ||
         ip === '::' ||
@@ -80,6 +84,12 @@ export async function fetchSafe(targetUrl: string, options: RequestInit = {}, ma
     const url = new URL(targetUrl);
     if (url.protocol !== 'http:' && url.protocol !== 'https:') {
         throw new Error('Invalid URL scheme');
+    }
+
+    // Validate hostname strictly first to prevent DNS rebinding attacks on redirects
+    const isValid = await validateHostname(url.hostname);
+    if (!isValid) {
+        throw new Error('Private or local addresses are not allowed');
     }
 
     const ip = await resolveSafeIP(url.hostname);
