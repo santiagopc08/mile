@@ -24,11 +24,6 @@ import {
     MovementSession
 } from './movement/types';
 
-import {
-    Award, TrendingDown, Check,
-    Plus, AlertCircle, Trash2, HelpCircle
-} from 'lucide-react';
-
 import { CATEGORY_LABELS, PRESETS_EL, PRESETS_ELLA, REACTION_CONFIG } from './movement/constants';
 
 export function MovementTracker() {
@@ -37,9 +32,6 @@ export function MovementTracker() {
     
     // Core styling based on currently logged user
     const accentColor = isElla ? 'var(--color-user-a)' : 'var(--color-user-b)';
-    const accentClass = isElla ? 'user-a' : 'user-b';
-    const partnerClass = isElla ? 'user-b' : 'user-a';
-    const partnerColor = isElla ? 'var(--color-user-b)' : 'var(--color-user-a)';
     
     // Core State
     const [sessions, setSessions] = useState<MovementSession[]>([]);
@@ -430,9 +422,6 @@ export function MovementTracker() {
             text: 'La constancia diaria es la base de la rehabilitación y la fuerza. Inicia hoy.'
         };
     }, [bothActiveToday, activeElToday, activeEllaToday]);
-
-    // Interactive preset lists based on current profile
-    const currentPresets = isElla ? PRESETS_ELLA : PRESETS_EL;
 
     // Helper to render chunked progress bars (Brutalist Chunked Progress)
     const renderChunkedBar = (percentage: number, color: string) => {
