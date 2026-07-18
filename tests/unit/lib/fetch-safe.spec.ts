@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { isLocalOrPrivateIP, resolveSafeIP } from '../../../src/lib/fetch-safe';
+import { isLocalOrPrivateIP, resolveSafeIP, validateHostname } from '../../../src/lib/fetch-safe';
 import dns from 'dns/promises';
 
 test.describe('isLocalOrPrivateIP', () => {
@@ -97,5 +97,96 @@ test.describe('resolveSafeIP', () => {
         }) as unknown as typeof dns.lookup;
 
         await expect(resolveSafeIP('example.com')).rejects.toThrow('Private or local addresses are not allowed');
+    });
+});
+
+test.describe('validateHostname', () => {
+    let originalLookup: typeof dns.lookup;
+    let originalNow: typeof Date.now;
+    const CACHE_TTL_MS = 5 * 60 * 1000;
+
+    test.beforeEach(() => {
+        originalLookup = dns.lookup;
+        originalNow = Date.now;
+    });
+
+    test.afterEach(() => {
+        dns.lookup = originalLookup;
+        Date.now = originalNow;
+    });
+
+    test('caches valid hostnames', async () => {
+        let lookupCount = 0;
+        dns.lookup = (async () => {
+            lookupCount++;
+            return [{ address: '8.8.8.8', family: 4 }];
+        }) as unknown as typeof dns.lookup;
+
+        const result1 = await validateHostname('valid-test.com');
+        expect(result1).toBe(true);
+        expect(lookupCount).toBe(1);
+
+        const result2 = await validateHostname('valid-test.com');
+        expect(result2).toBe(true);
+        expect(lookupCount).toBe(1); // Cached, shouldn't call lookup again
+    });
+
+    test('caches invalid hostnames (private IPs)', async () => {
+        let lookupCount = 0;
+        dns.lookup = (async () => {
+            lookupCount++;
+            return [{ address: '192.168.1.1', family: 4 }];
+        }) as unknown as typeof dns.lookup;
+
+        const result1 = await validateHostname('invalid-test.com');
+        expect(result1).toBe(false);
+        expect(lookupCount).toBe(1);
+
+        const result2 = await validateHostname('invalid-test.com');
+        expect(result2).toBe(false);
+        expect(lookupCount).toBe(1); // Cached, shouldn't call lookup again
+    });
+
+    test('expires cache after TTL', async () => {
+        let lookupCount = 0;
+        dns.lookup = (async () => {
+            lookupCount++;
+            return [{ address: '8.8.8.8', family: 4 }];
+        }) as unknown as typeof dns.lookup;
+
+        const startTime = 1000000;
+        Date.now = () => startTime;
+
+        await validateHostname('expire-test.com');
+        expect(lookupCount).toBe(1);
+
+        // Advance time past TTL
+        Date.now = () => startTime + CACHE_TTL_MS + 1;
+
+        await validateHostname('expire-test.com');
+        expect(lookupCount).toBe(2); // Should call lookup again
+    });
+
+    test('does not cache errors', async () => {
+        let lookupCount = 0;
+        let shouldThrow = true;
+
+        dns.lookup = (async () => {
+            lookupCount++;
+            if (shouldThrow) {
+                throw new Error('DNS failure');
+            }
+            return [{ address: '8.8.8.8', family: 4 }];
+        }) as unknown as typeof dns.lookup;
+
+        const result1 = await validateHostname('error-test.com');
+        expect(result1).toBe(false);
+        expect(lookupCount).toBe(1);
+
+        // Next call should succeed since errors aren't cached
+        shouldThrow = false;
+        const result2 = await validateHostname('error-test.com');
+        expect(result2).toBe(true);
+        expect(lookupCount).toBe(2);
     });
 });
