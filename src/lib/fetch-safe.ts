@@ -35,12 +35,23 @@ export function isLocalOrPrivateIP(ip: string): boolean {
 export async function resolveSafeIP(hostname: string): Promise<string> {
     try {
         const addrs = await dns.lookup(hostname, { all: true });
+        // If ANY resolved address is private, we must reject the hostname entirely
+        // to prevent DNS rebinding or multi-A-record attacks.
+        for (const addr of addrs) {
+            if (isLocalOrPrivateIP(addr.address)) {
+                throw new Error('Private or local addresses are not allowed');
+            }
+        }
+
         for (const addr of addrs) {
             if (!isLocalOrPrivateIP(addr.address)) {
                 return addr.address;
             }
         }
-    } catch {
+    } catch (e: unknown) {
+        if (e instanceof Error && e.message === 'Private or local addresses are not allowed') {
+            throw e;
+        }
         // Block if DNS resolution fails to prevent bypasses
     }
     throw new Error('Private or local addresses are not allowed');
