@@ -1,0 +1,9 @@
+🧹 [Remove unused imports in PomodoroTimer]
+
+🎯 **What:** Removed unused `Target` and `StoreService` imports from `src/components/symmetry/PomodoroTimer.tsx`.
+
+💡 **Why:** Unused imports unnecessarily clutter the file, increase cognitive load, and can marginally increase bundle size or parsing time.
+
+✅ **Verification:** Verified by checking `grep` for usage in the file and ensuring the lint/type errors do not appear. Also ran the test suite (`npx playwright test`) and `npm run lint` to ensure no functionality is broken.
+
+✨ **Result:** A cleaner `PomodoroTimer.tsx` file with no unused imports.

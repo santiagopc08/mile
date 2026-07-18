@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { Play, Pause, RotateCcw, Coffee, Focus, Target, ChevronDown, Check, Maximize2, Minimize2 } from 'lucide-react';
+import { Play, Pause, RotateCcw, Coffee, Focus, ChevronDown, Check, Maximize2, Minimize2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
-import { StoreService, Task } from '@/services/storeService';
+import { Task } from '@/services/storeService';
 import { useStore } from '@/context/StoreContext';
 import { FuturisticProgressBar } from '@/components/ui/FuturisticProgressBar';
 
