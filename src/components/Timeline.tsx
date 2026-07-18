@@ -8,7 +8,6 @@ import { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useStore } from '@/context/StoreContext';
 import { useProfile } from '@/context/ProfileContext';
-import { StoreService } from '@/services/storeService';
 import { TimelineService } from '@/services/timelineService';
 import { NotificationService } from '@/services/notificationService';
 import type { EventComment } from '@/services/storeService';
