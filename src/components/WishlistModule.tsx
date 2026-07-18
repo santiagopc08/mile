@@ -170,7 +170,7 @@ export function WishlistModule() {
 
                 if (itemsToFetch.length > 0) {
                     // ⚡ Bolt Optimization: Use an in-memory Promise cache to deduplicate concurrent requests
-                    // for the same URL within the backfill batch.
+                    // targeting the same URL within the backfill batch.
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     const urlCache = new Map<string, Promise<any>>();
 
