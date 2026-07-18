@@ -168,4 +168,25 @@ test.describe('StoreService.updateStore', () => {
 
         await expect(StoreService.updateStore({ notes: [{ id: '123', text: 'fail' }] } as any, mockSupabase)).rejects.toThrow('Could not write to data store.');
     });
+
+    test('should throw a "Could not write to data store." error when app_settings update fails', async () => {
+        const mockSupabase = {
+            from: (table: string) => {
+                if (table === 'app_settings') {
+                    return {
+                        update: () => {
+                            throw new Error('app_settings update failed');
+                        },
+                        select: () => Promise.resolve({ data: [] })
+                    };
+                }
+                return {
+                    update: () => ({ eq: () => Promise.resolve() }),
+                    select: () => Promise.resolve({ data: [] })
+                };
+            }
+        } as any;
+
+        await expect(StoreService.updateStore({ lastPulseAt: '2025-01-01' } as any, mockSupabase)).rejects.toThrow('Could not write to data store.');
+    });
 });
