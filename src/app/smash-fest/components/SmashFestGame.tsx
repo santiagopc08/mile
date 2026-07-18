@@ -134,7 +134,7 @@ function CylinderNode({ node, onTrigger }: { node: LevelNode; onTrigger: () => v
   }
 
 // Interaction Layer (Raycasting)
-function InteractionHandler({ onShoot, limit, current }: { onShoot: (pos: [number, number, number], vel: [number, number, number]) => void; limit: number; current: number }) {
+function InteractionHandler({ onShoot, limit, current }: { onShoot: (options: { pos: [number, number, number]; vel: [number, number, number] }) => void; limit: number; current: number }) {
   const { camera, raycaster, pointer } = useThree();
 
   const handlePointerDown = () => {
@@ -143,7 +143,7 @@ function InteractionHandler({ onShoot, limit, current }: { onShoot: (pos: [numbe
     const pos = camera.position.toArray() as [number, number, number];
     // Shoot forward along the ray direction
     const vel = raycaster.ray.direction.multiplyScalar(40).toArray() as [number, number, number];
-    onShoot(pos, vel);
+    onShoot({ pos, vel });
   };
 
   return (
@@ -194,7 +194,7 @@ export default function SmashFestGame({ levelId, onMemoryBlockTriggered }: Smash
     );
   }
 
-  const handleShoot = (pos: [number, number, number], vel: [number, number, number]) => {
+  const handleShoot = ({ pos, vel }: { pos: [number, number, number]; vel: [number, number, number] }) => {
     setProjectiles((prev) => [...prev, { id: projId, pos, vel }]);
     setProjId((p) => p + 1);
   };
