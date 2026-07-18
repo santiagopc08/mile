@@ -49,7 +49,8 @@ export function selectActiveMechanicsForGame(level: number): HardeningMechanic[]
 // ─── Board Initialization ────────────────────────────────────────────────────
 
 export function applyHardeningToBoard(tiles: TileState[], activeMechanics: HardeningMechanic[], level: number): TileState[] {
-    let result = [...tiles.map(t => ({ ...t }))];
+    // ⚡ Bolt Optimization: Replace redundant [...tiles.map()] spread with direct map assignment
+    let result = tiles.map(t => ({ ...t }));
 
     if (activeMechanics.includes('mirror')) {
         result = applyMirror(result, level);
@@ -193,7 +194,12 @@ function applyBomb(tiles: TileState[], level: number): TileState[] {
 
     const numBombs = level >= 70 ? 2 : 1;
     const shuffled = [...unmatched].sort(() => Math.random() - 0.5);
-    const bombIds = new Set(shuffled.slice(0, numBombs).map(t => t.id));
+    // ⚡ Bolt Optimization: Replace .slice(0, numBombs).map(t => t.id) with a single pass O(N) loop to avoid intermediate array allocation
+    const bombIds = new Set<string>();
+    const actualBombs = Math.min(numBombs, shuffled.length);
+    for (let i = 0; i < actualBombs; i++) {
+        bombIds.add(shuffled[i].id);
+    }
 
     return tiles.map(t => {
         if (bombIds.has(t.id)) {
