@@ -11,3 +11,6 @@
 ## 2026-07-17 - Optimize frequentSymptoms calculation in BiometricVault
 **Learning:** Using chained `.filter().length` within a loop creates unnecessary intermediate arrays and scales poorly (O(N^2) or worse) compared to a single pass nested loop.
 **Action:** Replaced `.filter().length` within `BiometricVault.tsx` to calculate `frequentSymptoms` with an O(N) loop to eliminate array allocations and improve execution speed by ~25%.
+## 2026-07-18 - [Array Length Optimizations]
+**Learning:** Found an anti-pattern of using `.filter(cond).length` for counting elements, which forces O(N) array allocation overhead before immediately discarding the array for just its length property.
+**Action:** Replace `.filter().length` with simple single-pass `for` loops and a counter variable to prevent intermediate garbage collection spikes, especially inside React `useMemo` and render blocks.

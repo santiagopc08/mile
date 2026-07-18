@@ -16,7 +16,11 @@ export function NotificationBell({ align = 'right' }: { align?: 'left' | 'right'
     const isInitialLoadRef = useRef(true);
     const notifiedIdsRef = useRef<Set<string>>(new Set());
 
-    const unreadCount = notifications.filter(n => !n.read).length;
+    // ⚡ Bolt Optimization: Prevent O(N) intermediate array allocation when counting unread notifications
+    let unreadCount = 0;
+    for (let i = 0; i < notifications.length; i++) {
+        if (!notifications[i].read) unreadCount++;
+    }
     const accentColor = profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)';
     const profileLabel = profile === 'ella' ? 'Milena' : 'Santiago';
 

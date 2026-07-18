@@ -44,7 +44,15 @@ export default function Home() {
 
   const wishlist = useMemo(() => (data?.wishlist || []) as any[], [data?.wishlist]);
   const activePlansCount = wishlist.length;
-  const savingPlansCount = useMemo(() => wishlist.filter(item => item.state === 'SAVING').length, [wishlist]);
+
+  // ⚡ Bolt Optimization: Prevent O(N) intermediate array allocation when counting saving plans
+  const savingPlansCount = useMemo(() => {
+    let count = 0;
+    for (let i = 0; i < wishlist.length; i++) {
+      if (wishlist[i].state === 'SAVING') count++;
+    }
+    return count;
+  }, [wishlist]);
   const showBdayBanner = useMemo(() => {
     if (typeof window === 'undefined') return false;
     const params = new URL(window.location.href).searchParams;
