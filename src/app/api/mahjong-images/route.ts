@@ -5,7 +5,7 @@ import path from 'path';
 export async function GET() {
     try {
         const directoryPath = path.join(process.cwd(), 'public', 'img');
-        const results: string[] = [];
+        let results: string[] = [];
 
         try {
             // Asynchronously check if the directory exists and is accessible
@@ -34,11 +34,7 @@ export async function GET() {
 
             if (promises.length > 0) {
                 const allResults = await Promise.all(promises);
-                for (const res of allResults) {
-                    for (const item of res) {
-                        results.push(item);
-                    }
-                }
+                results = allResults.flat();
             }
         } catch (error) {
             // Folder not found or not accessible
