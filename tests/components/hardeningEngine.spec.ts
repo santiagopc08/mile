@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { clearSmoke, getUnlockedMechanics } from '../../src/components/hardeningEngine';
+import { clearSmoke, getUnlockedMechanics, applyGravityCollapse } from '../../src/components/hardeningEngine';
 import { TileState } from '../../src/components/MahjongTile';
 
 test.describe('hardeningEngine - getUnlockedMechanics', () => {
@@ -44,5 +44,58 @@ test.describe('hardeningEngine - clearSmoke', () => {
         // Verify references are kept for unchanged tiles
         expect(result[1]).toBe(tiles[1]);
         expect(result[2]).toBe(tiles[2]);
+    });
+});
+
+test.describe('hardeningEngine - applyGravityCollapse', () => {
+    test('should not drop tiles that have support below', () => {
+        const tiles: TileState[] = [
+            { id: '1', x: 0, y: 0, z: 0, content: { type: 'traditional', value: '1' }, isMatched: false, isSelected: false },
+            { id: '2', x: 0, y: 0, z: 1, content: { type: 'traditional', value: '2' }, isMatched: false, isSelected: false }
+        ];
+
+        const result = applyGravityCollapse(tiles);
+        expect(result[0].z).toBe(0);
+        expect(result[1].z).toBe(1);
+    });
+
+    test('should drop tiles exactly 1 z-level if below is empty and z=0 has support', () => {
+        const tiles: TileState[] = [
+            { id: '1', x: 0, y: 0, z: 0, content: { type: 'traditional', value: '1' }, isMatched: false, isSelected: false },
+            { id: '2', x: 0, y: 0, z: 2, content: { type: 'traditional', value: '2' }, isMatched: false, isSelected: false }
+        ];
+
+        const result = applyGravityCollapse(tiles);
+        expect(result[1].z).toBe(1); // dropped from 2 to 1
+    });
+
+    test('should drop tiles multiple z-levels until stable (hitting z=0)', () => {
+        const tiles: TileState[] = [
+            { id: '1', x: 0, y: 0, z: 3, content: { type: 'traditional', value: '1' }, isMatched: false, isSelected: false }
+        ];
+
+        const result = applyGravityCollapse(tiles);
+        expect(result[0].z).toBe(0); // drops from 3 to 0
+    });
+
+    test('should treat matched tiles as non-support and allow tiles above to drop', () => {
+        const tiles: TileState[] = [
+            { id: '1', x: 0, y: 0, z: 0, content: { type: 'traditional', value: '1' }, isMatched: true, isSelected: false },
+            { id: '2', x: 0, y: 0, z: 1, content: { type: 'traditional', value: '2' }, isMatched: false, isSelected: false }
+        ];
+
+        const result = applyGravityCollapse(tiles);
+        expect(result[1].z).toBe(0);
+        // matched tile should not change its z
+        expect(result[0].z).toBe(0);
+    });
+
+    test('should not drop matched tiles even if they have no support', () => {
+        const tiles: TileState[] = [
+            { id: '1', x: 0, y: 0, z: 2, content: { type: 'traditional', value: '1' }, isMatched: true, isSelected: false }
+        ];
+
+        const result = applyGravityCollapse(tiles);
+        expect(result[0].z).toBe(2); // remains 2 because it's matched
     });
 });
