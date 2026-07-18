@@ -14,6 +14,7 @@ import { SavingsOverview } from './planes/SavingsOverview';
 import { WishlistCard } from './planes/WishlistCard';
 import { ActivityFeed } from './planes/ActivityFeed';
 import { LiveLinkPreview } from './LiveLinkPreview';
+import pMap from 'p-map';
 
 type StateFilter = WishlistState | 'ALL';
 
@@ -173,48 +174,43 @@ export function WishlistModule() {
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     const urlCache = new Map<string, Promise<any>>();
 
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    const fetchResults: any[] = [];
                     // ⚡ Bolt Optimization: Batch requests to avoid unbounded concurrent fetches
                     // which can exhaust connections, memory, or trigger rate limits.
-                    const batchSize = 5;
-                    for (let i = 0; i < itemsToFetch.length; i += batchSize) {
-                        const batch = itemsToFetch.slice(i, i + batchSize);
-                        const batchResults = await Promise.all(
-                            batch.map(({ item, url, expectedStatus }) => {
-                                // ⚡ Bolt Optimization: Replace .map(async () => await asyncOp()) with .map(() => asyncOp().then().catch())
-                                // to minimize intermediate promise instantiation overhead
-                                let fetchPromise = urlCache.get(url);
-                                if (!fetchPromise) {
-                                    fetchPromise = fetch(`/api/link-preview?url=${encodeURIComponent(url)}`).then(res => {
-                                        if (!res.ok) throw new Error('Network response was not ok');
-                                        return res.json();
-                                    });
-                                    urlCache.set(url, fetchPromise);
-                                }
-
-                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                return fetchPromise.then((resData: any) => {
-                                    if (resData.coords && typeof resData.coords.lat === 'number' && typeof resData.coords.lng === 'number') {
-                                        return {
-                                            nombre: item.title,
-                                            latitud: resData.coords.lat,
-                                            longitud: resData.coords.lng,
-                                            created_by: item.author || 'el',
-                                            status: expectedStatus
-                                        };
-                                    }
-                                    return null;
-                                }).catch(e => {
-                                    console.error(`Error fetching coordinates for ${item.title}:`, e);
-                                    return null;
+                    // Using p-map for parallel processing with concurrency limit instead of sequential batches.
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const fetchResults: any[] = await pMap(
+                        itemsToFetch,
+                        ({ item, url, expectedStatus }) => {
+                            // ⚡ Bolt Optimization: Replace .map(async () => await asyncOp()) with .map(() => asyncOp().then().catch())
+                            // to minimize intermediate promise instantiation overhead
+                            let fetchPromise = urlCache.get(url);
+                            if (!fetchPromise) {
+                                fetchPromise = fetch(`/api/link-preview?url=${encodeURIComponent(url)}`).then(res => {
+                                    if (!res.ok) throw new Error('Network response was not ok');
+                                    return res.json();
                                 });
-                            })
-                        );
-                        for (const res of batchResults) {
-                            fetchResults.push(res);
-                        }
-                    }
+                                urlCache.set(url, fetchPromise);
+                            }
+
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            return fetchPromise.then((resData: any) => {
+                                if (resData.coords && typeof resData.coords.lat === 'number' && typeof resData.coords.lng === 'number') {
+                                    return {
+                                        nombre: item.title,
+                                        latitud: resData.coords.lat,
+                                        longitud: resData.coords.lng,
+                                        created_by: item.author || 'el',
+                                        status: expectedStatus
+                                    };
+                                }
+                                return null;
+                            }).catch(e => {
+                                console.error(`Error fetching coordinates for ${item.title}:`, e);
+                                return null;
+                            });
+                        },
+                        { concurrency: 5 }
+                    );
 
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     const toInsert = fetchResults.filter(Boolean) as any[];
