@@ -1,6 +1,25 @@
 import { test, expect } from '@playwright/test';
-import { clearSmoke } from '../../src/components/hardeningEngine';
+import { clearSmoke, getUnlockedMechanics } from '../../src/components/hardeningEngine';
 import { TileState } from '../../src/components/MahjongTile';
+
+test.describe('hardeningEngine - getUnlockedMechanics', () => {
+    test('should return empty array for level below first threshold', () => {
+        expect(getUnlockedMechanics(3)).toEqual([]);
+    });
+
+    test('should return mechanics up to the current level', () => {
+        expect(getUnlockedMechanics(4)).toEqual(['mirror']);
+        expect(getUnlockedMechanics(15)).toEqual(['mirror']);
+        expect(getUnlockedMechanics(16)).toEqual(['mirror', 'ghost']);
+        expect(getUnlockedMechanics(40)).toEqual(['mirror', 'ghost', 'padlock']);
+    });
+
+    test('should return all mechanics at maximum level threshold', () => {
+        const allMechanics = ['mirror', 'ghost', 'padlock', 'ice', 'bomb', 'smoke', 'gravity'];
+        expect(getUnlockedMechanics(91)).toEqual(allMechanics);
+        expect(getUnlockedMechanics(999)).toEqual(allMechanics);
+    });
+});
 
 test.describe('hardeningEngine - clearSmoke', () => {
     test('should set isSmoked to false for all smoked tiles and not mutate originals', () => {
