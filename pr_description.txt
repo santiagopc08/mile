@@ -1,7 +1,0 @@
-🎯 **What:** Removed unused imports (`Target`, `TrendingDown`, `Clock`) from `lucide-react` in `src/components/health/movement/ProgressAnalytics.tsx`.
-
-💡 **Why:** Unused imports clutter the codebase and can slightly increase bundle size or parsing time. Removing them improves maintainability, readability, and overall code health.
-
-✅ **Verification:** Verified the code health issue was resolved by checking the file contents. Ran the full `Playwright` test suite, which passed without regressions. Verified the remaining import (`Activity`) is functioning correctly.
-
-✨ **Result:** A cleaner component file with improved maintainability and no unused dependencies.

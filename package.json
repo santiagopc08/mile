@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "seed": "node scripts/seed.mjs",
+    "gen-keys": "node scripts/gen_keys.mjs"
   },
   "dependencies": {
     "@react-three/cannon": "^6.6.0",
