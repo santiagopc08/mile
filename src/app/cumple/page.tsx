@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { PrivateRoute } from "@/components/PrivateRoute";
 import { useProfile } from "@/context/ProfileContext";
-import { AnimatedBrutalistCorners } from "@/components/ui/AnimatedBrutalistCorners";
+import { BrutalistPanel } from "@/components/ui/BrutalistPanel";
 import BirthdayScrollContainer from "./components/BirthdayScrollContainer";
 
 // Synth Scheduler Class to avoid memory leaks
@@ -168,8 +168,7 @@ export default function BirthdayPage() {
           <div className="absolute inset-0 bg-dot-matrix opacity-30 pointer-events-none" />
         </div>
         <main className="min-h-screen flex flex-col items-center justify-center p-4 relative text-[#e5e2e1] font-sans">
-          <div className="w-full max-w-xl border border-white/10 bg-[#0a0a0a] p-6 sm:p-10 relative">
-            <AnimatedBrutalistCorners color="#ff4b89" size={16} thickness={1.5} />
+          <BrutalistPanel accentColor="#ff4b89" borderColor="rgba(255,255,255,0.1)" corners="animated" cornerSize={16} cornerThickness={1.5} className="w-full max-w-xl p-6 sm:p-10">
             <div className="space-y-6">
               <div className="flex justify-between items-baseline font-mono">
                 <span className="text-[10px] uppercase tracking-widest text-[#a88a7e]">Cargando sorpresas para Mile...</span>
@@ -202,7 +201,7 @@ export default function BirthdayPage() {
                 <div className="text-white mt-1 animate-pulse uppercase">{'>'} CARGANDO...</div>
               </div>
             </div>
-          </div>
+          </BrutalistPanel>
         </main>
       </PrivateRoute>
     );
@@ -219,8 +218,7 @@ export default function BirthdayPage() {
           <div className="absolute inset-0 bg-dot-matrix opacity-30 pointer-events-none" />
         </div>
         <main className="min-h-screen flex flex-col items-center justify-center p-4 relative text-[#e5e2e1] font-sans">
-          <div className="w-full max-w-md border border-white/10 bg-[#0a0a0a] p-8 sm:p-10 relative text-center flex flex-col items-center justify-center space-y-6">
-            <AnimatedBrutalistCorners color="#ff4b89" size={16} thickness={1.5} />
+          <BrutalistPanel accentColor="#ff4b89" borderColor="rgba(255,255,255,0.1)" corners="animated" cornerSize={16} cornerThickness={1.5} className="w-full max-w-md p-8 sm:p-10 text-center flex flex-col items-center justify-center space-y-6">
             <motion.div
               animate={{ scale: [1, 1.1, 1] }}
               transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
@@ -236,7 +234,7 @@ export default function BirthdayPage() {
               <span className="w-2 h-2 bg-red-500 rounded-none animate-pulse"></span>
               FALTAN: {Math.max(0, Math.ceil((birthdayMidnight.getTime() - currentTime.getTime()) / (1000 * 60 * 60)))} HORAS
             </div>
-          </div>
+          </BrutalistPanel>
         </main>
       </PrivateRoute>
     );
@@ -250,8 +248,7 @@ export default function BirthdayPage() {
           <div className="absolute inset-0 bg-dot-matrix opacity-30 pointer-events-none" />
         </div>
         <main className="min-h-screen flex flex-col items-center justify-center p-4 relative text-[#e5e2e1] font-sans">
-          <div className="w-full max-w-md border border-white/10 bg-[#0a0a0a] p-8 sm:p-10 relative text-center flex flex-col items-center justify-center space-y-6">
-            <AnimatedBrutalistCorners color="#ff4b89" size={16} thickness={1.5} />
+          <BrutalistPanel accentColor="#ff4b89" borderColor="rgba(255,255,255,0.1)" corners="animated" cornerSize={16} cornerThickness={1.5} className="w-full max-w-md p-8 sm:p-10 text-center flex flex-col items-center justify-center space-y-6">
             <motion.div
               animate={{ scale: [1, 1.1, 1] }}
               transition={{ repeat: Infinity, duration: 2.5, ease: "easeInOut" }}
@@ -273,7 +270,7 @@ export default function BirthdayPage() {
             >
               INICIAR PROTOCOLO
             </button>
-          </div>
+          </BrutalistPanel>
         </main>
       </PrivateRoute>
     );

@@ -4,6 +4,7 @@ import { DualWallet } from './DualWallet';
 import { FinanceChart } from './FinanceChart';
 import { BarChart3, WalletCards, ChevronDown, ChevronRight } from 'lucide-react';
 import { AnimatedBrutalistCorners } from '@/components/ui/AnimatedBrutalistCorners';
+import { BrutalistPanel } from '@/components/ui/BrutalistPanel';
 
 interface FinancesTabProps {
   profile: string;
@@ -49,8 +50,7 @@ export const FinancesTab = ({
       className="space-y-8 border-x border-white/10 bg-[#050505] p-3 sm:p-5 md:p-8"
     >
       {/* Finance Video Header */}
-      <div className="grid gap-4 border border-white/10 bg-[#0a0a0a] p-4 md:grid-cols-[1fr_auto] md:items-center relative">
-        <AnimatedBrutalistCorners color={accentColorValue} size={12} thickness={1.5} />
+      <BrutalistPanel accentColor={accentColorValue} borderColor="rgba(255,255,255,0.1)" corners="animated" cornerSize={12} cornerThickness={1.5} className="grid gap-4 p-4 md:grid-cols-[1fr_auto] md:items-center">
         <div className="w-full">
           <h2 className="text-2xl font-mono font-bold uppercase tracking-tight text-white mt-1 flex justify-between items-center w-full">
             <span>
@@ -83,7 +83,7 @@ export const FinancesTab = ({
             <div className="text-[8px] font-bold uppercase tracking-[0.15em] text-[#a88a7e] mt-0.5">Gastado Juntos</div>
           </div>
         </div>
-      </div>
+      </BrutalistPanel>
 
       <div className="grid grid-cols-1 gap-8">
         {/* Financial Movement Log & Form (Always Expanded - Core Ledger) */}
@@ -103,8 +103,7 @@ export const FinancesTab = ({
         </div>
 
         {/* Finance Chart (COLLAPSIBLE) */}
-        <div className="border border-white/10 bg-[#0a0a0a] rounded-none overflow-hidden transition-all duration-300 relative">
-          <AnimatedBrutalistCorners color="var(--color-user-a)" size={8} thickness={1} />
+        <BrutalistPanel accentColor="var(--color-user-a)" borderColor="rgba(255,255,255,0.1)" corners="animated" cornerSize={8} cornerThickness={1} className="rounded-none overflow-hidden transition-all duration-300">
           <button
             onClick={() => setIsChartOpen(!isChartOpen)}
             className="w-full px-5 py-4 flex items-center justify-between bg-black/40 hover:bg-black/60 transition-colors text-left"
@@ -136,7 +135,7 @@ export const FinancesTab = ({
               </motion.div>
             )}
           </AnimatePresence>
-        </div>
+        </BrutalistPanel>
       </div>
     </motion.div>
   );

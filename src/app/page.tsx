@@ -27,7 +27,7 @@ import {
   Clock,
   Camera
 } from 'lucide-react';
-import { AnimatedBrutalistCorners } from "@/components/ui/AnimatedBrutalistCorners";
+import { BrutalistPanel } from "@/components/ui/BrutalistPanel";
 
 export default function Home() {
   const { profile } = useProfile();
@@ -103,8 +103,7 @@ export default function Home() {
         style={{ '--color-profile-accent': accentColorValue } as React.CSSProperties}
       >
         {/* Main Terminal Container */}
-        <div className="w-full max-w-4xl border border-white/10 bg-[#0a0a0a]/95 backdrop-blur-md relative mb-6 sm:mb-12">
-          <AnimatedBrutalistCorners color={accentColorValue} size={16} thickness={1.5} />
+        <BrutalistPanel accentColor={accentColorValue} borderColor="rgba(255,255,255,0.1)" corners="animated" cornerSize={16} cornerThickness={1.5} className="w-full max-w-4xl !bg-[#0a0a0a]/95 backdrop-blur-md mb-6 sm:mb-12">
 
           {/* Birthday Surprise Banner */}
           {showBdayBanner && (
@@ -376,7 +375,7 @@ export default function Home() {
 
           </div>
 
-        </div>
+        </BrutalistPanel>
       </main>
     </PrivateRoute>
   );

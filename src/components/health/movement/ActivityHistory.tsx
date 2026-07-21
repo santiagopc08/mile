@@ -1,6 +1,7 @@
 import React from 'react';
 import { Clock, Shield, Trash2, Heart, Compass, Activity, Smile, Dumbbell, Zap, HelpCircle } from 'lucide-react';
 import { MovementSession, SessionCategory, ReactionType } from './types';
+import { BrutalistSkeleton } from '@/components/ui/BrutalistSkeleton';
 
 const CATEGORY_LABELS: Record<SessionCategory, { label: string; icon: any; isTherapy: boolean }> = {
     physical_therapy: { label: 'Terapia Física', icon: Heart, isTherapy: true },
@@ -48,7 +49,7 @@ export function ActivityHistory({
                         </h3>
 
                         {loading ? (
-                            <div className="py-8 text-center text-xs text-white/30 font-mono">Cargando registros...</div>
+                            <BrutalistSkeleton label="Cargando registros" className="h-24 w-full" />
                         ) : sessions.length === 0 ? (
                             <div className="py-12 border border-dashed border-white/10 text-center text-xs text-white/20 font-mono">
                                 No hay sesiones registradas en la base de datos.

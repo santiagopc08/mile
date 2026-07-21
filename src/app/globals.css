@@ -1188,4 +1188,102 @@ textarea {
   box-sizing: border-box !important;
 }
 
+/* ─────────────────────────────────────────────────────────────
+   COMBO FIRE FRAME — llamas perimetrales según la racha de combo
+   ───────────────────────────────────────────────────────────── */
+
+/* Lengüeta de llama individual: ondea, se estira y parpadea */
+@keyframes flame-tongue {
+  0% {
+    transform: scaleY(0.82) scaleX(1) translateY(4%) skewX(0deg);
+    opacity: 0.55;
+  }
+  25% {
+    transform: scaleY(1.18) scaleX(0.92) translateY(-6%) skewX(3deg);
+    opacity: 0.95;
+  }
+  50% {
+    transform: scaleY(0.92) scaleX(1.06) translateY(2%) skewX(-4deg);
+    opacity: 0.8;
+  }
+  75% {
+    transform: scaleY(1.24) scaleX(0.88) translateY(-9%) skewX(2deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleY(0.86) scaleX(1.02) translateY(3%) skewX(-2deg);
+    opacity: 0.62;
+  }
+}
+
+/* Brasas que suben flotando hacia el centro de la pantalla */
+@keyframes fire-ember-rise {
+  0% {
+    transform: translateY(0) translateX(0) scale(1);
+    opacity: 0;
+  }
+  12% { opacity: 1; }
+  70% { opacity: 0.9; }
+  100% {
+    transform: translateY(-120px) translateX(var(--ember-drift, 12px)) scale(0.3);
+    opacity: 0;
+  }
+}
+
+/* Pulso del resplandor de borde */
+@keyframes fire-glow-breathe {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 0.9; }
+}
+
+/* Sacudida de pantalla para combos altos */
+@keyframes combo-shake {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  20% { transform: translate(-2px, 1px) rotate(-0.25deg); }
+  40% { transform: translate(2px, -1px) rotate(0.25deg); }
+  60% { transform: translate(-1px, 2px) rotate(-0.15deg); }
+  80% { transform: translate(1px, -2px) rotate(0.15deg); }
+}
+
+.animate-combo-shake {
+  animation: combo-shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+/* Aparición impactante del letrero de combo */
+@keyframes combo-sign-in {
+  0% { transform: scale(0.4) rotate(-8deg); opacity: 0; }
+  55% { transform: scale(1.15) rotate(2deg); opacity: 1; }
+  70% { transform: scale(0.96) rotate(-1deg); }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+/* Barrido de luz horizontal para skeletons de carga brutalistas */
+@keyframes skeleton-sweep {
+  0% { transform: translateX(-150%); }
+  100% { transform: translateX(450%); }
+}
+
+.animate-skeleton-sweep {
+  animation: skeleton-sweep 1.6s ease-in-out infinite;
+}
+
+/* Transición de entrada entre rutas (template.tsx).
+   Solo opacidad: un transform crearía containing block y rompería los fondos
+   `fixed inset-0` de varias páginas. CSS puro = corre una vez al montar de
+   forma determinista, sin atascarse como la animación JS en páginas pesadas. */
+@keyframes page-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.page-transition {
+  animation: page-fade-in 0.3s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-transition {
+    animation: none;
+  }
+}
+
 

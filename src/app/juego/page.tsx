@@ -4,14 +4,13 @@ import { PrivateRoute } from "@/components/PrivateRoute";
 import { useProfile } from "@/context/ProfileContext";
 import dynamic from "next/dynamic";
 import { AnimatedBrutalistCorners } from "@/components/ui/AnimatedBrutalistCorners";
+import { BrutalistSkeleton } from "@/components/ui/BrutalistSkeleton";
 
 const Mahjong = dynamic(
   () => import("@/components/Mahjong").then((m) => m.Mahjong),
   {
     loading: () => (
-      <div className="flex h-[400px] w-full items-center justify-center border border-dashed border-white/10 bg-black/40 font-mono text-xs uppercase text-[#a88a7e] tracking-widest animate-pulse">
-        Cargando Tablero Mahjong...
-      </div>
+      <BrutalistSkeleton label="Cargando Tablero Mahjong" className="h-[400px] w-full" />
     ),
     ssr: false,
   }

@@ -5,6 +5,7 @@ import { TaskAnalytics } from './TaskAnalytics';
 import { PomodoroTimer } from './PomodoroTimer';
 import { Activity, BarChart3, ShieldCheck, Clock, ChevronDown, ChevronRight } from 'lucide-react';
 import { AnimatedBrutalistCorners } from '@/components/ui/AnimatedBrutalistCorners';
+import { BrutalistPanel } from '@/components/ui/BrutalistPanel';
 import { NotificationsFeed } from '@/components/NotificationsFeed';
 
 interface Task {
@@ -50,8 +51,7 @@ export const TasksTab = ({
       className="space-y-6 border-x border-white/10 bg-[#050505] p-2 sm:p-4 md:p-5"
     >
       {/* Task Video Header */}
-      <div className="grid gap-4 border border-white/10 bg-[#0a0a0a] p-4 md:grid-cols-[1fr_auto] md:items-center relative">
-        <AnimatedBrutalistCorners color={accentColorValue} size={12} thickness={1.5} />
+      <BrutalistPanel accentColor={accentColorValue} borderColor="rgba(255,255,255,0.1)" corners="animated" cornerSize={12} cornerThickness={1.5} className="grid gap-4 p-4 md:grid-cols-[1fr_auto] md:items-center">
         <div className="w-full">
           <h2 className="text-2xl font-mono font-bold uppercase tracking-tight text-white mt-1 flex justify-between items-center w-full">
             <span>
@@ -84,11 +84,10 @@ export const TasksTab = ({
             <div className="text-[8px] font-bold uppercase tracking-[0.15em] text-[#a88a7e] mt-0.5">Enfoque</div>
           </div>
         </div>
-      </div>
+      </BrutalistPanel>
 
       {/* Row 0: Pomodoro (COLLAPSIBLE) */}
-      <div className="border border-white/10 bg-[#0a0a0a] rounded-none overflow-hidden transition-all duration-300 relative">
-        <AnimatedBrutalistCorners color={accentColorValue} size={8} thickness={1} />
+      <BrutalistPanel accentColor={accentColorValue} borderColor="rgba(255,255,255,0.1)" corners="animated" cornerSize={8} cornerThickness={1} className="rounded-none overflow-hidden transition-all duration-300">
         <button
           onClick={() => setIsPomodoroOpen(!isPomodoroOpen)}
           className="w-full px-5 py-4 flex items-center justify-between bg-black/40 hover:bg-black/60 transition-colors text-left"
@@ -115,7 +114,7 @@ export const TasksTab = ({
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
+      </BrutalistPanel>
 
       {/* Row 1: Kanban Board (Always Expanded - Core Interface) */}
       <div className="geometric-card relative overflow-hidden border-white/10 bg-[#0a0a0a] p-3 sm:p-4 md:p-5">
@@ -130,8 +129,7 @@ export const TasksTab = ({
       </div>
 
       {/* Row 2: Analytics (COLLAPSIBLE) */}
-      <div className="border border-white/10 bg-[#0a0a0a] rounded-none overflow-hidden transition-all duration-300 relative">
-        <AnimatedBrutalistCorners color="#00dbe9" size={8} thickness={1} />
+      <BrutalistPanel accentColor="#00dbe9" borderColor="rgba(255,255,255,0.1)" corners="animated" cornerSize={8} cornerThickness={1} className="rounded-none overflow-hidden transition-all duration-300">
         <button
           onClick={() => setIsAnalyticsOpen(!isAnalyticsOpen)}
           className="w-full px-5 py-4 flex items-center justify-between bg-black/40 hover:bg-black/60 transition-colors text-left"
@@ -158,11 +156,10 @@ export const TasksTab = ({
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
+      </BrutalistPanel>
 
       {/* Row 3: Bitácora de Alertas en Tiempo Real (COLLAPSIBLE) */}
-      <div className="border border-white/10 bg-[#0a0a0a] rounded-none overflow-hidden transition-all duration-300 relative">
-        <AnimatedBrutalistCorners color={accentColorValue} size={8} thickness={1} />
+      <BrutalistPanel accentColor={accentColorValue} borderColor="rgba(255,255,255,0.1)" corners="animated" cornerSize={8} cornerThickness={1} className="rounded-none overflow-hidden transition-all duration-300">
         <button
           onClick={() => setIsActivityOpen(!isActivityOpen)}
           className="w-full px-5 py-4 flex items-center justify-between bg-black/40 hover:bg-black/60 transition-colors text-left"
@@ -189,7 +186,7 @@ export const TasksTab = ({
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
+      </BrutalistPanel>
     </motion.div>
   );
 };

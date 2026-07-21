@@ -13,13 +13,83 @@ const TILE_FACE_WIDTH = 0.82;
 const TILE_FACE_HEIGHT = 1.16;
 const TILE_FACE_DEPTH = 0.32;
 
+// Geometrías compartidas: todas las fichas tienen las mismas dimensiones, así que
+// reutilizamos una sola instancia por cara en lugar de crear dos BoxGeometry por
+// ficha (con 96-128 fichas eso ahorra mucha memoria y allocations en GPU).
+// Se pasan por prop `geometry`, por lo que R3F NO las libera al desmontar la ficha.
+const BACK_GEOMETRY = new THREE.BoxGeometry(TILE_WIDTH, TILE_HEIGHT, TILE_BACK_DEPTH);
+const FRONT_GEOMETRY = new THREE.BoxGeometry(TILE_FACE_WIDTH, TILE_FACE_HEIGHT, TILE_FACE_DEPTH);
+
+// ─── Caché LRU de texturas de ficha ──────────────────────────────────────────
+// Muchas fichas comparten el mismo símbolo/imagen, así que reutilizamos la
+// CanvasTexture en lugar de repintar un canvas 256×256 por cada ficha. El caché
+// es dueño del ciclo de vida (no se hace dispose por ficha); la evicción LRU
+// libera las texturas menos usadas. El tope supera de sobra el máximo de fichas
+// simultáneas en el tablero (≤128) para no evictar una textura aún en uso.
+const MAX_TILE_TEXTURE_CACHE = 256;
+const tileTextureCache = new Map<string, THREE.CanvasTexture>();
+// Cargas de imagen en vuelo, para que fichas iguales compartan una sola textura
+const pendingTileTextures = new Map<string, Promise<THREE.CanvasTexture>>();
+
+function buildTileTextureKey(
+    tile: TileState,
+    accentColor: string,
+    mirrorVariant?: 'flipX' | 'flipY' | 'rot90' | 'rot270'
+): string {
+    return [
+        tile.content.type,
+        tile.content.value,
+        accentColor,
+        mirrorVariant || '',
+        tile.isLocked ? 'L' : '',
+        tile.isBomb && tile.bombTimer !== undefined ? `B${tile.bombTimer}` : '',
+        tile.iceCounter ? `I${tile.iceCounter}` : '',
+        tile.isSmoked ? 'S' : '',
+    ].join('|');
+}
+
+function getCachedTileTexture(key: string): THREE.CanvasTexture | undefined {
+    const tex = tileTextureCache.get(key);
+    if (tex) {
+        // Refrescar orden LRU
+        tileTextureCache.delete(key);
+        tileTextureCache.set(key, tex);
+    }
+    return tex;
+}
+
+function setCachedTileTexture(key: string, tex: THREE.CanvasTexture) {
+    tileTextureCache.set(key, tex);
+    if (tileTextureCache.size > MAX_TILE_TEXTURE_CACHE) {
+        const oldestKey = tileTextureCache.keys().next().value;
+        if (oldestKey !== undefined) {
+            const old = tileTextureCache.get(oldestKey);
+            tileTextureCache.delete(oldestKey);
+            old?.dispose();
+        }
+    }
+}
+
+function createTileTexture(canvas: HTMLCanvasElement): THREE.CanvasTexture {
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    return tex;
+}
+
 // Hook interno para cargar y formatear texturas en canvas 2D con bordes brutalistas no-planos
 function useTileTexture(tile: TileState, accentColor: string, mirrorVariant?: 'flipX' | 'flipY' | 'rot90' | 'rot270') {
     const [texture, setTexture] = useState<THREE.Texture | null>(null);
 
     useEffect(() => {
         let active = true;
-        let tex: THREE.CanvasTexture | null = null;
+
+        // Reutilizar textura ya generada si el símbolo/estado coincide
+        const key = buildTileTextureKey(tile, accentColor, mirrorVariant);
+        const cached = getCachedTileTexture(key);
+        if (cached) {
+            setTexture(cached);
+            return () => { active = false; };
+        }
 
         const canvas = document.createElement('canvas');
         canvas.width = 256;
@@ -441,113 +511,124 @@ function useTileTexture(tile: TileState, accentColor: string, mirrorVariant?: 'f
                 ctx.fillText('💨', 128, 128);
             }
 
-            if (active) {
-                tex = new THREE.CanvasTexture(canvas);
-                tex.colorSpace = THREE.SRGBColorSpace;
-                setTexture(tex);
-            }
+            const tex = createTileTexture(canvas);
+            setCachedTileTexture(key, tex);
+            if (active) setTexture(tex);
         } else {
-            // Cargar imagen personalizada (Supabase o Local)
-            const img = new Image();
-            const isLocal = tile.content.value.startsWith('/');
+            // Cargar imagen personalizada (Supabase o Local), deduplicando cargas
+            // iguales para que las dos fichas del par compartan una sola textura.
+            let pending = pendingTileTextures.get(key);
+            if (!pending) {
+                pending = new Promise<THREE.CanvasTexture>((resolve) => {
+                    const img = new Image();
+                    const isLocal = tile.content.value.startsWith('/');
 
-            // Definir handlers de carga ANTES de establecer src para evitar condiciones de carrera por caché
-            img.onload = () => {
-                if (!active) return;
+                    // Definir handlers ANTES de establecer src para evitar carreras por caché
+                    img.onload = () => {
+                        // Redibujar fondo
+                        if (isGolden) {
+                            const goldGrad = ctx.createLinearGradient(0, 0, 256, 256);
+                            goldGrad.addColorStop(0, '#ffe57f');
+                            goldGrad.addColorStop(0.4, '#ffea9f');
+                            goldGrad.addColorStop(0.7, '#ffd700');
+                            goldGrad.addColorStop(1, '#b29300');
+                            ctx.fillStyle = goldGrad;
+                            ctx.fillRect(0, 0, 256, 256);
+                        } else {
+                            ctx.fillStyle = '#0a0a0a';
+                            ctx.fillRect(0, 0, 256, 256);
+                        }
 
-                // Redibujar fondo
-                if (isGolden) {
-                    const goldGrad = ctx.createLinearGradient(0, 0, 256, 256);
-                    goldGrad.addColorStop(0, '#ffe57f');
-                    goldGrad.addColorStop(0.4, '#ffea9f');
-                    goldGrad.addColorStop(0.7, '#ffd700');
-                    goldGrad.addColorStop(1, '#b29300');
-                    ctx.fillStyle = goldGrad;
-                    ctx.fillRect(0, 0, 256, 256);
-                } else {
-                    ctx.fillStyle = '#0a0a0a';
-                    ctx.fillRect(0, 0, 256, 256);
-                }
+                        // Dibujar imagen 'contain' ajustada para contrarrestar el estiramiento 3D
+                        const margin = 26; // Mayor margen para hacer la imagen más pequeña
+                        const size = 256 - margin * 2; // 204
 
-                // Dibujar imagen con estrategia 'contain' ajustada para contrarrestar el estiramiento 3D
-                const margin = 26; // Mayor margen para hacer la imagen más pequeña
-                const size = 256 - margin * 2; // 204
+                        const correctionFactor = TILE_FACE_HEIGHT / TILE_FACE_WIDTH;
+                        const imgAspect = img.width / img.height;
+                        const targetCanvasAspect = imgAspect * correctionFactor;
 
-                const correctionFactor = TILE_FACE_HEIGHT / TILE_FACE_WIDTH;
-                const imgAspect = img.width / img.height;
-                const targetCanvasAspect = imgAspect * correctionFactor;
-                
-                let drawW = size;
-                let drawH = size;
-                let drawX = margin;
-                let drawY = margin;
-                
-                if (targetCanvasAspect > 1) {
-                    // Más ancho que alto -> reducimos altura
-                    drawH = size / targetCanvasAspect;
-                    drawY = margin + (size - drawH) / 2;
-                } else {
-                    // Más alto que ancho -> reducimos anchura
-                    drawW = size * targetCanvasAspect;
-                    drawX = margin + (size - drawW) / 2;
-                }
+                        let drawW = size;
+                        let drawH = size;
+                        let drawX = margin;
+                        let drawY = margin;
 
-                ctx.drawImage(img, 0, 0, img.width, img.height, drawX, drawY, drawW, drawH);
+                        if (targetCanvasAspect > 1) {
+                            // Más ancho que alto -> reducimos altura
+                            drawH = size / targetCanvasAspect;
+                            drawY = margin + (size - drawH) / 2;
+                        } else {
+                            // Más alto que ancho -> reducimos anchura
+                            drawW = size * targetCanvasAspect;
+                            drawX = margin + (size - drawW) / 2;
+                        }
 
-                // Aplicar el marco de borde y las marcas visuales por encima
-                drawBordersAndTicks(isGolden);
+                        ctx.drawImage(img, 0, 0, img.width, img.height, drawX, drawY, drawW, drawH);
 
-                tex = new THREE.CanvasTexture(canvas);
-                tex.colorSpace = THREE.SRGBColorSpace;
-                setTexture(tex);
-            };
+                        // Aplicar el marco de borde y las marcas visuales por encima
+                        drawBordersAndTicks(isGolden);
 
-            img.onerror = () => {
-                if (!active) return;
+                        resolve(createTileTexture(canvas));
+                    };
 
-                // Placeholder visual en caso de error
-                if (isGolden) {
-                    const goldGrad = ctx.createLinearGradient(0, 0, 256, 256);
-                    goldGrad.addColorStop(0, '#ffe57f');
-                    goldGrad.addColorStop(0.7, '#ffd700');
-                    goldGrad.addColorStop(1, '#b29300');
-                    ctx.fillStyle = goldGrad;
-                    ctx.fillRect(0, 0, 256, 256);
-                } else {
-                    ctx.fillStyle = '#0a0a0a';
-                    ctx.fillRect(0, 0, 256, 256);
-                }
+                    img.onerror = () => {
+                        // Placeholder visual en caso de error
+                        if (isGolden) {
+                            const goldGrad = ctx.createLinearGradient(0, 0, 256, 256);
+                            goldGrad.addColorStop(0, '#ffe57f');
+                            goldGrad.addColorStop(0.7, '#ffd700');
+                            goldGrad.addColorStop(1, '#b29300');
+                            ctx.fillStyle = goldGrad;
+                            ctx.fillRect(0, 0, 256, 256);
+                        } else {
+                            ctx.fillStyle = '#0a0a0a';
+                            ctx.fillRect(0, 0, 256, 256);
+                        }
 
-                drawBordersAndTicks(isGolden);
+                        drawBordersAndTicks(isGolden);
 
-                ctx.fillStyle = isGolden ? '#937500' : '#e74c3c';
-                ctx.font = 'bold 140px sans-serif';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(isGolden ? '✨' : '🖼️', 128, 128);
+                        ctx.fillStyle = isGolden ? '#937500' : '#e74c3c';
+                        ctx.font = 'bold 140px sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText(isGolden ? '✨' : '🖼️', 128, 128);
 
-                tex = new THREE.CanvasTexture(canvas);
-                tex.colorSpace = THREE.SRGBColorSpace;
-                setTexture(tex);
-            };
+                        resolve(createTileTexture(canvas));
+                    };
 
-            // Establecer src AL FINAL para iniciar la descarga de forma segura
-            if (!isLocal) {
-                img.src = `/api/proxy-image?url=${encodeURIComponent(tile.content.value)}`;
-            } else {
-                img.src = tile.content.value;
+                    // Establecer src AL FINAL para iniciar la descarga de forma segura
+                    if (!isLocal) {
+                        img.src = `/api/proxy-image?url=${encodeURIComponent(tile.content.value)}`;
+                    } else {
+                        img.src = tile.content.value;
+                    }
+                });
+
+                pendingTileTextures.set(key, pending);
+                pending.then(tex => {
+                    setCachedTileTexture(key, tex);
+                    pendingTileTextures.delete(key);
+                });
             }
+
+            pending.then(tex => {
+                if (active) setTexture(tex);
+            });
         }
 
+        // El caché es dueño de la textura; no se hace dispose por ficha.
         return () => {
             active = false;
-            if (tex) {
-                tex.dispose();
-            }
         };
     }, [tile.content.value, tile.content.type, accentColor, mirrorVariant, tile.isLocked, tile.isBomb, tile.bombTimer, tile.iceCounter, tile.isSmoked]);
 
     return texture;
+}
+
+interface DyingInfo {
+    id: string;
+    start: number;
+    collisionPos: [number, number, number];
+    isDockTile: boolean;
 }
 
 interface Tile3DProps {
@@ -561,9 +642,10 @@ interface Tile3DProps {
     onSelect: (id: string) => void;
     isGhostSolid?: boolean;
     hasStarted: boolean;
+    dyingInfo?: DyingInfo;
 }
 
-export function Tile3D({ tile, isFree, centerX, centerY, boardY, dockY, dockIds, onSelect, isGhostSolid, hasStarted }: Tile3DProps) {
+export function Tile3D({ tile, isFree, centerX, centerY, boardY, dockY, dockIds, onSelect, isGhostSolid, hasStarted, dyingInfo }: Tile3DProps) {
     const { profile } = useProfile();
     const meshRef = useRef<THREE.Group>(null);
     const frontMeshRef = useRef<THREE.Mesh>(null);
@@ -590,7 +672,8 @@ export function Tile3D({ tile, isFree, centerX, centerY, boardY, dockY, dockIds,
     // Detectar si la ficha está en el dock y obtener su índice
     const dockIndex = dockIds.indexOf(tile.id);
     const isInDock = dockIndex !== -1;
-    const isBright = isFree || isInDock; // Las fichas en el dock no deben verse opacas ni translúcidas
+    const dying = !!dyingInfo;
+    const isBright = isFree || isInDock || dying; // Las fichas en el dock/destruyéndose no deben verse opacas
     const isFlipped = !!tile.isFlippedDown && !isInDock;
     const isBlackSpot = isFlipped && !isFree;
 
@@ -617,6 +700,8 @@ export function Tile3D({ tile, isFree, centerX, centerY, boardY, dockY, dockIds,
         from: [number, number, number];
         to: [number, number, number];
     }>({ active: false, start: 0, from: [0, 0, 0], to: [0, 0, 0] });
+    // Captura la posición de partida del choque en el primer frame de destrucción
+    const dyingFromRef = useRef<{ start: number; from: [number, number, number] }>({ start: -1, from: [0, 0, 0] });
     useEffect(() => {
         if (meshRef.current && !hasStarted) {
             const numericId = Number(tile.id.replace(/\D/g, '')) || 0;
@@ -650,6 +735,64 @@ export function Tile3D({ tile, isFree, centerX, centerY, boardY, dockY, dockIds,
         const time = state.clock.elapsedTime;
         if (hasStarted && startTimeRef.current === null) {
             startTimeRef.current = time;
+        }
+
+        // ─── CHOQUE Y DESTRUCCIÓN EN EL DOCK ───
+        if (dyingInfo) {
+            const SLAM = 0.30;   // s: vuelo acelerado hacia el punto de impacto
+            const IMPACT = 0.18; // s: aplastamiento y colapso
+            const [cx, cy, cz] = dyingInfo.collisionPos;
+            const elapsed = (performance.now() - dyingInfo.start) / 1000;
+
+            // Guardar la posición de partida una sola vez por choque.
+            // La ficha que ya estaba en el dock arranca en su ranura (espera el impacto);
+            // la ficha del tablero vuela desde su posición hacia el dock.
+            if (dyingFromRef.current.start !== dyingInfo.start) {
+                const startFrom: [number, number, number] = dyingInfo.isDockTile
+                    ? [cx, cy, cz]
+                    : [meshRef.current.position.x, meshRef.current.position.y, meshRef.current.position.z];
+                dyingFromRef.current = { start: dyingInfo.start, from: startFrom };
+                if (dyingInfo.isDockTile) {
+                    meshRef.current.position.set(cx, cy, cz);
+                }
+            }
+            const from = dyingFromRef.current.from;
+
+            if (elapsed < SLAM) {
+                const t = elapsed / SLAM;
+                const eased = t * t * t; // aceleración fuerte (embestida)
+                meshRef.current.position.set(
+                    THREE.MathUtils.lerp(from[0], cx, eased),
+                    THREE.MathUtils.lerp(from[1], cy, eased),
+                    THREE.MathUtils.lerp(from[2], cz, eased)
+                );
+                // Giro en el aire; las dos fichas rotan en sentidos opuestos
+                meshRef.current.rotation.z += safeDelta * 7 * (dyingInfo.isDockTile ? -1 : 1);
+                const s = 1 + eased * 0.14;
+                meshRef.current.scale.set(s, s, s);
+            } else {
+                // Impacto: aplastar horizontalmente y colapsar a cero
+                const t2 = Math.min(1, (elapsed - SLAM) / IMPACT);
+                const k = 1 - t2;
+                meshRef.current.position.set(cx, cy, cz);
+                meshRef.current.scale.set(1.4 * k + 0.001, 0.45 * k + 0.001, k + 0.001);
+                meshRef.current.rotation.z += safeDelta * 13;
+            }
+
+            // Destello caliente durante la destrucción
+            if (frontMeshRef.current) {
+                const mats = frontMeshRef.current.material as THREE.MeshStandardMaterial[];
+                if (mats && mats.length >= 6) {
+                    const flash = 0.6 + Math.sin(elapsed * 42) * 0.4;
+                    mats.forEach(m => { if (m) m.opacity = 1; });
+                    const fm = mats[4];
+                    if (fm) {
+                        fm.emissive.set('#ffb54d');
+                        fm.emissiveIntensity = flash * 1.7;
+                    }
+                }
+            }
+            return;
         }
 
         if (isInDock && !wasInDockRef.current) {
@@ -813,8 +956,8 @@ export function Tile3D({ tile, isFree, centerX, centerY, boardY, dockY, dockIds,
                 castShadow={isBright && !isBlackSpot}
                 receiveShadow={true}
                 position={[0, 0, -0.15]}
+                geometry={BACK_GEOMETRY}
             >
-                <boxGeometry args={[TILE_WIDTH, TILE_HEIGHT, TILE_BACK_DEPTH]} />
                 <meshStandardMaterial
                     color={isBlackSpot ? '#000000' : (isGolden ? '#ffd700' : isBright ? backColor : '#323232')}
                     roughness={isBlackSpot ? 1.0 : (isGolden ? 0.15 : 0.3)}
@@ -831,9 +974,8 @@ export function Tile3D({ tile, isFree, centerX, centerY, boardY, dockY, dockIds,
                 castShadow={isBright && !isBlackSpot}
                 receiveShadow={true}
                 position={[0, 0, 0.15]}
+                geometry={FRONT_GEOMETRY}
             >
-                <boxGeometry args={[TILE_FACE_WIDTH, TILE_FACE_HEIGHT, TILE_FACE_DEPTH]} />
-                
                 {/* Laterales (Índices 0-3): Color hueso/blanco */}
                 <meshStandardMaterial
                     attach="material-0"

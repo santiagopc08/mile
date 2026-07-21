@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Activity, Heart, Plus, Clipboard, User, Clock } from 'lucide-react';
 import { useProfile } from '@/context/ProfileContext';
 import { NotificationService } from '@/services/notificationService';
-import { AnimatedBrutalistCorners } from '@/components/ui/AnimatedBrutalistCorners';
+import { BrutalistPanel } from '@/components/ui/BrutalistPanel';
 import { sound } from '@/lib/sound';
 import { haptics } from '@/lib/haptics';
 import {
@@ -187,14 +187,13 @@ export const BloodPressureTracker = () => {
 
     return (
         <div className="space-y-6 font-mono">
-            <div className="relative border border-white/10 bg-[#0a0a0a] p-6 pl-10 sm:pl-12 rounded-none overflow-hidden">
+            <BrutalistPanel accentColor={accentColor} borderColor="rgba(255,255,255,0.1)" corners="animated" cornerSize={12} cornerThickness={1.5} className="p-6 pl-10 sm:pl-12 rounded-none overflow-hidden">
                 {/* Solid Left Accent Stripe */}
                 <div className="absolute left-0 top-0 bottom-0 w-[5px]" style={{ backgroundColor: accentColor }} />
 
                 <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
                     <Activity size={120} className="stroke-[1.5]" />
                 </div>
-                <AnimatedBrutalistCorners color={accentColor} size={12} thickness={1.5} />
 
                 <h2 className="text-[10px] uppercase font-black tracking-[0.3em] mb-8 border-b border-white/5 pb-4 flex justify-between items-center text-white font-sans">
                     <span className="flex items-center gap-2">
@@ -361,8 +360,7 @@ export const BloodPressureTracker = () => {
                 )}
 
                 {entries.length > 0 && (
-                    <div className="h-72 w-full mb-10 border border-white/10 bg-black/40 p-2 sm:p-6 relative rounded-none">
-                        <AnimatedBrutalistCorners color={accentColor} />
+                    <BrutalistPanel accentColor={accentColor} borderColor="rgba(255,255,255,0.1)" corners="animated" className="h-72 w-full mb-10 !bg-black/40 p-2 sm:p-6 rounded-none">
                         <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={chartData} margin={{ left: 0, right: 10, top: 10, bottom: 0 }}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.05)" vertical={false} />
@@ -419,7 +417,7 @@ export const BloodPressureTracker = () => {
                                 />
                             </LineChart>
                         </ResponsiveContainer>
-                    </div>
+                    </BrutalistPanel>
                 )}
 
                 <div className="space-y-1 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
@@ -507,7 +505,7 @@ export const BloodPressureTracker = () => {
                         })}
                     </AnimatePresence>
                 </div>
-            </div>
+            </BrutalistPanel>
         </div>
     );
 };

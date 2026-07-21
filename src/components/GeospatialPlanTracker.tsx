@@ -10,7 +10,7 @@ import {
 } from '@vis.gl/react-google-maps';
 import { supabase } from '@/lib/supabase';
 import { Navigation, Trash2, CheckCircle, Circle, AlertTriangle } from 'lucide-react';
-import { AnimatedBrutalistCorners } from '@/components/ui/AnimatedBrutalistCorners';
+import { BrutalistPanel } from '@/components/ui/BrutalistPanel';
 
 interface Ubicacion {
   id: string;
@@ -126,8 +126,7 @@ export function GeospatialPlanTracker() {
 
   return (
     <div className="w-full space-y-4">
-      <div className="relative border border-white/10 bg-black p-2">
-        <AnimatedBrutalistCorners color="#00dbe9" />
+      <BrutalistPanel accentColor="#00dbe9" borderColor="rgba(255,255,255,0.1)" corners="animated" className="!bg-black p-2">
         <div className="h-[220px] w-full overflow-hidden border border-white/10 bg-[#111] md:h-[260px]">
           <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
             <Map
@@ -195,7 +194,7 @@ export function GeospatialPlanTracker() {
             </Map>
           </APIProvider>
         </div>
-      </div>
+      </BrutalistPanel>
 
       <LocationLists
         locations={locations}

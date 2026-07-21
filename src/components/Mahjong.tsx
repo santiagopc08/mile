@@ -7,11 +7,15 @@ import { supabase as defaultSupabase } from '@/lib/supabase';
 import { MahjongService } from '@/services/mahjongService';
 import { NotificationService } from '@/services/notificationService';
 import { useProfile } from '@/context/ProfileContext';
-import { Undo2, Trophy, RotateCcw, Lightbulb, Sparkles, Flame } from 'lucide-react';
+import { Undo2, Trophy, RotateCcw, Lightbulb, Sparkles, Flame, Volume2, VolumeX } from 'lucide-react';
+import * as MahjongAudio from '@/lib/mahjongAudio';
 import { AnimatedBrutalistCorners } from '@/components/ui/AnimatedBrutalistCorners';
+import { Brutalist3DButton } from '@/components/ui/Brutalist3DButton';
+import { BrutalistPanel, BrutalistCorners } from '@/components/ui/BrutalistPanel';
 import MahjongTimer, { MahjongTimerHandle } from './MahjongTimer';
 import { TileState, TileContent } from './MahjongTile';
 import { MahjongCanvas } from './MahjongCanvas';
+import { ComboFireFrame } from './ComboFireFrame';
 import {
     getUnlockedMechanics,
     selectActiveMechanicsForGame,
@@ -26,549 +30,24 @@ import {
     HardeningMechanic
 } from './hardeningEngine';
 
-const TILESETS: Record<string, { name: string; icon: string; minGames: number; tiles: string[] }> = {
-    traditional: {
-        name: "Clásico",
-        icon: "🀄",
-        minGames: 0,
-        tiles: [
-            "🀀", "🀁", "🀂", "🀃", "🀄", "🀅", "🀆", "🀇", "🀈", "🀉", "🀊", "🀋", "🀌", "🀍", "🀎", "🀏",
-            "🀐", "🀑", "🀒", "🀓", "🀔", "🀕", "🀖", "🀗", "🀘", "🀙", "🀚", "🀛", "🀜", "🀝", "🀞", "🀟",
-            "🀠", "🀡", "🀢", "🀣", "🀤", "🀥", "🀦", "🀧", "🀨", "🀩", "🀪"
-        ]
-    },
-    romance: {
-        name: "Amor",
-        icon: "💖",
-        minGames: 15,
-        tiles: [
-            "💖", "💝", "💘", "💞", "💟", "💌", "💋", "💍", "🌹", "💐", "🥂", "🍫", "🎈", "🧸", "❤️", "💑",
-            "👩‍❤️‍👨", "👰‍♀️", "🤵‍♂️", "🍾", "🧁", "🕯️", "🎁", "✨", "🎀", "🕊️", "💓", "💕", "❤️‍🔥", "💋", "💍", "💖"
-        ]
-    },
-    animals: {
-        name: "Animales",
-        icon: "🐱",
-        minGames: 30,
-        tiles: [
-            "🐱", "🐶", "🦊", "🐼", "🐨", "🐰", "🐻", "🐯", "🦁", "🐸", "🐵", "🐧", "🐦", "🐤", "🦄", "🐙",
-            "🐳", "🐬", "🐝", "🦋", "🐞", "🦕", "🐆", "🦓", "🐘", "🐪", "🦒", "🦘", "🦦", "🦉", "🐢", "🦀"
-        ]
-    },
-    sweets: {
-        name: "Dulces",
-        icon: "🍰",
-        minGames: 45,
-        tiles: [
-            "🍎", "🍓", "🍊", "🍇", "🍉", "🍌", "🍒", "🍑", "🥑", "🍕", "🍔", "🍟", "🌮", "🍣", "🍤", "🥞",
-            "🍩", "🧁", "🍦", "🍧", "🍪", "🍿", "☕️", "🍹", "🍬", "🍭", "🍫", "🍰", "🥧", "🍯", "🍮", "🥐"
-        ]
-    },
-    nature: {
-        name: "Naturaleza",
-        icon: "🌸",
-        minGames: 60,
-        tiles: [
-            "🌸", "🌻", "🌷", "🌺", "🌼", "🍂", "🍁", "🍀", "🍄", "🌲", "🌴", "🌵", "🌊", "☀️", "🌙", "⭐️",
-            "🪐", "💫", "✨", "🌈", "🏔️", "🌋", "🏖️", "🪵", "🌱", "☘️", "🎋", "🍃", "🌬️", "❄️", "⛈️", "☔️"
-        ]
-    },
-    hobbies: {
-        name: "Hobbies",
-        icon: "🎮",
-        minGames: 75,
-        tiles: [
-            "🎮", "🎲", "🧩", "🎨", "🎭", "🎬", "🎧", "🎤", "🎸", "🎹", "⚽️", "🏀", "🎾", "🏹", "✈️", "⛵️",
-            "🛹", "🚲", "🏎️", "🎳", "🎯", "🕹️", "🎰", "🎼", "🎻", "🎷", "🥁", "🧶", "🧵", "🎨", "🎬", "🎧"
-        ]
-    },
-    magic: {
-        name: "Magia",
-        icon: "🔮",
-        minGames: 90,
-        tiles: [
-            "🔮", "🧿", "🪄", "🧪", "🕯️", "🛸", "🚀", "☄️", "🌟", "⚜️", "🗝️", "🧧", "🏮", "🧙‍♂️", "🧙‍♀️", "🧚‍♂️",
-            "🧚‍♀️", "🧞‍♂️", "🧞‍♀️", "🧛‍♂️", "🧛‍♀️", "🧟‍♂️", "🧟‍♀️", "🦄", "🐉", "🐲", "🏰", "📜", "⚗️", "🧪", "🧿", "🔮"
-        ]
-    },
-    cosmic: {
-        name: "Espacio",
-        icon: "🛸",
-        minGames: 105,
-        tiles: [
-            "🛸", "🚀", "🪐", "🌌", "☄️", "🛰️", "👨‍🚀", "👩‍🚀", "👽", "👾", "🤖", "🌟", "🌍", "📡", "🔭", "🌑",
-            "🌒", "🌓", "🌔", "🌕", "🌖", "🌗", "🌘", "🪐", "💫", "✨", "🌟", "🌌", "🚀", "🛸", "🌍", "🛰️"
-        ]
-    },
-    app_special: {
-        name: "Mieljong",
-        icon: "📲",
-        minGames: 120,
-        tiles: [
-            "🍾", "🧠", "🏆", "⏱️", "⏳", "⏰", "🀄", "📅", "💬", "🗺️", "📍", "🏥", "🩺", "🐈‍⬛", "🐈", "💰",
-            "💵", "🎂", "🎈", "🏠", "🚪", "🗒️", "✏️", "🌊", "💖", "💝", "🎁", "✨", "🌟", "💫", "🧸",
-            "🛡️", "🔑", "🐾", "🐶", "🫙", "🔔", "✈️", "🍽️", "🍿", "🛍️", "🛒", "🎟️", "💊", "🛌", "🏃‍♀️", "🥦",
-            "🥛", "🧘‍♀️", "🎮", "🕹️", "🧩", "⚙️", "📈", "🪙", "🍷", "🔋"
-        ]
-    },
-    travel: {
-        name: "Viajes",
-        icon: "✈️",
-        minGames: 135,
-        tiles: [
-            "✈️", "🛳️", "🚗", "🚲", "🗺️", "📍", "📸", "🗽", "🗼", "🏰", "🏔️", "🏖️", "⛺", "🎒", "🚞", "🚆",
-            "🚢", "🛩️", "🚁", "🧳", "🚏", "🗻", "🏜️", "🏝️", "🏕️", "🛖", "🛶", "🚠", "🎢", "🚂"
-        ]
-    },
-    celebration: {
-        name: "Fiesta",
-        icon: "🎉",
-        minGames: 150,
-        tiles: [
-            "🎉", "🎊", "🎈", "🎂", "🍾", "🥂", "🍹", "🍺", "🍷", "🍕", "🍔", "🍿", "🎭", "💃", "🕺", "🎆",
-            "🎇", "🎁", "🕯️", "🧁", "🍩", "🍪", "🍫", "🍬", "🍭", "🎼", "🎤", "🎧", "🎷", "🎸"
-        ]
-    },
-    fruits: {
-        name: "Frutas",
-        icon: "🍇",
-        minGames: 165,
-        tiles: [
-            "🍇", "🍈", "🍉", "🍊", "🍋", "🍌", "🍍", "🥭", "🍎", "🍏", "🍐", "🍑", "🍒", "🍓", "🫐", "🥝",
-            "🍅", "🫒", "🥥", "🥑", "🍆", "🥔", "🥕", "🌽", "🌶️", "🫑", "🥒", "🥬", "🥦", "🍄"
-        ]
-    },
-    mythology: {
-        name: "Mitología",
-        icon: "🐉",
-        minGames: 180,
-        tiles: [
-            "🐉", "🐲", "🦄", "🧜‍♀️", "🧜‍♂️", "🧚‍♀️", "🧚‍♂️", "🧙‍♀️", "🧙‍♂️", "🧛‍♀️", "🧛‍♂️", "🧟‍♀️", "🧟‍♂️", "🧞‍♀️", "🧞‍♂️",
-            "👻", "💀", "👽", "👾", "🤖", "👹", "👺", "🦁", "🦅", "🐺", "🦊", "🐻", "🐼", "🐯", "🐍"
-        ]
-    },
-    sports: {
-        name: "Deportes",
-        icon: "⚽",
-        minGames: 195,
-        tiles: [
-            "⚽", "🏀", "🏈", "⚾", "🥎", "🎾", "🏐", "🏉", "🥏", "🎱", "🪀", "🏓", "🏸", "🏒", "🏑", "🥍",
-            "🏏", "🏹", "🎣", "🥊", "🥋", "🛹", "🛼", "🚴", "🏆", "🥇", "🥈", "🥉", "🎖️", "🎗️"
-        ]
-    },
-    weather: {
-        name: "Clima",
-        icon: "⚡",
-        minGames: 210,
-        tiles: [
-            "☀️", "🌙", "☁️", "⛅", "⛈️", "🌤️", "🌥️", "🌦️", "🌧️", "🌨️", "🌩️", "🌪️", "🌫️", "🌬️", "🌀", "🌈",
-            "☔", "⚡", "❄️", "🔥", "💧", "🌊", "🍂", "🍁", "🍀", "🌸", "🌻", "🌷", "🍃", "🪵"
-        ]
-    },
-    miel_santi: {
-        name: "Miel",
-        icon: "🍯",
-        minGames: 225,
-        tiles: [
-            "🍯", "🐻", "🐝", "👩‍❤️‍👨", "💑", "💍", "🏠", "🍾", "🥂", "💖", "💝", "💌", "✨", "🌟", "🎂", "💋",
-            "🧸", "🐾", "🐱", "🐶", "🏥", "🩺", "💬", "🗺️", "📍", "🚪", "🗒️", "✏️", "🌊", "🎁"
-        ]
-    }
-};
-
-const getUnlockedTilesForCount = (gamesCount: number) => {
-    let tilesPool: string[] = [];
-    for (const key in TILESETS) {
-        if (TILESETS[key].minGames <= gamesCount) {
-            tilesPool = [...tilesPool, ...TILESETS[key].tiles];
-        }
-    }
-    return tilesPool;
-};
-
-const getTargetTilesForLevel = (level: number) => {
-    const target = 80 + (level - 1) * 8;
-    return Math.min(Math.max(80, Math.floor(target / 2) * 2), 96);
-};
-
-type LayoutType = 'turtle' | 'fortress' | 'peaks' | 'random';
-
-const LAYOUT_INFO: Record<LayoutType, { name: string; description: string; tiles: number }> = {
-    turtle: { name: 'Tortuga', description: 'El diseño milenario en pirámide.', tiles: 96 },
-    fortress: { name: 'Fortaleza', description: 'Muros concéntricos de memorias.', tiles: 96 },
-    peaks: { name: 'Picos', description: 'Dos torres que se encuentran.', tiles: 96 },
-    random: { name: 'Caos', description: 'Formación procedimental única.', tiles: 96 }
-};
-
-function filterCoordsByColumns(coords: { x: number; y: number; z: number }[], maxCols: number) {
-    // ⚡ Bolt Optimization: Replace coords.map().Set() with single pass O(N) loop
-    const uniqueXSet = new Set<number>();
-    for (const c of coords) uniqueXSet.add(c.x);
-    const uniqueX = Array.from(uniqueXSet).sort((a, b) => a - b);
-    if (uniqueX.length <= maxCols) return coords;
-
-    const diff = uniqueX.length - maxCols;
-    const startIndex = Math.floor(diff / 2);
-    const allowedX = new Set(uniqueX.slice(startIndex, startIndex + maxCols));
-
-    const filtered = coords.filter(c => allowedX.has(c.x));
-
-    if (filtered.length % 2 !== 0) {
-        let maxZ = -1;
-        let indexToRemove = -1;
-        for (let i = 0; i < filtered.length; i++) {
-            if (filtered[i].z > maxZ) {
-                maxZ = filtered[i].z;
-                indexToRemove = i;
-            }
-        }
-        if (indexToRemove !== -1) {
-            filtered.splice(indexToRemove, 1);
-        }
-    }
-    return filtered;
-}
-
-function generateCoordinates(type: LayoutType, target: number) {
-    const coords: { x: number, y: number, z: number }[] = [];
-
-    if (type === 'random') {
-        const maxLayers = 4;
-        const width = 16;  // x will be 0, 2, 4, 6, 8, 10, 12, 14 (8 columns)
-        const height = 16; // y will be 0, 2, 4, 6, 8, 10, 12, 14 (8 rows)
-
-        // Generate base layer
-        for (let x = 0; x < width; x += 2) {
-            for (let y = 0; y < height; y += 2) {
-                if (Math.random() > 0.35 && coords.length < target * 0.6) {
-                    coords.push({ x, y, z: 0 });
-                }
-            }
-        }
-
-        const coordSet = new Set<string>();
-        for (let i = 0; i < coords.length; i++) {
-            const c = coords[i];
-            coordSet.add(`${c.x},${c.y},${c.z}`);
-        }
-
-        // Generate upper layers
-        for (let z = 1; z < maxLayers; z++) {
-            const potential = coords.filter(c => c.z === z - 1);
-            potential.forEach(p => {
-                if (Math.random() > 0.5 && coords.length < target) {
-                    const key = `${p.x},${p.y},${z}`;
-                    if (!coordSet.has(key)) {
-                        coordSet.add(key);
-                        coords.push({ x: p.x, y: p.y, z });
-                    }
-                }
-            });
-        }
-
-        // Fill remaining coordinates to reach exactly `target`
-        for (let z = 0; z < maxLayers; z++) {
-            for (let y = 0; y < height; y += 2) {
-                for (let x = 0; x < width; x += 2) {
-                    if (coords.length >= target) break;
-                    const key = `${x},${y},${z}`;
-                    if (!coordSet.has(key)) {
-                        if (z === 0 || coordSet.has(`${x},${y},${z - 1}`)) {
-                            coordSet.add(key);
-                            coords.push({ x, y, z });
-                        }
-                    }
-                }
-                if (coords.length >= target) break;
-            }
-            if (coords.length >= target) break;
-        }
-        return coords.slice(0, target);
-    }
-
-    if (type === 'turtle') {
-        // Layer 0: 8x8 without corners
-        for (let x = 0; x <= 14; x += 2) {
-            for (let y = 0; y <= 14; y += 2) {
-                if (!((x === 0 || x === 14) && (y === 0 || y === 14))) {
-                    coords.push({ x, y, z: 0 });
-                }
-            }
-        }
-        // Layer 1: 6x6
-        for (let x = 2; x <= 12; x += 2) {
-            for (let y = 2; y <= 12; y += 2) {
-                coords.push({ x, y, z: 1 });
-            }
-        }
-        // Layer 2: 4x4
-        for (let x = 4; x <= 10; x += 2) {
-            for (let y = 4; y <= 10; y += 2) {
-                coords.push({ x, y, z: 2 });
-            }
-        }
-        // Layer 3: 2x2
-        for (let x = 6; x <= 8; x += 2) {
-            for (let y = 6; y <= 8; y += 2) {
-                coords.push({ x, y, z: 3 });
-            }
-        }
-        return coords.slice(0, target);
-    }
-
-    if (type === 'fortress') {
-        // Layer 0: Outer walls
-        for (let x = 0; x <= 14; x += 2) {
-            for (let y = 0; y <= 14; y += 2) {
-                if (x === 0 || x === 14 || y === 0 || y === 14) {
-                    coords.push({ x, y, z: 0 });
-                }
-            }
-        }
-        // Layer 1: Inner walls
-        for (let x = 2; x <= 12; x += 2) {
-            for (let y = 2; y <= 12; y += 2) {
-                if (x === 2 || x === 12 || y === 2 || y === 12) {
-                    coords.push({ x, y, z: 1 });
-                }
-            }
-        }
-        // Layer 2: Core walls
-        for (let x = 4; x <= 10; x += 2) {
-            for (let y = 4; y <= 10; y += 2) {
-                if (x === 4 || x === 10 || y === 4 || y === 10) {
-                    coords.push({ x, y, z: 2 });
-                }
-            }
-        }
-        // Fill core spaces to reach target
-        let i = 0;
-        // ⚡ Bolt Optimization: Replace coords.map().Set() with single pass O(N) loop
-        const coordSet = new Set<string>();
-        for (const c of coords) coordSet.add(`${c.x},${c.y},${c.z}`);
-        while (coords.length < target && i < 200) {
-            const x = 4 + (i % 4) * 2;
-            const y = 4 + Math.floor(i / 4) * 2;
-            if (x <= 10 && y <= 10) {
-                const z = 3;
-                const key = `${x},${y},${z}`;
-                if (!coordSet.has(key)) {
-                    coordSet.add(key);
-                    coords.push({ x, y, z });
-                }
-            }
-            i++;
-        }
-        let j = 0;
-        while (coords.length < target && j < 200) {
-            const x = 2 + (j % 6) * 2;
-            const y = 2 + Math.floor(j / 6) * 2;
-            if (x <= 12 && y <= 12) {
-                const z = 2;
-                const key = `${x},${y},${z}`;
-                if (!coordSet.has(key)) {
-                    coordSet.add(key);
-                    coords.push({ x, y, z });
-                }
-            }
-            j++;
-        }
-        return coords.slice(0, target);
-    }
-
-    // peaks
-    // Peak 1: Left-aligned
-    for (let x = 0; x <= 6; x += 2) {
-        for (let y = 2; y <= 10; y += 2) {
-            coords.push({ x, y, z: 0 });
-        }
-    }
-    for (let x = 2; x <= 4; x += 2) {
-        for (let y = 4; y <= 8; y += 2) {
-            coords.push({ x, y, z: 1 });
-        }
-    }
-    coords.push({ x: 2, y: 6, z: 2 });
-
-    // Peak 2: Right-aligned
-    for (let x = 8; x <= 14; x += 2) {
-        for (let y = 2; y <= 10; y += 2) {
-            coords.push({ x, y, z: 0 });
-        }
-    }
-    for (let x = 10; x <= 12; x += 2) {
-        for (let y = 4; y <= 8; y += 2) {
-            coords.push({ x, y, z: 1 });
-        }
-    }
-    coords.push({ x: 12, y: 6, z: 2 });
-
-    // Connecting bridges at y = 0 and y = 12
-    for (let x = 0; x <= 14; x += 2) {
-        coords.push({ x, y: 0, z: 0 });
-        coords.push({ x, y: 12, z: 0 });
-    }
-
-    const coordSet = new Set<string>();
-    const uniqueCoords: { x: number, y: number, z: number }[] = [];
-    for (const c of coords) {
-        if (c.x >= 0 && c.x <= 14 && c.y >= 0 && c.y <= 14) {
-            const key = `${c.x},${c.y},${c.z}`;
-            if (!coordSet.has(key)) {
-                coordSet.add(key);
-                uniqueCoords.push(c);
-            }
-        }
-    }
-
-    let i = 0;
-    while (uniqueCoords.length < target && i < 400) {
-        const x = 2 + (i % 6) * 2;
-        const y = 2 + Math.floor(i / 6) % 6 * 2;
-        const z = 2 + Math.floor(Math.floor(i / 6) / 6);
-        if (x >= 2 && x <= 12 && y >= 2 && y <= 12 && z < 5) {
-            const key = `${x},${y},${z}`;
-            if (!coordSet.has(key)) {
-                coordSet.add(key);
-                uniqueCoords.push({ x, y, z });
-            }
-        }
-        i++;
-    }
-    return uniqueCoords.slice(0, target);
-}
-
-function shuffleArray<T>(array: T[]): T[] {
-    const newArr = [...array];
-    for (let i = newArr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
-    }
-    return newArr;
-}
-
-interface LeaderboardEntry {
-    profile: string;
-    time_seconds: number;
-    layout: string;
-    created_at: string;
-    highest_combo?: number;
-}
-
-function isSlotFree(
-    target: { x: number; y: number; z: number },
-    grid: Set<number>
-): boolean {
-    const { x, y, z } = target;
-    const zUp = (z + 1) * 10000;
-
-    // ⚡ Bolt Optimization: Unrolled loops for O(1) direct property lookups to avoid O(N) intermediate allocations
-    if (grid.has(zUp + (y - 1) * 100 + (x - 1)) ||
-        grid.has(zUp + (y - 1) * 100 + x) ||
-        grid.has(zUp + (y - 1) * 100 + (x + 1)) ||
-        grid.has(zUp + y * 100 + (x - 1)) ||
-        grid.has(zUp + y * 100 + x) ||
-        grid.has(zUp + y * 100 + (x + 1)) ||
-        grid.has(zUp + (y + 1) * 100 + (x - 1)) ||
-        grid.has(zUp + (y + 1) * 100 + x) ||
-        grid.has(zUp + (y + 1) * 100 + (x + 1))) {
-        return false;
-    }
-
-    const zSame = z * 10000;
-    const hasLeft =
-        grid.has(zSame + (y - 1) * 100 + (x - 2)) ||
-        grid.has(zSame + y * 100 + (x - 2)) ||
-        grid.has(zSame + (y + 1) * 100 + (x - 2)) ||
-        grid.has(zSame + (y - 1) * 100 + (x - 1)) ||
-        grid.has(zSame + y * 100 + (x - 1)) ||
-        grid.has(zSame + (y + 1) * 100 + (x - 1));
-
-    if (!hasLeft) return true;
-
-    const hasRight =
-        grid.has(zSame + (y - 1) * 100 + (x + 1)) ||
-        grid.has(zSame + y * 100 + (x + 1)) ||
-        grid.has(zSame + (y + 1) * 100 + (x + 1)) ||
-        grid.has(zSame + (y - 1) * 100 + (x + 2)) ||
-        grid.has(zSame + y * 100 + (x + 2)) ||
-        grid.has(zSame + (y + 1) * 100 + (x + 2));
-
-    return !hasRight;
-}
-
-function generateSolvableBoard(rawCoords: { x: number; y: number; z: number }[], pairs: TileContent[]): TileState[] | null {
-    const coords = rawCoords.map((c, i) => ({ ...c, id: `tile_${i}` }));
-    const finalPairs = pairs.slice(0, coords.length / 2);
-    const assignments = new Map<string, TileContent>();
-    const availablePairs = [...finalPairs];
-    let steps = 0;
-    const maxSteps = 40000; // safety limit
-
-    function backtrack(pool: typeof coords): boolean {
-        steps++;
-        if (steps > maxSteps) return false;
-        if (pool.length === 0) return true;
-
-        const grid = new Set<number>();
-        for (const t of pool) {
-            grid.add(t.z * 10000 + t.y * 100 + t.x);
-        }
-
-        const freeSlots = pool.filter(target => isSlotFree(target, grid));
-        if (freeSlots.length < 2) return false;
-
-        const freePairs: [number, number][] = [];
-        for (let i = 0; i < freeSlots.length; i++) {
-            for (let j = i + 1; j < freeSlots.length; j++) {
-                freePairs.push([i, j]);
-            }
-        }
-
-        const shuffledPairs = shuffleArray(freePairs);
-        const currentPair = availablePairs.pop();
-        if (!currentPair) return false;
-
-        // Try a few pairs of free slots
-        // Optimization: limit the branching factor to avoid excessive deep search if we get stuck
-        const limitBranch = Math.min(shuffledPairs.length, 6);
-        for (let pIdx = 0; pIdx < limitBranch; pIdx++) {
-            const [i1, i2] = shuffledPairs[pIdx];
-            const slot1 = freeSlots[i1];
-            const slot2 = freeSlots[i2];
-
-            assignments.set(slot1.id, currentPair);
-            assignments.set(slot2.id, currentPair);
-
-            const nextPool = pool.filter(p => p.id !== slot1.id && p.id !== slot2.id);
-
-            if (backtrack(nextPool)) {
-                return true;
-            }
-
-            assignments.delete(slot1.id);
-            assignments.delete(slot2.id);
-        }
-
-        availablePairs.push(currentPair);
-        return false;
-    }
-
-    const success = backtrack(coords);
-    if (success) {
-        return coords.map(c => ({
-            id: c.id,
-            x: c.x,
-            y: c.y,
-            z: c.z,
-            content: assignments.get(c.id)!,
-            isMatched: false,
-            isSelected: false,
-            isHinted: false
-        }));
-    }
-    return null;
-}
+import {
+    getLocalDateString,
+    TILESETS,
+    getUnlockedTilesForCount,
+    getTargetTilesForLevel,
+    LAYOUT_INFO,
+    filterCoordsByColumns,
+    generateCoordinates,
+    shuffleArray,
+    getComboTier,
+    generateSolvableBoard,
+} from '@/lib/mahjong/logic';
+import type { LayoutType, LeaderboardEntry } from '@/lib/mahjong/logic';
+import { DrawingCanvasModal } from '@/components/mahjong/DrawingCanvasModal';
+import { RevealDrawingModal } from '@/components/mahjong/RevealDrawingModal';
+import { useDailyStats } from '@/components/mahjong/useDailyStats';
+import { useBottleMessages } from '@/components/mahjong/useBottleMessages';
+import { useDrawings } from '@/components/mahjong/useDrawings';
 
 export function Mahjong() {
     const { profile } = useProfile();
@@ -589,8 +68,6 @@ export function Mahjong() {
     const [initialDeal, setInitialDeal] = useState<TileState[] | null>(null);
 
     const timerRef = useRef<MahjongTimerHandle>(null);
-    const videoRef = useRef<HTMLVideoElement>(null);
-    const [hasPausedForMessage, setHasPausedForMessage] = useState(false);
     const [dockIds, setDockIds] = useState<string[]>([]);
     const [gameLost, setGameLost] = useState(false);
     const [lostReason, setLostReason] = useState<'dock' | 'bomb' | null>(null);
@@ -608,9 +85,12 @@ export function Mahjong() {
     // Fire combo streak states
     const [streakCombo, setStreakCombo] = useState(0);
     const [streakTimeRemaining, setStreakTimeRemaining] = useState(0);
-    const [comboSign, setComboSign] = useState<{ id: number; text: string } | null>(null);
+    const [comboSign, setComboSign] = useState<{ id: number; text: string; combo: number } | null>(null);
+    const [comboShake, setComboShake] = useState(false);
+    const [muted, setMutedState] = useState(false);
     const streakTimerRef = useRef<NodeJS.Timeout | null>(null);
     const comboTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const comboShakeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     // Effect for the fire combo countdown
     useEffect(() => {
@@ -659,17 +139,27 @@ export function Mahjong() {
         if (comboTimeoutRef.current) {
             clearTimeout(comboTimeoutRef.current);
         }
-        setComboSign({ id: Date.now(), text: comboText });
+        setComboSign({ id: Date.now(), text: comboText, combo: newCombo });
         comboTimeoutRef.current = setTimeout(() => {
             setComboSign(null);
-        }, 1500);
+        }, 1600);
+
+        // Sacudida de pantalla desde el combo 3 en adelante
+        if (newCombo >= 3) {
+            setComboShake(false);
+            if (comboShakeTimeoutRef.current) clearTimeout(comboShakeTimeoutRef.current);
+            requestAnimationFrame(() => setComboShake(true));
+            comboShakeTimeoutRef.current = setTimeout(() => setComboShake(false), 420);
+        }
     }, []);
 
     const resetFireStreak = useCallback(() => {
         setStreakCombo(0);
         setComboSign(null);
+        setComboShake(false);
         if (comboTimeoutRef.current) clearTimeout(comboTimeoutRef.current);
         if (streakTimerRef.current) clearTimeout(streakTimerRef.current);
+        if (comboShakeTimeoutRef.current) clearTimeout(comboShakeTimeoutRef.current);
     }, []);
 
     // ─── Hardening Mechanics State ───────────────────────────────────────────
@@ -696,15 +186,29 @@ export function Mahjong() {
     const [gameMode, setGameMode] = useState<'solo' | 'coop' | 'daily'>('solo');
     const [activeCoopGame, setActiveCoopGame] = useState<any | null>(null);
     const [coopTurn, setCoopTurn] = useState<'el' | 'ella'>('el');
-    const [bottleNoteText, setBottleNoteText] = useState('');
-    const [bottleNoteModal, setBottleNoteModal] = useState(false);
-    const [revealedBottleMessage, setRevealedBottleMessage] = useState<{ id: string; text: string; sender: string } | null>(null);
-    const [showMessageText, setShowMessageText] = useState(false);
     const [dailyUnlockedMemory, setDailyUnlockedMemory] = useState<{ title: string; description: string; imageUrl: string; date: string } | null>(null);
-    const [pendingReceivedBottle, setPendingReceivedBottle] = useState<any | null>(null);
 
-    // Connection Features states (Message in Bottle & Daily stats)
-    const [todayRevealedBottle, setTodayRevealedBottle] = useState<any | null>(null);
+    // Mensajes en la botella (escribir / revelar) — encapsulado en useBottleMessages
+    const {
+        videoRef,
+        hasPausedForMessage,
+        setHasPausedForMessage,
+        bottleNoteText,
+        setBottleNoteText,
+        bottleNoteModal,
+        setBottleNoteModal,
+        revealedBottleMessage,
+        setRevealedBottleMessage,
+        showMessageText,
+        setShowMessageText,
+        pendingReceivedBottle,
+        setPendingReceivedBottle,
+        todayRevealedBottle,
+        setTodayRevealedBottle,
+        refreshBottleMessages,
+    } = useBottleMessages(profile);
+
+    // Connection Features states (Daily stats)
     const [allScores, setAllScores] = useState<any[]>([]);
     const [partnerCompletedGames, setPartnerCompletedGames] = useState(0);
     const level = 1 + Math.floor(completedGamesCount / 15);
@@ -744,6 +248,8 @@ export function Mahjong() {
                     setGameLost(true);
                     setLostReason('bomb');
                     setTimerActive(false);
+                    resetFireStreak();
+                    MahjongAudio.playError();
                     if (bombTickRef.current) clearInterval(bombTickRef.current);
                 }
                 return updatedTiles;
@@ -755,20 +261,25 @@ export function Mahjong() {
         };
     }, [activeMechanics, timerActive, tiles]);
 
-    const [dailyPlayRecord, setDailyPlayRecord] = useState<any | null>(null);
-    const [dailyStats, setDailyStats] = useState<{ el: any | null; ella: any | null }>({ el: null, ella: null });
-    const [todaySentDrawing, setTodaySentDrawing] = useState<any | null>(null);
-    const [todayReceivedDrawing, setTodayReceivedDrawing] = useState<any | null>(null);
-    const [drawingModalOpen, setDrawingModalOpen] = useState(false);
-    const [revealDrawingModalOpen, setRevealDrawingModalOpen] = useState(false);
-    const [revealedDrawingData, setRevealedDrawingData] = useState<any | null>(null);
-    const [historicDailyStats, setHistoricDailyStats] = useState<{
-        el: { completed: number; failed: number; bestTime: number | null };
-        ella: { completed: number; failed: number; bestTime: number | null };
-    }>({
-        el: { completed: 0, failed: 0, bestTime: null },
-        ella: { completed: 0, failed: 0, bestTime: null }
-    });
+    const {
+        dailyPlayRecord,
+        setDailyPlayRecord,
+        dailyStats,
+        historicDailyStats,
+        refreshDailyStats,
+    } = useDailyStats(profile);
+    // Dibujos de amor diarios (dibujar / revelar) — encapsulado en useDrawings
+    const {
+        todaySentDrawing,
+        todayReceivedDrawing,
+        drawingModalOpen,
+        setDrawingModalOpen,
+        revealDrawingModalOpen,
+        setRevealDrawingModalOpen,
+        revealedDrawingData,
+        setRevealedDrawingData,
+        refreshDrawings,
+    } = useDrawings(profile);
 
     // Subscribe to active coop game changes
     useEffect(() => {
@@ -836,50 +347,17 @@ export function Mahjong() {
         }
     }, [matchedCount]);
 
-    const getLocalDateString = () => {
-        const d = new Date();
-        const offset = d.getTimezoneOffset();
-        const localDate = new Date(d.getTime() - (offset * 60 * 1000));
-        return localDate.toISOString().split('T')[0];
-    };
-
     const refreshConnectionFeatures = async () => {
         if (!profile) return;
 
-        // 1. Fetch today's revealed bottle message
-        const todayMsg = await MahjongService.getTodayRevealedBottleMessage(profile as 'el' | 'ella');
-        setTodayRevealedBottle(todayMsg);
+        // 1. Fetch bottle messages (encapsulado en useBottleMessages)
+        await refreshBottleMessages();
 
-        // 2. Fetch pending received bottle message
-        const pendingMsg = await MahjongService.getPendingBottleMessage(profile as 'el' | 'ella');
-        setPendingReceivedBottle(pendingMsg);
+        // 2. Fetch daily play status & stats (encapsulado en useDailyStats)
+        await refreshDailyStats();
 
-        // 2. Fetch daily play status & stats
-        const dateStr = getLocalDateString();
-        const play = await MahjongService.getDailyPuzzlePlay(profile as 'el' | 'ella', dateStr);
-
-        if (play && play.status === 'started') {
-            // "started" state means they aborted or reloaded. Update it to "failed" to enforce one-shot rule!
-            await MahjongService.updateDailyPuzzleStatus(profile as 'el' | 'ella', dateStr, 'failed');
-            setDailyPlayRecord({ ...play, status: 'failed' });
-        } else {
-            setDailyPlayRecord(play);
-        }
-
-        // Fetch daily stats and historic stats
-        const stats = await MahjongService.getDailyPuzzleStats(dateStr);
-        setDailyStats(stats);
-
-        const historic = await MahjongService.getDailyPuzzleHistoricCounts();
-        setHistoricDailyStats(historic);
-
-        // Fetch today's drawings
-        const sentDrawing = await MahjongService.getTodayDrawing(profile as 'el' | 'ella');
-        setTodaySentDrawing(sentDrawing);
-
-        const partnerKey = profile === 'el' ? 'ella' : 'el';
-        const receivedDrawing = await MahjongService.getTodayDrawing(partnerKey);
-        setTodayReceivedDrawing(receivedDrawing);
+        // 3. Fetch today's drawings (encapsulado en useDrawings)
+        await refreshDrawings();
     };
 
     const handleStartDailyGame = async () => {
@@ -925,6 +403,18 @@ export function Mahjong() {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
+    // Cargar la preferencia de silencio del audio al montar
+    useEffect(() => {
+        setMutedState(MahjongAudio.loadMutedPreference());
+    }, []);
+
+    const toggleMute = useCallback(() => {
+        MahjongAudio.initAudio();
+        const next = !MahjongAudio.isMuted();
+        MahjongAudio.setMuted(next);
+        setMutedState(next);
+    }, []);
+
     useEffect(() => {
         MahjongService.getMahjongLeaderboard().then(setLeaderboard).catch(() => { });
         if (profile) {
@@ -952,6 +442,8 @@ export function Mahjong() {
     useEffect(() => {
         if (matchedCount === tiles.length && tiles.length > 0 && timerActive) {
             setTimerActive(false);
+            resetFireStreak();
+            MahjongAudio.playVictory();
             const time = timerRef.current?.getTime() || 0;
 
             if (gameMode === 'coop' && activeCoopGame) {
@@ -1840,6 +1332,8 @@ export function Mahjong() {
                 setDockIds(updatedDock);
                 setUndoStack(us => [...us, [id]]);
                 setTimerActive(false);
+                resetFireStreak();
+                MahjongAudio.playError();
                 if (gameMode === 'coop' && activeCoopGame) {
                     MahjongService.updateCoopGame(activeCoopGame.id, tiles, updatedDock, coopTurn);
                 } else if (gameMode === 'daily') {
@@ -1850,12 +1344,13 @@ export function Mahjong() {
             } else {
                 setDockIds(updatedDock);
                 setUndoStack(us => [...us, [id]]);
+                MahjongAudio.playPickup();
                 if (gameMode === 'coop' && activeCoopGame) {
                     MahjongService.updateCoopGame(activeCoopGame.id, tiles, updatedDock, coopTurn);
                 }
             }
         }
-    }, [tilesById, gameLost, dockIds, tiles, freeTilesMap, timerActive, matchedCount, eventDetailsMap, gameMode, activeCoopGame, coopTurn, profile, pendingReceivedBottle, isReturningFlipped]);
+    }, [tilesById, gameLost, dockIds, tiles, freeTilesMap, timerActive, matchedCount, eventDetailsMap, gameMode, activeCoopGame, coopTurn, profile, pendingReceivedBottle, isReturningFlipped, resetFireStreak]);
 
     const handleRestart = () => {
         if (initialDeal) {
@@ -2046,30 +1541,60 @@ export function Mahjong() {
     return (
         <div className="relative flex w-full flex-col items-center justify-center overflow-hidden max-md:overflow-visible">
 
+            {/* Fuego perimetral que rodea la pantalla según el combo */}
+            <ComboFireFrame combo={streakCombo} />
+
             {/* Floating gaming brutalist combo sign overlay */}
             <AnimatePresence>
-                {comboSign && (
-                    <motion.div
-                        key={comboSign.id}
-                        initial={{ opacity: 0, x: -150, scale: 0.7 }}
-                        animate={{ opacity: 1, x: 0, scale: 1.1 }}
-                        exit={{ opacity: 0, x: 150, scale: 0.7 }}
-                        transition={{ type: 'spring', stiffness: 220, damping: 11 }}
-                        className="fixed top-[14%] left-1/2 -translate-x-1/2 z-[9999] pointer-events-none select-none"
-                    >
-                        {/* Shadow box */}
-                        <div className="absolute inset-0 translate-x-[6px] translate-y-[6px] bg-[#ff4500] border-2 border-black shadow-[0_0_30px_rgba(255,69,0,0.6)]" />
-                        {/* Main box */}
-                        <div className="relative border-2 border-white bg-black/95 px-8 py-4 text-center">
-                            <div className="font-mono text-xs font-black uppercase text-orange-500/70 tracking-widest mb-1 animate-pulse">
-                                Racha de Fuego
+                {comboSign && (() => {
+                    const tier = getComboTier(comboSign.combo);
+                    return (
+                        <motion.div
+                            key={comboSign.id}
+                            initial={{ opacity: 0, y: -40, scale: 0.4, rotate: -6 }}
+                            animate={{ opacity: 1, y: 0, scale: 1, rotate: 0 }}
+                            exit={{ opacity: 0, scale: 1.3, filter: 'blur(6px)' }}
+                            transition={{ type: 'spring', stiffness: 320, damping: 14 }}
+                            className="fixed top-[13%] left-1/2 -translate-x-1/2 z-[99995] pointer-events-none select-none"
+                        >
+                            {/* Multiplicador gigante ascendente */}
+                            {comboSign.combo >= 2 && (
+                                <motion.div
+                                    key={`mult-${comboSign.id}`}
+                                    initial={{ opacity: 0.9, scale: 0.6, y: 0 }}
+                                    animate={{ opacity: 0, scale: 2.2, y: -30 }}
+                                    transition={{ duration: 1.1, ease: 'easeOut' }}
+                                    className="absolute -top-10 left-1/2 -translate-x-1/2 font-black italic text-5xl md:text-6xl"
+                                    style={{ color: tier.box, textShadow: `0 0 24px ${tier.glow}` }}
+                                >
+                                    x{comboSign.combo}
+                                </motion.div>
+                            )}
+                            {/* Sombra 3D del letrero */}
+                            <div
+                                className="absolute inset-0 translate-x-[6px] translate-y-[6px] border-2 border-black"
+                                style={{ backgroundColor: tier.box, boxShadow: `0 0 34px ${tier.glow}` }}
+                            />
+                            {/* Caja principal */}
+                            <div
+                                className={`relative border-2 bg-black/95 px-8 py-4 text-center ${comboSign.combo >= 3 ? 'animate-combo-shake' : ''}`}
+                                style={{ borderColor: tier.box }}
+                            >
+                                <div className={`flex items-center justify-center gap-1.5 font-mono text-[11px] font-black uppercase tracking-[0.28em] mb-1 ${tier.label}`}>
+                                    <span className="animate-pulse">{tier.emoji}</span>
+                                    Racha de Fuego
+                                    <span className="animate-pulse">{tier.emoji}</span>
+                                </div>
+                                <div
+                                    className="font-sans font-black text-xl md:text-3xl uppercase tracking-wider drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)]"
+                                    style={{ color: tier.text }}
+                                >
+                                    {comboSign.text}
+                                </div>
                             </div>
-                            <div className="font-sans font-black text-xl md:text-2xl uppercase tracking-wider text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
-                                {comboSign.text}
-                            </div>
-                        </div>
-                    </motion.div>
-                )}
+                        </motion.div>
+                    );
+                })()}
             </AnimatePresence>
 
             {/* Modo de Juego Tab Selector */}
@@ -2270,11 +1795,7 @@ export function Mahjong() {
                         animate={{ opacity: 1, scale: 1 }}
                         className="relative z-10 flex w-[95%] max-w-md flex-col items-center border border-red-500 bg-black/95 px-8 py-10 shadow-[0_0_40px_rgba(239,68,68,0.22)] backdrop-blur-xl md:px-12 md:py-12 animate-glitch-container"
                     >
-                        {/* Esquinas brutalistas decorativas */}
-                        <div className="absolute top-0 left-0 h-4 w-4 border-t-2 border-l-2 border-red-500" />
-                        <div className="absolute top-0 right-0 h-4 w-4 border-t-2 border-r-2 border-red-500" />
-                        <div className="absolute bottom-0 left-0 h-4 w-4 border-b-2 border-l-2 border-red-500" />
-                        <div className="absolute bottom-0 right-0 h-4 w-4 border-b-2 border-r-2 border-red-500" />
+                        <BrutalistCorners color="#ef4444" size={16} />
 
                         <div className="mb-6 flex h-16 w-16 rotate-45 items-center justify-center border border-red-500 bg-red-500/10 animate-glitch-flicker">
                             {lostReason === 'bomb' ? (
@@ -2337,11 +1858,7 @@ export function Mahjong() {
                                 transition={{ type: 'spring', damping: 25, stiffness: 180 }}
                                 className="relative z-10 w-full max-w-lg border border-[#ffd700]/40 bg-[#0a0a0a] p-6 text-center shadow-[0_0_50px_rgba(255,215,0,0.25)] md:p-8 animate-glitch-container"
                             >
-                                {/* Esquinas brutalistas doradas */}
-                                <div className="absolute top-0 left-0 h-4 w-4 border-t-2 border-l-2 border-[#ffd700]" />
-                                <div className="absolute top-0 right-0 h-4 w-4 border-t-2 border-r-2 border-[#ffd700]" />
-                                <div className="absolute bottom-0 left-0 h-4 w-4 border-b-2 border-l-2 border-[#ffd700]" />
-                                <div className="absolute bottom-0 right-0 h-4 w-4 border-b-2 border-r-2 border-[#ffd700]" />
+                                <BrutalistCorners color="#ffd700" size={16} />
 
                                 <div className="mb-4 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.24em] text-[#ffd700] animate-glitch-text">
                                     <Sparkles className="h-4 w-4 text-[#ffd700] animate-pulse" />
@@ -2403,11 +1920,7 @@ export function Mahjong() {
                         className={`relative z-10 flex w-[95%] max-w-md flex-col items-center border border-${accentClass} bg-black/95 px-8 py-10 shadow-none backdrop-blur-xl md:px-12 md:py-12 animate-glitch-container`}
                         style={{ borderColor: accentColor, boxShadow: `0 0 44px ${accentColor}2e` }}
                     >
-                        {/* Esquinas brutalistas decorativas */}
-                        <div className="absolute top-0 left-0 h-4 w-4 border-t-2 border-l-2" style={{ borderColor: accentColor }} />
-                        <div className="absolute top-0 right-0 h-4 w-4 border-t-2 border-r-2" style={{ borderColor: accentColor }} />
-                        <div className="absolute bottom-0 left-0 h-4 w-4 border-b-2 border-l-2" style={{ borderColor: accentColor }} />
-                        <div className="absolute bottom-0 right-0 h-4 w-4 border-b-2 border-r-2" style={{ borderColor: accentColor }} />
+                        <BrutalistCorners color={accentColor} size={16} />
 
                         <div className="mb-5 flex h-16 w-16 rotate-45 items-center justify-center border-2 border-current animate-glitch-flicker" style={{ color: accentColor }}>
                             <Trophy className="h-8 w-8 -rotate-45 text-current" />
@@ -2542,12 +2055,11 @@ export function Mahjong() {
             {/* Modal para Escribir Mensaje en la Botella */}
             {bottleNoteModal && (
                 <div className="fixed inset-0 z-[100099] flex items-center justify-center bg-black/80 p-4 backdrop-blur-md">
-                    <div className="relative w-full max-w-md border border-teal-500/40 bg-[#0c1616] p-6 shadow-[0_0_40px_rgba(0,128,128,0.25)] md:p-8">
-                        <div className="absolute top-0 left-0 h-3 w-3 border-t-2 border-l-2 border-teal-400" />
-                        <div className="absolute top-0 right-0 h-3 w-3 border-t-2 border-r-2 border-teal-400" />
-                        <div className="absolute bottom-0 left-0 h-3 w-3 border-b-2 border-l-2 border-teal-400" />
-                        <div className="absolute bottom-0 right-0 h-3 w-3 border-b-2 border-r-2 border-teal-400" />
-
+                    <BrutalistPanel
+                        accentColor="#2dd4bf"
+                        cornerSize={12}
+                        className="w-full max-w-md !bg-[#0c1616] p-6 shadow-[0_0_40px_rgba(0,128,128,0.25)] md:p-8"
+                    >
                         <h3 className="mb-2 text-xl font-bold uppercase tracking-wider text-[#00ffcc] font-mono">
                             Mensaje en la Botella 🍾
                         </h3>
@@ -2592,7 +2104,7 @@ export function Mahjong() {
                                 Cancelar
                             </button>
                         </div>
-                    </div>
+                    </BrutalistPanel>
                 </div>
             )}
 
@@ -2616,10 +2128,7 @@ export function Mahjong() {
                                 transition={{ type: 'spring', damping: 25, stiffness: 180 }}
                                 className="relative z-10 w-full max-w-sm border border-[#00ffcc]/40 bg-[#0c1616] p-6 text-center shadow-[0_0_40px_rgba(0,255,204,0.2)] md:p-8"
                             >
-                                <div className="absolute top-0 left-0 h-4 w-4 border-t-2 border-l-2 border-[#00ffcc]" />
-                                <div className="absolute top-0 right-0 h-4 w-4 border-t-2 border-r-2 border-[#00ffcc]" />
-                                <div className="absolute bottom-0 left-0 h-4 w-4 border-b-2 border-l-2 border-[#00ffcc]" />
-                                <div className="absolute bottom-0 right-0 h-4 w-4 border-b-2 border-r-2 border-[#00ffcc]" />
+                                <BrutalistCorners color="#00ffcc" size={16} />
 
                                 <div className="mb-4 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.24em] text-[#00ffcc]">
                                     🍾 Mensaje de Amor Encontrado
@@ -2717,7 +2226,7 @@ export function Mahjong() {
             )}
 
             <div
-                className={`flex w-full ${hasStarted ? 'fixed inset-0 z-[9999] h-[100dvh] w-[100dvw] bg-[#050505] max-w-none' : 'relative max-w-[880px] h-[690px] max-md:h-[590px]'} max-md:max-w-none max-md:w-screen max-md:shrink-0 flex-col justify-center overflow-hidden border border-white/10 max-md:border-x-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.06),transparent_44%),linear-gradient(180deg,rgba(255,255,255,0.035),transparent)] transition-all duration-500`}
+                className={`flex w-full ${hasStarted ? 'fixed inset-0 z-[9999] h-[100dvh] w-[100dvw] bg-[#050505] max-w-none' : 'relative max-w-[880px] h-[690px] max-md:h-[590px]'} ${comboShake ? 'animate-combo-shake' : ''} max-md:max-w-none max-md:w-screen max-md:shrink-0 flex-col justify-center overflow-hidden border border-white/10 max-md:border-x-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.06),transparent_44%),linear-gradient(180deg,rgba(255,255,255,0.035),transparent)] transition-all duration-500`}
                 ref={containerRef}
             >
                 <div className="pointer-events-none absolute inset-0 bg-dot-matrix opacity-70" />
@@ -2966,58 +2475,39 @@ export function Mahjong() {
 
                 {/* --- 3D BRUTALIST HUD: ACTIONS (BOTTOM CENTER, BELOW PROGRESS BAR) --- */}
                 <div className="absolute bottom-[8px] md:bottom-[12px] left-1/2 -translate-x-1/2 z-20 flex items-center justify-center gap-4">
-                    {/* Undo Button */}
-                    <button
+                    <Brutalist3DButton
                         onClick={handleUndo}
                         disabled={undoStack.length === 0}
-                        className="relative group select-none disabled:opacity-30 disabled:pointer-events-none"
+                        shadowColor={undoStack.length > 0 ? accentColor : '#333'}
                         title="Deshacer"
                     >
-                        <div
-                            className="absolute inset-0 translate-x-[2px] translate-y-[2px] border border-black transition-transform duration-200"
-                            style={{ backgroundColor: undoStack.length > 0 ? accentColor : '#333' }}
-                        />
-                        <div className="relative flex items-center gap-1 border border-white/30 bg-[#0c0c0e] px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-white transition-transform duration-200 group-hover:-translate-x-[1px] group-hover:-translate-y-[1px] group-active:translate-x-[1px] group-active:translate-y-[1px]">
-                            <Undo2 className="h-3.5 w-3.5 transition-transform duration-300 group-hover:-rotate-45" />
-                            <span className="hidden sm:inline">Deshacer</span>
-                        </div>
-                    </button>
+                        <Undo2 className="h-3.5 w-3.5 transition-transform duration-300 group-hover:-rotate-45" />
+                        <span className="hidden sm:inline">Deshacer</span>
+                    </Brutalist3DButton>
 
-                    {/* Help/Hint Button */}
-                    <button
-                        onClick={handleHint}
-                        className="relative group select-none"
-                        title="Pista"
-                    >
-                        <div
-                            className="absolute inset-0 translate-x-[2px] translate-y-[2px] border border-black transition-transform duration-200"
-                            style={{ backgroundColor: accentColor }}
-                        />
-                        <div className="relative flex items-center gap-1 border border-white/30 bg-[#0c0c0e] px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-white transition-transform duration-200 group-hover:-translate-x-[1px] group-hover:-translate-y-[1px] group-active:translate-x-[1px] group-active:translate-y-[1px]">
-                            <Lightbulb className="h-3.5 w-3.5 transition-all duration-300 group-hover:scale-115 group-hover:text-yellow-300" />
-                            <span className="hidden sm:inline">Pista</span>
-                        </div>
-                    </button>
+                    <Brutalist3DButton onClick={handleHint} shadowColor={accentColor} title="Pista">
+                        <Lightbulb className="h-3.5 w-3.5 transition-all duration-300 group-hover:scale-115 group-hover:text-yellow-300" />
+                        <span className="hidden sm:inline">Pista</span>
+                    </Brutalist3DButton>
 
-                    {/* Restart Button */}
                     {gameMode !== 'daily' && (
-                        <button
-                            onClick={handleRestart}
-                            className="relative group select-none"
-                            title="Reiniciar"
-                        >
-                            <div
-                                className="absolute inset-0 translate-x-[2px] translate-y-[2px] border border-black transition-transform duration-200"
-                                style={{ backgroundColor: accentColor }}
-                            />
-                            <div className="relative flex items-center gap-1 border border-white/30 bg-[#0c0c0e] px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-white transition-transform duration-200 group-hover:-translate-x-[1px] group-hover:-translate-y-[1px] group-active:translate-x-[1px] group-active:translate-y-[1px]">
-                                <RotateCcw className="h-3.5 w-3.5 transition-transform duration-500 group-hover:rotate-180" />
-                                <span className="hidden sm:inline">Reiniciar</span>
-                            </div>
-                        </button>
+                        <Brutalist3DButton onClick={handleRestart} shadowColor={accentColor} title="Reiniciar">
+                            <RotateCcw className="h-3.5 w-3.5 transition-transform duration-500 group-hover:rotate-180" />
+                            <span className="hidden sm:inline">Reiniciar</span>
+                        </Brutalist3DButton>
                     )}
 
-
+                    <Brutalist3DButton
+                        onClick={toggleMute}
+                        shadowColor={muted ? '#555' : accentColor}
+                        title={muted ? 'Activar sonido' : 'Silenciar'}
+                        aria-label={muted ? 'Activar sonido' : 'Silenciar'}
+                    >
+                        {muted
+                            ? <VolumeX className="h-3.5 w-3.5 text-white/50" />
+                            : <Volume2 className="h-3.5 w-3.5 transition-all duration-300 group-hover:scale-115" />}
+                        <span className="hidden sm:inline">{muted ? 'Silencio' : 'Sonido'}</span>
+                    </Brutalist3DButton>
                 </div>
 
                 <div className="h-6" />
@@ -3027,6 +2517,7 @@ export function Mahjong() {
                     <div className="absolute inset-0 z-[1000] flex items-center justify-center bg-black/80 backdrop-blur-sm">
                         <button
                             onClick={() => {
+                                MahjongAudio.initAudio();
                                 requestGameFullscreen();
                                 setHasStarted(true);
                                 setTimerActive(true);
@@ -3098,236 +2589,3 @@ export function Mahjong() {
         </div>
     );
 }
-
-interface DrawingCanvasModalProps {
-    profile: 'el' | 'ella';
-    accentColor: string;
-    onClose: () => void;
-    onSave: (dataUrl: string, caption: string) => void;
-}
-
-const DrawingCanvasModal: React.FC<DrawingCanvasModalProps> = ({ profile, accentColor, onClose, onSave }) => {
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-    const [color, setColor] = useState('#ffffff');
-    const [thickness, setThickness] = useState(4);
-    const [caption, setCaption] = useState('');
-    const isDrawingRef = useRef(false);
-    const lastPosRef = useRef({ x: 0, y: 0 });
-
-    useEffect(() => {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
-        ctx.fillStyle = '#0a0a0a';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-    }, []);
-
-    const getCoordinates = (e: React.PointerEvent<HTMLCanvasElement>) => {
-        const canvas = canvasRef.current;
-        if (!canvas) return { x: 0, y: 0 };
-        const rect = canvas.getBoundingClientRect();
-        const x = ((e.clientX - rect.left) / rect.width) * canvas.width;
-        const y = ((e.clientY - rect.top) / rect.height) * canvas.height;
-        return { x, y };
-    };
-
-    const handlePointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
-        e.preventDefault();
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-        canvas.setPointerCapture(e.pointerId);
-        
-        isDrawingRef.current = true;
-        const pos = getCoordinates(e);
-        lastPosRef.current = pos;
-
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
-        ctx.beginPath();
-        ctx.arc(pos.x, pos.y, thickness / 2, 0, Math.PI * 2);
-        ctx.fillStyle = color;
-        ctx.fill();
-    };
-
-    const handlePointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
-        if (!isDrawingRef.current) return;
-        e.preventDefault();
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
-
-        const pos = getCoordinates(e);
-
-        ctx.beginPath();
-        ctx.strokeStyle = color;
-        ctx.lineWidth = thickness;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-        ctx.moveTo(lastPosRef.current.x, lastPosRef.current.y);
-        ctx.lineTo(pos.x, pos.y);
-        ctx.stroke();
-
-        lastPosRef.current = pos;
-    };
-
-    const handlePointerUp = (e: React.PointerEvent<HTMLCanvasElement>) => {
-        if (!isDrawingRef.current) return;
-        const canvas = canvasRef.current;
-        if (canvas) {
-            canvas.releasePointerCapture(e.pointerId);
-        }
-        isDrawingRef.current = false;
-    };
-
-    const handleClear = () => {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
-        ctx.fillStyle = '#0a0a0a';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-    };
-
-    const handleSend = () => {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-        const dataUrl = canvas.toDataURL('image/png');
-        onSave(dataUrl, caption);
-    };
-
-    return (
-        <div className="fixed inset-0 z-[100099] flex items-center justify-center bg-black/80 p-4 backdrop-blur-md font-mono">
-            <div className="relative w-full max-w-lg border border-purple-500/40 bg-[#0d0914] p-5 shadow-[0_0_40px_rgba(139,92,246,0.25)] flex flex-col">
-                <div className="absolute top-0 left-0 h-3 w-3 border-t-2 border-l-2 border-purple-400" />
-                <div className="absolute top-0 right-0 h-3 w-3 border-t-2 border-r-2 border-purple-400" />
-                <div className="absolute bottom-0 left-0 h-3 w-3 border-b-2 border-l-2 border-purple-400" />
-                <div className="absolute bottom-0 right-0 h-3 w-3 border-b-2 border-r-2 border-purple-400" />
-
-                <h3 className="mb-2 text-xl font-bold uppercase tracking-wider text-purple-400">
-                    Lienzo de Amor 🎨
-                </h3>
-                <p className="mb-4 text-xs leading-relaxed text-slate-400">
-                    ¡Dibuja algo especial para tu pareja! Tu dibujo aparecerá en su tablero de juego hoy.
-                </p>
-
-                <div className="relative w-full border border-purple-500/20 bg-black overflow-hidden flex justify-center items-center">
-                    <canvas
-                        ref={canvasRef}
-                        width={400}
-                        height={300}
-                        className="touch-none cursor-crosshair max-w-full"
-                        onPointerDown={handlePointerDown}
-                        onPointerMove={handlePointerMove}
-                        onPointerUp={handlePointerUp}
-                    />
-                </div>
-
-                <div className="mt-4 flex flex-wrap gap-4 items-center justify-between">
-                    <div className="flex gap-2">
-                        {['#ffffff', '#ef4444', '#3b82f6', '#eab308', '#22c55e', '#d946ef'].map((c) => (
-                            <button
-                                key={c}
-                                onClick={() => setColor(c)}
-                                className={`w-6 h-6 border transition-all ${color === c ? 'border-white scale-110' : 'border-transparent hover:scale-105'}`}
-                                style={{ backgroundColor: c }}
-                            />
-                        ))}
-                    </div>
-
-                    <div className="flex items-center gap-2 text-xs text-white">
-                        <span>Grosor:</span>
-                        {[2, 4, 8, 14].map((t) => (
-                            <button
-                                key={t}
-                                onClick={() => setThickness(t)}
-                                className={`px-2 py-0.5 border ${thickness === t ? 'border-purple-400 text-purple-400' : 'border-white/10 text-white/50 hover:bg-white/5'}`}
-                            >
-                                {t === 2 ? 'Fino' : t === 4 ? 'Med' : t === 8 ? 'Grueso' : 'Max'}
-                            </button>
-                        ))}
-                    </div>
-
-                    <button
-                        onClick={handleClear}
-                        className="px-3 py-1 border border-red-500/30 text-red-400 text-xs uppercase tracking-wider hover:bg-red-500/10 transition-all"
-                    >
-                        Limpiar
-                    </button>
-                </div>
-
-                <input
-                    type="text"
-                    value={caption}
-                    onChange={(e) => setCaption(e.target.value)}
-                    placeholder="Escribe un mensaje o dedicatoria aquí... (opcional)"
-                    className="w-full mt-4 border border-purple-500/20 bg-black/50 p-2.5 text-xs text-white focus:border-purple-500 focus:outline-none placeholder:text-purple-900/60"
-                />
-
-                <div className="mt-5 flex gap-3">
-                    <button
-                        onClick={handleSend}
-                        className="flex-1 bg-purple-600 py-2.5 text-xs font-black uppercase tracking-wider text-white hover:bg-purple-500 active:scale-95 transition-all"
-                    >
-                        Enviar Dibujo 🎨
-                    </button>
-                    <button
-                        onClick={onClose}
-                        className="border border-white/10 px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-slate-400 hover:bg-white/5 active:scale-95 transition-all"
-                    >
-                        Cancelar
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-interface RevealDrawingModalProps {
-    data: { sender: string; image: string; caption: string };
-    onClose: () => void;
-}
-
-const RevealDrawingModal: React.FC<RevealDrawingModalProps> = ({ data, onClose }) => {
-    return (
-        <div className="fixed inset-0 z-[100099] flex items-center justify-center bg-black/85 p-4 backdrop-blur-md font-mono">
-            <div className="relative w-full max-w-md border border-purple-500/40 bg-[#0d0914] p-6 shadow-[0_0_40px_rgba(139,92,246,0.3)] flex flex-col items-center">
-                <div className="absolute top-0 left-0 h-3 w-3 border-t-2 border-l-2 border-purple-400" />
-                <div className="absolute top-0 right-0 h-3 w-3 border-t-2 border-r-2 border-purple-400" />
-                <div className="absolute bottom-0 left-0 h-3 w-3 border-b-2 border-l-2 border-purple-400" />
-                <div className="absolute bottom-0 right-0 h-3 w-3 border-b-2 border-r-2 border-purple-400" />
-
-                <h3 className="mb-1 text-lg font-bold uppercase tracking-wider text-purple-400 text-center">
-                    Dibujo de {data.sender} 🖼️
-                </h3>
-                <span className="mb-4 text-[10px] text-slate-500 uppercase tracking-widest">
-                    Regalo Especial de Hoy
-                </span>
-
-                <div className="relative w-full border border-purple-500/20 bg-black aspect-[4/3] p-1 flex justify-center items-center">
-                    {data.image ? (
-                        <img
-                            src={data.image}
-                            alt="Dibujo de amor"
-                            className="w-full h-full object-contain"
-                        />
-                    ) : (
-                        <div className="text-slate-600 text-xs italic">No se pudo cargar el dibujo</div>
-                    )}
-                </div>
-
-                <p className="w-full mt-4 text-center text-xs leading-relaxed text-purple-200 border-t border-purple-500/10 pt-4 italic">
-                    "{data.caption}"
-                </p>
-
-                <button
-                    onClick={onClose}
-                    className="w-full mt-6 bg-purple-600 py-2.5 text-xs font-black uppercase tracking-[0.15em] text-white hover:bg-purple-500 active:scale-95 transition-all"
-                >
-                    Cerrar Dibujo ✨
-                </button>
-            </div>
-        </div>
-    );
-};

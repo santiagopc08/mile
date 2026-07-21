@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { SquareArrowUp, X, Cpu } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useProfile } from '@/context/ProfileContext';
-import { AnimatedBrutalistCorners } from '@/components/ui/AnimatedBrutalistCorners';
+import { BrutalistPanel } from '@/components/ui/BrutalistPanel';
 
 export function IOSInstallPrompt() {
   const { profile } = useProfile();
@@ -52,12 +52,12 @@ export function IOSInstallPrompt() {
         exit={{ y: 100, opacity: 0 }}
         className="fixed bottom-0 md:bottom-4 left-1/2 -translate-x-1/2 w-full md:w-[400px] z-[9999] p-4 font-mono"
       >
-        <div 
-          className="bg-[#0a0a0a]/95 backdrop-blur-md rounded-none border p-5 w-full flex flex-col gap-4 relative shadow-[0_15px_40px_rgba(0,0,0,0.7)]"
-          style={{ borderColor: `${accentColor}40` }}
+        <BrutalistPanel
+          accentColor={accentColor}
+          cornerSize={12}
+          cornerThickness={1.5}
+          className="!bg-[#0a0a0a]/95 backdrop-blur-md rounded-none p-5 w-full flex flex-col gap-4 shadow-[0_15px_40px_rgba(0,0,0,0.7)]"
         >
-          <AnimatedBrutalistCorners color={accentColor} size={12} thickness={1.5} />
-          
           <div className="flex justify-between items-center border-b border-white/10 pb-2">
             <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-white flex items-center gap-2">
               <Cpu className="w-3.5 h-3.5" style={{ color: accentColor }} />
@@ -86,7 +86,7 @@ export function IOSInstallPrompt() {
               </li>
             </ol>
           </div>
-        </div>
+        </BrutalistPanel>
       </motion.div>
     </AnimatePresence>
   );

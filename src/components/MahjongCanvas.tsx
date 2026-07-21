@@ -6,6 +6,7 @@ import * as THREE from 'three';
 import { TileState } from './MahjongTile';
 import { Tile3D } from './Tile3D';
 import { useProfile } from '@/context/ProfileContext';
+import * as MahjongAudio from '@/lib/mahjongAudio';
 
 // --- RIG DE CÁMARA (Efecto Parallax sutil con ratón y auto-escalado matemático) ---
 interface CameraRigProps {
@@ -432,15 +433,41 @@ interface MahjongCanvasProps {
     streakCombo?: number;
 }
 
+// Duración de la coreografía de choque en el dock antes de la explosión
+const COLLISION_MS = 300;
+const SHATTER_MS = 180;
+
+// Hit-stop: micro-congelación del render en el instante del impacto para dar peso.
+// Escala con el combo; sin freeze en emparejamientos simples para no restar agilidad.
+function hitStopDuration(combo: number) {
+    if (combo < 2) return 0;
+    return Math.min(70, 20 + combo * 10);
+}
+
+interface DyingTile {
+    id: string;
+    start: number; // performance.now()
+    collisionPos: [number, number, number];
+    isDockTile: boolean;
+}
+
 export function MahjongCanvas({ tiles, freeTilesMap, dockIds, onTilePointerDown, isMobile, ghostSolidIds, hasStarted, streakCombo = 0 }: MahjongCanvasProps) {
     const { profile } = useProfile();
     const [explosions, setExplosions] = useState<{ id: string; pos: [number, number, number]; color: string; combo: number }[]>([]);
+    const [dyingTiles, setDyingTiles] = useState<DyingTile[]>([]);
+    const [frozen, setFrozen] = useState(false); // hit-stop
     const prevMatchedIdsRef = useRef<Set<string>>(new Set());
 
-    // En 3D ya no filtramos las fichas en el dock de la pantalla del tablero; dejamos que LERPeen libremente hacia el Dock 3D
+    const dyingMap = useMemo(() => {
+        const m = new Map<string, DyingTile>();
+        for (const d of dyingTiles) m.set(d.id, d);
+        return m;
+    }, [dyingTiles]);
+
+    // Las fichas emparejadas siguen visibles brevemente mientras corre su choque en el dock.
     const visibleTiles = useMemo(() => {
-        return tiles.filter(t => !t.isMatched);
-    }, [tiles]);
+        return tiles.filter(t => !t.isMatched || dyingMap.has(t.id));
+    }, [tiles, dyingMap]);
 
     // Calcular límites lógicos, tamaño del tablero y coordenadas Y del tablero y dock en unidades 3D
     const { centerX, centerY, boardWidth, boardHeight, boardY, dockY } = useMemo(() => {
@@ -499,7 +526,7 @@ export function MahjongCanvas({ tiles, freeTilesMap, dockIds, onTilePointerDown,
 
     const prevDockIdsRef = useRef<string[]>([]);
 
-    // Detectar coincidencias y lanzar explosiones
+    // Detectar coincidencias, coreografiar el choque en el dock y lanzar explosiones
     useEffect(() => {
         const newlyMatched = tiles.filter(t => t.isMatched && !prevMatchedIdsRef.current.has(t.id));
         if (newlyMatched.length > 0) {
@@ -509,34 +536,83 @@ export function MahjongCanvas({ tiles, freeTilesMap, dockIds, onTilePointerDown,
             const spacingY = 0.59;
             const spacingZ = 0.34;
 
-            const newExplosions = newlyMatched.map(tile => {
-                // Verificar si la ficha estaba en el dock antes del emparejamiento para detonar la explosión allí
-                const dockIndex = prevDockIdsRef.current.indexOf(tile.id);
-                const wasInDock = dockIndex !== -1;
+            const combo = Math.max(1, streakCombo);
 
-                let posX: number;
-                let posY: number;
-                let posZ: number;
+            // ¿La coincidencia salió del dock? (caso normal de emparejamiento)
+            const dockTile = newlyMatched.find(t => prevDockIdsRef.current.indexOf(t.id) !== -1);
 
-                if (wasInDock) {
-                    posX = (dockIndex - 1) * 1.30;
-                    posY = dockY;
-                    posZ = 0.25;
-                } else {
-                    posX = (tile.x - centerX) * spacingX;
-                    posY = boardY - (tile.y - centerY) * spacingY;
-                    posZ = tile.z * spacingZ;
-                }
+            if (dockTile && newlyMatched.length <= 2) {
+                // ─── CHOQUE EN EL DOCK ───
+                const dockIndex = prevDockIdsRef.current.indexOf(dockTile.id);
+                const collisionPos: [number, number, number] = [(dockIndex - 1) * 1.30, dockY, 0.35];
+                const isGolden = newlyMatched.some(t => t.content.type === 'custom');
+                const expColor = isGolden ? '#ffd700' : rawAccentColor;
 
-                return {
-                    id: `exp-${tile.id}-${Date.now()}-${Math.random()}`,
-                    pos: [posX, posY, posZ] as [number, number, number],
-                    color: tile.content.type === 'custom' ? '#ffd700' : rawAccentColor,
-                    combo: Math.max(1, streakCombo)
-                };
-            });
+                const start = performance.now();
+                const batch: DyingTile[] = newlyMatched.map(t => ({
+                    id: t.id,
+                    start,
+                    collisionPos,
+                    isDockTile: t.id === dockTile.id
+                }));
+                setDyingTiles(prev => [...prev, ...batch]);
 
-            setExplosions(prev => [...prev, ...newExplosions]);
+                // Whoosh de la ficha volando al dock + nota de combo
+                MahjongAudio.playMatch(combo);
+
+                // La explosión detona en el instante del impacto (con clink + hit-stop)
+                window.setTimeout(() => {
+                    setExplosions(prev => [...prev, {
+                        id: `exp-${dockTile.id}-${start}`,
+                        pos: collisionPos,
+                        color: expColor,
+                        combo
+                    }]);
+                    MahjongAudio.playCollision(combo);
+
+                    // Hit-stop: congela el render unos milisegundos para dar impacto
+                    const freezeMs = hitStopDuration(combo);
+                    if (freezeMs > 0) {
+                        setFrozen(true);
+                        window.setTimeout(() => setFrozen(false), freezeMs);
+                    }
+                }, COLLISION_MS);
+
+                // Retirar las fichas ya destruidas tras el estallido
+                const batchIds = new Set(batch.map(b => b.id));
+                window.setTimeout(() => {
+                    setDyingTiles(prev => prev.filter(d => !batchIds.has(d.id)));
+                }, COLLISION_MS + SHATTER_MS);
+            } else {
+                // ─── Fallback: explosión instantánea (ej. carga remota en coop) ───
+                const newExplosions = newlyMatched.map(tile => {
+                    const dockIndex = prevDockIdsRef.current.indexOf(tile.id);
+                    const wasInDock = dockIndex !== -1;
+
+                    let posX: number;
+                    let posY: number;
+                    let posZ: number;
+
+                    if (wasInDock) {
+                        posX = (dockIndex - 1) * 1.30;
+                        posY = dockY;
+                        posZ = 0.25;
+                    } else {
+                        posX = (tile.x - centerX) * spacingX;
+                        posY = boardY - (tile.y - centerY) * spacingY;
+                        posZ = tile.z * spacingZ;
+                    }
+
+                    return {
+                        id: `exp-${tile.id}-${Date.now()}-${Math.random()}`,
+                        pos: [posX, posY, posZ] as [number, number, number],
+                        color: tile.content.type === 'custom' ? '#ffd700' : rawAccentColor,
+                        combo
+                    };
+                });
+
+                setExplosions(prev => [...prev, ...newExplosions]);
+            }
         }
 
         // ⚡ Bolt Optimization: Replace double-pass filter/map with single-pass O(N) iteration
@@ -553,7 +629,8 @@ export function MahjongCanvas({ tiles, freeTilesMap, dockIds, onTilePointerDown,
     return (
         <div className="relative h-full w-full select-none" style={{ minHeight: isMobile ? '400px' : '520px' }}>
             <Canvas
-                shadows={{ type: THREE.PCFSoftShadowMap }} 
+                frameloop={frozen ? 'never' : 'always'}
+                shadows={{ type: THREE.PCFSoftShadowMap }}
                 camera={{ fov: 50, position: [0, -0.6, 6.2], near: 0.1, far: 50 }}
                 gl={{ antialias: true, alpha: true }}
                 style={{ background: 'transparent' }}
@@ -611,6 +688,7 @@ export function MahjongCanvas({ tiles, freeTilesMap, dockIds, onTilePointerDown,
                             onSelect={onTilePointerDown}
                             isGhostSolid={tile.isGhost ? ghostSolidIds?.has(tile.id) : undefined}
                             hasStarted={hasStarted}
+                            dyingInfo={dyingMap.get(tile.id)}
                         />
                     ))}
                 </group>
