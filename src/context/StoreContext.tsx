@@ -56,7 +56,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
         // If commitments changed, recalculate dailyProgress optimistically
         if (partial.commitments !== undefined && data.dailyProgress) {
-            const todayCompleted = partial.commitments.filter((c: any) => c.completed).length;
+            // ⚡ Bolt Optimization: Avoid O(N) array allocation in .filter().length
+            let todayCompleted = 0;
+            for (const c of partial.commitments) {
+                if (c.completed) todayCompleted++;
+            }
             const todayTotal = partial.commitments.length;
             optimistic.dailyProgress = {
                 ...data.dailyProgress,
