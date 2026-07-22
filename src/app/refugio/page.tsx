@@ -11,6 +11,7 @@ import { useStore } from "@/context/StoreContext";
 import { useProfile } from "@/context/ProfileContext";
 import { MessageCircleHeart, Mic, PawPrint, Clock, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { InteractiveBackground } from "@/components/InteractiveBackground";
 
 export default function RefugioPage() {
   type RefugioTab = 'notas' | 'escucha' | 'bebes' | 'historia';
@@ -51,9 +52,8 @@ export default function RefugioPage() {
 
   return (
     <PrivateRoute>
-      <main className="relative z-10 min-h-screen w-full overflow-hidden bg-black px-4 pb-24 pt-6 text-[#e5e2e1] md:px-8 md:pt-8 font-sans">
-        <div className="pointer-events-none fixed inset-0 -z-10 bg-mosaic opacity-70" />
-        <div className="pointer-events-none fixed inset-x-0 top-0 -z-10 h-64 opacity-20" style={{ backgroundImage: `linear-gradient(180deg, ${accentColor}, transparent)` }} />
+      <InteractiveBackground preset="refugio" profile={profile} />
+      <main className="relative z-10 min-h-screen w-full overflow-hidden px-4 pb-24 pt-6 text-[#e5e2e1] md:px-8 md:pt-8 font-sans">
 
         <div className="mx-auto w-full max-w-7xl border-x border-white/10">
           <div className="border-y border-white/10 bg-[#0a0a0a]/92">

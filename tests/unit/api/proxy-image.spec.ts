@@ -17,14 +17,14 @@ test.describe('Proxy Image API Security', () => {
 
     test.afterEach(() => {
         if (originalFetchSafe) {
-            require.cache[fetchSafeModulePath] = originalFetchSafe;
+            require.cache[fetchSafeModulePath] = originalFetchSafe as any;
         } else {
             delete require.cache[fetchSafeModulePath];
+        }
         if (originalSupabaseUrl !== undefined) {
             process.env.NEXT_PUBLIC_SUPABASE_URL = originalSupabaseUrl;
         } else {
             delete process.env.NEXT_PUBLIC_SUPABASE_URL;
-        }
         }
     });
 

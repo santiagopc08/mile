@@ -20,10 +20,10 @@ interface BrutalistCornersProps {
 export function BrutalistCorners({ color = 'currentColor', size = 12, thickness = 2 }: BrutalistCornersProps) {
     return (
         <>
-            <div className="pointer-events-none absolute left-0 top-0" style={{ width: size, height: size, borderTop: `${thickness}px solid ${color}`, borderLeft: `${thickness}px solid ${color}` }} />
-            <div className="pointer-events-none absolute right-0 top-0" style={{ width: size, height: size, borderTop: `${thickness}px solid ${color}`, borderRight: `${thickness}px solid ${color}` }} />
-            <div className="pointer-events-none absolute bottom-0 left-0" style={{ width: size, height: size, borderBottom: `${thickness}px solid ${color}`, borderLeft: `${thickness}px solid ${color}` }} />
-            <div className="pointer-events-none absolute bottom-0 right-0" style={{ width: size, height: size, borderBottom: `${thickness}px solid ${color}`, borderRight: `${thickness}px solid ${color}` }} />
+            <div className="pointer-events-none absolute left-0 top-0 transition-transform duration-300 group-hover:-translate-x-0.5 group-hover:-translate-y-0.5" style={{ width: size, height: size, borderTop: `${thickness}px solid ${color}`, borderLeft: `${thickness}px solid ${color}` }} />
+            <div className="pointer-events-none absolute right-0 top-0 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" style={{ width: size, height: size, borderTop: `${thickness}px solid ${color}`, borderRight: `${thickness}px solid ${color}` }} />
+            <div className="pointer-events-none absolute bottom-0 left-0 transition-transform duration-300 group-hover:-translate-x-0.5 group-hover:translate-y-0.5" style={{ width: size, height: size, borderBottom: `${thickness}px solid ${color}`, borderLeft: `${thickness}px solid ${color}` }} />
+            <div className="pointer-events-none absolute bottom-0 right-0 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:translate-y-0.5" style={{ width: size, height: size, borderBottom: `${thickness}px solid ${color}`, borderRight: `${thickness}px solid ${color}` }} />
         </>
     );
 }
@@ -48,11 +48,6 @@ interface BrutalistPanelProps extends React.HTMLAttributes<HTMLDivElement> {
  * BrutalistPanel — contenedor base del lenguaje "brutalista-cyber" de la app:
  * caja recta, borde fino, esquinas marcadas y fondo oscuro. Sustituye el patrón
  * copiado de 4 divs de esquina + borde que se repetía en cada modal/panel.
- *
- * Uso típico:
- *   <BrutalistPanel accentColor="#ffd700" corners="static" className="max-w-md p-6">
- *       ...contenido...
- *   </BrutalistPanel>
  */
 export function BrutalistPanel({
     accentColor = 'currentColor',
@@ -68,7 +63,7 @@ export function BrutalistPanel({
 }: BrutalistPanelProps) {
     return (
         <div
-            className={`relative border bg-[#0a0a0a] ${className}`}
+            className={`group relative border bg-[#0a0a0a] micro-hover-lift shimmer-sweep transition-all duration-300 ${className}`}
             style={{ borderColor: borderColor ?? `${accentColor}40`, ...style }}
             {...rest}
         >

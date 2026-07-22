@@ -28,6 +28,7 @@ import {
   Camera
 } from 'lucide-react';
 import { BrutalistPanel } from "@/components/ui/BrutalistPanel";
+import { InteractiveBackground } from "@/components/InteractiveBackground";
 
 export default function Home() {
   const { profile } = useProfile();
@@ -89,14 +90,7 @@ export default function Home() {
 
   return (
     <PrivateRoute>
-      <div
-        className="fixed inset-0 z-[-1] bg-black overflow-hidden"
-        style={{ '--color-profile-accent': accentColorValue } as React.CSSProperties}
-      >
-        {/* Subtle Geometric Background */}
-        <div className="absolute inset-0 bg-mosaic opacity-40 pointer-events-none" />
-        <div className="absolute inset-0 bg-dot-matrix opacity-30 pointer-events-none" />
-      </div>
+      <InteractiveBackground preset="home" profile={profile} />
 
       <main
         className="w-full min-h-screen flex flex-col items-center justify-start py-4 sm:py-8 md:py-12 px-2 sm:px-6 relative z-10 text-[#e5e2e1] overflow-y-auto"

@@ -5,6 +5,7 @@ import { useProfile } from "@/context/ProfileContext";
 import dynamic from "next/dynamic";
 import { AnimatedBrutalistCorners } from "@/components/ui/AnimatedBrutalistCorners";
 import { BrutalistSkeleton } from "@/components/ui/BrutalistSkeleton";
+import { InteractiveBackground } from "@/components/InteractiveBackground";
 
 const Mahjong = dynamic(
   () => import("@/components/Mahjong").then((m) => m.Mahjong),
@@ -25,9 +26,8 @@ export default function JuegoPage() {
 
   return (
     <PrivateRoute>
-      <main className="relative z-10 min-h-screen w-full overflow-hidden bg-black px-4 pb-24 pt-6 text-[#e5e2e1] md:px-8 md:pt-8">
-        <div className="pointer-events-none fixed inset-0 -z-10 bg-mosaic opacity-65" />
-        <div className="pointer-events-none fixed inset-x-0 top-0 -z-10 h-64 opacity-20" style={{ backgroundImage: `linear-gradient(180deg, ${accentColor}, transparent)` }} />
+      <InteractiveBackground preset="juego" profile={profile} />
+      <main className="relative z-10 min-h-screen w-full overflow-hidden px-4 pb-24 pt-6 text-[#e5e2e1] md:px-8 md:pt-8">
 
         <div className="mx-auto w-full max-w-7xl border-x border-white/10">
           <div className="border-y border-white/10 bg-[#0a0a0a]/95">

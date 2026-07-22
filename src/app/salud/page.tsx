@@ -11,6 +11,7 @@ import { Activity, HeartPulse, Shield, Flame } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Allocation, StoreService } from "@/services/storeService";
 import { MovementTracker } from "@/components/health/MovementTracker";
+import { InteractiveBackground } from "@/components/InteractiveBackground";
 
 export default function SaludPage() {
     type SaludTab = 'vitals' | 'biometric' | 'fiscal' | 'habits' | 'movement';
@@ -61,9 +62,8 @@ export default function SaludPage() {
 
     return (
         <PrivateRoute>
-            <main className="relative z-10 min-h-screen w-full overflow-hidden bg-black px-4 pb-24 pt-6 text-[#e5e2e1] md:px-8 md:pt-8 font-mono">
-                <div className="pointer-events-none fixed inset-0 -z-10 bg-mosaic opacity-60" />
-                <div className="pointer-events-none fixed inset-x-0 top-0 -z-10 h-64 opacity-20" style={{ backgroundImage: `linear-gradient(180deg, ${accentColor}, transparent)` }} />
+            <InteractiveBackground preset="salud" profile={profile} />
+            <main className="relative z-10 min-h-screen w-full overflow-hidden px-4 pb-24 pt-6 text-[#e5e2e1] md:px-8 md:pt-8 font-mono">
                 <div className="mx-auto w-full max-w-7xl border-x border-white/10">
                     <div className="border-y border-white/10 bg-[#0a0a0a]/95 rounded-none">
                         <div className="relative p-5 sm:p-8 md:p-10">

@@ -107,7 +107,7 @@ export function AppNav() {
             <Link
               key={item.path}
               href={item.path}
-              className={`nav-desktop-item group relative flex h-14 w-full items-center justify-center text-[#a88a7e] transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white/60 ${isActive ? 'is-active text-white bg-white/[0.06]' : 'hover:bg-white/[0.04] hover:text-white'}`}
+              className={`nav-desktop-item micro-click-press group relative flex h-14 w-full items-center justify-center text-[#a88a7e] transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white/60 ${isActive ? 'is-active text-white bg-white/[0.06]' : 'hover:bg-white/[0.04] hover:text-white'}`}
               style={{ '--nav-accent': itemAccent } as CSSProperties}
               aria-current={isActive ? 'page' : undefined}
               aria-label={`${item.name}: ${item.detail}`}
@@ -115,7 +115,7 @@ export function AppNav() {
               <span className="nav-desktop-signal" aria-hidden="true" />
               <span className="relative flex h-9 w-9 items-center justify-center">
                 <span className="nav-icon-pulse" aria-hidden="true" />
-                <Icon className="relative h-6 w-6 stroke-[1.5] transition-transform duration-300 group-hover:scale-110" />
+                <Icon className="relative h-6 w-6 stroke-[1.5] transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
               </span>
               <span className="pointer-events-none absolute left-[4.6rem] top-1/2 z-50 min-w-44 -translate-y-1/2 border border-white/10 bg-[#0a0a0a]/95 px-3 py-2 text-left opacity-0 shadow-2xl shadow-black/40 backdrop-blur-md transition-all duration-200 group-hover:translate-x-1 group-hover:opacity-100 group-focus-visible:translate-x-1 group-focus-visible:opacity-100">
                 <span className="block font-mono text-[10px] font-black uppercase tracking-[0.18em]" style={{ color: itemAccent }}>{item.name}</span>

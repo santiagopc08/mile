@@ -14,7 +14,7 @@ test.describe('Link Preview API SSRF Protections', () => {
 
     test.afterEach(() => {
         if (originalFetchSafe) {
-            require.cache[fetchSafeModulePath] = originalFetchSafe;
+            require.cache[fetchSafeModulePath] = originalFetchSafe as any;
         } else {
             delete require.cache[fetchSafeModulePath];
         }
