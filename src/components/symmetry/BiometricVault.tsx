@@ -126,7 +126,13 @@ export const BiometricVault = () => {
         const recentDecryptedSymptoms = recentCycles.map(c => decrypt(c.symptoms_enc));
 
         const frequentSymptoms = FLO_SYMPTOMS.filter(sym => {
-            const count = recentDecryptedSymptoms.filter(symptomsStr => symptomsStr.includes(sym)).length;
+            // ⚡ Bolt Optimization: Avoid O(N) array allocation in .filter().length
+            let count = 0;
+            for (const symptomsStr of recentDecryptedSymptoms) {
+                if (symptomsStr.includes(sym)) {
+                    count++;
+                }
+            }
             return count >= 2;
         });
 
