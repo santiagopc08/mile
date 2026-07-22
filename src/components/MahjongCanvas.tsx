@@ -298,25 +298,27 @@ function MatchExplosion({ position, color, combo, onComplete }: ExplosionProps) 
                     p.pos[1] += p.vel[1] * safeDelta;
                     p.pos[2] += p.vel[2] * safeDelta;
 
-                    p.vel[0] *= 0.980;
-                    p.vel[1] *= 0.980;
-                    p.vel[2] = p.vel[2] * 0.960 - safeDelta * 1.8;
+                    p.vel[0] *= 0.975;
+                    p.vel[1] *= 0.975;
+                    p.vel[2] = p.vel[2] * 0.950 - safeDelta * 2.2;
 
                     p.rot[2] += p.rotVel[2] * safeDelta;
 
                     mesh.position.set(p.pos[0], p.pos[1], p.pos[2]);
                     mesh.rotation.set(p.rot[0], p.rot[1], p.rot[2]);
 
-                    const particleFade = visible ? Math.sin(localEase * Math.PI) * (1 - localProgress * 0.3) : 0;
+                    const particleFade = visible ? Math.sin(localEase * Math.PI) * (1 - localProgress * 0.25) : 0;
                     const baseScale = p.scale * particleFade * (1 + combo * 0.05);
-                    const stretch = p.shape === 'bar' ? 3.5 : p.shape === 'ember' ? 1.5 : 1.0;
+                    const stretch = p.shape === 'bar' ? 3.8 : p.shape === 'ember' ? 1.6 : 1.0;
                     mesh.scale.set(baseScale * stretch, baseScale * (p.shape === 'bar' ? 0.35 : 1.0), baseScale);
 
                     const mat = mesh.material as THREE.MeshStandardMaterial;
                     if (mat) {
                         mat.opacity = particleFade;
-                        mat.emissive.set(p.shape === 'ember' ? '#ff9900' : flameColor);
-                        mat.emissiveIntensity = particleFade * (3.0 + combo * 0.3);
+                        // Evolución de color por radiación de cuerpo negro (Incandescente -> Dorado -> Carmesí)
+                        const emberColor = localProgress < 0.2 ? '#ffffff' : localProgress < 0.65 ? '#ffaa00' : '#cc1100';
+                        mat.emissive.set(p.shape === 'ember' ? emberColor : flameColor);
+                        mat.emissiveIntensity = particleFade * (3.5 + combo * 0.4);
                     }
                 }
             });

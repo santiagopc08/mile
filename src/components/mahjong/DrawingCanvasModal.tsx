@@ -7,7 +7,7 @@ interface DrawingCanvasModalProps {
     profile: 'el' | 'ella';
     accentColor: string;
     onClose: () => void;
-    onSave: (dataUrl: string, caption: string) => void;
+    onSave: (dataUrl: string, caption: string) => Promise<void> | void;
 }
 
 export const DrawingCanvasModal: React.FC<DrawingCanvasModalProps> = ({ profile, accentColor, onClose, onSave }) => {
@@ -15,6 +15,8 @@ export const DrawingCanvasModal: React.FC<DrawingCanvasModalProps> = ({ profile,
     const [color, setColor] = useState('#ffffff');
     const [thickness, setThickness] = useState(4);
     const [caption, setCaption] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const isDrawingRef = useRef(false);
     const lastPosRef = useRef({ x: 0, y: 0 });
 
@@ -40,7 +42,9 @@ export const DrawingCanvasModal: React.FC<DrawingCanvasModalProps> = ({ profile,
         e.preventDefault();
         const canvas = canvasRef.current;
         if (!canvas) return;
-        canvas.setPointerCapture(e.pointerId);
+        try {
+            canvas.setPointerCapture(e.pointerId);
+        } catch { }
         
         isDrawingRef.current = true;
         const pos = getCoordinates(e);
@@ -80,7 +84,11 @@ export const DrawingCanvasModal: React.FC<DrawingCanvasModalProps> = ({ profile,
         if (!isDrawingRef.current) return;
         const canvas = canvasRef.current;
         if (canvas) {
-            canvas.releasePointerCapture(e.pointerId);
+            try {
+                if (canvas.hasPointerCapture(e.pointerId)) {
+                    canvas.releasePointerCapture(e.pointerId);
+                }
+            } catch { }
         }
         isDrawingRef.current = false;
     };
@@ -92,13 +100,23 @@ export const DrawingCanvasModal: React.FC<DrawingCanvasModalProps> = ({ profile,
         if (!ctx) return;
         ctx.fillStyle = '#0a0a0a';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
+        setErrorMsg(null);
     };
 
-    const handleSend = () => {
+    const handleSend = async () => {
         const canvas = canvasRef.current;
-        if (!canvas) return;
-        const dataUrl = canvas.toDataURL('image/png');
-        onSave(dataUrl, caption);
+        if (!canvas || isSubmitting) return;
+        setIsSubmitting(true);
+        setErrorMsg(null);
+
+        try {
+            const dataUrl = canvas.toDataURL('image/png');
+            await onSave(dataUrl, caption);
+        } catch (err) {
+            console.error('Error sending drawing:', err);
+            setErrorMsg('Error al enviar el dibujo. Por favor intenta de nuevo.');
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -115,6 +133,12 @@ export const DrawingCanvasModal: React.FC<DrawingCanvasModalProps> = ({ profile,
                 <p className="mb-4 text-xs leading-relaxed text-slate-400">
                     ¡Dibuja algo especial para tu pareja! Tu dibujo aparecerá en su tablero de juego hoy.
                 </p>
+
+                {errorMsg && (
+                    <div className="mb-3 p-2 bg-red-500/20 border border-red-500/40 text-red-300 text-xs font-mono">
+                        {errorMsg}
+                    </div>
+                )}
 
                 <div className="relative w-full border border-purple-500/20 bg-black overflow-hidden flex justify-center items-center">
                     <canvas
@@ -134,6 +158,7 @@ export const DrawingCanvasModal: React.FC<DrawingCanvasModalProps> = ({ profile,
                             <button
                                 key={c}
                                 onClick={() => setColor(c)}
+                                disabled={isSubmitting}
                                 className={`w-6 h-6 border transition-all ${color === c ? 'border-white scale-110' : 'border-transparent hover:scale-105'}`}
                                 style={{ backgroundColor: c }}
                             />
@@ -146,6 +171,7 @@ export const DrawingCanvasModal: React.FC<DrawingCanvasModalProps> = ({ profile,
                             <button
                                 key={t}
                                 onClick={() => setThickness(t)}
+                                disabled={isSubmitting}
                                 className={`px-2 py-0.5 border ${thickness === t ? 'border-purple-400 text-purple-400' : 'border-white/10 text-white/50 hover:bg-white/5'}`}
                             >
                                 {t === 2 ? 'Fino' : t === 4 ? 'Med' : t === 8 ? 'Grueso' : 'Max'}
@@ -155,7 +181,8 @@ export const DrawingCanvasModal: React.FC<DrawingCanvasModalProps> = ({ profile,
 
                     <button
                         onClick={handleClear}
-                        className="px-3 py-1 border border-red-500/30 text-red-400 text-xs uppercase tracking-wider hover:bg-red-500/10 transition-all"
+                        disabled={isSubmitting}
+                        className="px-3 py-1 border border-red-500/30 text-red-400 text-xs uppercase tracking-wider hover:bg-red-500/10 transition-all disabled:opacity-50"
                     >
                         Limpiar
                     </button>
@@ -165,20 +192,23 @@ export const DrawingCanvasModal: React.FC<DrawingCanvasModalProps> = ({ profile,
                     type="text"
                     value={caption}
                     onChange={(e) => setCaption(e.target.value)}
+                    disabled={isSubmitting}
                     placeholder="Escribe un mensaje o dedicatoria aquí... (opcional)"
-                    className="w-full mt-4 border border-purple-500/20 bg-black/50 p-2.5 text-xs text-white focus:border-purple-500 focus:outline-none placeholder:text-purple-900/60"
+                    className="w-full mt-4 border border-purple-500/20 bg-black/50 p-2.5 text-xs text-white focus:border-purple-500 focus:outline-none placeholder:text-purple-900/60 disabled:opacity-50"
                 />
 
                 <div className="mt-5 flex gap-3">
                     <button
                         onClick={handleSend}
-                        className="flex-1 bg-purple-600 py-2.5 text-xs font-black uppercase tracking-wider text-white hover:bg-purple-500 active:scale-95 transition-all"
+                        disabled={isSubmitting}
+                        className="flex-1 bg-purple-600 py-2.5 text-xs font-black uppercase tracking-wider text-white hover:bg-purple-500 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                     >
-                        Enviar Dibujo 🎨
+                        {isSubmitting ? 'Enviando...' : 'Enviar Dibujo 🎨'}
                     </button>
                     <button
                         onClick={onClose}
-                        className="border border-white/10 px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-slate-400 hover:bg-white/5 active:scale-95 transition-all"
+                        disabled={isSubmitting}
+                        className="border border-white/10 px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-slate-400 hover:bg-white/5 active:scale-95 transition-all disabled:opacity-50"
                     >
                         Cancelar
                     </button>

@@ -2557,21 +2557,27 @@ export function Mahjong() {
                             }
                         }}
                         onSave={async (dataUrl, caption) => {
-                            const success = await MahjongService.saveDrawing(profile as 'el' | 'ella', dataUrl, caption);
-                            if (success) {
-                                alert('¡Tu dibujo ha sido enviado a tu pareja!');
-                                const target = profile === 'el' ? 'ella' : 'el';
-                                const senderName = profile === 'el' ? 'Santiago' : 'Milena';
-                                NotificationService.addNotification(
-                                    target,
-                                    'drawing_sent',
-                                    `¡${senderName} te ha enviado un dibujo especial! Encuéntralo en tu tablero. 🎨`
-                                ).catch(e => console.error(e));
-                                refreshConnectionFeatures();
-                            }
-                            setDrawingModalOpen(false);
-                            if (!gameLost && matchedCount < tiles.length) {
-                                setTimerActive(true);
+                            try {
+                                const success = await MahjongService.saveDrawing(profile as 'el' | 'ella', dataUrl, caption);
+                                if (success) {
+                                    const target = profile === 'el' ? 'ella' : 'el';
+                                    const senderName = profile === 'el' ? 'Santiago' : 'Milena';
+                                    NotificationService.addNotification(
+                                        target,
+                                        'drawing_sent',
+                                        `¡${senderName} te ha enviado un dibujo especial! Encuéntralo en tu tablero. 🎨`
+                                    ).catch(e => console.error('Error adding drawing notification:', e));
+                                    refreshConnectionFeatures();
+                                } else {
+                                    console.error('saveDrawing returned false');
+                                }
+                            } catch (err) {
+                                console.error('Unhandled error in saveDrawing:', err);
+                            } finally {
+                                setDrawingModalOpen(false);
+                                if (!gameLost && matchedCount < tiles.length) {
+                                    setTimerActive(true);
+                                }
                             }
                         }}
                     />
