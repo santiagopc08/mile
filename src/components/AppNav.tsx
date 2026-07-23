@@ -29,28 +29,28 @@ export function AppNav() {
       <div suppressHydrationWarning className="h-16 lg:h-0 bg-[#120d0e]/60 backdrop-blur-md border-b border-white/5 lg:border-none" aria-hidden="true" />
 
       {/* Mobile Top Header */}
-      <header className="fixed top-0 left-0 w-full h-16 bg-[#120d0e]/95 backdrop-blur-md border-b border-white/10 flex items-center justify-between px-4 sm:px-6 lg:hidden z-40">
+      <header className="fixed top-0 left-0 w-full h-16 bg-[#0a070c]/96 backdrop-blur-xl border-b border-white/10 flex items-center justify-between px-4 sm:px-6 lg:hidden z-40">
         <Link
           href="/"
-          className="nav-brand group relative overflow-hidden font-mono text-[10px] sm:text-xs font-black tracking-[0.22em] border border-white/15 px-3 py-2 bg-black/60 text-[#a88a7e] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
-          style={{ '--nav-accent': profileAccent, borderColor: `color-mix(in srgb, ${profileAccent} 35%, transparent)`, color: profileAccent } as CSSProperties}
+          className="nav-brand group relative overflow-hidden font-mono text-[10px] sm:text-xs font-black tracking-[0.25em] border px-3 py-1.5 bg-black/70 text-[#a88a7e] transition-all focus-visible:outline-none chamfered-card-sm"
+          style={{ '--nav-accent': profileAccent, borderColor: profileAccent, color: profileAccent } as CSSProperties}
           aria-label="Volver al inicio"
         >
-          <span className="relative z-10">MILE / SANTI</span>
+          <span className="relative z-10 font-mono">// {profileName} & PAR</span>
         </Link>
         <div className="flex items-center gap-3 sm:gap-4">
           <SystemSettings align="right" />
           <NotificationBell align="right" />
           <div className="flex items-center gap-2" aria-label={isOnline ? 'Conexión activa' : 'Sin conexión'}>
-            <div className={`nav-status-dot w-1.5 h-1.5 ${isOnline ? '' : 'nav-status-dot-offline'}`} style={{ '--nav-accent': isOnline ? profileAccent : '#ef4444' } as CSSProperties} />
-            <span className="hidden sm:inline text-[7px] font-mono uppercase tracking-[0.22em] text-[#a88a7e] opacity-80">{isOnline ? 'Activo' : 'Offline'}</span>
+            <div className={`nav-status-dot w-2 h-2 ${isOnline ? '' : 'nav-status-dot-offline'}`} style={{ '--nav-accent': isOnline ? profileAccent : '#ef4444' } as CSSProperties} />
+            <span className="hidden sm:inline text-[8px] font-mono uppercase tracking-[0.2em] text-[#a88a7e]">{isOnline ? 'ONLINE' : 'OFFLINE'}</span>
           </div>
         </div>
       </header>
 
       {/* Mobile Bottom Nav */}
       <nav
-        className="fixed bottom-0 left-0 w-full z-50 grid grid-cols-5 h-[4.6rem] bg-[#120d0e]/96 backdrop-blur-xl border-t border-white/10 lg:hidden"
+        className="fixed bottom-0 left-0 w-full z-50 grid grid-cols-5 h-[4.8rem] bg-[#0a070c]/98 backdrop-blur-2xl border-t border-white/15 lg:hidden px-1 shadow-[0_-10px_30px_rgba(0,0,0,0.8)]"
         aria-label="Navegación principal"
       >
         {navItems.map((item) => {
@@ -62,18 +62,32 @@ export function AppNav() {
             <Link
               key={item.path}
               href={item.path}
-              className={`nav-mobile-item group relative flex flex-col items-center justify-center gap-1.5 px-1 pt-2 pb-1.5 text-[#a88a7e] transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white/60 ${isActive ? 'is-active text-white' : 'opacity-70 hover:opacity-100 hover:bg-white/[0.04]'}`}
+              className={`nav-mobile-item group relative flex flex-col items-center justify-center gap-1.5 px-1 pt-2 pb-1.5 transition-all duration-200 active:scale-95 ${isActive ? 'is-active text-white font-bold' : 'text-[#a88a7e] opacity-75 hover:opacity-100'}`}
               style={{ '--nav-accent': itemAccent } as CSSProperties}
               aria-current={isActive ? 'page' : undefined}
               aria-label={`${item.name}: ${item.detail}`}
             >
-              <span className="nav-mobile-signal" aria-hidden="true" />
+              {/* Active Neon Line Indicator */}
+              {isActive && (
+                <span
+                  className="absolute top-0 left-2 right-2 h-[3px] transition-all"
+                  style={{ backgroundColor: itemAccent, boxShadow: `0 0 10px ${itemAccent}` }}
+                />
+              )}
+
               <span className="relative flex h-7 w-7 items-center justify-center">
                 <span className="nav-icon-pulse" aria-hidden="true" />
-                <Icon className="relative h-5 w-5 stroke-[1.6] transition-transform duration-300 group-hover:-translate-y-0.5" />
+                <Icon
+                  className={`relative h-5 w-5 stroke-[1.8] transition-all duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-105'}`}
+                  style={{ color: isActive ? itemAccent : undefined }}
+                />
               </span>
-              <span className="max-w-full truncate font-mono text-[8px] uppercase font-bold tracking-[0.12em] leading-none">{item.name}</span>
-              <span className="hidden sm:block max-w-full truncate text-[7px] uppercase tracking-[0.12em] leading-none text-[#e1bfb2]/50">{item.detail}</span>
+              <span
+                className="max-w-full truncate font-mono text-[8.5px] uppercase tracking-[0.14em] leading-none"
+                style={{ color: isActive ? itemAccent : undefined }}
+              >
+                {item.name}
+              </span>
             </Link>
           );
         })}

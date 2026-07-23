@@ -103,6 +103,19 @@ body {
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
 }
 
+/* Chamfered Cyber Cut Corners (Imagen 2 & 5) */
+.chamfered-card-sm {
+  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, calc(100% - 0px) 100%, 12px 100%, 0 calc(100% - 12px), 0 0);
+}
+
+.chamfered-card-md {
+  clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, calc(100% - 0px) 100%, 18px 100%, 0 calc(100% - 18px), 0 0);
+}
+
+.hud-cyber-glow {
+  box-shadow: 0 0 25px rgba(255, 75, 137, 0.2), inset 0 0 15px rgba(0, 0, 0, 0.8);
+}
+
 /* Micro-Animation Utilities */
 .micro-hover-lift {
   transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease;

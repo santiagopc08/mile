@@ -28,6 +28,7 @@ import {
   Camera
 } from 'lucide-react';
 import { BrutalistPanel } from "@/components/ui/BrutalistPanel";
+import { ChamferedPanel } from "@/components/ui/ChamferedPanel";
 import { InteractiveBackground } from "@/components/InteractiveBackground";
 
 export default function Home() {
@@ -133,238 +134,239 @@ export default function Home() {
           <div className="p-3 sm:p-6 lg:p-8 space-y-4 sm:space-y-8 bg-[#050505]/95">
 
             {/* Primary Modules - 2 Columns */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-[1px] bg-white/10 border border-white/10 p-[1px]">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
               {/* Día a Día */}
-              <div className="group relative bg-[#0a0a0a] p-4 sm:p-6 lg:p-8 flex flex-col gap-3 sm:gap-5 transition-all duration-300 hover:bg-[#121212]">
-                <div className="absolute inset-0 border-2 border-transparent group-hover:border-[var(--color-profile-accent)] transition-colors pointer-events-none" />
-                
-                {/* Title and stats in same row */}
+              <ChamferedPanel
+                accentColor={accentColorValue}
+                label="DIA_A_DIA // SYS_RITMO"
+                notchSize={20}
+                className="flex flex-col justify-between gap-4 h-full"
+              >
                 <div className="flex flex-wrap items-center justify-between gap-3 w-full">
                   <div className="flex items-center gap-3">
-                    <span className="text-[var(--color-profile-accent)] shrink-0" style={{ color: accentColorValue }}>
+                    <span className="shrink-0" style={{ color: accentColorValue }}>
                       <LayoutDashboard className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={1.5} />
                     </span>
                     <Link href="/dashboard" className="inline-block">
-                      <h2 className="text-lg sm:text-xl font-black uppercase group-hover:text-[var(--color-profile-accent)] transition-colors">Día a Día</h2>
+                      <h2 className="text-lg sm:text-xl font-black uppercase transition-colors hover:text-[var(--color-profile-accent)]">Día a Día</h2>
                     </Link>
                   </div>
-                  {/* Statistics block */}
-                  <div className="inline-flex items-center gap-1.5 bg-black/40 px-2 py-0.5 text-[8px] font-mono uppercase tracking-wider text-[#a88a7e] border border-white/5 shrink-0">
-                    <CheckSquare size={10} className="text-[#a88a7e]" />
+                  <div className="inline-flex items-center gap-1.5 bg-black/60 px-2.5 py-1 text-[9px] font-mono uppercase tracking-wider text-[#a88a7e] border border-white/10 shrink-0">
+                    <CheckSquare size={10} style={{ color: accentColorValue }} />
                     <span>{assigneeTasks.length} Tareas Pendientes</span>
                   </div>
-                {/* Specific Action Buttons */}
-                <div className="w-full grid grid-cols-2 gap-2 pt-3 border-t border-white/5 relative z-20">
-                  <Link href="/dashboard?tab=tasks" className="group/link flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2.5 py-2 text-[9.5px] sm:text-xs font-mono uppercase tracking-wider text-white transition-all rounded-none w-full min-w-0">
+                </div>
+
+                <div className="w-full grid grid-cols-2 gap-2 pt-3 border-t border-white/10 relative z-20">
+                  <Link href="/dashboard?tab=tasks" className="group/link flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2.5 py-2 text-[9.5px] sm:text-xs font-mono uppercase tracking-wider text-white transition-all w-full min-w-0">
                     <span className="flex items-center gap-1.5 min-w-0">
-                      <CheckSquare className="w-3.5 h-3.5 text-[#a88a7e] group-hover/link:text-[var(--color-profile-accent)] transition-colors shrink-0 animate-opt-dance-0" />
-                      <span className="truncate">Ver mis tareas</span>
+                      <CheckSquare className="w-3.5 h-3.5 text-[#a88a7e] group-hover/link:text-[var(--color-profile-accent)] transition-colors shrink-0" />
+                      <span className="truncate">Mis tareas</span>
                     </span>
-                    <ArrowRight className="w-3 h-3 animate-slide-loop shrink-0" />
+                    <ArrowRight className="w-3 h-3 transition-transform group-hover/link:translate-x-1 shrink-0" />
                   </Link>
-                  <Link href="/dashboard?tab=finances" className="group/link flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2.5 py-2 text-[9.5px] sm:text-xs font-mono uppercase tracking-wider text-white transition-all rounded-none w-full min-w-0">
+                  <Link href="/dashboard?tab=finances" className="group/link flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2.5 py-2 text-[9.5px] sm:text-xs font-mono uppercase tracking-wider text-white transition-all w-full min-w-0">
                     <span className="flex items-center gap-1.5 min-w-0">
-                      <PlusCircle className="w-3.5 h-3.5 text-[#a88a7e] group-hover/link:text-[var(--color-profile-accent)] transition-colors shrink-0 animate-opt-dance-1" />
+                      <PlusCircle className="w-3.5 h-3.5 text-[#a88a7e] group-hover/link:text-[var(--color-profile-accent)] transition-colors shrink-0" />
                       <span className="truncate">Registrar Gastos</span>
                     </span>
-                    <ArrowRight className="w-3 h-3 animate-slide-loop-delay-1 shrink-0" />
+                    <ArrowRight className="w-3 h-3 transition-transform group-hover/link:translate-x-1 shrink-0" />
                   </Link>
                 </div>
-              </div>
+              </ChamferedPanel>
 
               {/* Antojos */}
-              <div className="group relative bg-[#0a0a0a] p-4 sm:p-6 lg:p-8 flex flex-col gap-3 sm:gap-5 transition-all duration-300 hover:bg-[#121212]">
-                <div className="absolute inset-0 border-2 border-transparent group-hover:border-[var(--color-profile-accent)] transition-colors pointer-events-none" />
-                
-                {/* Title and stats in same row */}
+              <ChamferedPanel
+                accentColor={accentColorValue}
+                label="PLANES // ANTOJOS"
+                notchSize={20}
+                className="flex flex-col justify-between gap-4 h-full"
+              >
                 <div className="flex flex-wrap items-center justify-between gap-3 w-full">
                   <div className="flex items-center gap-3">
-                    <span className="text-[var(--color-profile-accent)] shrink-0" style={{ color: accentColorValue }}>
+                    <span className="shrink-0" style={{ color: accentColorValue }}>
                       <MapPin className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={1.5} />
                     </span>
                     <Link href="/planes" className="inline-block">
-                      <h2 className="text-lg sm:text-xl font-black uppercase group-hover:text-[var(--color-profile-accent)] transition-colors">Antojos</h2>
+                      <h2 className="text-lg sm:text-xl font-black uppercase transition-colors hover:text-[var(--color-profile-accent)]">Antojos</h2>
                     </Link>
                   </div>
-                  {/* Statistics block */}
-                  <div className="inline-flex items-center gap-1.5 bg-black/40 px-2 py-0.5 text-[8px] font-mono uppercase tracking-wider text-[#a88a7e] border border-white/5 shrink-0">
-                    <Compass size={10} className="text-[#a88a7e]" />
+                  <div className="inline-flex items-center gap-1.5 bg-black/60 px-2.5 py-1 text-[9px] font-mono uppercase tracking-wider text-[#a88a7e] border border-white/10 shrink-0">
+                    <Compass size={10} style={{ color: accentColorValue }} />
                     <span>{activePlansCount} Planes Guardados</span>
                   </div>
                 </div>
 
-                {/* Specific Action Buttons */}
-                <div className="w-full grid grid-cols-2 gap-2 pt-3 border-t border-white/5 relative z-20">
-                  <Link href="/planes?scroll=wishlist" className="group/link flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2.5 py-2 text-[9.5px] sm:text-xs font-mono uppercase tracking-wider text-white transition-all rounded-none w-full min-w-0">
+                <div className="w-full grid grid-cols-2 gap-2 pt-3 border-t border-white/10 relative z-20">
+                  <Link href="/planes?scroll=wishlist" className="group/link flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2.5 py-2 text-[9.5px] sm:text-xs font-mono uppercase tracking-wider text-white transition-all w-full min-w-0">
                     <span className="flex items-center gap-1.5 min-w-0">
-                      <Compass className="w-3.5 h-3.5 text-[#a88a7e] group-hover/link:text-[var(--color-profile-accent)] transition-colors shrink-0 animate-opt-dance-2" />
+                      <Compass className="w-3.5 h-3.5 text-[#a88a7e] group-hover/link:text-[var(--color-profile-accent)] transition-colors shrink-0" />
                       <span className="truncate">Ver planes</span>
                     </span>
-                    <ArrowRight className="w-3 h-3 animate-slide-loop-delay-2 shrink-0" />
+                    <ArrowRight className="w-3 h-3 transition-transform group-hover/link:translate-x-1 shrink-0" />
                   </Link>
-                  <Link href="/planes?action=add" className="group/link flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2.5 py-2 text-[9.5px] sm:text-xs font-mono uppercase tracking-wider text-white transition-all rounded-none w-full min-w-0">
+                  <Link href="/planes?action=add" className="group/link flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2.5 py-2 text-[9.5px] sm:text-xs font-mono uppercase tracking-wider text-white transition-all w-full min-w-0">
                     <span className="flex items-center gap-1.5 min-w-0">
-                      <PlusCircle className="w-3.5 h-3.5 text-[#a88a7e] group-hover/link:text-[var(--color-profile-accent)] transition-colors shrink-0 animate-opt-dance-3" />
+                      <PlusCircle className="w-3.5 h-3.5 text-[#a88a7e] group-hover/link:text-[var(--color-profile-accent)] transition-colors shrink-0" />
                       <span className="truncate">Agregar plan</span>
                     </span>
-                    <ArrowRight className="w-3 h-3 animate-slide-loop-delay-3 shrink-0" />
+                    <ArrowRight className="w-3 h-3 transition-transform group-hover/link:translate-x-1 shrink-0" />
                   </Link>
                 </div>
-              </div>
+              </ChamferedPanel>
             </div>
 
             {/* Secondary Modules Header */}
-            <div className="flex items-center gap-4 py-1">
-              <div className="h-[1px] flex-1 bg-white/10" />
-              <span className="text-[9px] font-mono uppercase font-bold tracking-[0.2em] text-[#a88a7e]">Módulos de Sintonía</span>
-              <div className="h-[1px] flex-1 bg-white/10" />
+            <div className="flex items-center gap-4 py-2">
+              <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+              <span className="text-[10px] font-mono uppercase font-black tracking-[0.25em]" style={{ color: accentColorValue }}>// MÓDULOS DE SINTONÍA</span>
+              <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
             </div>
 
             {/* Secondary Modules - 3 Columns */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-[1px] bg-white/10 border border-white/10 p-[1px]">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
 
               {/* Refugio */}
-              <div className="group relative bg-[#0a0a0a] p-4 sm:p-6 lg:p-8 flex flex-col items-start gap-3 sm:gap-5 transition-all duration-300 hover:bg-[#121212] justify-between h-full">
-                <div className="absolute inset-0 border border-transparent group-hover:border-[var(--color-profile-accent)] transition-colors pointer-events-none" />
-                
-                {/* Title and stats in same row */}
+              <ChamferedPanel
+                accentColor={accentColorValue}
+                label="REFUGIO // LOG"
+                notchSize={16}
+                className="flex flex-col justify-between gap-4 h-full"
+              >
                 <div className="flex flex-wrap items-center justify-between gap-3 w-full">
-                  <div className="flex items-center gap-3">
-                    <span className="text-white/50 group-hover:text-[var(--color-profile-accent)] transition-colors shrink-0" style={{ color: accentColorValue }}>
-                      <ShieldCheck className="w-5 h-5 sm:w-5.5 sm:h-5.5" strokeWidth={1.5} />
+                  <div className="flex items-center gap-2.5">
+                    <span className="shrink-0" style={{ color: accentColorValue }}>
+                      <ShieldCheck className="w-5 h-5" strokeWidth={1.5} />
                     </span>
                     <Link href="/refugio">
-                      <h3 className="text-sm sm:text-base font-black uppercase group-hover:text-[var(--color-profile-accent)] transition-colors">Refugio</h3>
+                      <h3 className="text-sm sm:text-base font-black uppercase transition-colors hover:text-[var(--color-profile-accent)]">Refugio</h3>
                     </Link>
                   </div>
-                  {/* Statistics block */}
-                  <div className="inline-flex items-center gap-1.5 bg-black/40 px-2 py-0.5 text-[7px] font-mono uppercase tracking-wider text-[#a88a7e] border border-white/5 shrink-0">
-                    <FileText size={8} className="text-[#a88a7e]" />
+                  <div className="inline-flex items-center gap-1 bg-black/60 px-2 py-0.5 text-[8px] font-mono uppercase tracking-wider text-[#a88a7e] border border-white/10 shrink-0">
+                    <FileText size={8} style={{ color: accentColorValue }} />
                     <span>{reflectionsCount} R</span>
                   </div>
                 </div>
 
-                {/* Specific Action Buttons */}
-                <div className="w-full grid grid-cols-2 gap-2 pt-3 border-t border-white/5 relative z-20">
-                  <Link href="/refugio?tab=escucha" className="col-span-2 group/link flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2.5 py-2 text-[9.5px] sm:text-xs font-mono uppercase tracking-wider text-white transition-all rounded-none w-full min-w-0">
+                <div className="w-full grid grid-cols-2 gap-1.5 pt-2.5 border-t border-white/10 relative z-20">
+                  <Link href="/refugio?tab=escucha" className="col-span-2 group/link flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2.5 py-1.5 text-[9px] font-mono uppercase tracking-wider text-white transition-all w-full min-w-0">
                     <span className="flex items-center gap-1.5 min-w-0">
-                      <FileText className="w-3.5 h-3.5 text-[#a88a7e] group-hover/link:text-[var(--color-profile-accent)] transition-colors shrink-0 animate-opt-dance-4" />
+                      <FileText className="w-3 h-3 text-[#a88a7e] group-hover/link:text-[var(--color-profile-accent)] shrink-0" />
                       <span className="truncate">Bitácora</span>
                     </span>
-                    <ArrowRight className="w-3 h-3 animate-slide-loop shrink-0" />
+                    <ArrowRight className="w-3 h-3 transition-transform group-hover/link:translate-x-1 shrink-0" />
                   </Link>
-                  <Link href="/refugio?tab=bebes" className="group/link flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2 py-2 text-[9.5px] sm:text-xs font-mono uppercase tracking-wider text-white transition-all rounded-none w-full min-w-0">
+                  <Link href="/refugio?tab=bebes" className="group/link flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2 py-1.5 text-[9px] font-mono uppercase tracking-wider text-white transition-all w-full min-w-0">
                     <span className="flex items-center gap-1.5 min-w-0">
-                      <PawPrint className="w-3.5 h-3.5 text-[#a88a7e] group-hover/link:text-[var(--color-profile-accent)] transition-colors shrink-0 animate-opt-dance-6" />
+                      <PawPrint className="w-3 h-3 text-[#a88a7e] group-hover/link:text-[var(--color-profile-accent)] shrink-0" />
                       <span className="truncate">Bebés</span>
                     </span>
-                    <ArrowRight className="w-3 h-3 animate-slide-loop-delay-2 shrink-0" />
+                    <ArrowRight className="w-3 h-3 transition-transform group-hover/link:translate-x-1 shrink-0" />
                   </Link>
-                  <Link href="/refugio?tab=historia" className="group/link flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2 py-2 text-[9.5px] sm:text-xs font-mono uppercase tracking-wider text-white transition-all rounded-none w-full min-w-0">
+                  <Link href="/refugio?tab=historia" className="group/link flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2 py-1.5 text-[9px] font-mono uppercase tracking-wider text-white transition-all w-full min-w-0">
                     <span className="flex items-center gap-1.5 min-w-0">
-                      <Clock className="w-3.5 h-3.5 text-[#a88a7e] group-hover/link:text-[var(--color-profile-accent)] transition-colors shrink-0 animate-opt-dance-7" />
+                      <Clock className="w-3 h-3 text-[#a88a7e] group-hover/link:text-[var(--color-profile-accent)] shrink-0" />
                       <span className="truncate">Historia</span>
                     </span>
-                    <ArrowRight className="w-3 h-3 animate-slide-loop-delay-3 shrink-0" />
+                    <ArrowRight className="w-3 h-3 transition-transform group-hover/link:translate-x-1 shrink-0" />
                   </Link>
                 </div>
-              </div>
+              </ChamferedPanel>
 
               {/* Salud */}
-              <div className="group relative bg-[#0a0a0a] p-4 sm:p-6 lg:p-8 flex flex-col items-start gap-3 sm:gap-5 transition-all duration-300 hover:bg-[#121212] justify-between h-full">
-                <div className="absolute inset-0 border border-transparent group-hover:border-[var(--color-profile-accent)] transition-colors pointer-events-none" />
-                
-                {/* Title and stats in same row */}
+              <ChamferedPanel
+                accentColor={accentColorValue}
+                label="SALUD // VITALS"
+                notchSize={16}
+                className="flex flex-col justify-between gap-4 h-full"
+              >
                 <div className="flex flex-wrap items-center justify-between gap-3 w-full">
-                  <div className="flex items-center gap-3">
-                    <span className="text-white/50 group-hover:text-[var(--color-profile-accent)] transition-colors shrink-0" style={{ color: accentColorValue }}>
-                      <Heart className="w-5 h-5 sm:w-5.5 sm:h-5.5" strokeWidth={1.5} />
+                  <div className="flex items-center gap-2.5">
+                    <span className="shrink-0" style={{ color: accentColorValue }}>
+                      <Heart className="w-5 h-5" strokeWidth={1.5} />
                     </span>
                     <Link href="/salud">
-                      <h3 className="text-sm sm:text-base font-black uppercase group-hover:text-[var(--color-profile-accent)] transition-colors">Salud</h3>
+                      <h3 className="text-sm sm:text-base font-black uppercase transition-colors hover:text-[var(--color-profile-accent)]">Salud</h3>
                     </Link>
                   </div>
-                  {/* Statistics block */}
-                  <div className="inline-flex items-center gap-1.5 bg-black/40 px-2 py-0.5 text-[7px] font-mono uppercase tracking-wider text-[#a88a7e] border border-white/5 shrink-0">
-                    <Activity size={8} className="text-[#a88a7e]" />
-                    <span>Bitácora activa</span>
+                  <div className="inline-flex items-center gap-1 bg-black/60 px-2 py-0.5 text-[8px] font-mono uppercase tracking-wider text-[#a88a7e] border border-white/10 shrink-0">
+                    <Activity size={8} style={{ color: accentColorValue }} />
+                    <span>Activo</span>
                   </div>
                 </div>
 
-                {/* Specific Action Buttons */}
-                <div className="w-full grid grid-cols-2 gap-2 pt-3 border-t border-white/5 relative z-20">
-                  <Link href="/salud?tab=vitals" className="group/link flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2.5 py-2 text-[9.5px] sm:text-xs font-mono uppercase tracking-wider text-white transition-all rounded-none w-full min-w-0">
+                <div className="w-full grid grid-cols-2 gap-1.5 pt-2.5 border-t border-white/10 relative z-20">
+                  <Link href="/salud?tab=vitals" className="group/link flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2 py-1.5 text-[9px] font-mono uppercase tracking-wider text-white transition-all w-full min-w-0">
                     <span className="flex items-center gap-1.5 min-w-0">
-                      <HeartPulse className="w-3.5 h-3.5 text-[#a88a7e] group-hover/link:text-[var(--color-profile-accent)] transition-colors shrink-0 animate-opt-dance-8" />
-                      <span className="truncate">Vigilar Presión</span>
+                      <HeartPulse className="w-3 h-3 text-[#a88a7e] group-hover/link:text-[var(--color-profile-accent)] shrink-0" />
+                      <span className="truncate">Presión</span>
                     </span>
-                    <ArrowRight className="w-3 h-3 animate-slide-loop shrink-0" />
+                    <ArrowRight className="w-3 h-3 transition-transform group-hover/link:translate-x-1 shrink-0" />
                   </Link>
-                  <Link href="/salud?tab=habits" className="group/link flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2.5 py-2 text-[9.5px] sm:text-xs font-mono uppercase tracking-wider text-white transition-all rounded-none w-full min-w-0">
+                  <Link href="/salud?tab=habits" className="group/link flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2 py-1.5 text-[9px] font-mono uppercase tracking-wider text-white transition-all w-full min-w-0">
                     <span className="flex items-center gap-1.5 min-w-0">
-                      <Activity className="w-3.5 h-3.5 text-[#a88a7e] group-hover/link:text-[var(--color-profile-accent)] transition-colors shrink-0 animate-opt-dance-9" />
+                      <Activity className="w-3 h-3 text-[#a88a7e] group-hover/link:text-[var(--color-profile-accent)] shrink-0" />
                       <span className="truncate">Hábitos</span>
                     </span>
-                    <ArrowRight className="w-3 h-3 animate-slide-loop-delay-1 shrink-0" />
+                    <ArrowRight className="w-3 h-3 transition-transform group-hover/link:translate-x-1 shrink-0" />
                   </Link>
-                  <Link href="/salud?tab=movement" className="group/link flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2.5 py-2 text-[9.5px] sm:text-xs font-mono uppercase tracking-wider text-white transition-all rounded-none w-full min-w-0">
+                  <Link href="/salud?tab=movement" className="group/link flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2 py-1.5 text-[9px] font-mono uppercase tracking-wider text-white transition-all w-full min-w-0">
                     <span className="flex items-center gap-1.5 min-w-0">
-                      <Flame className="w-3.5 h-3.5 text-[#a88a7e] group-hover/link:text-[var(--color-profile-accent)] transition-colors shrink-0 animate-opt-dance-10" />
+                      <Flame className="w-3 h-3 text-[#a88a7e] group-hover/link:text-[var(--color-profile-accent)] shrink-0" />
                       <span className="truncate">Entrenos</span>
                     </span>
-                    <ArrowRight className="w-3 h-3 animate-slide-loop-delay-2 shrink-0" />
+                    <ArrowRight className="w-3 h-3 transition-transform group-hover/link:translate-x-1 shrink-0" />
                   </Link>
-                  <Link href="/salud?tab=biometric" className="group/link flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2.5 py-2 text-[9.5px] sm:text-xs font-mono uppercase tracking-wider text-white transition-all rounded-none w-full min-w-0">
+                  <Link href="/salud?tab=biometric" className="group/link flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2 py-1.5 text-[9px] font-mono uppercase tracking-wider text-white transition-all w-full min-w-0">
                     <span className="flex items-center gap-1.5 min-w-0">
-                      <Shield className="w-3.5 h-3.5 text-[#a88a7e] group-hover/link:text-[var(--color-profile-accent)] transition-colors shrink-0 animate-opt-dance-11" />
+                      <Shield className="w-3 h-3 text-[#a88a7e] group-hover/link:text-[var(--color-profile-accent)] shrink-0" />
                       <span className="truncate">Biometría</span>
                     </span>
-                    <ArrowRight className="w-3 h-3 animate-slide-loop-delay-3 shrink-0" />
+                    <ArrowRight className="w-3 h-3 transition-transform group-hover/link:translate-x-1 shrink-0" />
                   </Link>
                 </div>
-              </div>
+              </ChamferedPanel>
 
               {/* Juego */}
-              <div className="group relative bg-[#0a0a0a] p-4 sm:p-6 lg:p-8 flex flex-col items-start gap-3 sm:gap-5 transition-all duration-300 hover:bg-[#121212] justify-between h-full">
-                <div className="absolute inset-0 border-2 border-transparent group-hover:border-[var(--color-profile-accent)] transition-colors pointer-events-none" />
-                
-                {/* Title and stats in same row */}
+              <ChamferedPanel
+                accentColor={accentColorValue}
+                label="JUEGO // GAME_HUB"
+                notchSize={16}
+                className="flex flex-col justify-between gap-4 h-full"
+              >
                 <div className="flex flex-wrap items-center justify-between gap-3 w-full">
-                  <div className="flex items-center gap-3">
-                    <span className="text-white/50 group-hover:text-[var(--color-profile-accent)] transition-colors shrink-0" style={{ color: accentColorValue }}>
-                      <Gamepad2 className="w-5 h-5 sm:w-5.5 sm:h-5.5" strokeWidth={1.5} />
+                  <div className="flex items-center gap-2.5">
+                    <span className="shrink-0" style={{ color: accentColorValue }}>
+                      <Gamepad2 className="w-5 h-5" strokeWidth={1.5} />
                     </span>
                     <Link href="/juego">
-                      <h3 className="text-sm sm:text-base font-black uppercase group-hover:text-[var(--color-profile-accent)] transition-colors">Juego</h3>
+                      <h3 className="text-sm sm:text-base font-black uppercase transition-colors hover:text-[var(--color-profile-accent)]">Juego</h3>
                     </Link>
                   </div>
-                  {/* Statistics block */}
-                  <div className="inline-flex items-center gap-1.5 bg-black/40 px-2 py-0.5 text-[7px] font-mono uppercase tracking-wider text-[#a88a7e] border border-white/5 shrink-0">
-                    <Sparkles size={8} className="text-[#a88a7e]" />
-                    <span>Memory record</span>
+                  <div className="inline-flex items-center gap-1 bg-black/60 px-2 py-0.5 text-[8px] font-mono uppercase tracking-wider text-[#a88a7e] border border-white/10 shrink-0">
+                    <Sparkles size={8} style={{ color: accentColorValue }} />
+                    <span>Récords</span>
                   </div>
                 </div>
 
-                {/* Specific Action Buttons */}
-                <div className="w-full grid grid-cols-2 gap-2 pt-3 border-t border-white/5 relative z-20">
-                  <Link href="/smash-fest" className="group/link flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2.5 py-2 text-[9.5px] sm:text-xs font-mono uppercase tracking-wider text-white transition-all rounded-none w-full min-w-0">
+                <div className="w-full grid grid-cols-2 gap-1.5 pt-2.5 border-t border-white/10 relative z-20">
+                  <Link href="/smash-fest" className="group/link flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2 py-1.5 text-[9px] font-mono uppercase tracking-wider text-white transition-all w-full min-w-0">
                     <span className="flex items-center gap-1.5 min-w-0">
-                      <Gamepad2 className="w-3.5 h-3.5 text-[#a88a7e] group-hover/link:text-[var(--color-profile-accent)] transition-colors shrink-0 animate-opt-dance-13" />
+                      <Gamepad2 className="w-3 h-3 text-[#a88a7e] group-hover/link:text-[var(--color-profile-accent)] shrink-0" />
                       <span className="truncate">Smash Fest</span>
                     </span>
-                    <ArrowRight className="w-3 h-3 animate-slide-loop shrink-0" />
+                    <ArrowRight className="w-3 h-3 transition-transform group-hover/link:translate-x-1 shrink-0" />
                   </Link>
-                  <Link href="/juego" className="group/link group/link flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2.5 py-2 text-[9.5px] sm:text-xs font-mono uppercase tracking-wider text-white transition-all rounded-none w-full min-w-0">
+                  <Link href="/juego" className="group/link flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2 py-1.5 text-[9px] font-mono uppercase tracking-wider text-white transition-all w-full min-w-0">
                     <span className="flex items-center gap-1.5 min-w-0">
-                      <Gamepad2 className="w-3.5 h-3.5 text-[#a88a7e] group-hover/link:text-[var(--color-profile-accent)] transition-colors shrink-0 animate-opt-dance-12" />
-                      <span className="truncate">Jugar Mahjong</span>
+                      <Gamepad2 className="w-3 h-3 text-[#a88a7e] group-hover/link:text-[var(--color-profile-accent)] shrink-0" />
+                      <span className="truncate">Mahjong</span>
                     </span>
-                    <ArrowRight className="w-3 h-3 animate-slide-loop shrink-0" />
+                    <ArrowRight className="w-3 h-3 transition-transform group-hover/link:translate-x-1 shrink-0" />
                   </Link>
                 </div>
-                </div>
-              </div>
+              </ChamferedPanel>
             </div>
 
           </div>
