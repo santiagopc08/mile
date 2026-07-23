@@ -10,6 +10,18 @@ import { OrbitalViewport } from './pet-space/OrbitalViewport';
 import { HabitatModule } from './pet-space/HabitatModule';
 import { GalleryStrip } from './pet-space/GalleryStrip';
 import { SystemLog } from './pet-space/SystemLog';
+import { OrbitalRadar } from './pet-space/OrbitalRadar';
+
+const VITALS_KEY = 'mile_pets_vitals';
+const LOGS_KEY = 'mile_pets_logs';
+const JOY_FLOOR = 78; // La moral nunca cae debajo de esto: cariño, no culpa.
+
+// Deriva gentil de la moral hacia el piso según el tiempo desde el último mimo.
+function driftJoy(joy: number, ts: number): number {
+  if (!ts) return Math.round(joy);
+  const hours = (Date.now() - ts) / 3600000;
+  return Math.max(JOY_FLOOR, Math.round(Math.min(100, joy - hours * 1.2)));
+}
 
 // Reloj de estación aislado: gestiona su propio estado para no re-renderizar
 // el hub (pesado por las animaciones del viewport) cada segundo.
@@ -72,19 +84,65 @@ export function PetSpaceHub() {
   const activeVitals = vitals[activeId] || { joy: activePet.o2, warmth: activePet.temp };
 
   const warpTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // Marca de tiempo del último mimo por mascota (para la deriva de la moral).
+  const vitalsTsRef = useRef<Record<string, number>>({});
 
-  // Load customizations
+  // Persiste los vitales con su marca de tiempo por mascota.
+  const persistVitals = (map: Record<string, { joy: number; warmth: number }>) => {
+    if (typeof window === 'undefined') return;
+    try {
+      const out: Record<string, { joy: number; warmth: number; ts: number }> = {};
+      for (const id in map) {
+        out[id] = { ...map[id], ts: vitalsTsRef.current[id] || Date.now() };
+      }
+      localStorage.setItem(VITALS_KEY, JSON.stringify(out));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  // Load customizations + vitals + logs (una sola vez, en cliente)
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window === 'undefined') return;
+
+    // Overrides de personalidad
+    try {
       const stored = localStorage.getItem('mile_pets_overrides');
       if (stored) {
-        try {
-          const overrides = JSON.parse(stored);
-          setPetData(PETS.map(p => overrides[p.id] ? { ...p, ...overrides[p.id] } : p));
-        } catch (e) {
-          console.error(e);
-        }
+        const overrides = JSON.parse(stored);
+        setPetData(PETS.map(p => (overrides[p.id] ? { ...p, ...overrides[p.id] } : p)));
       }
+    } catch (e) {
+      console.error(e);
+    }
+
+    // Vitales persistidos (con deriva de la moral según el tiempo transcurrido)
+    try {
+      const storedV = localStorage.getItem(VITALS_KEY);
+      if (storedV) {
+        const parsed = JSON.parse(storedV) as Record<string, { joy: number; warmth: number; ts?: number }>;
+        const loaded: Record<string, { joy: number; warmth: number }> = {};
+        PETS.forEach(p => {
+          const rec = parsed[p.id];
+          if (rec) {
+            vitalsTsRef.current[p.id] = rec.ts || Date.now();
+            loaded[p.id] = { joy: driftJoy(rec.joy, rec.ts || 0), warmth: rec.warmth };
+          } else {
+            loaded[p.id] = { joy: p.o2, warmth: p.temp };
+          }
+        });
+        setVitals(loaded);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+
+    // Bitácora persistida
+    try {
+      const storedL = localStorage.getItem(LOGS_KEY);
+      if (storedL) setLogs(JSON.parse(storedL));
+    } catch (e) {
+      console.error(e);
     }
   }, []);
 
@@ -113,13 +171,20 @@ export function PetSpaceHub() {
 
   const addLog = (petId: string, text: string, category: string) => {
     const time = new Date().toLocaleTimeString('es-CO', { hour12: false });
-    setLogs(prev => ({
-      ...prev,
-      [petId]: [
-        { time, text, category },
-        ...(prev[petId] || [])
-      ].slice(0, 10)
-    }));
+    setLogs(prev => {
+      const next = {
+        ...prev,
+        [petId]: [{ time, text, category }, ...(prev[petId] || [])].slice(0, 10),
+      };
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem(LOGS_KEY, JSON.stringify(next));
+        } catch (e) {
+          console.error(e);
+        }
+      }
+      return next;
+    });
   };
 
   const triggerHearts = () => {
@@ -136,22 +201,30 @@ export function PetSpaceHub() {
   };
 
   const handleGiveCuddles = () => {
-    setVitals(prev => ({
-      ...prev,
-      [activeId]: { ...prev[activeId], joy: 100 }
-    }));
+    vitalsTsRef.current[activeId] = Date.now();
+    setVitals(prev => {
+      const next = {
+        ...prev,
+        [activeId]: { ...prev[activeId], joy: 100 },
+      };
+      persistVitals(next);
+      return next;
+    });
     triggerHearts();
     addLog(activeId, `Le diste mimos a ${activePet.name}. ¡Su nivel de alegría está al máximo! ❤️`, 'Vida');
   };
 
   const handleGiveWarmth = () => {
+    vitalsTsRef.current[activeId] = Date.now();
     setVitals(prev => {
       const current = prev[activeId] || { joy: activePet.o2, warmth: activePet.temp };
       const nextWarmth = Math.min(Number((current.warmth + 0.3).toFixed(1)), 26.0);
-      return {
+      const next = {
         ...prev,
-        [activeId]: { ...prev[activeId], warmth: nextWarmth }
+        [activeId]: { ...prev[activeId], warmth: nextWarmth },
       };
+      persistVitals(next);
+      return next;
     });
     addLog(activeId, `Abrigaste a ${activePet.name}. Aumentó su calor de hogar. 🍖`, 'Hogar');
   };
@@ -238,7 +311,7 @@ export function PetSpaceHub() {
   };
 
   return (
-    <div className="space-y-6" style={{ ['--color-profile-accent' as string]: accentColorHex }}>
+    <div className="space-y-6 ps-env" style={{ ['--color-profile-accent' as string]: accentColorHex }}>
       <style>{`
         .force-circle,
         .rounded-full {
@@ -262,12 +335,17 @@ export function PetSpaceHub() {
             <h2 className="text-lg sm:text-2xl font-black uppercase tracking-[0.08em] text-white leading-none font-sans">Los Consentidos</h2>
           </div>
           <div className="ml-auto flex items-center gap-3 font-mono text-[9px] font-bold uppercase tracking-[0.2em]">
-            <span className="hidden sm:flex items-center gap-1.5 text-[#a88a7e]">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" style={{ animation: 'ps-vital-pulse 1.6s ease-in-out infinite' }} />
-              SISTEMAS <span style={{ color: accentColorHex }}>ONLINE</span>
-            </span>
-            <span className="text-[#594137]">TRIP: <span className="text-white">{String(petData.length).padStart(2, '0')}</span></span>
-            <StationClock accentColor={accentColorHex} />
+            <div className="flex flex-col items-end gap-1.5">
+              <span className="hidden sm:flex items-center gap-1.5 text-[#a88a7e]">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" style={{ animation: 'ps-vital-pulse 1.6s ease-in-out infinite' }} />
+                SISTEMAS <span style={{ color: accentColorHex }}>ONLINE</span>
+              </span>
+              <div className="flex items-center gap-3">
+                <span className="text-[#594137]">TRIP: <span className="text-white">{String(petData.length).padStart(2, '0')}</span></span>
+                <StationClock accentColor={accentColorHex} />
+              </div>
+            </div>
+            <OrbitalRadar pets={petData} activeId={activeId} onSelect={handleSelect} accentColor={accentColorHex} />
           </div>
         </div>
       </div>
@@ -290,8 +368,8 @@ export function PetSpaceHub() {
         />
       </div>
 
-      {/* Grid container for Habitat Module & Gallery/SystemLog */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+      {/* Grid de módulos — se re-revela (boot) al cambiar de tripulante */}
+      <div key={activePet.id} className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch ps-hud-boot">
         <div className="lg:col-span-7 h-full">
           <HabitatModule
             pet={activePet}

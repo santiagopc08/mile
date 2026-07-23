@@ -1,7 +1,27 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, Edit2, ChevronLeft, ChevronRight, Heart, Flame } from 'lucide-react';
 import { Pet } from './types';
+
+// Abreviaturas de mes (ES + EN) → índice, para "15 MAR 2019" / "30 DEC 2018"
+const MONTHS: Record<string, number> = {
+  ENE: 0, JAN: 0, FEB: 1, MAR: 2, ABR: 3, APR: 3, MAY: 4, JUN: 5,
+  JUL: 6, AGO: 7, AUG: 7, SEP: 8, OCT: 9, NOV: 10, DIC: 11, DEC: 11,
+};
+
+// Días transcurridos desde la fecha de origen; null si no se puede parsear.
+function daysSinceOrigin(birthDate: string): number | null {
+  const m = birthDate.trim().toUpperCase().match(/(\d{1,2})\s+([A-Z]{3})\s+(\d{4})/);
+  if (!m) return null;
+  const day = parseInt(m[1], 10);
+  const month = MONTHS[m[2]];
+  const year = parseInt(m[3], 10);
+  if (month === undefined || Number.isNaN(day) || Number.isNaN(year)) return null;
+  const then = new Date(year, month, day).getTime();
+  if (Number.isNaN(then)) return null;
+  const days = Math.floor((Date.now() - then) / 86400000);
+  return days >= 0 ? days : null;
+}
 
 export function HabitatModule({
   pet,
@@ -97,6 +117,8 @@ export function HabitatModule({
     }),
   };
 
+  const orbitDays = useMemo(() => daysSinceOrigin(pet.birthDate), [pet.birthDate]);
+
   // Telemetría segmentada
   const SEGMENTS = 16;
   const joyFilled = Math.round((joy / 100) * SEGMENTS);
@@ -121,7 +143,14 @@ export function HabitatModule({
       <div className="mb-5 flex items-center justify-between border-b border-white/10 pb-3 font-mono">
         <div>
           <h3 className="text-sm font-black uppercase tracking-[0.15em] text-white">Cápsula de Vida</h3>
-          <p className="mt-1 text-[9px] uppercase tracking-[0.2em] text-[#a88a7e]">TRIPULANTE: {pet.name}</p>
+          <p className="mt-1 flex flex-wrap items-center gap-x-2 text-[9px] uppercase tracking-[0.2em] text-[#a88a7e]">
+            <span>TRIPULANTE: {pet.name}</span>
+            {orbitDays !== null && (
+              <span className="text-[#594137]">
+                · <span style={{ color: pet.accent }}>T+{orbitDays.toLocaleString('es-CO')}d</span> EN ÓRBITA
+              </span>
+            )}
+          </p>
         </div>
         <span
           className="flex items-center gap-1.5 border px-2 py-1 text-[8px] font-bold uppercase tracking-[0.2em]"
@@ -302,7 +331,7 @@ export function HabitatModule({
               </div>
               <div className="mt-1 flex items-baseline justify-between">
                 <div className="flex items-baseline gap-0.5">
-                  <span className="text-2xl font-black text-white">{joy}</span>
+                  <span className="text-2xl font-black text-white">{Math.round(joy)}</span>
                   <span className="text-xs" style={{ color: pet.accent }}>%</span>
                 </div>
                 <button

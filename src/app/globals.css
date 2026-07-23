@@ -437,6 +437,13 @@ textarea {
   .ps-hud-boot {
     animation: none !important;
   }
+  /* Congela todas las animaciones CSS del entorno de la estación (no afecta a
+     framer-motion, que usa transforms) para usuarios con movimiento reducido. */
+  .ps-env,
+  .ps-env * {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+  }
 }
 
 /* ============================================================
