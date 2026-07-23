@@ -63,11 +63,11 @@ export function ChamferedPanel({
                 <div className="pointer-events-none absolute inset-0 z-0 opacity-20 bg-diagonal-stripes" />
             )}
 
-            {/* Resplandor Neón de Fondo al Tocar / Hover */}
+            {/* Resplandor Neón de Fondo con Auto-Shimmer Móvil Periódico */}
             <div
-                className="pointer-events-none absolute -inset-1 opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-active:opacity-100"
+                className="pointer-events-none absolute -inset-1 opacity-10 sm:opacity-0 transition-opacity duration-500 group-hover:opacity-100 group-active:opacity-100 animate-mobile-auto-pulse"
                 style={{
-                    background: `radial-gradient(ellipse at 50% 0%, ${accentColor}25 0%, transparent 75%)`,
+                    background: `radial-gradient(ellipse at 50% 0%, ${accentColor}20 0%, transparent 75%)`,
                 }}
             />
 
@@ -101,20 +101,22 @@ export function ChamferedPanel({
                 </>
             )}
 
-            {/* Etiqueta Superior HUD y Pestañas Flotantes Inspiradas en Imagen 5 */}
+            {/* Etiqueta Superior HUD Limpia con Diamante Geométrico Rotativo */}
             {(label || showSideTabs) && (
                 <div className="pointer-events-none mb-3 flex items-center justify-between border-b border-white/10 pb-2">
                     {label ? (
                         <div className="flex items-center gap-2">
                             <span
-                                className="inline-block h-1.5 w-1.5 rounded-full animate-pulse"
-                                style={{ backgroundColor: accentColor, boxShadow: `0 0 8px ${accentColor}` }}
-                            />
-                            <span
-                                className="font-mono text-[9px] font-black uppercase tracking-[0.25em]"
+                                className="inline-block font-mono text-[10px] animate-spin-slow"
                                 style={{ color: accentColor }}
                             >
-                                // {label}
+                                ◆
+                            </span>
+                            <span
+                                className="font-mono text-[9.5px] font-black uppercase tracking-[0.2em]"
+                                style={{ color: accentColor }}
+                            >
+                                {label.replace(/\/\//g, '·').replace(/_/g, ' ')}
                             </span>
                         </div>
                     ) : (
@@ -133,11 +135,11 @@ export function ChamferedPanel({
 
             {/* Borde Biselado Neón en Esquinas Cortadas */}
             <div
-                className="pointer-events-none absolute right-0 top-0 h-[2px] w-6 transition-all group-hover:w-10"
+                className="pointer-events-none absolute right-0 top-0 h-[2px] w-6 transition-all group-hover:w-12"
                 style={{ backgroundColor: accentColor, boxShadow: `0 0 10px ${accentColor}` }}
             />
             <div
-                className="pointer-events-none absolute bottom-0 left-0 h-[2px] w-6 transition-all group-hover:w-10"
+                className="pointer-events-none absolute bottom-0 left-0 h-[2px] w-6 transition-all group-hover:w-12"
                 style={{ backgroundColor: accentColor, boxShadow: `0 0 10px ${accentColor}` }}
             />
 

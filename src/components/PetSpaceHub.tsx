@@ -11,10 +11,26 @@ import { HabitatModule } from './pet-space/HabitatModule';
 import { GalleryStrip } from './pet-space/GalleryStrip';
 import { SystemLog } from './pet-space/SystemLog';
 
+// Reloj de estación aislado: gestiona su propio estado para no re-renderizar
+// el hub (pesado por las animaciones del viewport) cada segundo.
+function StationClock({ accentColor }: { accentColor: string }) {
+  const [time, setTime] = useState('');
+  useEffect(() => {
+    const tick = () => setTime(new Date().toLocaleTimeString('es-CO', { hour12: false }));
+    tick();
+    const i = setInterval(tick, 1000);
+    return () => clearInterval(i);
+  }, []);
+  return (
+    <span className="font-mono tabular-nums" style={{ color: accentColor }}>
+      {time}
+    </span>
+  );
+}
+
 export function PetSpaceHub() {
   const { profile } = useProfile();
-  const accentClass = profile === 'ella' ? 'user-a' : 'user-b';
-  const accentColor = profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)';
+  const accentColorHex = profile === 'ella' ? '#ff4b89' : '#c3f400';
   
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [photoDirection, setPhotoDirection] = useState(0);
@@ -222,7 +238,7 @@ export function PetSpaceHub() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" style={{ ['--color-profile-accent' as string]: accentColorHex }}>
       <style>{`
         .force-circle,
         .rounded-full {
@@ -233,22 +249,45 @@ export function PetSpaceHub() {
           border-radius: inherit !important;
         }
       `}</style>
-      {/* Header */}
-      <div className="flex flex-wrap items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-[#a88a7e] font-mono">
-        <span className="text-[#594137]">Nuestro Refugio</span>
-        <h2 className="text-2xl font-black uppercase tracking-[0.08em] text-white font-sans">Los Consentidos</h2>
-        <span className="ml-auto flex items-center gap-2 font-mono">
-          STATUS: <span style={{ color: accentColor }}>ONLINE</span>
-        </span>
-        <span className="text-[#594137] font-mono">Bebés: {String(petData.length).padStart(2, '0')}</span>
+      {/* Cabecera de control de misión */}
+      <div
+        className="relative overflow-hidden border border-white/10 bg-[#060409] p-4 pl-9"
+        style={{ clipPath: 'polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px))' }}
+      >
+        <div className="absolute left-0 top-0 bottom-0 w-[5px]" style={{ backgroundColor: accentColorHex, boxShadow: `0 0 12px ${accentColorHex}` }} />
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+          <span className="font-mono text-xs animate-spin-slow" style={{ color: accentColorHex }}>◆</span>
+          <div className="flex flex-col">
+            <span className="font-mono text-[8px] uppercase tracking-[0.3em] text-[#594137]">Estación Orbital · Refugio</span>
+            <h2 className="text-lg sm:text-2xl font-black uppercase tracking-[0.08em] text-white leading-none font-sans">Los Consentidos</h2>
+          </div>
+          <div className="ml-auto flex items-center gap-3 font-mono text-[9px] font-bold uppercase tracking-[0.2em]">
+            <span className="hidden sm:flex items-center gap-1.5 text-[#a88a7e]">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" style={{ animation: 'ps-vital-pulse 1.6s ease-in-out infinite' }} />
+              SISTEMAS <span style={{ color: accentColorHex }}>ONLINE</span>
+            </span>
+            <span className="text-[#594137]">TRIP: <span className="text-white">{String(petData.length).padStart(2, '0')}</span></span>
+            <StationClock accentColor={accentColorHex} />
+          </div>
+        </div>
       </div>
 
-      {/* Pet Selector */}
+      {/* Manifiesto de tripulación */}
       <PetSelector pets={petData} activeId={activeId} onSelect={handleSelect} />
 
-      {/* Orbital Viewport */}
+      {/* Cámara de holo-proyección */}
       <div className="flex justify-center py-2 w-full">
-        <OrbitalViewport pet={activePet} isWarping={isWarping} direction={direction} onPrev={goPrev} onNext={goNext} hearts={hearts} profileAccent={accentColor === 'var(--color-user-a)' ? '#ff4b89' : '#c3f400'} />
+        <OrbitalViewport
+          pet={activePet}
+          isWarping={isWarping}
+          direction={direction}
+          crewIndex={activeIdx === -1 ? 0 : activeIdx}
+          crewTotal={petData.length}
+          onPrev={goPrev}
+          onNext={goNext}
+          hearts={hearts}
+          profileAccent={accentColorHex}
+        />
       </div>
 
       {/* Grid container for Habitat Module & Gallery/SystemLog */}

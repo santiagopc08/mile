@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { PrivateRoute } from "@/components/PrivateRoute";
 import { useProfile } from "@/context/ProfileContext";
 import { BrutalistPanel } from "@/components/ui/BrutalistPanel";
+import { CyberButton } from "@/components/ui/CyberButton";
 import BirthdayScrollContainer from "./components/BirthdayScrollContainer";
 
 // Synth Scheduler Class to avoid memory leaks
@@ -256,20 +257,25 @@ export default function BirthdayPage() {
             >
               [ LISTO ]
             </motion.div>
-            <h1 className="text-2xl font-mono font-black uppercase tracking-widest text-[#ff4b89]">ESPACIO SECRETO</h1>
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-xs animate-spin-slow text-[#ff4b89]">◆</span>
+              <h1 className="text-2xl font-mono font-black uppercase tracking-widest text-[#ff4b89]">ESPACIO SECRETO</h1>
+            </div>
             <p className="text-xs text-[#a88a7e] leading-relaxed max-w-xs font-mono uppercase">
-              SE HA DISENADO UN PROTOCOLO ESPECIAL PARA TI. REQUIERE VOLUMEN ALTO PARA SU EJECUCION.
+              SE HA DISEÑADO UN PROTOCOLO ESPECIAL PARA TI. REQUIERE VOLUMEN ALTO PARA SU EJECUCIÓN.
             </p>
-            <button
+            <CyberButton
               onClick={() => {
                 synthRef.current?.start();
                 setBgmActive(true);
                 setPhase('PHASE_SCROLLING_STORY');
               }}
-              className="px-8 py-4 bg-[#ff4b89] border-b-2 border-r-2 border-black font-mono text-xs font-black uppercase tracking-widest text-black hover:bg-[#ffb1c3] active:scale-95 transition-all"
+              variant="primary"
+              accentColor="#ff4b89"
+              size="lg"
             >
-              INICIAR PROTOCOLO
-            </button>
+              INICIAR PROTOCOLO 🎁
+            </CyberButton>
           </BrutalistPanel>
         </main>
       </PrivateRoute>

@@ -12,6 +12,7 @@ import { useProfile } from "@/context/ProfileContext";
 import { MessageCircleHeart, Mic, PawPrint, Clock, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { InteractiveBackground } from "@/components/InteractiveBackground";
+import { CyberButton } from "@/components/ui/CyberButton";
 
 export default function RefugioPage() {
   type RefugioTab = 'notas' | 'escucha' | 'bebes' | 'historia';
@@ -58,22 +59,24 @@ export default function RefugioPage() {
         <div className="mx-auto w-full max-w-7xl border-x border-white/10">
           <div className="border-y border-white/10 bg-[#0a0a0a]/92">
             <div className="relative p-5 sm:p-8 md:p-10">
-              <div className={`absolute left-0 top-0 h-full w-px bg-${accentClass}`} style={{ backgroundColor: accentColor }} />
-              <h1 className="max-w-4xl text-3xl sm:text-4xl md:text-5xl font-mono font-bold uppercase leading-[0.92] tracking-tight text-white">
-                El Refugio
-              </h1>
+              <div className={`absolute left-0 top-0 h-full w-[4px] bg-${accentClass}`} style={{ backgroundColor: accentColor }} />
+              <div className="flex items-center gap-3">
+                <span className="font-mono text-base sm:text-xl animate-spin-slow" style={{ color: accentColor }}>◆</span>
+                <h1 className="max-w-4xl text-2xl sm:text-4xl md:text-5xl font-mono font-bold uppercase leading-[0.92] tracking-tight text-white">
+                  REFUGIO · NUESTRO ESPACIO
+                </h1>
+              </div>
             </div>
           </div>
 
           {isBirthdayActive && (
             <div className="border-b border-[#ff4b89]/20 bg-[#070105]/80 p-6 sm:p-8 relative overflow-hidden flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-              {/* Brutalist status border */}
               <div className="absolute left-0 top-0 h-full w-2 bg-gradient-to-b from-[#ff4b89] via-[#c3f400] to-purple-600" />
               
               <div className="space-y-3 relative z-10 max-w-2xl">
-                <div className="flex items-center gap-2 text-[9px] font-mono font-bold tracking-[0.3em] text-[#ff4b89]">
+                <div className="flex items-center gap-2 text-[9px] font-mono font-bold tracking-[0.25em] text-[#ff4b89]">
                   <Sparkles size={12} className="text-[#c3f400] animate-pulse" />
-                  <span>SECCIÓN PERMANENTE // PROTOCOLO DE CUMPLEAÑOS</span>
+                  <span>SECCIÓN PERMANENTE · PROTOCOLO DE CUMPLEAÑOS</span>
                 </div>
                 
                 <h2 className="text-2xl font-mono font-black uppercase text-white leading-none tracking-wide">
@@ -81,10 +84,9 @@ export default function RefugioPage() {
                 </h2>
                 
                 <p className="text-xs leading-relaxed text-[#e1bfb2] font-sans">
-                  Se ha desbloqueado una experiencia interactiva exclusiva para ti con cartas de la tripulación, videos, pasteles interactivos y sorpresas creadas con mucho cariño. ¡No te la pierdas!
+                  Se ha unlocked una experiencia interactiva exclusiva para ti con cartas de la tripulación, videos, pasteles interactivos y sorpresas creadas con mucho cariño. ¡No te la pierdas!
                 </p>
 
-                {/* Status tag */}
                 <div className="flex flex-wrap items-center gap-3 pt-1 font-mono text-[9px] text-[#a88a7e] uppercase">
                   <span>ESTADO DEL PROTOCOLO:</span>
                   <div className="flex gap-1.5 text-[#c3f400] font-bold bg-[#c3f400]/10 px-2 py-0.5 border border-[#c3f400]/20 tracking-wider">
@@ -94,11 +96,10 @@ export default function RefugioPage() {
               </div>
 
               <div className="shrink-0 relative z-10 self-start md:self-center">
-                <Link
-                  href="/cumple"
-                  className="inline-block px-6 py-4 bg-gradient-to-r from-[#ff4b89] to-purple-600 hover:from-[#ff70a9] hover:to-purple-500 border border-white/10 text-white font-mono text-[10px] font-black uppercase tracking-widest text-center shadow-[0_0_20px_rgba(255,75,137,0.25)] hover:shadow-[0_0_25px_rgba(255,75,137,0.45)] active:scale-95 transition-all"
-                >
-                  [ INGRESAR A LA EXPERIENCIA ]
+                <Link href="/cumple">
+                  <CyberButton variant="primary" accentColor="#ff4b89" size="lg">
+                    INGRESAR A LA EXPERIENCIA 🎁
+                  </CyberButton>
                 </Link>
               </div>
             </div>

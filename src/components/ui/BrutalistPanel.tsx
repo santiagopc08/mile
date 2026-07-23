@@ -18,14 +18,8 @@ interface BrutalistCornersProps {
  * reemplazados por BrutalistPanel. El padre debe ser `position: relative`.
  */
 export function BrutalistCorners({ color = 'currentColor', size = 12, thickness = 2 }: BrutalistCornersProps) {
-    return (
-        <>
-            <div className="pointer-events-none absolute left-0 top-0 transition-transform duration-300 group-hover:-translate-x-0.5 group-hover:-translate-y-0.5" style={{ width: size, height: size, borderTop: `${thickness}px solid ${color}`, borderLeft: `${thickness}px solid ${color}` }} />
-            <div className="pointer-events-none absolute right-0 top-0 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" style={{ width: size, height: size, borderTop: `${thickness}px solid ${color}`, borderRight: `${thickness}px solid ${color}` }} />
-            <div className="pointer-events-none absolute bottom-0 left-0 transition-transform duration-300 group-hover:-translate-x-0.5 group-hover:translate-y-0.5" style={{ width: size, height: size, borderBottom: `${thickness}px solid ${color}`, borderLeft: `${thickness}px solid ${color}` }} />
-            <div className="pointer-events-none absolute bottom-0 right-0 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:translate-y-0.5" style={{ width: size, height: size, borderBottom: `${thickness}px solid ${color}`, borderRight: `${thickness}px solid ${color}` }} />
-        </>
-    );
+    // Retirado por refinamiento estético: evita sobrecarga de escuadras en contenedores grandes
+    return null;
 }
 
 interface BrutalistPanelProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -45,14 +39,12 @@ interface BrutalistPanelProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 /**
- * BrutalistPanel — contenedor base del lenguaje "brutalista-cyber" de la app:
- * caja recta, borde fino, esquinas marcadas y fondo oscuro. Sustituye el patrón
- * copiado de 4 divs de esquina + borde que se repetía en cada modal/panel.
+ * BrutalistPanel — contenedor base con bordes limpios y chamfered aesthetic.
  */
 export function BrutalistPanel({
     accentColor = 'currentColor',
     borderColor,
-    corners = 'static',
+    corners = 'none',
     cornerSize = 12,
     cornerThickness = 2,
     scanlines = false,
@@ -63,20 +55,12 @@ export function BrutalistPanel({
 }: BrutalistPanelProps) {
     return (
         <div
-            className={`group relative border bg-[#0a0a0a] micro-hover-lift shimmer-sweep transition-all duration-300 ${className}`}
-            style={{ borderColor: borderColor ?? `${accentColor}40`, ...style }}
+            className={`group relative border bg-[#0a070c]/95 backdrop-blur-xl transition-all duration-300 ${className}`}
+            style={{ borderColor: borderColor ?? `${accentColor}35`, ...style }}
             {...rest}
         >
             {scanlines && (
-                <div className="scanlines-overlay pointer-events-none absolute inset-0 z-0 opacity-30" />
-            )}
-
-            {corners === 'static' && (
-                <BrutalistCorners color={accentColor} size={cornerSize} thickness={cornerThickness} />
-            )}
-
-            {corners === 'animated' && (
-                <AnimatedBrutalistCorners color={accentColor} size={cornerSize} thickness={cornerThickness} />
+                <div className="scanlines-overlay pointer-events-none absolute inset-0 z-0 opacity-20 bg-diagonal-stripes" />
             )}
 
             {children}

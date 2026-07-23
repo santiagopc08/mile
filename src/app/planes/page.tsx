@@ -68,10 +68,13 @@ export default function PlanesPage() {
         <div className="mx-auto w-full max-w-7xl border-x border-white/10">
           <div className="border-y border-white/10 bg-[#0a0a0a]/95">
             <div className="relative p-5 sm:p-8 md:p-10">
-              <div className={`absolute left-0 top-0 h-full w-px bg-${accentClass}`} style={{ backgroundColor: accentColor }} />
-              <h1 className="max-w-4xl text-3xl sm:text-4xl md:text-5xl font-mono font-bold uppercase leading-[0.92] tracking-tight text-white">
-                Planes
-              </h1>
+              <div className={`absolute left-0 top-0 h-full w-[4px] bg-${accentClass}`} style={{ backgroundColor: accentColor }} />
+              <div className="flex items-center gap-3">
+                <span className="font-mono text-base sm:text-xl animate-spin-slow" style={{ color: accentColor }}>◆</span>
+                <h1 className="max-w-4xl text-2xl sm:text-4xl md:text-5xl font-mono font-bold uppercase leading-[0.92] tracking-tight text-white">
+                  PLANES · ANTOJOS Y SALIDAS
+                </h1>
+              </div>
             </div>
           </div>
 

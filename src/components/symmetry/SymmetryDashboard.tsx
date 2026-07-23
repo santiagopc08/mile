@@ -196,9 +196,21 @@ export const SymmetryDashboard = () => {
     >
       <div className="pointer-events-none fixed inset-0 -z-10 bg-mosaic opacity-50" />
 
+      <div className="border-x border-b border-white/10 p-4 sm:p-6 bg-[#0a070c]/90 backdrop-blur-xl mb-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 font-mono">
+            <span className="text-xs animate-spin-slow" style={{ color: accentColorValue }}>◆</span>
+            <h1 className="text-base sm:text-xl font-bold uppercase tracking-tight text-white">
+              DÍA A DÍA · OPERACIONES Y RITMO
+            </h1>
+          </div>
+          <span className="hidden sm:inline-block font-mono text-[9px] uppercase font-bold tracking-[0.2em] px-2 py-0.5 border border-white/10" style={{ color: accentColorValue }}>
+            SISTEMA ACTIVO
+          </span>
+        </div>
+      </div>
+
       <div className="border-x border-white/10">
-
-
         <div className="grid grid-cols-2 border-b border-white/10 bg-black">
           {([
             { label: 'Operaciones', key: 'tasks' as const, icon: ShieldCheck, index: '01' },

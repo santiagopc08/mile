@@ -68,12 +68,18 @@ export default function SaludPage() {
                     <div className="border-y border-white/10 bg-[#0a0a0a]/95 rounded-none">
                         <div className="relative p-5 sm:p-8 md:p-10">
                             <div className={`absolute left-0 top-0 h-full w-[5px] bg-${accentClass}`} style={{ backgroundColor: accentColor }} />
-                            <h1 className="text-3xl sm:text-4xl md:text-5xl font-mono font-bold uppercase leading-[0.92] tracking-tight text-white flex justify-between items-center">Salud
-                                <div className="relative p-1 border border-white/10 bg-black rounded-none">
+                            <div className="flex items-center justify-between gap-3 w-full">
+                                <div className="flex items-center gap-3">
+                                    <span className="font-mono text-base sm:text-xl animate-spin-slow" style={{ color: accentColor }}>◆</span>
+                                    <h1 className="text-2xl sm:text-4xl md:text-5xl font-mono font-bold uppercase leading-[0.92] tracking-tight text-white">
+                                        SALUD · SIGNOS VITALES
+                                    </h1>
+                                </div>
+                                <div className="relative p-1 border border-white/10 bg-black rounded-none shrink-0">
                                     <div className={`absolute top-0 left-0 w-1.5 h-1.5 border-t border-l border-${accentClass}`} style={{ borderColor: accentColor }} />
                                     <div className={`absolute bottom-0 right-0 w-1.5 h-1.5 border-b border-r border-${accentClass}`} style={{ borderColor: accentColor }} />
                                     <video
-                                        className="w-20 h-20 object-cover contrast-125 opacity-80 mix-blend-screen rounded-none"
+                                        className="w-16 h-16 sm:w-20 sm:h-20 object-cover contrast-125 opacity-80 mix-blend-screen rounded-none"
                                         src="vid/dogtor.mp4"
                                         autoPlay
                                         loop
@@ -85,7 +91,7 @@ export default function SaludPage() {
                                         <div className={`w-1 h-1 bg-${secondaryClass} animate-pulse`} style={{ backgroundColor: secondaryColor }} />
                                     </div>
                                 </div>
-                            </h1>
+                            </div>
                         </div>
                     </div>
 

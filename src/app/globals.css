@@ -116,6 +116,25 @@ body {
   box-shadow: 0 0 25px rgba(255, 75, 137, 0.2), inset 0 0 15px rgba(0, 0, 0, 0.8);
 }
 
+/* Mobile Auto-Shimmer & Auto-Pulse (Simula hover periódico en pantallas táctiles) */
+@keyframes mobile-auto-pulse-keyframes {
+  0%, 100% { opacity: 0.15; }
+  50% { opacity: 0.65; }
+}
+
+.animate-mobile-auto-pulse {
+  animation: mobile-auto-pulse-keyframes 5s ease-in-out infinite;
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 12s linear infinite;
+}
+
 /* Micro-Animation Utilities */
 .micro-hover-lift {
   transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease;
@@ -334,6 +353,89 @@ textarea {
 
   50% {
     filter: brightness(1.1) drop-shadow(0 0 16px var(--color-profile-accent-alpha));
+  }
+}
+
+/* ============================================================
+   PET SPACE STATION — Estación orbital de compañeros (inmersiva)
+   ============================================================ */
+
+/* Estrellas titilantes (opacidad configurable por CSS var) */
+@keyframes ps-twinkle {
+  0%, 100% { opacity: var(--ps-min, 0.12); }
+  50%      { opacity: var(--ps-max, 0.9); }
+}
+
+/* Nebulosas a la deriva */
+@keyframes ps-nebula-drift {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  50%  { transform: translate3d(3%, -2.5%, 0) scale(1.14); }
+  100% { transform: translate3d(0, 0, 0) scale(1); }
+}
+
+/* Rejilla de cubierta desplazándose hacia el horizonte */
+@keyframes ps-grid-scroll {
+  from { background-position: 0 0; }
+  to   { background-position: 0 44px; }
+}
+
+/* Parpadeo holográfico */
+@keyframes ps-holo-flicker {
+  0%, 90%, 100% { opacity: 1; }
+  92% { opacity: 0.7; }
+  93% { opacity: 1; }
+  96% { opacity: 0.86; }
+  97% { opacity: 1; }
+}
+.ps-holo-flicker { animation: ps-holo-flicker 6s linear infinite; }
+
+/* Barrido de radar orbital */
+@keyframes ps-radar-sweep {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Cometa cruzando el cielo */
+@keyframes ps-comet {
+  0%   { transform: translate3d(0, 0, 0); opacity: 0; }
+  10%  { opacity: 1; }
+  75%  { opacity: 0.9; }
+  100% { transform: translate3d(var(--ps-comet-x, 460px), var(--ps-comet-y, 180px), 0); opacity: 0; }
+}
+
+/* Línea de escaneo vertical para paneles */
+@keyframes ps-scan-y {
+  0%   { transform: translateY(-120%); }
+  100% { transform: translateY(120%); }
+}
+
+/* Pulso de telemetría / soporte vital */
+@keyframes ps-vital-pulse {
+  0%, 100% { opacity: 0.5; }
+  50%      { opacity: 1; }
+}
+
+/* Aparición tipo boot de los paneles HUD */
+@keyframes ps-hud-boot {
+  0%   { opacity: 0; clip-path: inset(0 0 100% 0); }
+  100% { opacity: 1; clip-path: inset(0 0 0 0); }
+}
+.ps-hud-boot { animation: ps-hud-boot 0.55s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* Rejilla de cubierta en perspectiva */
+.ps-deck-grid {
+  background-image:
+    linear-gradient(to right, var(--ps-grid-color, rgba(120,200,255,0.18)) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--ps-grid-color, rgba(120,200,255,0.18)) 1px, transparent 1px);
+  background-size: 44px 44px;
+  animation: ps-grid-scroll 3.5s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ps-holo-flicker,
+  .ps-deck-grid,
+  .ps-hud-boot {
+    animation: none !important;
   }
 }
 

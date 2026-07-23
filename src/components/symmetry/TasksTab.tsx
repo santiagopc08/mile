@@ -53,9 +53,12 @@ export const TasksTab = ({
       {/* Task Video Header */}
       <BrutalistPanel accentColor={accentColorValue} borderColor="rgba(255,255,255,0.1)" corners="animated" cornerSize={12} cornerThickness={1.5} className="grid gap-4 p-4 md:grid-cols-[1fr_auto] md:items-center">
         <div className="w-full">
+          <div className="flex items-center gap-2 font-mono">
+            <span className="text-xs animate-spin-slow" style={{ color: accentColorValue }}>◆</span>
+            <p className="text-[9px] font-mono font-bold uppercase tracking-[0.24em] text-user-c">OPERACIONES Y RITMO</p>
+          </div>
           <h2 className="text-2xl font-mono font-bold uppercase tracking-tight text-white mt-1 flex justify-between items-center w-full">
-            <span>
-              <p className="text-[9px] font-mono font-bold uppercase tracking-[0.24em] text-user-c">OPERACIONES</p>Tareas</span>
+            <span>TAREAS · REGISTRO DIARIO</span>
             <div className="relative h-20 w-20 border border-white/10 bg-black p-1 flex-shrink-0">
               <AnimatedBrutalistCorners color="var(--color-profile-accent)" size={6} />
               <video

@@ -118,12 +118,15 @@ export default function Home() {
           )}
 
           {/* Header Section */}
-          <div className="border-b border-white/10 p-4 sm:p-8 lg:p-10 relative">
+          <div className="border-b border-white/10 p-4 sm:p-8 lg:p-10 relative overflow-hidden">
             <div className="absolute left-0 top-0 h-full w-[4px]" style={{ backgroundColor: accentColorValue }} />
             <div className="space-y-3">
-              <h1 className="text-xl sm:text-3xl md:text-4xl font-mono font-bold uppercase tracking-tight text-white leading-none">
-                {greetingTitle}
-              </h1>
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-xs animate-spin-slow" style={{ color: accentColorValue }}>◆</span>
+                <h1 className="text-xl sm:text-3xl md:text-4xl font-mono font-bold uppercase tracking-tight text-white leading-none">
+                  {greetingTitle}
+                </h1>
+              </div>
               <p className="text-xs sm:text-sm tracking-normal text-[#e1bfb2] font-medium leading-relaxed max-w-xl font-sans">
                 {greetingSubtitle}
               </p>
@@ -139,7 +142,7 @@ export default function Home() {
               {/* Día a Día */}
               <ChamferedPanel
                 accentColor={accentColorValue}
-                label="DIA_A_DIA // SYS_RITMO"
+                label="DÍA A DÍA · RITMO"
                 notchSize={20}
                 className="flex flex-col justify-between gap-4 h-full"
               >
@@ -179,7 +182,7 @@ export default function Home() {
               {/* Antojos */}
               <ChamferedPanel
                 accentColor={accentColorValue}
-                label="PLANES // ANTOJOS"
+                label="PLANES · ANTOJOS"
                 notchSize={20}
                 className="flex flex-col justify-between gap-4 h-full"
               >
@@ -220,7 +223,10 @@ export default function Home() {
             {/* Secondary Modules Header */}
             <div className="flex items-center gap-4 py-2">
               <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-              <span className="text-[10px] font-mono uppercase font-black tracking-[0.25em]" style={{ color: accentColorValue }}>// MÓDULOS DE SINTONÍA</span>
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-xs animate-pulse" style={{ color: accentColorValue }}>◈</span>
+                <span className="text-[10px] font-mono uppercase font-black tracking-[0.25em]" style={{ color: accentColorValue }}>MÓDULOS DE SINTONÍA</span>
+              </div>
               <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
             </div>
 
@@ -230,7 +236,7 @@ export default function Home() {
               {/* Refugio */}
               <ChamferedPanel
                 accentColor={accentColorValue}
-                label="REFUGIO // LOG"
+                label="REFUGIO · BITÁCORA"
                 notchSize={16}
                 className="flex flex-col justify-between gap-4 h-full"
               >
@@ -277,7 +283,7 @@ export default function Home() {
               {/* Salud */}
               <ChamferedPanel
                 accentColor={accentColorValue}
-                label="SALUD // VITALS"
+                label="SALUD · VITALES"
                 notchSize={16}
                 className="flex flex-col justify-between gap-4 h-full"
               >
@@ -331,7 +337,7 @@ export default function Home() {
               {/* Juego */}
               <ChamferedPanel
                 accentColor={accentColorValue}
-                label="JUEGO // GAME_HUB"
+                label="JUEGO · RECUERDOS"
                 notchSize={16}
                 className="flex flex-col justify-between gap-4 h-full"
               >
