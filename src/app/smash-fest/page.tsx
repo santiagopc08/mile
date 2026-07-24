@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { Suspense, useState } from "react";
+import { Suspense, useState, useCallback } from "react";
 import { ArrowLeft, RotateCcw, Volume2, VolumeX, Sparkles, Trophy, HelpCircle, Zap, Bomb, Hammer, CircleDot } from "lucide-react";
 import Link from "next/link";
 import { ChamferedPanel } from "@/components/ui/ChamferedPanel";
@@ -29,24 +29,42 @@ export default function SmashFestPage() {
   const [stats, setStats] = useState({ remainingBalls: 8, memoryBlocksLeft: 1, totalMemoryBlocks: 1 });
   const [resetKey, setResetKey] = useState(0);
 
-  const handleResetLevel = () => {
+  const handleResetLevel = useCallback(() => {
     setResetKey((prev) => prev + 1);
     setIsVictoryModalOpen(false);
     setIsOutOfAmmoModalOpen(false);
     setIsMemoryModalOpen(false);
-  };
+  }, []);
 
-  const handleNextLevel = () => {
+  const handleNextLevel = useCallback(() => {
     const levelKeys = Object.keys(DEFAULT_LEVELS);
-    const currentIndex = levelKeys.indexOf(levelId);
-    const nextIndex = (currentIndex + 1) % levelKeys.length;
-    setLevelId(levelKeys[nextIndex]);
+    setLevelId((currentLvl) => {
+      const currentIndex = levelKeys.indexOf(currentLvl);
+      const nextIndex = (currentIndex + 1) % levelKeys.length;
+      return levelKeys[nextIndex];
+    });
 
     setResetKey((prev) => prev + 1);
     setIsVictoryModalOpen(false);
     setIsOutOfAmmoModalOpen(false);
     setIsMemoryModalOpen(false);
-  };
+  }, []);
+
+  const handleMemoryBlockTriggered = useCallback(() => {
+    setIsMemoryModalOpen(true);
+  }, []);
+
+  const handleLevelCompleted = useCallback(() => {
+    setIsVictoryModalOpen(true);
+  }, []);
+
+  const handleOutOfAmmo = useCallback(() => {
+    setIsOutOfAmmoModalOpen(true);
+  }, []);
+
+  const handleStatsUpdate = useCallback((newStats: { remainingBalls: number; memoryBlocksLeft: number; totalMemoryBlocks: number }) => {
+    setStats(newStats);
+  }, []);
 
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-[#0c0a14] touch-none font-mono select-none">
@@ -203,12 +221,10 @@ export default function SmashFestPage() {
           activeWildcard={activeWildcard}
           shotPower={shotPower}
           isSoundMuted={isSoundMuted}
-          onMemoryBlockTriggered={() => setIsMemoryModalOpen(true)}
-          onLevelCompleted={() => setIsVictoryModalOpen(true)}
-          onOutOfAmmo={() => {
-            if (stats.memoryBlocksLeft > 0) setIsOutOfAmmoModalOpen(true);
-          }}
-          onStatsUpdate={setStats}
+          onMemoryBlockTriggered={handleMemoryBlockTriggered}
+          onLevelCompleted={handleLevelCompleted}
+          onOutOfAmmo={handleOutOfAmmo}
+          onStatsUpdate={handleStatsUpdate}
         />
       </Suspense>
 

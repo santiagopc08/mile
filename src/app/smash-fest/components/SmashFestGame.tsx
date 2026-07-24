@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef, useCallback, memo } from "react";
 import { Canvas, useThree, useFrame } from "@react-three/fiber";
 import { Physics, useBox, useCylinder, usePlane, useSphere } from "@react-three/cannon";
 import { OrbitControls } from "@react-three/drei";
@@ -43,7 +43,7 @@ interface SmashFestGameProps {
   isSoundMuted?: boolean;
 }
 
-// 6 Escalating Levels with Progressive Challenge & Architecture
+// 6 Escalating Levels with Heavy Structural Physics & Solid Support Masses
 export const DEFAULT_LEVELS: Record<string, LevelSchema> = {
   level_1: {
     level_id: "level_1",
@@ -55,13 +55,13 @@ export const DEFAULT_LEVELS: Record<string, LevelSchema> = {
     },
     projectile_limit: 8,
     nodes: [
-      { id: "base1", type: "box", dimensions: [3, 0.8, 3], position: [0, 0.4, 0], mass: 60, friction: 0.6, material: "stone" },
-      { id: "pillar1", type: "cylinder", dimensions: [0.4, 0.4, 2], position: [-1, 1.8, -1], mass: 12, friction: 0.5, material: "wood" },
-      { id: "pillar2", type: "cylinder", dimensions: [0.4, 0.4, 2], position: [1, 1.8, -1], mass: 12, friction: 0.5, material: "wood" },
-      { id: "pillar3", type: "cylinder", dimensions: [0.4, 0.4, 2], position: [-1, 1.8, 1], mass: 12, friction: 0.5, material: "wood" },
-      { id: "pillar4", type: "cylinder", dimensions: [0.4, 0.4, 2], position: [1, 1.8, 1], mass: 12, friction: 0.5, material: "wood" },
-      { id: "top1", type: "box", dimensions: [3, 0.5, 3], position: [0, 3.05, 0], mass: 20, friction: 0.5, material: "wood" },
-      { id: "mem1", type: "box", dimensions: [1, 1, 1], position: [0, 4.0, 0], mass: 6, friction: 0.8, material: "special", isMemoryBlock: true },
+      { id: "base1", type: "box", dimensions: [3, 0.8, 3], position: [0, 0.4, 0], mass: 250, friction: 0.9, material: "stone" },
+      { id: "pillar1", type: "cylinder", dimensions: [0.4, 0.4, 2], position: [-1, 1.8, -1], mass: 45, friction: 0.85, material: "wood" },
+      { id: "pillar2", type: "cylinder", dimensions: [0.4, 0.4, 2], position: [1, 1.8, -1], mass: 45, friction: 0.85, material: "wood" },
+      { id: "pillar3", type: "cylinder", dimensions: [0.4, 0.4, 2], position: [-1, 1.8, 1], mass: 45, friction: 0.85, material: "wood" },
+      { id: "pillar4", type: "cylinder", dimensions: [0.4, 0.4, 2], position: [1, 1.8, 1], mass: 45, friction: 0.85, material: "wood" },
+      { id: "top1", type: "box", dimensions: [3, 0.5, 3], position: [0, 3.05, 0], mass: 80, friction: 0.85, material: "wood" },
+      { id: "mem1", type: "box", dimensions: [1, 1, 1], position: [0, 4.0, 0], mass: 30, friction: 0.95, material: "special", isMemoryBlock: true },
     ],
   },
   level_2: {
@@ -75,21 +75,21 @@ export const DEFAULT_LEVELS: Record<string, LevelSchema> = {
     projectile_limit: 10,
     nodes: [
       // Left Tower
-      { id: "l_base", type: "box", dimensions: [2.2, 0.8, 2.2], position: [-2.5, 0.4, 0], mass: 50, friction: 0.6, material: "stone" },
-      { id: "l_pil1", type: "cylinder", dimensions: [0.35, 0.35, 2.2], position: [-3.2, 1.9, 0], mass: 14, friction: 0.5, material: "wood" },
-      { id: "l_pil2", type: "cylinder", dimensions: [0.35, 0.35, 2.2], position: [-1.8, 1.9, 0], mass: 14, friction: 0.5, material: "wood" },
-      { id: "l_top", type: "box", dimensions: [2.2, 0.5, 2.2], position: [-2.5, 3.25, 0], mass: 18, friction: 0.5, material: "wood" },
-      { id: "mem1", type: "box", dimensions: [0.9, 0.9, 0.9], position: [-2.5, 4.1, 0], mass: 5, friction: 0.8, material: "special", isMemoryBlock: true },
+      { id: "l_base", type: "box", dimensions: [2.2, 0.8, 2.2], position: [-2.5, 0.4, 0], mass: 200, friction: 0.9, material: "stone" },
+      { id: "l_pil1", type: "cylinder", dimensions: [0.35, 0.35, 2.2], position: [-3.2, 1.9, 0], mass: 45, friction: 0.85, material: "wood" },
+      { id: "l_pil2", type: "cylinder", dimensions: [0.35, 0.35, 2.2], position: [-1.8, 1.9, 0], mass: 45, friction: 0.85, material: "wood" },
+      { id: "l_top", type: "box", dimensions: [2.2, 0.5, 2.2], position: [-2.5, 3.25, 0], mass: 70, friction: 0.85, material: "wood" },
+      { id: "mem1", type: "box", dimensions: [0.9, 0.9, 0.9], position: [-2.5, 4.1, 0], mass: 30, friction: 0.95, material: "special", isMemoryBlock: true },
 
       // Right Tower
-      { id: "r_base", type: "box", dimensions: [2.2, 0.8, 2.2], position: [2.5, 0.4, 0], mass: 50, friction: 0.6, material: "stone" },
-      { id: "r_pil1", type: "cylinder", dimensions: [0.35, 0.35, 2.2], position: [1.8, 1.9, 0], mass: 14, friction: 0.5, material: "wood" },
-      { id: "r_pil2", type: "cylinder", dimensions: [0.35, 0.35, 2.2], position: [3.2, 1.9, 0], mass: 14, friction: 0.5, material: "wood" },
-      { id: "r_top", type: "box", dimensions: [2.2, 0.5, 2.2], position: [2.5, 3.25, 0], mass: 18, friction: 0.5, material: "wood" },
-      { id: "mem2", type: "box", dimensions: [0.9, 0.9, 0.9], position: [2.5, 4.1, 0], mass: 5, friction: 0.8, material: "special", isMemoryBlock: true },
+      { id: "r_base", type: "box", dimensions: [2.2, 0.8, 2.2], position: [2.5, 0.4, 0], mass: 200, friction: 0.9, material: "stone" },
+      { id: "r_pil1", type: "cylinder", dimensions: [0.35, 0.35, 2.2], position: [1.8, 1.9, 0], mass: 45, friction: 0.85, material: "wood" },
+      { id: "r_pil2", type: "cylinder", dimensions: [0.35, 0.35, 2.2], position: [3.2, 1.9, 0], mass: 45, friction: 0.85, material: "wood" },
+      { id: "r_top", type: "box", dimensions: [2.2, 0.5, 2.2], position: [2.5, 3.25, 0], mass: 70, friction: 0.85, material: "wood" },
+      { id: "mem2", type: "box", dimensions: [0.9, 0.9, 0.9], position: [2.5, 4.1, 0], mass: 30, friction: 0.95, material: "special", isMemoryBlock: true },
 
       // Connecting Bridge
-      { id: "bridge", type: "box", dimensions: [3.5, 0.4, 1.5], position: [0, 3.4, 0], mass: 12, friction: 0.5, material: "wood" },
+      { id: "bridge", type: "box", dimensions: [3.5, 0.4, 1.5], position: [0, 3.4, 0], mass: 50, friction: 0.85, material: "wood" },
     ],
   },
   level_3: {
@@ -103,19 +103,19 @@ export const DEFAULT_LEVELS: Record<string, LevelSchema> = {
     projectile_limit: 12,
     nodes: [
       // Base Grid
-      { id: "b1", type: "box", dimensions: [1.8, 1.0, 1.8], position: [-1.8, 0.5, 0], mass: 45, friction: 0.6, material: "stone" },
-      { id: "b2", type: "box", dimensions: [1.8, 1.0, 1.8], position: [0, 0.5, 0], mass: 45, friction: 0.6, material: "stone" },
-      { id: "b3", type: "box", dimensions: [1.8, 1.0, 1.8], position: [1.8, 0.5, 0], mass: 45, friction: 0.6, material: "stone" },
+      { id: "b1", type: "box", dimensions: [1.8, 1.0, 1.8], position: [-1.8, 0.5, 0], mass: 180, friction: 0.9, material: "stone" },
+      { id: "b2", type: "box", dimensions: [1.8, 1.0, 1.8], position: [0, 0.5, 0], mass: 180, friction: 0.9, material: "stone" },
+      { id: "b3", type: "box", dimensions: [1.8, 1.0, 1.8], position: [1.8, 0.5, 0], mass: 180, friction: 0.9, material: "stone" },
       
       // Tier 2
-      { id: "t2_p1", type: "cylinder", dimensions: [0.4, 0.4, 2], position: [-1.2, 2.0, 0], mass: 15, friction: 0.5, material: "wood" },
-      { id: "t2_p2", type: "cylinder", dimensions: [0.4, 0.4, 2], position: [1.2, 2.0, 0], mass: 15, friction: 0.5, material: "wood" },
-      { id: "t2_slab", type: "box", dimensions: [4.5, 0.5, 2.0], position: [0, 3.25, 0], mass: 25, friction: 0.5, material: "wood" },
+      { id: "t2_p1", type: "cylinder", dimensions: [0.4, 0.4, 2], position: [-1.2, 2.0, 0], mass: 50, friction: 0.85, material: "wood" },
+      { id: "t2_p2", type: "cylinder", dimensions: [0.4, 0.4, 2], position: [1.2, 2.0, 0], mass: 50, friction: 0.85, material: "wood" },
+      { id: "t2_slab", type: "box", dimensions: [4.5, 0.5, 2.0], position: [0, 3.25, 0], mass: 90, friction: 0.85, material: "wood" },
 
       // Memory Blocks Tier
-      { id: "mem1", type: "box", dimensions: [0.9, 0.9, 0.9], position: [-1.5, 4.0, 0], mass: 5, friction: 0.8, material: "special", isMemoryBlock: true },
-      { id: "mem2", type: "box", dimensions: [0.9, 0.9, 0.9], position: [0, 4.0, 0], mass: 5, friction: 0.8, material: "special", isMemoryBlock: true },
-      { id: "mem3", type: "box", dimensions: [0.9, 0.9, 0.9], position: [1.5, 4.0, 0], mass: 5, friction: 0.8, material: "special", isMemoryBlock: true },
+      { id: "mem1", type: "box", dimensions: [0.9, 0.9, 0.9], position: [-1.5, 4.0, 0], mass: 30, friction: 0.95, material: "special", isMemoryBlock: true },
+      { id: "mem2", type: "box", dimensions: [0.9, 0.9, 0.9], position: [0, 4.0, 0], mass: 30, friction: 0.95, material: "special", isMemoryBlock: true },
+      { id: "mem3", type: "box", dimensions: [0.9, 0.9, 0.9], position: [1.5, 4.0, 0], mass: 30, friction: 0.95, material: "special", isMemoryBlock: true },
     ],
   },
   level_4: {
@@ -128,18 +128,18 @@ export const DEFAULT_LEVELS: Record<string, LevelSchema> = {
     },
     projectile_limit: 12,
     nodes: [
-      { id: "p1", type: "box", dimensions: [2.5, 0.6, 2.5], position: [-3, 1.2, -1], mass: 40, friction: 0.6, material: "stone" },
-      { id: "p2", type: "box", dimensions: [2.5, 0.6, 2.5], position: [3, 1.2, -1], mass: 40, friction: 0.6, material: "stone" },
-      { id: "p3", type: "box", dimensions: [3.0, 0.6, 3.0], position: [0, 2.8, 1], mass: 50, friction: 0.6, material: "stone" },
+      { id: "p1", type: "box", dimensions: [2.5, 0.6, 2.5], position: [-3, 1.2, -1], mass: 160, friction: 0.9, material: "stone" },
+      { id: "p2", type: "box", dimensions: [2.5, 0.6, 2.5], position: [3, 1.2, -1], mass: 160, friction: 0.9, material: "stone" },
+      { id: "p3", type: "box", dimensions: [3.0, 0.6, 3.0], position: [0, 2.8, 1], mass: 180, friction: 0.9, material: "stone" },
 
-      { id: "c1", type: "cylinder", dimensions: [0.35, 0.35, 1.8], position: [-3, 2.4, -1], mass: 10, friction: 0.5, material: "wood" },
-      { id: "c2", type: "cylinder", dimensions: [0.35, 0.35, 1.8], position: [3, 2.4, -1], mass: 10, friction: 0.5, material: "wood" },
-      { id: "c3", type: "cylinder", dimensions: [0.35, 0.35, 1.8], position: [0, 4.0, 1], mass: 10, friction: 0.5, material: "wood" },
+      { id: "c1", type: "cylinder", dimensions: [0.35, 0.35, 1.8], position: [-3, 2.4, -1], mass: 40, friction: 0.85, material: "wood" },
+      { id: "c2", type: "cylinder", dimensions: [0.35, 0.35, 1.8], position: [3, 2.4, -1], mass: 40, friction: 0.85, material: "wood" },
+      { id: "c3", type: "cylinder", dimensions: [0.35, 0.35, 1.8], position: [0, 4.0, 1], mass: 40, friction: 0.85, material: "wood" },
 
-      { id: "mem1", type: "box", dimensions: [0.9, 0.9, 0.9], position: [-3, 3.7, -1], mass: 4, friction: 0.8, material: "special", isMemoryBlock: true },
-      { id: "mem2", type: "box", dimensions: [0.9, 0.9, 0.9], position: [3, 3.7, -1], mass: 4, friction: 0.8, material: "special", isMemoryBlock: true },
-      { id: "mem3", type: "box", dimensions: [0.9, 0.9, 0.9], position: [-0.8, 5.3, 1], mass: 4, friction: 0.8, material: "special", isMemoryBlock: true },
-      { id: "mem4", type: "box", dimensions: [0.9, 0.9, 0.9], position: [0.8, 5.3, 1], mass: 4, friction: 0.8, material: "special", isMemoryBlock: true },
+      { id: "mem1", type: "box", dimensions: [0.9, 0.9, 0.9], position: [-3, 3.7, -1], mass: 25, friction: 0.95, material: "special", isMemoryBlock: true },
+      { id: "mem2", type: "box", dimensions: [0.9, 0.9, 0.9], position: [3, 3.7, -1], mass: 25, friction: 0.95, material: "special", isMemoryBlock: true },
+      { id: "mem3", type: "box", dimensions: [0.9, 0.9, 0.9], position: [-0.8, 5.3, 1], mass: 25, friction: 0.95, material: "special", isMemoryBlock: true },
+      { id: "mem4", type: "box", dimensions: [0.9, 0.9, 0.9], position: [0.8, 5.3, 1], mass: 25, friction: 0.95, material: "special", isMemoryBlock: true },
     ],
   },
   level_5: {
@@ -153,21 +153,21 @@ export const DEFAULT_LEVELS: Record<string, LevelSchema> = {
     projectile_limit: 14,
     nodes: [
       // Armor Front Wall (Metal)
-      { id: "metal1", type: "box", dimensions: [5.0, 1.8, 0.6], position: [0, 0.9, 2], mass: 120, friction: 0.8, material: "metal" },
-      { id: "metal2", type: "box", dimensions: [5.0, 1.8, 0.6], position: [0, 2.7, 2], mass: 120, friction: 0.8, material: "metal" },
+      { id: "metal1", type: "box", dimensions: [5.0, 1.8, 0.6], position: [0, 0.9, 2], mass: 300, friction: 0.95, material: "metal" },
+      { id: "metal2", type: "box", dimensions: [5.0, 1.8, 0.6], position: [0, 2.7, 2], mass: 300, friction: 0.95, material: "metal" },
 
       // Inner Keep Towers
-      { id: "ik1", type: "box", dimensions: [2.0, 0.8, 2.0], position: [-1.8, 0.4, -0.5], mass: 60, friction: 0.6, material: "stone" },
-      { id: "ik2", type: "box", dimensions: [2.0, 0.8, 2.0], position: [1.8, 0.4, -0.5], mass: 60, friction: 0.6, material: "stone" },
+      { id: "ik1", type: "box", dimensions: [2.0, 0.8, 2.0], position: [-1.8, 0.4, -0.5], mass: 200, friction: 0.9, material: "stone" },
+      { id: "ik2", type: "box", dimensions: [2.0, 0.8, 2.0], position: [1.8, 0.4, -0.5], mass: 200, friction: 0.9, material: "stone" },
 
-      { id: "ik_c1", type: "cylinder", dimensions: [0.4, 0.4, 2.5], position: [-1.8, 2.1, -0.5], mass: 18, friction: 0.5, material: "wood" },
-      { id: "ik_c2", type: "cylinder", dimensions: [0.4, 0.4, 2.5], position: [1.8, 2.1, -0.5], mass: 18, friction: 0.5, material: "wood" },
+      { id: "ik_c1", type: "cylinder", dimensions: [0.4, 0.4, 2.5], position: [-1.8, 2.1, -0.5], mass: 60, friction: 0.85, material: "wood" },
+      { id: "ik_c2", type: "cylinder", dimensions: [0.4, 0.4, 2.5], position: [1.8, 2.1, -0.5], mass: 60, friction: 0.85, material: "wood" },
 
       // Memory Core
-      { id: "mem1", type: "box", dimensions: [0.9, 0.9, 0.9], position: [-1.8, 3.8, -0.5], mass: 5, friction: 0.8, material: "special", isMemoryBlock: true },
-      { id: "mem2", type: "box", dimensions: [0.9, 0.9, 0.9], position: [1.8, 3.8, -0.5], mass: 5, friction: 0.8, material: "special", isMemoryBlock: true },
-      { id: "mem3", type: "box", dimensions: [0.9, 0.9, 0.9], position: [-0.9, 4.2, 2], mass: 5, friction: 0.8, material: "special", isMemoryBlock: true },
-      { id: "mem4", type: "box", dimensions: [0.9, 0.9, 0.9], position: [0.9, 4.2, 2], mass: 5, friction: 0.8, material: "special", isMemoryBlock: true },
+      { id: "mem1", type: "box", dimensions: [0.9, 0.9, 0.9], position: [-1.8, 3.8, -0.5], mass: 35, friction: 0.95, material: "special", isMemoryBlock: true },
+      { id: "mem2", type: "box", dimensions: [0.9, 0.9, 0.9], position: [1.8, 3.8, -0.5], mass: 35, friction: 0.95, material: "special", isMemoryBlock: true },
+      { id: "mem3", type: "box", dimensions: [0.9, 0.9, 0.9], position: [-0.9, 4.2, 2], mass: 35, friction: 0.95, material: "special", isMemoryBlock: true },
+      { id: "mem4", type: "box", dimensions: [0.9, 0.9, 0.9], position: [0.9, 4.2, 2], mass: 35, friction: 0.95, material: "special", isMemoryBlock: true },
     ],
   },
   level_6: {
@@ -181,22 +181,22 @@ export const DEFAULT_LEVELS: Record<string, LevelSchema> = {
     projectile_limit: 15,
     nodes: [
       // Central Citadel Spire
-      { id: "spire_base", type: "cylinder", dimensions: [1.5, 1.8, 1.5], position: [0, 0.75, 0], mass: 150, friction: 0.7, material: "stone" },
-      { id: "spire_mid", type: "cylinder", dimensions: [1.2, 1.2, 2.5], position: [0, 2.75, 0], mass: 80, friction: 0.6, material: "stone" },
-      { id: "spire_top", type: "box", dimensions: [3.2, 0.6, 3.2], position: [0, 4.3, 0], mass: 35, friction: 0.5, material: "wood" },
+      { id: "spire_base", type: "cylinder", dimensions: [1.5, 1.8, 1.5], position: [0, 0.75, 0], mass: 350, friction: 0.95, material: "stone" },
+      { id: "spire_mid", type: "cylinder", dimensions: [1.2, 1.2, 2.5], position: [0, 2.75, 0], mass: 200, friction: 0.9, material: "stone" },
+      { id: "spire_top", type: "box", dimensions: [3.2, 0.6, 3.2], position: [0, 4.3, 0], mass: 120, friction: 0.85, material: "wood" },
 
       // Outer Ring Pillars
-      { id: "op1", type: "cylinder", dimensions: [0.35, 0.35, 2.2], position: [-2.5, 1.1, -2.5], mass: 14, friction: 0.5, material: "wood" },
-      { id: "op2", type: "cylinder", dimensions: [0.35, 0.35, 2.2], position: [2.5, 1.1, -2.5], mass: 14, friction: 0.5, material: "wood" },
-      { id: "op3", type: "cylinder", dimensions: [0.35, 0.35, 2.2], position: [-2.5, 1.1, 2.5], mass: 14, friction: 0.5, material: "wood" },
-      { id: "op4", type: "cylinder", dimensions: [0.35, 0.35, 2.2], position: [2.5, 1.1, 2.5], mass: 14, friction: 0.5, material: "wood" },
+      { id: "op1", type: "cylinder", dimensions: [0.35, 0.35, 2.2], position: [-2.5, 1.1, -2.5], mass: 50, friction: 0.85, material: "wood" },
+      { id: "op2", type: "cylinder", dimensions: [0.35, 0.35, 2.2], position: [2.5, 1.1, -2.5], mass: 50, friction: 0.85, material: "wood" },
+      { id: "op3", type: "cylinder", dimensions: [0.35, 0.35, 2.2], position: [-2.5, 1.1, 2.5], mass: 50, friction: 0.85, material: "wood" },
+      { id: "op4", type: "cylinder", dimensions: [0.35, 0.35, 2.2], position: [2.5, 1.1, 2.5], mass: 50, friction: 0.85, material: "wood" },
 
       // Memory Blocks Crown
-      { id: "mem1", type: "box", dimensions: [0.9, 0.9, 0.9], position: [0, 5.2, 0], mass: 5, friction: 0.8, material: "special", isMemoryBlock: true },
-      { id: "mem2", type: "box", dimensions: [0.9, 0.9, 0.9], position: [-2.5, 2.6, -2.5], mass: 5, friction: 0.8, material: "special", isMemoryBlock: true },
-      { id: "mem3", type: "box", dimensions: [0.9, 0.9, 0.9], position: [2.5, 2.6, -2.5], mass: 5, friction: 0.8, material: "special", isMemoryBlock: true },
-      { id: "mem4", type: "box", dimensions: [0.9, 0.9, 0.9], position: [-2.5, 2.6, 2.5], mass: 5, friction: 0.8, material: "special", isMemoryBlock: true },
-      { id: "mem5", type: "box", dimensions: [0.9, 0.9, 0.9], position: [2.5, 2.6, 2.5], mass: 5, friction: 0.8, material: "special", isMemoryBlock: true },
+      { id: "mem1", type: "box", dimensions: [0.9, 0.9, 0.9], position: [0, 5.2, 0], mass: 35, friction: 0.95, material: "special", isMemoryBlock: true },
+      { id: "mem2", type: "box", dimensions: [0.9, 0.9, 0.9], position: [-2.5, 2.6, -2.5], mass: 35, friction: 0.95, material: "special", isMemoryBlock: true },
+      { id: "mem3", type: "box", dimensions: [0.9, 0.9, 0.9], position: [2.5, 2.6, -2.5], mass: 35, friction: 0.95, material: "special", isMemoryBlock: true },
+      { id: "mem4", type: "box", dimensions: [0.9, 0.9, 0.9], position: [-2.5, 2.6, 2.5], mass: 35, friction: 0.95, material: "special", isMemoryBlock: true },
+      { id: "mem5", type: "box", dimensions: [0.9, 0.9, 0.9], position: [2.5, 2.6, 2.5], mass: 35, friction: 0.95, material: "special", isMemoryBlock: true },
     ],
   },
 };
@@ -285,18 +285,21 @@ function playWebAudioSound(type: "shoot" | "hit" | "memory" | "victory" | "bomb"
 }
 
 // Ground Grid
-function Ground({ color }: { color: string }) {
-  const [ref] = usePlane(() => ({ rotation: [-Math.PI / 2, 0, 0] })) as any;
+const Ground = memo(function Ground({ color }: { color: string }) {
+  const [ref] = usePlane(() => ({
+    rotation: [-Math.PI / 2, 0, 0],
+    material: { friction: 0.95, restitution: 0.05 },
+  })) as any;
   return (
     <mesh ref={ref} receiveShadow>
       <planeGeometry args={[120, 120]} />
       <meshStandardMaterial color={color} roughness={0.7} metalness={0.2} />
     </mesh>
   );
-}
+});
 
 // Projectile Ball (with Wildcard Physics Variant)
-function Projectile({
+const Projectile = memo(function Projectile({
   position,
   velocity,
   color,
@@ -309,8 +312,8 @@ function Projectile({
   type?: WildcardType;
   isMuted?: boolean;
 }) {
-  const mass = type === "heavy" ? 280 : type === "bomb" ? 45 : 55;
-  const radius = type === "heavy" ? 0.6 : type === "bomb" ? 0.42 : 0.35;
+  const mass = type === "heavy" ? 500 : type === "bomb" ? 90 : type === "triple" ? 80 : 120;
+  const radius = type === "heavy" ? 0.65 : type === "bomb" ? 0.45 : type === "triple" ? 0.32 : 0.38;
   const ballColor = type === "bomb" ? "#ff003c" : type === "heavy" ? "#a178ff" : type === "triple" ? "#c3f400" : color;
 
   const [ref] = useSphere(() => ({
@@ -340,21 +343,23 @@ function Projectile({
       <pointLight color={ballColor} intensity={type === "bomb" ? 3 : 1.5} distance={type === "bomb" ? 8 : 4} />
     </mesh>
   );
-}
+});
 
-// Box Node Component
-function BoxNode({ node, onTrigger, isMuted }: { node: LevelNode; onTrigger: () => void; isMuted?: boolean }) {
+// Box Node Component with Dampened Physics & Fall Validation
+const BoxNode = memo(function BoxNode({ node, onTrigger, isMuted }: { node: LevelNode; onTrigger: () => void; isMuted?: boolean }) {
   const [ref, api] = useBox(() => ({
     mass: node.mass,
     position: node.position,
     args: node.dimensions,
-    material: { friction: node.friction },
+    linearDamping: 0.35,
+    angularDamping: 0.45,
+    material: { friction: node.friction || 0.9, restitution: 0.1 },
     onCollide: () => {
       if (!isMuted && !node.isMemoryBlock) playWebAudioSound("hit");
     },
   })) as any;
 
-  const position = useRef<[number, number, number]>([0, 0, 0]);
+  const position = useRef<[number, number, number]>(node.position);
   const hasTriggered = useRef(false);
 
   useEffect(() => {
@@ -365,7 +370,12 @@ function BoxNode({ node, onTrigger, isMuted }: { node: LevelNode; onTrigger: () 
   }, [api]);
 
   useFrame(() => {
-    if (!hasTriggered.current && node.isMemoryBlock && position.current[1] < 1.2) {
+    if (!node.isMemoryBlock || hasTriggered.current) return;
+
+    const hasFallenToGround = position.current[1] < 1.0;
+    const hasDroppedSignificantly = (node.position[1] - position.current[1]) > 1.2;
+
+    if (hasFallenToGround && hasDroppedSignificantly) {
       hasTriggered.current = true;
       if (!isMuted) playWebAudioSound("memory");
       onTrigger();
@@ -393,22 +403,24 @@ function BoxNode({ node, onTrigger, isMuted }: { node: LevelNode; onTrigger: () 
       {node.isMemoryBlock && <pointLight color="#ff4b89" intensity={2.5} distance={6} />}
     </mesh>
   );
-}
+});
 
-// Cylinder Node Component
-function CylinderNode({ node, onTrigger, isMuted }: { node: LevelNode; onTrigger: () => void; isMuted?: boolean }) {
+// Cylinder Node Component with Dampened Physics & Fall Validation
+const CylinderNode = memo(function CylinderNode({ node, onTrigger, isMuted }: { node: LevelNode; onTrigger: () => void; isMuted?: boolean }) {
   const args: [number, number, number, number] = [node.dimensions[0], node.dimensions[1], node.dimensions[2], 16];
   const [ref, api] = useCylinder(() => ({
     mass: node.mass,
     position: node.position,
     args,
-    material: { friction: node.friction },
+    linearDamping: 0.35,
+    angularDamping: 0.45,
+    material: { friction: node.friction || 0.9, restitution: 0.1 },
     onCollide: () => {
       if (!isMuted && !node.isMemoryBlock) playWebAudioSound("hit");
     },
   })) as any;
 
-  const position = useRef<[number, number, number]>([0, 0, 0]);
+  const position = useRef<[number, number, number]>(node.position);
   const hasTriggered = useRef(false);
 
   useEffect(() => {
@@ -419,7 +431,10 @@ function CylinderNode({ node, onTrigger, isMuted }: { node: LevelNode; onTrigger
   }, [api]);
 
   useFrame(() => {
-    if (!hasTriggered.current && node.isMemoryBlock && position.current[1] < 1.2) {
+    const hasFallenToGround = position.current[1] < 1.0;
+    const hasDroppedSignificantly = (node.position[1] - position.current[1]) > 1.2;
+
+    if (!hasTriggered.current && node.isMemoryBlock && hasFallenToGround && hasDroppedSignificantly) {
       hasTriggered.current = true;
       if (!isMuted) playWebAudioSound("memory");
       onTrigger();
@@ -445,10 +460,10 @@ function CylinderNode({ node, onTrigger, isMuted }: { node: LevelNode; onTrigger
       {node.isMemoryBlock && <pointLight color="#c3f400" intensity={2.5} distance={6} />}
     </mesh>
   );
-}
+});
 
 // Laser Trajectory Line
-function TrajectoryLine({ color }: { color: string }) {
+const TrajectoryLine = memo(function TrajectoryLine({ color }: { color: string }) {
   const { camera, raycaster, pointer } = useThree();
   const lineRef = useRef<THREE.Line>(null);
 
@@ -470,10 +485,10 @@ function TrajectoryLine({ color }: { color: string }) {
       <lineDashedMaterial color={color} dashSize={0.4} gapSize={0.2} opacity={0.65} transparent />
     </line>
   );
-}
+});
 
 // Raycasting Pointer & Shoot Interaction Handler
-function InteractionHandler({
+const InteractionHandler = memo(function InteractionHandler({
   onShoot,
   limit,
   current,
@@ -534,7 +549,7 @@ function InteractionHandler({
       <planeGeometry args={[1000, 1000]} />
     </mesh>
   );
-}
+});
 
 export default function SmashFestGame({
   levelId,
@@ -585,22 +600,47 @@ export default function SmashFestGame({
   }, [levelId]);
 
   const totalMemoryBlocks = level?.nodes.filter((n) => n.isMemoryBlock).length || 0;
+  const hasCompletedLevelRef = useRef(false);
+  const hasTriggeredOutOfAmmoRef = useRef(false);
+  const lastStatsRef = useRef({ remainingBalls: -1, memoryBlocksLeft: -1, totalMemoryBlocks: -1 });
+
+  // Reset flags when level changes
+  useEffect(() => {
+    hasCompletedLevelRef.current = false;
+    hasTriggeredOutOfAmmoRef.current = false;
+    lastStatsRef.current = { remainingBalls: -1, memoryBlocksLeft: -1, totalMemoryBlocks: -1 };
+  }, [levelId]);
 
   const handleMemoryBlockTrigger = useCallback(
     (nodeId: string) => {
       setTriggeredMemoryIds((prev) => {
         const next = new Set(prev);
         next.add(nodeId);
-        if (totalMemoryBlocks > 0 && next.size >= totalMemoryBlocks) {
-          if (!isSoundMuted) playWebAudioSound("victory");
-          if (onLevelCompleted) onLevelCompleted();
-        }
         return next;
       });
-      onMemoryBlockTriggered();
+
+      setTimeout(() => {
+        if (onMemoryBlockTriggered) onMemoryBlockTriggered();
+      }, 0);
     },
-    [totalMemoryBlocks, onMemoryBlockTriggered, onLevelCompleted, isSoundMuted]
+    [onMemoryBlockTriggered]
   );
+
+  // Victory Level Completion Handler Effect
+  useEffect(() => {
+    if (
+      totalMemoryBlocks > 0 &&
+      triggeredMemoryIds.size >= totalMemoryBlocks &&
+      !hasCompletedLevelRef.current
+    ) {
+      hasCompletedLevelRef.current = true;
+      if (!isSoundMuted) playWebAudioSound("victory");
+      const timer = setTimeout(() => {
+        if (onLevelCompleted) onLevelCompleted();
+      }, 600);
+      return () => clearTimeout(timer);
+    }
+  }, [triggeredMemoryIds.size, totalMemoryBlocks, isSoundMuted, onLevelCompleted]);
 
   const handleShoot = (shots: { pos: [number, number, number]; vel: [number, number, number]; type: WildcardType }[]) => {
     if (!level) return;
@@ -613,19 +653,28 @@ export default function SmashFestGame({
     setProjId((p) => p + shots.length);
   };
 
-  // Sync remaining stats
+  // Sync remaining stats safely without infinite re-render loops
   useEffect(() => {
     if (!level) return;
     const remainingBalls = Math.max(0, level.projectile_limit - projectiles.length);
     const memoryBlocksLeft = Math.max(0, totalMemoryBlocks - triggeredMemoryIds.size);
-    if (onStatsUpdate) {
-      onStatsUpdate({ remainingBalls, memoryBlocksLeft, totalMemoryBlocks });
+
+    if (
+      lastStatsRef.current.remainingBalls !== remainingBalls ||
+      lastStatsRef.current.memoryBlocksLeft !== memoryBlocksLeft ||
+      lastStatsRef.current.totalMemoryBlocks !== totalMemoryBlocks
+    ) {
+      lastStatsRef.current = { remainingBalls, memoryBlocksLeft, totalMemoryBlocks };
+      if (onStatsUpdate) {
+        onStatsUpdate({ remainingBalls, memoryBlocksLeft, totalMemoryBlocks });
+      }
     }
 
-    if (remainingBalls <= 0 && memoryBlocksLeft > 0 && onOutOfAmmo) {
+    if (remainingBalls <= 0 && memoryBlocksLeft > 0 && !hasTriggeredOutOfAmmoRef.current) {
+      hasTriggeredOutOfAmmoRef.current = true;
       const timer = setTimeout(() => {
-        onOutOfAmmo();
-      }, 2500);
+        if (onOutOfAmmo) onOutOfAmmo();
+      }, 2400);
       return () => clearTimeout(timer);
     }
   }, [projectiles.length, triggeredMemoryIds.size, totalMemoryBlocks, level, onStatsUpdate, onOutOfAmmo]);
