@@ -65,8 +65,8 @@ export default function PlanesPage() {
       <AmbientField preset="planes" profile={profile} />
       <main className="relative z-10 min-h-screen w-full overflow-hidden px-4 pb-24 pt-6 text-[#e5e2e1] md:px-8 md:pt-8 font-sans">
 
-        <div className="mx-auto w-full max-w-7xl border-x border-white/10">
-          <div className="border-y border-white/10 bg-[#0a070c]/55 backdrop-blur-xl backdrop-saturate-150">
+        <div className="mx-auto w-full max-w-7xl space-y-6">
+          <div className="border border-white/12 bg-white/[0.04] backdrop-blur-2xl backdrop-saturate-150 shadow-[0_12px_36px_rgba(0,0,0,0.5)]">
             <div className="relative p-5 sm:p-8 md:p-10">
               <div className={`absolute left-0 top-0 h-full w-[4px] bg-${accentClass}`} style={{ backgroundColor: accentColor }} />
               <div className="flex items-center gap-3">
@@ -78,7 +78,7 @@ export default function PlanesPage() {
             </div>
           </div>
 
-          <section className="bg-[#0a070c]/40 backdrop-blur-xl backdrop-saturate-150 p-3 sm:p-5 md:p-8 space-y-4">
+          <section className="space-y-6 bg-transparent">
             <GeospatialPlanTracker />
             <div id="wishlist-section" className="border-t border-white/10" />
             <WishlistModule />

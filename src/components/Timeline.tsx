@@ -571,7 +571,7 @@ export function Timeline({ events }: TimelineProps) {
                                 animate={{ x: 0 }}
                                 exit={{ x: '100%' }}
                                 transition={{ type: 'spring', damping: 25, stiffness: 220 }}
-                                className="fixed right-0 top-0 bottom-0 z-[70] w-full max-w-md border-l border-white/10 bg-[#070707] p-6 pb-[calc(2rem+env(safe-area-inset-bottom))] lg:pb-6 shadow-2xl flex flex-col justify-between rounded-none"
+                                className="fixed right-0 top-0 bottom-0 z-[70] w-full max-w-md border-l border-white/15 bg-[#120b15]/90 backdrop-blur-2xl p-6 pb-[calc(2rem+env(safe-area-inset-bottom))] lg:pb-6 shadow-[0_0_50px_rgba(0,0,0,0.8)] flex flex-col justify-between rounded-none"
                             >
                                 <div className="flex flex-col h-full overflow-hidden">
                                     {/* Header */}

@@ -7,6 +7,7 @@ import { useProfile } from "@/context/ProfileContext";
 import { BrutalistPanel } from "@/components/ui/BrutalistPanel";
 import { CyberButton } from "@/components/ui/CyberButton";
 import BirthdayScrollContainer from "./components/BirthdayScrollContainer";
+import { AmbientField } from "@/components/AmbientField";
 
 // Synth Scheduler Class to avoid memory leaks
 // --- Happy Birthday Melody Configuration for Lofi Synthesizer ---
@@ -214,12 +215,9 @@ export default function BirthdayPage() {
   if (!isBirthdayUnlocked) {
     return (
       <PrivateRoute>
-        <div className="fixed inset-0 z-[-1] bg-black overflow-hidden select-none">
-          <div className="absolute inset-0 bg-mosaic opacity-40 pointer-events-none" />
-          <div className="absolute inset-0 bg-dot-matrix opacity-30 pointer-events-none" />
-        </div>
-        <main className="min-h-screen flex flex-col items-center justify-center p-4 relative text-[#e5e2e1] font-sans">
-          <BrutalistPanel accentColor="#ff4b89" borderColor="rgba(255,255,255,0.1)" corners="animated" cornerSize={16} cornerThickness={1.5} className="w-full max-w-md p-8 sm:p-10 text-center flex flex-col items-center justify-center space-y-6">
+        <AmbientField preset="refugio" profile={profile} />
+        <main className="min-h-screen flex flex-col items-center justify-center p-4 relative z-10 text-[#e5e2e1] font-sans">
+          <BrutalistPanel accentColor="#ff4b89" borderColor="rgba(255,255,255,0.15)" corners="animated" cornerSize={16} cornerThickness={1.5} className="w-full max-w-md !bg-white/[0.04] !backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.7)] p-8 sm:p-10 text-center flex flex-col items-center justify-center space-y-6">
             <motion.div
               animate={{ scale: [1, 1.1, 1] }}
               transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
@@ -231,7 +229,7 @@ export default function BirthdayPage() {
             <p className="text-xs text-[#a88a7e] leading-relaxed max-w-xs font-mono uppercase">
               ESTA SECCION SE DESBLOQUEA A LA MEDIANOCHE DEL <span className="text-white font-bold">17 DE JUNIO</span>. REGRESA LUEGO.
             </p>
-            <div className="border border-white/10 bg-black/50 px-4 py-2 font-mono text-[10px] text-[#a88a7e] uppercase tracking-wider flex items-center gap-2">
+            <div className="border border-white/12 bg-white/[0.04] backdrop-blur-md px-4 py-2 font-mono text-[10px] text-[#a88a7e] uppercase tracking-wider flex items-center gap-2">
               <span className="w-2 h-2 bg-red-500 rounded-none animate-pulse"></span>
               FALTAN: {Math.max(0, Math.ceil((birthdayMidnight.getTime() - currentTime.getTime()) / (1000 * 60 * 60)))} HORAS
             </div>
@@ -244,12 +242,9 @@ export default function BirthdayPage() {
   if (phase === 'PHASE_READY_TRIGGER') {
     return (
       <PrivateRoute>
-        <div className="fixed inset-0 z-[-1] bg-black overflow-hidden select-none">
-          <div className="absolute inset-0 bg-mosaic opacity-40 pointer-events-none" />
-          <div className="absolute inset-0 bg-dot-matrix opacity-30 pointer-events-none" />
-        </div>
-        <main className="min-h-screen flex flex-col items-center justify-center p-4 relative text-[#e5e2e1] font-sans">
-          <BrutalistPanel accentColor="#ff4b89" borderColor="rgba(255,255,255,0.1)" corners="animated" cornerSize={16} cornerThickness={1.5} className="w-full max-w-md p-8 sm:p-10 text-center flex flex-col items-center justify-center space-y-6">
+        <AmbientField preset="refugio" profile={profile} />
+        <main className="min-h-screen flex flex-col items-center justify-center p-4 relative z-10 text-[#e5e2e1] font-sans">
+          <BrutalistPanel accentColor="#ff4b89" borderColor="rgba(255,255,255,0.15)" corners="animated" cornerSize={16} cornerThickness={1.5} className="w-full max-w-md !bg-white/[0.04] !backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.7)] p-8 sm:p-10 text-center flex flex-col items-center justify-center space-y-6">
             <motion.div
               animate={{ scale: [1, 1.1, 1] }}
               transition={{ repeat: Infinity, duration: 2.5, ease: "easeInOut" }}

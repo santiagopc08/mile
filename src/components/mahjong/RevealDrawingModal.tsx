@@ -14,7 +14,7 @@ export const RevealDrawingModal: React.FC<RevealDrawingModalProps> = ({ data, on
             <BrutalistPanel
                 accentColor="#c084fc"
                 cornerSize={12}
-                className="w-full max-w-md !bg-[#0d0914] p-6 shadow-[0_0_40px_rgba(139,92,246,0.3)] flex flex-col items-center"
+                className="w-full max-w-md !bg-white/[0.05] !backdrop-blur-2xl p-6 shadow-[0_0_50px_rgba(139,92,246,0.35)] flex flex-col items-center"
             >
                 <h3 className="mb-1 text-lg font-bold uppercase tracking-wider text-purple-400 text-center">
                     Dibujo de {data.sender} 🖼️
@@ -23,7 +23,7 @@ export const RevealDrawingModal: React.FC<RevealDrawingModalProps> = ({ data, on
                     Regalo Especial de Hoy
                 </span>
 
-                <div className="relative w-full border border-purple-500/20 bg-black aspect-[4/3] p-1 flex justify-center items-center">
+                <div className="relative w-full border border-purple-500/20 bg-white/[0.04] backdrop-blur-md aspect-[4/3] p-1 flex justify-center items-center">
                     {data.image ? (
                         <img
                             src={data.image}

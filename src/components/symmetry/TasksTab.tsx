@@ -48,10 +48,10 @@ export const TasksTab = ({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
-      className="space-y-6 border-x border-white/10 bg-[#0a070c]/40 backdrop-blur-xl backdrop-saturate-150 p-2 sm:p-4 md:p-5"
+      className="space-y-6 bg-transparent p-0"
     >
       {/* Task Video Header */}
-      <BrutalistPanel accentColor={accentColorValue} borderColor="rgba(255,255,255,0.1)" corners="animated" cornerSize={12} cornerThickness={1.5} className="grid gap-4 p-4 md:grid-cols-[1fr_auto] md:items-center">
+      <BrutalistPanel accentColor={accentColorValue} borderColor="rgba(255,255,255,0.12)" corners="animated" cornerSize={12} cornerThickness={1.5} className="grid gap-4 p-4 md:grid-cols-[1fr_auto] md:items-center">
         <div className="w-full">
           <div className="flex items-center gap-2 font-mono">
             <span className="text-xs animate-spin-slow" style={{ color: accentColorValue }}>◆</span>
@@ -59,7 +59,7 @@ export const TasksTab = ({
           </div>
           <h2 className="text-2xl font-mono font-bold uppercase tracking-tight text-white mt-1 flex justify-between items-center w-full">
             <span>TAREAS · REGISTRO DIARIO</span>
-            <div className="relative h-20 w-20 border border-white/10 bg-black p-1 flex-shrink-0">
+            <div className="relative h-20 w-20 border border-white/15 bg-white/[0.05] backdrop-blur-md p-1 flex-shrink-0">
               <AnimatedBrutalistCorners color="var(--color-profile-accent)" size={6} />
               <video
                 className="h-full w-full object-cover opacity-80 mix-blend-screen contrast-125"

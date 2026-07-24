@@ -257,7 +257,7 @@ export const BiometricVault = () => {
     const isSovereign = profile === 'ella';
 
     return (
-        <div className="relative overflow-hidden border border-white/10 bg-[#0a0a0a] p-6 pl-10 sm:p-8 sm:pl-12 rounded-none">
+        <div className="relative overflow-hidden border border-white/12 bg-white/[0.04] backdrop-blur-2xl p-6 pl-10 sm:p-8 sm:pl-12 rounded-none shadow-lg">
             {/* Left accent stripe */}
             <div className="absolute left-0 top-0 bottom-0 w-[5px] bg-[#ff4b89]" />
             

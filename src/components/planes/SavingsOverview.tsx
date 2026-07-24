@@ -76,7 +76,7 @@ export function SavingsOverview({ items }: { items: WishlistItem[] }) {
     return (
         <div className="space-y-4">
             {/* General Progress & Stats */}
-            <div className="border border-white/10 bg-[#120d0e] py-3.5 px-5 relative overflow-hidden">
+            <div className="border border-white/12 bg-white/[0.04] backdrop-blur-2xl py-3.5 px-5 relative overflow-hidden shadow-lg">
                 <div className="absolute top-0 right-0 p-3 opacity-5 pointer-events-none">
                     <TrendingUp size={100} className="text-[#ffb595]" />
                 </div>
@@ -116,7 +116,7 @@ export function SavingsOverview({ items }: { items: WishlistItem[] }) {
             {Object.keys(stats.byCategory).length > 0 && (
                 <div className="flex flex-wrap gap-2">
                     {GOAL_CATEGORIES.filter(c => stats.byCategory[c.id]).map(cat => (
-                        <div key={cat.id} className="flex items-center gap-2 border border-white/10 bg-[#120d0e] px-2.5 py-1">
+                        <div key={cat.id} className="flex items-center gap-2 border border-white/12 bg-white/[0.04] backdrop-blur-md px-2.5 py-1">
                             <span className="text-xs">{cat.emoji}</span>
                             <span className="font-mono text-[9px] uppercase tracking-widest text-white/40">{cat.label}</span>
                             <span className="font-mono text-[10px] font-bold text-user-b">{formatCOP(stats.byCategory[cat.id])}</span>
