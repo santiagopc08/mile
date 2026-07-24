@@ -310,6 +310,13 @@ export function HabitTracker() {
                             Historial Reciente
                         </h3>
                         <div className="space-y-2">
+                            {/* Sin esto, el panel se quedaba con el título flotando
+                                sobre un hueco negro y parecía que no había cargado. */}
+                            {recentHabitsForProfile.length === 0 && (
+                                <p className="border border-dashed border-white/10 px-3 py-8 text-center font-mono text-[9px] uppercase leading-relaxed tracking-[0.18em] text-white/25">
+                                    Nada registrado todavía
+                                </p>
+                            )}
                             {recentHabitsForProfile.map(h => {
                                 const config = HABIT_CONFIG[h.habitType];
                                 const severityColor = h.severity === 'high' ? '#ff003c' : h.severity === 'medium' ? '#ffb595' : '#c3f400';

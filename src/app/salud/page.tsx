@@ -11,7 +11,7 @@ import { Activity, HeartPulse, Shield, Flame } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Allocation, StoreService } from "@/services/storeService";
 import { MovementTracker } from "@/components/health/MovementTracker";
-import { InteractiveBackground } from "@/components/InteractiveBackground";
+import { AmbientField } from "@/components/AmbientField";
 
 export default function SaludPage() {
     type SaludTab = 'vitals' | 'biometric' | 'fiscal' | 'habits' | 'movement';
@@ -62,7 +62,7 @@ export default function SaludPage() {
 
     return (
         <PrivateRoute>
-            <InteractiveBackground preset="salud" profile={profile} />
+            <AmbientField preset="salud" profile={profile} />
             <main className="relative z-10 min-h-screen w-full overflow-hidden px-4 pb-24 pt-6 text-[#e5e2e1] md:px-8 md:pt-8 font-mono">
                 <div className="mx-auto w-full max-w-7xl border-x border-white/10">
                     <div className="border-y border-white/10 bg-[#0a0a0a]/95 rounded-none">

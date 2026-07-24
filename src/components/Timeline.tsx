@@ -11,6 +11,7 @@ import { useProfile } from '@/context/ProfileContext';
 import { TimelineService } from '@/services/timelineService';
 import { NotificationService } from '@/services/notificationService';
 import type { EventComment } from '@/services/storeService';
+import { useToast } from '@/components/ui/Toast';
 
 export interface TimelineEvent {
     id: string;
@@ -34,6 +35,7 @@ const EMOJI_OPTIONS = ['❤️', '😮', '😂', '✨', '☕'];
 export function Timeline({ events }: TimelineProps) {
     const { updateData } = useStore();
     const { profile } = useProfile();
+    const { error: notifyError, success, confirm } = useToast();
     const [isAdding, setIsAdding] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
 
@@ -81,7 +83,7 @@ export function Timeline({ events }: TimelineProps) {
                 try {
                     imageUrl = await TimelineService.uploadTimelineImage(file);
                 } catch (err) {
-                    alert(`Error al subir la imagen: ${err instanceof Error ? err.message : 'Error desconocido'}`);
+                    notifyError(`No se pudo subir la imagen: ${err instanceof Error ? err.message : 'error desconocido'}`);
                     setIsUploading(false);
                     return;
                 }
@@ -134,7 +136,7 @@ export function Timeline({ events }: TimelineProps) {
             try {
                 finalImageUrl = await TimelineService.uploadTimelineImage(file);
             } catch (err) {
-                alert(`Error al subir la imagen: ${err instanceof Error ? err.message : 'Error desconocido'}`);
+                notifyError(`No se pudo subir la imagen: ${err instanceof Error ? err.message : 'error desconocido'}`);
                 setIsEditUploading(false);
                 return;
             }
@@ -184,7 +186,7 @@ export function Timeline({ events }: TimelineProps) {
                 body: JSON.stringify({ action: 'react', id: event.id, reactions })
             });
         } catch (err) {
-            alert(`Error al reaccionar: ${err instanceof Error ? err.message : 'Error desconocido'}`);
+            notifyError(`No se pudo guardar tu reacción: ${err instanceof Error ? err.message : 'error desconocido'}`);
         }
     };
 
@@ -209,17 +211,28 @@ export function Timeline({ events }: TimelineProps) {
             });
             form.reset();
         } catch (err) {
-            alert(`Error al publicar el comentario: ${err instanceof Error ? err.message : 'Error desconocido'}`);
+            notifyError(`No se pudo publicar el comentario: ${err instanceof Error ? err.message : 'error desconocido'}`);
         }
     };
 
     const handleDeleteComment = async (commentId: string) => {
+        // Borrado irreversible a un toque: en móvil el icono de papelera cae
+        // justo bajo el pulgar, así que confirmamos antes.
+        const ok = await confirm({
+            title: 'Eliminar comentario',
+            message: 'Esta acción no se puede deshacer.',
+            confirmLabel: 'Eliminar',
+            tone: 'danger',
+        });
+        if (!ok) return;
+
         try {
             await fetch(`/api/timeline?id=${commentId}&type=comment`, {
                 method: 'DELETE'
             });
+            success('Comentario eliminado.');
         } catch (err) {
-            alert(`Error al eliminar el comentario: ${err instanceof Error ? err.message : 'Error desconocido'}`);
+            notifyError(`No se pudo eliminar el comentario: ${err instanceof Error ? err.message : 'error desconocido'}`);
         }
     };
 
@@ -313,9 +326,35 @@ export function Timeline({ events }: TimelineProps) {
                 </div>
             )}
 
+            {/* Estado vacío: sin esto, una historia sin recuerdos dejaba solo una
+                línea vertical desnuda bajo el título, sin decir qué era eso ni
+                cómo empezar. */}
+            {events.length === 0 && !isAdding && (
+                <div className="flex w-full max-w-4xl flex-col items-center gap-4 border border-dashed border-white/10 bg-black/40 px-6 py-14 text-center">
+                    <Calendar className="h-8 w-8 stroke-[1.2] text-[#ff7020]/70" aria-hidden="true" />
+                    <p className="font-mono text-[10px] font-black uppercase tracking-[0.28em] text-[#a88a7e]">
+                        Vuestra historia empieza aquí
+                    </p>
+                    <p className="max-w-xs text-[12px] leading-relaxed text-white/35">
+                        Todavía no hay ningún recuerdo guardado. Añade el primero y quedará en la línea
+                        de tiempo para los dos.
+                    </p>
+                    <button
+                        type="button"
+                        onClick={() => setIsAdding(true)}
+                        className="mt-2 flex items-center gap-2 border border-[#ff7020] bg-[#ff7020]/20 px-4 py-2.5 font-mono text-[10px] font-black uppercase tracking-[0.16em] text-white transition-all active:scale-95"
+                    >
+                        <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+                        Añadir el primer recuerdo
+                    </button>
+                </div>
+            )}
+
             <div className="relative w-full pl-6 md:pl-0">
                 {/* Central Line - Mobile: Left Aligned | Desktop: Centered */}
-                <div className="absolute bottom-0 left-0 top-0 w-px bg-white/10 md:left-1/2 md:-translate-x-1/2" />
+                {events.length > 0 && (
+                    <div className="absolute bottom-0 left-0 top-0 w-px bg-white/10 md:left-1/2 md:-translate-x-1/2" />
+                )}
 
                 <div className="space-y-16 md:space-y-24">
                     {events.map((event, index) => {

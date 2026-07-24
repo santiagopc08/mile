@@ -11,6 +11,11 @@ interface ChamferedPanelProps extends Omit<HTMLMotionProps<'div'>, 'children'> {
     showCornerReticles?: boolean;
     showSideTabs?: boolean;
     scanlines?: boolean;
+    /**
+     * Posición en la coreografía de entrada de la pantalla. Cablea `.stagger-item`
+     * y `--i` aquí en vez de repetir clase + estilo en cada punto de uso.
+     */
+    staggerIndex?: number;
     children: React.ReactNode;
 }
 
@@ -26,6 +31,7 @@ export function ChamferedPanel({
     showCornerReticles = true,
     showSideTabs = true,
     scanlines = false,
+    staggerIndex,
     className = '',
     style,
     children,
@@ -49,11 +55,12 @@ export function ChamferedPanel({
         <motion.div
             whileTap={{ scale: 0.985 }}
             transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-            className={`group relative overflow-hidden bg-[#0a070c]/92 backdrop-blur-xl border p-4 transition-all duration-300 ${className}`}
+            className={`group relative overflow-hidden bg-[#0a070c]/92 backdrop-blur-xl border p-4 transition-all duration-300 ${staggerIndex !== undefined ? 'stagger-item' : ''} ${className}`}
             style={{
                 clipPath: clipPathStyle,
                 borderColor: finalBorderColor,
                 boxShadow: `0 0 25px ${accentColor}15, inset 0 0 15px rgba(0,0,0,0.8)`,
+                ...(staggerIndex !== undefined ? ({ '--i': staggerIndex } as React.CSSProperties) : null),
                 ...style,
             }}
             {...rest}

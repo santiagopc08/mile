@@ -99,8 +99,9 @@ export function SystemSettings({ align = 'right' }: { align?: 'left' | 'right' }
             haptics.triggerTick();
           }
         }}
-        className="group relative flex h-9 w-9 items-center justify-center border border-white/10 bg-[#0a0a0a]/90 text-[#a88a7e] transition-all hover:border-white/20 hover:text-white"
+        className="touch-target group relative flex h-9 w-9 items-center justify-center border border-white/10 bg-[#0a0a0a]/90 text-[#a88a7e] transition-all hover:border-white/20 hover:text-white"
         title="Consola de Configuración"
+        aria-label="Consola de Configuración"
       >
         <Settings 
           className="h-4 w-4 transition-transform duration-500 group-hover:rotate-90"

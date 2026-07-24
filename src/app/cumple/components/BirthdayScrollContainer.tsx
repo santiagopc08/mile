@@ -12,6 +12,7 @@ import { useStore } from "@/context/StoreContext";
 import { supabase } from '@/lib/supabase';
 import { AnimatedBrutalistCorners } from "@/components/ui/AnimatedBrutalistCorners";
 import { BrutalistPanel } from "@/components/ui/BrutalistPanel";
+import { useToast } from "@/components/ui/Toast";
 const FLOATING_FLOWERS = [
   '/img/flowers/icons8-flor-100-2.png',
   '/img/flowers/icons8-flor-100-3.png',
@@ -230,6 +231,7 @@ interface BirthdayScrollProps {
 export default function BirthdayScrollContainer({ setBgmTempMute }: BirthdayScrollProps) {
   const { profile } = useProfile();
   const { data } = useStore();
+  const { success, warning, confirm } = useToast();
   const events = useMemo(() => (data?.events || []) as any[], [data?.events]);
 
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -894,7 +896,11 @@ export default function BirthdayScrollContainer({ setBgmTempMute }: BirthdayScro
   const handleRedeemCoupon = async (id: string, name: string) => {
     if (redeemedCoupons.includes(id)) return;
 
-    const confirmRedeem = window.confirm(`¿Seguro que deseas canjear este cupón hoy?`);
+    const confirmRedeem = await confirm({
+      title: 'Canjear vale',
+      message: `Vas a canjear "${name}". Solo se puede una vez.`,
+      confirmLabel: 'Canjear',
+    });
     if (!confirmRedeem) return;
 
     const updated = [...redeemedCoupons, id];
@@ -909,10 +915,10 @@ export default function BirthdayScrollContainer({ setBgmTempMute }: BirthdayScro
         read: false
       });
       if (error) throw error;
-      alert(`¡Cupón canjeado con éxito! Santi ya lo sabe.`);
+      success('¡Vale canjeado! Santi ya lo sabe.', 'Canjeado');
     } catch (e: any) {
       console.error(e);
-      alert(`Cupón guardado localmente, pero falló la notificación automática en el servidor.`);
+      warning('El vale quedó guardado, pero no se pudo avisar a Santi. Díselo tú.', 'Aviso no enviado');
     }
   };
 

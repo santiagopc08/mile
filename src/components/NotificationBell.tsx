@@ -240,12 +240,13 @@ export function NotificationBell({ align = 'right' }: { align?: 'left' | 'right'
             {/* Bell Toggle Button */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="group relative flex h-9 w-9 items-center justify-center border border-white/10 bg-[#0a0a0a]/90 text-[#a88a7e] transition-all hover:border-white/20 hover:text-white"
+                className="touch-target group relative flex h-9 w-9 items-center justify-center border border-white/10 bg-[#0a0a0a]/90 text-[#a88a7e] transition-all hover:border-white/20 hover:text-white"
                 style={{
                     borderColor: unreadCount > 0 ? `${accentColor}50` : undefined,
                     boxShadow: unreadCount > 0 ? `0 0 10px ${accentColor}15` : undefined
                 }}
                 title="Bandeja de alertas"
+                aria-label="Bandeja de alertas"
             >
                 <Bell 
                     className="h-4 w-4 transition-transform duration-300 group-hover:rotate-12"

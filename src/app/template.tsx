@@ -10,5 +10,11 @@
  * fondos `fixed inset-0`. No necesita 'use client'.
  */
 export default function Template({ children }: { children: React.ReactNode }) {
-    return <div className="page-transition">{children}</div>;
+    // `id`/`tabIndex` son el destino del enlace de salto ("Saltar al contenido")
+    // que se muestra al primer tabulador desde el teclado.
+    return (
+        <div id="contenido" tabIndex={-1} className="page-transition focus:outline-none">
+            {children}
+        </div>
+    );
 }

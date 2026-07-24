@@ -20,9 +20,21 @@ export function PrivateRoute({ children }: { children: React.ReactNode }) {
     const showLoader = isLoading && !isAuthenticated;
 
     if (showLoader) {
+        // Este bloque se pinta en cada arranque, antes de resolver la sesión.
+        // Antes usaba `bg-stone-50` (casi blanco) con `dark:` dependiente de la
+        // preferencia del sistema: con el móvil en modo claro, la app —que es
+        // negra entera— soltaba un destello blanco a pantalla completa.
+        // Además, `border-earth-soft`/`border-t-earth-dark` no existen en el
+        // theme, así que el aro giraba sin contraste y parecía congelado.
         return (
-            <div suppressHydrationWarning className="min-h-screen bg-stone-50 dark:bg-stone-950 flex items-center justify-center">
-                <div className="w-8 h-8 rounded-full border-4 border-earth-soft border-t-earth-dark animate-spin" />
+            <div
+                suppressHydrationWarning
+                className="flex min-h-screen items-center justify-center bg-[#0a070c]"
+                role="status"
+                aria-label="Cargando"
+            >
+                <div className="h-8 w-8 rounded-full border-4 border-white/10 border-t-[#a178ff] animate-spin" />
+                <span className="sr-only">Cargando tu espacio…</span>
             </div>
         );
     }

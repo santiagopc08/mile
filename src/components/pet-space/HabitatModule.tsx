@@ -165,7 +165,7 @@ export function HabitatModule({
       <div
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
-        className="group relative mx-auto mb-6 flex min-h-[300px] w-full max-w-md items-center justify-center overflow-hidden border border-white/10 bg-black"
+        className="group relative mx-auto mb-6 flex aspect-[4/3] w-full max-w-md items-center justify-center overflow-hidden border border-white/10 bg-black"
         style={{ perspective: '2000px', clipPath: chamfer }}
       >
         <div className="pointer-events-none absolute inset-0 z-10 bg-mosaic opacity-30" />
@@ -175,9 +175,6 @@ export function HabitatModule({
         <span className="pointer-events-none absolute right-1.5 top-1.5 z-20 h-3 w-3 border-r border-t" style={{ borderColor: pet.accent }} />
         <span className="pointer-events-none absolute bottom-1.5 left-1.5 z-20 h-3 w-3 border-b border-l" style={{ borderColor: pet.accent }} />
         <span className="pointer-events-none absolute bottom-1.5 right-1.5 z-20 h-3 w-3 border-b border-r" style={{ borderColor: pet.accent }} />
-
-        {/* Ghost para altura dinámica */}
-        <img src={photos[currentIndex] || pet.src} alt="" className="invisible h-auto w-full opacity-0" />
 
         <AnimatePresence initial={false} custom={direction}>
           <motion.div

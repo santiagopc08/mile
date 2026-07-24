@@ -5,7 +5,7 @@ import { useProfile } from "@/context/ProfileContext";
 import dynamic from "next/dynamic";
 import { AnimatedBrutalistCorners } from "@/components/ui/AnimatedBrutalistCorners";
 import { BrutalistSkeleton } from "@/components/ui/BrutalistSkeleton";
-import { InteractiveBackground } from "@/components/InteractiveBackground";
+import { AmbientField } from "@/components/AmbientField";
 
 const Mahjong = dynamic(
   () => import("@/components/Mahjong").then((m) => m.Mahjong),
@@ -26,7 +26,7 @@ export default function JuegoPage() {
 
   return (
     <PrivateRoute>
-      <InteractiveBackground preset="juego" profile={profile} />
+      <AmbientField preset="juego" profile={profile} />
       <main className="relative z-10 min-h-screen w-full overflow-hidden px-4 pb-24 pt-6 text-[#e5e2e1] md:px-8 md:pt-8">
 
         <div className="mx-auto w-full max-w-7xl border-x border-white/10">

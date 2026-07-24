@@ -6,6 +6,7 @@ import { useProfile } from '@/context/ProfileContext';
 import { NotificationService } from '@/services/notificationService';
 import { sound } from '@/lib/sound';
 import { haptics } from '@/lib/haptics';
+import { useToast } from '@/components/ui/Toast';
 
 import { SharedStatusHeader } from './movement/SharedStatusHeader';
 import { DualUserPanels } from './movement/DualUserPanels';
@@ -28,6 +29,7 @@ import { CATEGORY_LABELS, PRESETS_EL, PRESETS_ELLA, REACTION_CONFIG } from './mo
 
 export function MovementTracker() {
     const { profile } = useProfile();
+    const { confirm, success, error: notifyError } = useToast();
     const isElla = profile === 'ella';
     
     // Core styling based on currently logged user
@@ -231,6 +233,14 @@ export function MovementTracker() {
 
     // Delete Session
     const handleDeleteSession = async (id: string) => {
+        const ok = await confirm({
+            title: 'Eliminar sesión',
+            message: 'Se borrará este registro de actividad. No se puede deshacer.',
+            confirmLabel: 'Eliminar',
+            tone: 'danger',
+        });
+        if (!ok) return;
+
         try {
             if (!isUsingLocalStorage) {
                 const { error } = await supabase.from('movement_sessions').delete().eq('id', id);
@@ -242,8 +252,11 @@ export function MovementTracker() {
                 localStorage.setItem('movement_sessions', JSON.stringify(updated));
                 setSessions(updated);
             }
+            success('Sesión eliminada.');
         } catch (err) {
+            // Antes fallaba en silencio: la fila seguía ahí y no había explicación.
             console.error('Failed to delete session', err);
+            notifyError('No se pudo eliminar la sesión. Sigue en tu historial.');
         }
     };
 

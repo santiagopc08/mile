@@ -8,6 +8,7 @@ import { useProfile } from '@/context/ProfileContext';
 import { NotificationBell } from './NotificationBell';
 import { SystemSettings } from './SystemSettings';
 import { useOnlineStatus } from '@/hooks/useOnlineStatus';
+import { haptics } from '@/lib/haptics';
 
 export function AppNav() {
   const pathname = usePathname();
@@ -26,10 +27,10 @@ export function AppNav() {
 
   return (
     <>
-      <div suppressHydrationWarning className="h-16 lg:h-0 bg-[#120d0e]/60 backdrop-blur-md border-b border-white/5 lg:border-none" aria-hidden="true" />
+      <div suppressHydrationWarning className="header-safe-offset lg:h-0 lg:p-0 bg-[#120d0e]/60 backdrop-blur-md border-b border-white/5 lg:border-none" aria-hidden="true" />
 
       {/* Mobile Top Header */}
-      <header className="fixed top-0 left-0 w-full h-16 bg-[#0a070c]/96 backdrop-blur-xl border-b border-white/10 flex items-center justify-between px-4 sm:px-6 lg:hidden z-40">
+      <header className="header-safe-offset fixed top-0 left-0 w-full bg-[#0a070c]/96 backdrop-blur-xl border-b border-white/10 flex items-center justify-between px-4 sm:px-6 lg:hidden z-40">
         <Link
           href="/"
           className="nav-brand group relative overflow-hidden font-mono text-[10px] sm:text-xs font-black tracking-[0.25em] border px-3 py-1.5 bg-black/70 text-[#a88a7e] transition-all focus-visible:outline-none chamfered-card-sm"
@@ -50,7 +51,7 @@ export function AppNav() {
 
       {/* Mobile Bottom Nav */}
       <nav
-        className="fixed bottom-0 left-0 w-full z-50 grid grid-cols-5 h-[4.8rem] bg-[#0a070c]/98 backdrop-blur-2xl border-t border-white/15 lg:hidden px-1 shadow-[0_-10px_30px_rgba(0,0,0,0.8)]"
+        className="nav-safe-offset fixed bottom-0 left-0 w-full z-50 grid grid-cols-5 bg-[#0a070c]/98 backdrop-blur-2xl border-t border-white/15 lg:hidden px-1 shadow-[0_-10px_30px_rgba(0,0,0,0.8)]"
         aria-label="Navegación principal"
       >
         {navItems.map((item) => {
@@ -62,6 +63,7 @@ export function AppNav() {
             <Link
               key={item.path}
               href={item.path}
+              onClick={() => { if (!isActive) haptics.triggerTick(); }}
               className={`nav-mobile-item group relative flex flex-col items-center justify-center gap-1.5 px-1 pt-2 pb-1.5 transition-all duration-200 active:scale-95 ${isActive ? 'is-active text-white font-bold' : 'text-[#a88a7e] opacity-75 hover:opacity-100'}`}
               style={{ '--nav-accent': itemAccent } as CSSProperties}
               aria-current={isActive ? 'page' : undefined}

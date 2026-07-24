@@ -2,6 +2,8 @@ import { useState, useRef } from 'react';
 import { TimelineService } from '@/services/timelineService';
 import { Plus, Camera } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { playCapture } from '@/lib/petSpaceAudio';
+import { useToast } from '@/components/ui/Toast';
 import { Pet } from './types';
 
 /**
@@ -23,6 +25,7 @@ export function GalleryStrip({
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const { success, error: notifyError } = useToast();
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -44,9 +47,11 @@ export function GalleryStrip({
       }
 
       await onUploadComplete();
+      playCapture();
+      success('Captura añadida al archivo.', 'Registro visual');
     } catch (err: any) {
       console.error('Upload process failed:', err);
-      alert(`Error al subir la foto: ${err.message || 'Error desconocido'}`);
+      notifyError(`No se pudo subir la foto: ${err.message || 'error desconocido'}`);
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';

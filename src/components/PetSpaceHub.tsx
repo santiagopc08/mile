@@ -11,6 +11,8 @@ import { HabitatModule } from './pet-space/HabitatModule';
 import { GalleryStrip } from './pet-space/GalleryStrip';
 import { SystemLog } from './pet-space/SystemLog';
 import { OrbitalRadar } from './pet-space/OrbitalRadar';
+import { Volume2, VolumeX } from 'lucide-react';
+import * as PetAudio from '@/lib/petSpaceAudio';
 
 const VITALS_KEY = 'mile_pets_vitals';
 const LOGS_KEY = 'mile_pets_logs';
@@ -51,6 +53,7 @@ export function PetSpaceHub() {
   const [isWarping, setIsWarping] = useState(false);
   const [supabasePhotos, setSupabasePhotos] = useState<string[]>([]);
   const [isPlaying, setIsPlaying] = useState(true);
+  const [audioOn, setAudioOn] = useState(false);
 
   // Overrides list state
   const [petData, setPetData] = useState<Pet[]>(PETS);
@@ -146,6 +149,22 @@ export function PetSpaceHub() {
     }
   }, []);
 
+  // Preferencia de audio + ciclo de vida del ambiente de la estación.
+  // El drone se detiene al desmontar para que no siga sonando fuera del módulo.
+  useEffect(() => {
+    const pref = PetAudio.loadAudioPreference();
+    setAudioOn(pref);
+    PetAudio.resumeAmbientIfEnabled();
+    return () => PetAudio.suspendAmbient();
+  }, []);
+
+  const toggleAudio = () => {
+    const next = !audioOn;
+    PetAudio.setAudioEnabled(next);
+    setAudioOn(next);
+    if (next) PetAudio.playSelect();
+  };
+
   const savePetOverrides = (updatedPet: Pet) => {
     const updatedList = petData.map(p => p.id === updatedPet.id ? updatedPet : p);
     setPetData(updatedList);
@@ -211,6 +230,7 @@ export function PetSpaceHub() {
       return next;
     });
     triggerHearts();
+    PetAudio.playCuddle();
     addLog(activeId, `Le diste mimos a ${activePet.name}. ¡Su nivel de alegría está al máximo! ❤️`, 'Vida');
   };
 
@@ -226,6 +246,7 @@ export function PetSpaceHub() {
       persistVitals(next);
       return next;
     });
+    PetAudio.playWarmth();
     addLog(activeId, `Abrigaste a ${activePet.name}. Aumentó su calor de hogar. 🍖`, 'Hogar');
   };
 
@@ -296,6 +317,7 @@ export function PetSpaceHub() {
     setDirection(dir);
     setIsWarping(true);
     setActiveId(newId);
+    PetAudio.playWarp();
 
     warpTimeoutRef.current = setTimeout(() => {
       setIsWarping(false);
@@ -345,6 +367,22 @@ export function PetSpaceHub() {
                 <StationClock accentColor={accentColorHex} />
               </div>
             </div>
+            <button
+              onClick={toggleAudio}
+              title={audioOn ? 'Silenciar estación' : 'Activar ambiente de la estación'}
+              aria-label={audioOn ? 'Silenciar estación' : 'Activar ambiente de la estación'}
+              aria-pressed={audioOn}
+              className="!min-h-0 border p-2 transition-colors"
+              style={{
+                clipPath: 'polygon(0 0, calc(100% - 7px) 0, 100% 7px, 100% 100%, 7px 100%, 0 calc(100% - 7px))',
+                borderColor: audioOn ? accentColorHex : 'rgba(255,255,255,0.15)',
+                color: audioOn ? accentColorHex : '#a88a7e',
+                backgroundColor: audioOn ? `${accentColorHex}18` : 'transparent',
+                boxShadow: audioOn ? `0 0 12px ${accentColorHex}30` : 'none',
+              }}
+            >
+              {audioOn ? <Volume2 size={13} className="stroke-[1.5]" /> : <VolumeX size={13} className="stroke-[1.5]" />}
+            </button>
             <OrbitalRadar pets={petData} activeId={activeId} onSelect={handleSelect} accentColor={accentColorHex} />
           </div>
         </div>

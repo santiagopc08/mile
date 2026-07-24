@@ -5,6 +5,7 @@ import { format, differenceInDays, addDays, parseISO } from 'date-fns';
 import { StoreService } from '@/services/storeService';
 import { NotificationService } from '@/services/notificationService';
 import { AnimatedBrutalistCorners } from '@/components/ui/AnimatedBrutalistCorners';
+import { useToast } from '@/components/ui/Toast';
 
 type CycleEntry = {
     id: string;
@@ -33,6 +34,7 @@ const FLO_SYMPTOMS = ['Cólicos', 'Hinchazón', 'Cambios de Humor', 'Fatiga', 'A
 
 export const BiometricVault = () => {
     const { profile } = useProfile();
+    const { warning, success, confirm } = useToast();
     const accentColor = profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)';
     const accentClass = profile === 'ella' ? 'user-a' : 'user-b';
     const secondaryColor = profile === 'ella' ? 'var(--color-user-b)' : 'var(--color-user-a)';
@@ -153,27 +155,38 @@ export const BiometricVault = () => {
 
     }, [state.cycles]);
 
-    const handleLogCycle = (e: React.FormEvent) => {
+    const handleLogCycle = async (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         if (!flowLevel) {
-            alert('Por favor, selecciona un nivel de flujo para continuar.');
+            warning('Selecciona un nivel de flujo para continuar.', 'Falta un dato');
             return;
         }
 
         const newDateParsed = parseISO(dateInput);
         const hasCollision = state.cycles.some(c => Math.abs(differenceInDays(parseISO(c.date), newDateParsed)) < 14);
 
+        // Antes esto era un aviso sin salida: preguntaba si querías marcarlo como
+        // atípico y cancelaba el guardado igualmente, dejándote buscar la casilla
+        // a mano. Ahora la respuesta afirmativa marca el registro y lo guarda.
+        let atypical = isAtypical;
         if (hasCollision && !isAtypical) {
-            alert('Sangrado inusual detectado fuera de tu ciclo menstrual habitual. ¿Deseas marcar este registro como atípico?');
-            return;
+            const markAtypical = await confirm({
+                title: 'Sangrado fuera de ciclo',
+                message: 'Este registro cae a menos de 14 días del anterior. ¿Guardarlo marcado como atípico?',
+                confirmLabel: 'Marcar y guardar',
+                cancelLabel: 'Revisar',
+            });
+            if (!markAtypical) return;
+            atypical = true;
+            setIsAtypical(true);
         }
 
         const newEntry: CycleEntry = {
             id: Date.now().toString(),
             date: dateInput,
             flow_level: flowLevel,
-            is_atypical: isAtypical,
+            is_atypical: atypical,
             symptoms_enc: encrypt(selectedSymptoms.join(', ')),
             notes_enc: encrypt(notes)
         };
@@ -197,6 +210,7 @@ export const BiometricVault = () => {
         setNotes('');
         setFlowLevel('');
         setIsAtypical(false);
+        success('Registro guardado en la bóveda.', 'Bóveda biométrica');
     };
 
     const toggleSymptom = (sym: string) => {

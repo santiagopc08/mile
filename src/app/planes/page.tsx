@@ -8,7 +8,7 @@ import { Activity, Radio } from "lucide-react";
 import { BrutalistSkeleton } from "@/components/ui/BrutalistSkeleton";
 import { useMemo, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { InteractiveBackground } from "@/components/InteractiveBackground";
+import { AmbientField } from "@/components/AmbientField";
 
 const GeospatialPlanTracker = dynamic(
   () => import("@/components/GeospatialPlanTracker").then((m) => m.GeospatialPlanTracker),
@@ -62,7 +62,7 @@ export default function PlanesPage() {
 
   return (
     <PrivateRoute>
-      <InteractiveBackground preset="planes" profile={profile} />
+      <AmbientField preset="planes" profile={profile} />
       <main className="relative z-10 min-h-screen w-full overflow-hidden px-4 pb-24 pt-6 text-[#e5e2e1] md:px-8 md:pt-8 font-sans">
 
         <div className="mx-auto w-full max-w-7xl border-x border-white/10">

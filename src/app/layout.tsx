@@ -6,6 +6,8 @@ import { ProfileProvider } from "@/context/ProfileContext";
 import { VisibilityProvider } from "@/context/VisibilityContext";
 import { AppNav } from "@/components/AppNav";
 import { IOSInstallPrompt } from "@/components/IOSInstallPrompt";
+import { ToastProvider } from "@/components/ui/Toast";
+import { ConnectionWatcher } from "@/components/ConnectionWatcher";
 import { SpeedInsights } from "@vercel/speed-insights/next"
 
 const spaceGrotesk = Space_Grotesk({
@@ -27,11 +29,14 @@ const quantico = Quantico({
 });
 
 export const viewport: Viewport = {
-  themeColor: "#f5f5f4", // matches stone-50 background
+  themeColor: "#0a070c", // coincide con la superficie neón real de la app
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+  // Accesibilidad: bloquear el zoom impide ampliar texto a quien lo necesita.
+  // Un máximo de 5x sigue evitando el zoom accidental al tocar inputs en iOS
+  // siempre que la tipografía de los campos sea >= 16px.
+  maximumScale: 5,
+  userScalable: true,
   viewportFit: "cover",
 };
 
@@ -60,13 +65,19 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" suppressHydrationWarning>
-      <body suppressHydrationWarning className={`${spaceGrotesk.variable} ${anta.variable} ${quantico.variable} font-sans antialiased text-[#fbdae0] bg-[#1f0e13] min-h-screen lg:pl-20 pb-safe`}>
+      <body suppressHydrationWarning className={`${spaceGrotesk.variable} ${anta.variable} ${quantico.variable} font-sans antialiased text-[#fbdae0] bg-[#1f0e13] min-h-screen lg:pl-20 pb-app-nav`}>
+        <a href="#contenido" className="skip-link">
+          Saltar al contenido
+        </a>
         <ProfileProvider>
           <StoreProvider>
             <VisibilityProvider>
-              <AppNav />
-              <IOSInstallPrompt />
-              {children}
+              <ToastProvider>
+                <AppNav />
+                <IOSInstallPrompt />
+                <ConnectionWatcher />
+                {children}
+              </ToastProvider>
             </VisibilityProvider>
           </StoreProvider>
         </ProfileProvider>

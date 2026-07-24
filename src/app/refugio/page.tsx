@@ -11,7 +11,7 @@ import { useStore } from "@/context/StoreContext";
 import { useProfile } from "@/context/ProfileContext";
 import { MessageCircleHeart, Mic, PawPrint, Clock, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { InteractiveBackground } from "@/components/InteractiveBackground";
+import { AmbientField } from "@/components/AmbientField";
 import { CyberButton } from "@/components/ui/CyberButton";
 
 export default function RefugioPage() {
@@ -53,7 +53,7 @@ export default function RefugioPage() {
 
   return (
     <PrivateRoute>
-      <InteractiveBackground preset="refugio" profile={profile} />
+      <AmbientField preset="refugio" profile={profile} />
       <main className="relative z-10 min-h-screen w-full overflow-hidden px-4 pb-24 pt-6 text-[#e5e2e1] md:px-8 md:pt-8 font-sans">
 
         <div className="mx-auto w-full max-w-7xl border-x border-white/10">

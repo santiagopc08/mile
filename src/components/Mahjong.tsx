@@ -48,9 +48,12 @@ import { RevealDrawingModal } from '@/components/mahjong/RevealDrawingModal';
 import { useDailyStats } from '@/components/mahjong/useDailyStats';
 import { useBottleMessages } from '@/components/mahjong/useBottleMessages';
 import { useDrawings } from '@/components/mahjong/useDrawings';
+import { useToast } from '@/components/ui/Toast';
 
 export function Mahjong() {
     const { profile } = useProfile();
+    // Renombrados: dentro del componente ya hay variables locales `success`.
+    const { success: notifySuccess, error: notifyError, warning: notifyWarning } = useToast();
     const accentColor = profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)';
     const accentClass = profile === 'ella' ? 'user-a' : 'user-b';
     const secondaryColor = profile === 'ella' ? 'var(--color-user-b)' : 'var(--color-user-a)';
@@ -369,7 +372,7 @@ export function Mahjong() {
             setDailyPlayRecord({ status: 'started' });
             setIsLoaded(false); // Triggers generation
         } else {
-            alert('No se pudo iniciar el juego. Tal vez ya lo intentaste hoy.');
+            notifyError('No se pudo iniciar el juego. Puede que ya lo hayas intentado hoy.', 'Desafío diario');
         }
     };
 
@@ -1265,7 +1268,7 @@ export function Mahjong() {
                         'mahjong_coop_turn',
                         `¡${authorName} completó la mitad del tablero! Tu turno de terminar el juego.`
                     ).catch(console.error);
-                    alert(`¡Has completado la mitad del tablero (${halfMatched} fichas)! El turno pasa automáticamente a tu pareja.`);
+                    notifySuccess(`Mitad del tablero completada (${halfMatched} fichas). El turno pasa a tu pareja.`, 'Relevo cooperativo');
                 } else {
                     MahjongService.updateCoopGame(activeCoopGame.id, processedTiles, updatedDock, coopTurn, profile as 'el' | 'ella');
                 }
@@ -1290,7 +1293,7 @@ export function Mahjong() {
                 setTimerActive(false); // Pausar
                 MahjongService.hasPendingSentMessage(profile as 'el' | 'ella').then((hasPending) => {
                     if (hasPending) {
-                        alert('Ya tienes una botella en el océano esperando ser encontrada por tu pareja.');
+                        notifyWarning('Ya tienes una botella en el océano esperando a que tu pareja la encuentre.', 'Botella pendiente');
                         if (!gameLost && matchedCount < tiles.length) {
                             setTimerActive(true);
                         }
@@ -2085,7 +2088,7 @@ export function Mahjong() {
                                     if (bottleNoteText.trim()) {
                                         const success = await MahjongService.createBottleMessage(profile as 'el' | 'ella', bottleNoteText);
                                         if (success) {
-                                            alert('¡Tu mensaje ha sido embotellado y arrojado al océano!');
+                                            notifySuccess('Tu mensaje ha sido embotellado y arrojado al océano.', 'Botella enviada');
                                             const target = profile === 'el' ? 'ella' : 'el';
                                             const senderName = profile === 'el' ? 'Santiago' : 'Milena';
                                             NotificationService.addNotification(
