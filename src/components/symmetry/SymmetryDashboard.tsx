@@ -196,7 +196,7 @@ export const SymmetryDashboard = () => {
     >
       <div className="pointer-events-none fixed inset-0 -z-10 bg-mosaic opacity-50" />
 
-      <div className="border-x border-b border-white/10 p-4 sm:p-6 bg-[#0a070c]/55 backdrop-blur-xl backdrop-saturate-150 mb-4">
+      <div className="border border-white/12 p-4 sm:p-6 bg-white/[0.04] backdrop-blur-2xl backdrop-saturate-150 shadow-[0_12px_32px_rgba(0,0,0,0.5)] mb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 font-mono">
             <span className="text-xs animate-spin-slow" style={{ color: accentColorValue }}>◆</span>
@@ -204,14 +204,14 @@ export const SymmetryDashboard = () => {
               DÍA A DÍA · OPERACIONES Y RITMO
             </h1>
           </div>
-          <span className="hidden sm:inline-block font-mono text-[9px] uppercase font-bold tracking-[0.2em] px-2 py-0.5 border border-white/10" style={{ color: accentColorValue }}>
+          <span className="hidden sm:inline-block font-mono text-[9px] uppercase font-bold tracking-[0.2em] px-2.5 py-1 border border-white/15 bg-white/[0.04] backdrop-blur-md" style={{ color: accentColorValue }}>
             SISTEMA ACTIVO
           </span>
         </div>
       </div>
 
-      <div className="border-x border-white/10">
-        <div className="grid grid-cols-2 border-b border-white/10 bg-white/[0.02] backdrop-blur-xl backdrop-saturate-150">
+      <div className="mb-6">
+        <div className="grid grid-cols-2 border border-white/12 bg-white/[0.03] backdrop-blur-2xl backdrop-saturate-150 shadow-lg">
           {([
             { label: 'Operaciones', key: 'tasks' as const, icon: ShieldCheck, index: '01' },
             { label: 'Finanzas', key: 'finances' as const, icon: WalletCards, index: '02' },

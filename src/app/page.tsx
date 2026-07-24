@@ -99,18 +99,18 @@ export default function Home() {
         style={{ '--color-profile-accent': accentColorValue } as React.CSSProperties}
       >
         {/* Main Terminal Container */}
-        <BrutalistPanel accentColor={accentColorValue} borderColor="rgba(255,255,255,0.1)" corners="animated" cornerSize={16} cornerThickness={1.5} className="w-full max-w-4xl !bg-[#0a0a0a]/75 !backdrop-blur-md mb-6 sm:mb-12">
+        <BrutalistPanel accentColor={accentColorValue} borderColor="rgba(255,255,255,0.12)" corners="animated" cornerSize={16} cornerThickness={1.5} className="w-full max-w-4xl !bg-white/[0.035] !backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.6)] mb-6 sm:mb-12">
 
           {/* Birthday Surprise Banner */}
           {showBdayBanner && (
-            <div className="border-b border-[#ff4b89] bg-[#ff4b89]/10 p-4 font-mono text-xs text-center flex flex-col sm:flex-row items-center justify-between gap-3 relative z-30">
+            <div className="border-b border-[#ff4b89] bg-[#ff4b89]/15 backdrop-blur-md p-4 font-mono text-xs text-center flex flex-col sm:flex-row items-center justify-between gap-3 relative z-30">
               <div className="flex items-center gap-2 text-white font-bold">
                 <span className="text-[#ff4b89] animate-pulse">💝</span>
                 <span>¡HOY ES UN DÍA MUY ESPECIAL: CUMPLEAÑOS DE MILE!</span>
               </div>
               <Link 
                 href="/cumple" 
-                className="!min-h-0 border border-[#ff4b89] bg-[#ff4b89]/20 hover:bg-[#ff4b89] hover:text-black transition-all px-4 py-1.5 text-[10px] uppercase font-black tracking-widest flex items-center gap-1.5"
+                className="!min-h-0 border border-[#ff4b89] bg-[#ff4b89]/25 hover:bg-[#ff4b89] hover:text-black backdrop-blur-md transition-all px-4 py-1.5 text-[10px] uppercase font-black tracking-widest flex items-center gap-1.5"
               >
                 <span>Descubrir Sorpresa 🎁</span>
                 <ArrowRight size={10} className="animate-slide-loop" />
@@ -135,7 +135,7 @@ export default function Home() {
           </div>
 
           {/* Body Section */}
-          <div className="p-3 sm:p-6 lg:p-8 space-y-4 sm:space-y-8 bg-[#050505]/80">
+          <div className="p-3 sm:p-6 lg:p-8 space-y-4 sm:space-y-8 bg-transparent">
 
             {/* Primary Modules - 2 Columns */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

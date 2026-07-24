@@ -64,8 +64,8 @@ export default function SaludPage() {
         <PrivateRoute>
             <AmbientField preset="salud" profile={profile} />
             <main className="relative z-10 min-h-screen w-full overflow-hidden px-4 pb-24 pt-6 text-[#e5e2e1] md:px-8 md:pt-8 font-mono">
-                <div className="mx-auto w-full max-w-7xl border-x border-white/10">
-                    <div className="border-y border-white/10 bg-[#0a070c]/55 backdrop-blur-xl backdrop-saturate-150 rounded-none">
+                <div className="mx-auto w-full max-w-7xl">
+                    <div className="border border-white/12 bg-white/[0.04] backdrop-blur-2xl backdrop-saturate-150 shadow-[0_12px_36px_rgba(0,0,0,0.5)] mb-4">
                         <div className="relative p-5 sm:p-8 md:p-10">
                             <div className={`absolute left-0 top-0 h-full w-[5px] bg-${accentClass}`} style={{ backgroundColor: accentColor }} />
                             <div className="flex items-center justify-between gap-3 w-full">
@@ -75,11 +75,11 @@ export default function SaludPage() {
                                         SALUD · SIGNOS VITALES
                                     </h1>
                                 </div>
-                                <div className="relative p-1 border border-white/10 bg-black rounded-none shrink-0">
+                                <div className="relative p-1 border border-white/15 bg-white/[0.05] backdrop-blur-md shrink-0">
                                     <div className={`absolute top-0 left-0 w-1.5 h-1.5 border-t border-l border-${accentClass}`} style={{ borderColor: accentColor }} />
                                     <div className={`absolute bottom-0 right-0 w-1.5 h-1.5 border-b border-r border-${accentClass}`} style={{ borderColor: accentColor }} />
                                     <video
-                                        className="w-16 h-16 sm:w-20 sm:h-20 object-cover contrast-125 opacity-80 mix-blend-screen rounded-none"
+                                        className="w-16 h-16 sm:w-20 sm:h-20 object-cover contrast-125 opacity-80 mix-blend-screen"
                                         src="vid/dogtor.mp4"
                                         autoPlay
                                         loop
@@ -95,7 +95,7 @@ export default function SaludPage() {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 border-b border-white/10 bg-white/[0.02] backdrop-blur-xl backdrop-saturate-150 sm:grid-cols-4 rounded-none">
+                    <div className="grid grid-cols-2 border border-white/12 bg-white/[0.03] backdrop-blur-2xl backdrop-saturate-150 sm:grid-cols-4 mb-6 shadow-lg">
                         {tabs.map((tab) => (
                             <button
                                 key={tab.id}

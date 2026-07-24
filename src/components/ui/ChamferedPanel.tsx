@@ -55,14 +55,11 @@ export function ChamferedPanel({
         <motion.div
             whileTap={{ scale: 0.985 }}
             transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-            className={`group relative overflow-hidden bg-[#0a070c]/45 backdrop-blur-xl backdrop-saturate-150 border p-4 transition-all duration-300 ${staggerIndex !== undefined ? 'stagger-item' : ''} ${className}`}
+            className={`group relative overflow-hidden bg-white/[0.035] backdrop-blur-2xl backdrop-saturate-150 border p-4 transition-all duration-300 ${staggerIndex !== undefined ? 'stagger-item' : ''} ${className}`}
             style={{
                 clipPath: clipPathStyle,
                 borderColor: finalBorderColor,
-                // El clip-path recorta cualquier box-shadow exterior, así que la
-                // flotación aquí es solo translucidez + desenfoque. El inset glow
-                // (sí sobrevive al recorte) da profundidad al canto interior.
-                boxShadow: `inset 0 0 22px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.06)`,
+                boxShadow: `inset 0 1px 1px rgba(255,255,255,0.15), inset 0 0 20px rgba(0,0,0,0.45)`,
                 ...(staggerIndex !== undefined ? ({ '--i': staggerIndex } as React.CSSProperties) : null),
                 ...style,
             }}

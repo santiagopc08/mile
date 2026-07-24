@@ -27,13 +27,13 @@ export function AppNav() {
 
   return (
     <>
-      <div suppressHydrationWarning className="header-safe-offset lg:h-0 lg:p-0 bg-[#120d0e]/60 backdrop-blur-md border-b border-white/5 lg:border-none" aria-hidden="true" />
+      <div suppressHydrationWarning className="header-safe-offset lg:h-0 lg:p-0 bg-white/[0.015] backdrop-blur-md border-b border-white/5 lg:border-none" aria-hidden="true" />
 
       {/* Mobile Top Header */}
-      <header className="header-safe-offset fixed top-0 left-0 w-full bg-[#0a070c]/70 backdrop-blur-xl backdrop-saturate-150 border-b border-white/10 flex items-center justify-between px-4 sm:px-6 lg:hidden z-40">
+      <header className="header-safe-offset fixed top-0 left-0 w-full bg-white/[0.04] backdrop-blur-2xl backdrop-saturate-150 border-b border-white/12 flex items-center justify-between px-4 sm:px-6 lg:hidden z-40 shadow-[0_10px_30px_rgba(0,0,0,0.4)]">
         <Link
           href="/"
-          className="nav-brand group relative overflow-hidden font-mono text-[10px] sm:text-xs font-black tracking-[0.25em] border px-3 py-1.5 bg-black/70 text-[#a88a7e] transition-all focus-visible:outline-none chamfered-card-sm"
+          className="nav-brand group relative overflow-hidden font-mono text-[10px] sm:text-xs font-black tracking-[0.25em] border px-3 py-1.5 bg-white/[0.06] backdrop-blur-md text-[#a88a7e] transition-all focus-visible:outline-none chamfered-card-sm"
           style={{ '--nav-accent': profileAccent, borderColor: profileAccent, color: profileAccent } as CSSProperties}
           aria-label="Volver al inicio"
         >
@@ -51,7 +51,7 @@ export function AppNav() {
 
       {/* Mobile Bottom Nav */}
       <nav
-        className="nav-safe-offset fixed bottom-0 left-0 w-full z-50 grid grid-cols-5 bg-[#0a070c]/72 backdrop-blur-2xl backdrop-saturate-150 border-t border-white/15 lg:hidden px-1 shadow-[0_-10px_30px_rgba(0,0,0,0.55)]"
+        className="nav-safe-offset fixed bottom-0 left-0 w-full z-50 grid grid-cols-5 bg-white/[0.05] backdrop-blur-2xl backdrop-saturate-150 border-t border-white/15 lg:hidden px-1 shadow-[0_-12px_36px_rgba(0,0,0,0.5)]"
         aria-label="Navegación principal"
       >
         {navItems.map((item) => {
@@ -97,13 +97,13 @@ export function AppNav() {
 
       {/* Desktop Sidebar */}
       <aside
-        className="hidden lg:flex flex-col fixed left-0 top-0 h-full w-20 border-r border-white/10 bg-[#120d0e]/70 backdrop-blur-xl backdrop-saturate-150 z-40 items-center py-8 gap-5"
+        className="hidden lg:flex flex-col fixed left-0 top-0 h-full w-20 border-r border-white/12 bg-white/[0.04] backdrop-blur-2xl backdrop-saturate-150 z-40 items-center py-8 gap-5 shadow-[10px_0_35px_rgba(0,0,0,0.4)]"
         style={{ '--nav-accent': profileAccent } as CSSProperties}
         aria-label="Navegación principal"
       >
         <Link
           href="/"
-          className="nav-brand group relative mb-2 flex h-11 w-11 items-center justify-center overflow-hidden border border-white/20 bg-black/50 font-mono text-xs font-black tracking-widest transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+          className="nav-brand group relative mb-2 flex h-11 w-11 items-center justify-center overflow-hidden border border-white/20 bg-white/[0.08] backdrop-blur-md font-mono text-xs font-black tracking-widest transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
           style={{ color: profileAccent }}
           aria-label={`Inicio de ${profileName}`}
         >
@@ -123,7 +123,7 @@ export function AppNav() {
             <Link
               key={item.path}
               href={item.path}
-              className={`nav-desktop-item micro-click-press group relative flex h-14 w-full items-center justify-center text-[#a88a7e] transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white/60 ${isActive ? 'is-active text-white bg-white/[0.06]' : 'hover:bg-white/[0.04] hover:text-white'}`}
+              className={`nav-desktop-item micro-click-press group relative flex h-14 w-full items-center justify-center text-[#a88a7e] transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white/60 ${isActive ? 'is-active text-white bg-white/[0.08]' : 'hover:bg-white/[0.05] hover:text-white'}`}
               style={{ '--nav-accent': itemAccent } as CSSProperties}
               aria-current={isActive ? 'page' : undefined}
               aria-label={`${item.name}: ${item.detail}`}
@@ -133,7 +133,7 @@ export function AppNav() {
                 <span className="nav-icon-pulse" aria-hidden="true" />
                 <Icon className="relative h-6 w-6 stroke-[1.5] transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
               </span>
-              <span className="pointer-events-none absolute left-[4.6rem] top-1/2 z-50 min-w-44 -translate-y-1/2 border border-white/10 bg-[#0a0a0a]/95 px-3 py-2 text-left opacity-0 shadow-2xl shadow-black/40 backdrop-blur-md transition-all duration-200 group-hover:translate-x-1 group-hover:opacity-100 group-focus-visible:translate-x-1 group-focus-visible:opacity-100">
+              <span className="pointer-events-none absolute left-[4.6rem] top-1/2 z-50 min-w-44 -translate-y-1/2 border border-white/15 bg-[#120c15]/85 px-3 py-2 text-left opacity-0 shadow-2xl shadow-black/60 backdrop-blur-2xl transition-all duration-200 group-hover:translate-x-1 group-hover:opacity-100 group-focus-visible:translate-x-1 group-focus-visible:opacity-100">
                 <span className="block font-mono text-[10px] font-black uppercase tracking-[0.18em]" style={{ color: itemAccent }}>{item.name}</span>
                 <span className="mt-0.5 block text-[10px] uppercase tracking-[0.12em] text-[#e1bfb2]/65">{item.detail}</span>
               </span>

@@ -99,7 +99,7 @@ export function SystemSettings({ align = 'right' }: { align?: 'left' | 'right' }
             haptics.triggerTick();
           }
         }}
-        className="touch-target group relative flex h-9 w-9 items-center justify-center border border-white/10 bg-[#0a0a0a]/90 text-[#a88a7e] transition-all hover:border-white/20 hover:text-white"
+        className="touch-target group relative flex h-9 w-9 items-center justify-center border border-white/12 bg-white/[0.04] backdrop-blur-md text-[#a88a7e] transition-all hover:border-white/25 hover:bg-white/[0.08] hover:text-white"
         title="Consola de Configuración"
         aria-label="Consola de Configuración"
       >
@@ -122,14 +122,14 @@ export function SystemSettings({ align = 'right' }: { align?: 'left' | 'right' }
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 8 }}
               transition={{ duration: 0.15, ease: "easeOut" }}
-              className={`absolute mt-3 w-80 border border-white/10 bg-[#0a0a0a]/98 backdrop-blur-xl shadow-[0_15px_40px_rgba(0,0,0,0.6)] z-50 overflow-hidden font-mono ${
+              className={`absolute mt-3 w-80 border border-white/15 bg-[#120b15]/85 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.7)] z-50 overflow-hidden font-mono ${
                 align === 'left' ? 'left-0 lg:left-full lg:top-0 lg:mt-0 lg:ml-4' : 'right-0'
               }`}
             >
               <AnimatedBrutalistCorners color={accentHex} size={12} thickness={1.5} />
 
               {/* Title Header */}
-              <div className="flex items-center justify-between border-b border-white/10 bg-black/40 p-4">
+              <div className="flex items-center justify-between border-b border-white/10 bg-white/[0.03] p-4">
                 <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white flex items-center gap-2">
                   <Cpu className="w-3.5 h-3.5" style={{ color: accentHex }} />
                   CONSOLA DEL SISTEMA

@@ -54,38 +54,39 @@ export function CyberButton({
     // oscuro para el despegue del fondo + (en primary/danger) un halo de color.
     const variantStyles: Record<string, React.CSSProperties> = {
         primary: {
-            backgroundColor: `${accentColor}22`,
+            backgroundColor: `${accentColor}28`,
             borderColor: accentColor,
             color: '#ffffff',
-            filter: `drop-shadow(0 6px 10px rgba(0,0,0,0.45)) drop-shadow(0 0 10px ${accentColor}40)`,
+            filter: `drop-shadow(0 8px 16px rgba(0,0,0,0.5)) drop-shadow(0 0 12px ${accentColor}55)`,
         },
         secondary: {
-            backgroundColor: 'rgba(255, 255, 255, 0.06)',
-            borderColor: 'rgba(255, 255, 255, 0.15)',
-            color: '#e5e2e1',
-            filter: 'drop-shadow(0 6px 10px rgba(0,0,0,0.4))',
+            backgroundColor: 'rgba(255, 255, 255, 0.08)',
+            borderColor: 'rgba(255, 255, 255, 0.2)',
+            color: '#ffffff',
+            filter: 'drop-shadow(0 8px 14px rgba(0,0,0,0.45))',
         },
         outline: {
-            backgroundColor: 'rgba(255, 255, 255, 0.02)',
-            borderColor: accentColor,
+            backgroundColor: 'rgba(255, 255, 255, 0.04)',
+            borderColor: `${accentColor}aa`,
             color: accentColor,
-            filter: 'drop-shadow(0 5px 9px rgba(0,0,0,0.35))',
+            filter: `drop-shadow(0 6px 12px rgba(0,0,0,0.4)) drop-shadow(0 0 8px ${accentColor}30)`,
         },
         danger: {
-            backgroundColor: 'rgba(239, 68, 68, 0.13)',
+            backgroundColor: 'rgba(239, 68, 68, 0.18)',
             borderColor: '#ef4444',
             color: '#fca5a5',
-            filter: 'drop-shadow(0 6px 10px rgba(0,0,0,0.45)) drop-shadow(0 0 10px rgba(239,68,68,0.4))',
+            filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.5)) drop-shadow(0 0 12px rgba(239,68,68,0.5))',
         },
         ghost: {
-            backgroundColor: 'transparent',
-            borderColor: 'transparent',
-            color: '#a88a7e',
+            backgroundColor: 'rgba(255, 255, 255, 0.02)',
+            borderColor: 'rgba(255, 255, 255, 0.08)',
+            color: '#e5e2e1',
         },
     };
 
     return (
         <motion.button
+            whileHover={disabled ? undefined : { y: -2 }}
             whileTap={disabled ? undefined : { scale: 0.95 }}
             transition={{ type: 'spring', stiffness: 450, damping: 25 }}
             disabled={disabled}

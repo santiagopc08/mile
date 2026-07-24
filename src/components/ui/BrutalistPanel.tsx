@@ -55,7 +55,7 @@ export function BrutalistPanel({
 }: BrutalistPanelProps) {
     return (
         <div
-            className={`group relative border bg-[#0a070c]/50 backdrop-blur-xl backdrop-saturate-150 glass-float transition-all duration-300 ${className}`}
+            className={`group relative border bg-white/[0.035] backdrop-blur-2xl backdrop-saturate-150 glass-float transition-all duration-300 ${className}`}
             style={{ borderColor: borderColor ?? `${accentColor}35`, ...style }}
             {...rest}
         >
