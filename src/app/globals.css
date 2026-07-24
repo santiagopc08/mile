@@ -79,6 +79,31 @@
 
   /* Escalonado de listas: animation-delay: calc(var(--i) * var(--stagger)) */
   --stagger: 45ms;
+
+  /* ───────────────────────────────────────────────────────────
+     Sistema de Vidrio (Glassmorphism) — refactor «flotante».
+     Los contenedores dejan de ser cajas opacas: se vuelven vidrio
+     traslúcido sobre el AmbientField, con desenfoque, un filo de luz
+     superior y (donde el clip-path lo permite) una sombra proyectada
+     que los despega del fondo.
+
+     Dos intensidades porque no toda superficie tolera lo mismo:
+       · --glass-bg        capas ligeras, chips, botones, tarjetas
+                           sobre las que el fondo puede respirar.
+       · --glass-bg-strong bajo texto denso / formularios, donde la
+                           legibilidad manda sobre la transparencia.
+     El tinte hereda el negro violáceo de la app (#0a070c) para que el
+     vidrio no se lea gris sucio sobre los acentos neón.
+     ─────────────────────────────────────────────────────────── */
+  --glass-bg: rgba(12, 8, 13, 0.42);
+  --glass-bg-strong: rgba(10, 7, 12, 0.66);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-highlight: rgba(255, 255, 255, 0.16);
+  --glass-blur: 20px;
+  /* Sombra de flotación. Solo sirve en superficies SIN clip-path: el
+     recorte poligonal de los paneles biselados también recorta la
+     box-shadow, así que allí la flotación viene de la translucidez. */
+  --glass-float: 0 20px 45px -14px rgba(0, 0, 0, 0.7), 0 6px 16px -6px rgba(0, 0, 0, 0.55);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -287,10 +312,51 @@ body {
   border-radius: 9999px !important;
 }
 
-/* Geometric UI Signature Classes */
+/* ─────────────────────────────────────────────────────────────
+   Utilidades de Vidrio — la base compartida del refactor flotante.
+
+   `.glass` : superficie traslúcida + desenfoque + saturación (el
+   saturate revive los neón que quedan detrás del vidrio, si no el
+   blur los apaga a gris). `.glass-strong` sube el tinte bajo texto.
+   `.glass-float` añade la sombra de flotación; NO usar en elementos
+   con clip-path (el recorte se la come — ver nota en :root).
+   `.glass-sheen` pinta el filo de luz superior que «moja» el vidrio.
+   ───────────────────────────────────────────────────────────── */
+.glass {
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.35);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.35);
+  border: 1px solid var(--glass-border);
+}
+
+.glass-strong {
+  background: var(--glass-bg-strong);
+}
+
+.glass-float {
+  box-shadow: var(--glass-float);
+}
+
+.glass-sheen {
+  position: relative;
+}
+
+.glass-sheen::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: linear-gradient(180deg, var(--glass-highlight) 0%, transparent 38%);
+  opacity: 0.55;
+}
+
+/* Geometric UI Signature Classes — ahora vidrio flotante en vez de fill sólido */
 .geometric-card {
-  background: var(--color-surface-dim);
-  border: 1px solid var(--color-border-subtle);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.35);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.35);
+  border: 1px solid var(--glass-border);
   border-radius: 0px;
   /* Minimalist Brutalism Signature */
   position: relative;
@@ -300,7 +366,7 @@ body {
 
 .geometric-card:hover {
   border-color: rgba(255, 255, 255, 0.25);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--glass-float);
 }
 
 /* Chamfered Cyber Cut Corners (Imagen 2 & 5) */
@@ -1027,6 +1093,8 @@ textarea {
   letter-spacing: 0.14em;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.03);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
   color: #a88a7e;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -1119,7 +1187,9 @@ textarea {
 
 .habit-btn {
   border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(0, 0, 0, 0.4);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
   transition: all 0.2s;
 }
 

@@ -65,7 +65,7 @@ export default function SaludPage() {
             <AmbientField preset="salud" profile={profile} />
             <main className="relative z-10 min-h-screen w-full overflow-hidden px-4 pb-24 pt-6 text-[#e5e2e1] md:px-8 md:pt-8 font-mono">
                 <div className="mx-auto w-full max-w-7xl border-x border-white/10">
-                    <div className="border-y border-white/10 bg-[#0a0a0a]/95 rounded-none">
+                    <div className="border-y border-white/10 bg-[#0a070c]/55 backdrop-blur-xl backdrop-saturate-150 rounded-none">
                         <div className="relative p-5 sm:p-8 md:p-10">
                             <div className={`absolute left-0 top-0 h-full w-[5px] bg-${accentClass}`} style={{ backgroundColor: accentColor }} />
                             <div className="flex items-center justify-between gap-3 w-full">
@@ -95,14 +95,14 @@ export default function SaludPage() {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 border-b border-white/10 bg-black sm:grid-cols-4 rounded-none">
+                    <div className="grid grid-cols-2 border-b border-white/10 bg-white/[0.02] backdrop-blur-xl backdrop-saturate-150 sm:grid-cols-4 rounded-none">
                         {tabs.map((tab) => (
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
                                 className={`group relative font-mono flex min-h-20 items-center justify-between border-b border-white/10 px-4 py-4 transition-all last:border-b-0 sm:border-b-0 sm:border-r sm:last:border-r-0 rounded-none ${activeTab === tab.id
                                     ? 'text-black'
-                                    : 'bg-[#0a0a0a] text-[#a88a7e] hover:bg-[#121212] hover:text-white'
+                                    : 'text-[#a88a7e] hover:bg-white/[0.06] hover:text-white'
                                     }`}
                                 style={activeTab === tab.id ? { backgroundColor: accentColor } : {}}
                             >
@@ -124,7 +124,7 @@ export default function SaludPage() {
                         ))}
                     </div>
 
-                    <div id="salud-content" className="bg-[#050505] p-3 sm:p-5 md:p-8">
+                    <div id="salud-content" className="bg-[#0a070c]/40 backdrop-blur-xl backdrop-saturate-150 p-3 sm:p-5 md:p-8">
 
                         <AnimatePresence mode="wait">
                             <motion.div

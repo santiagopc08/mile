@@ -196,7 +196,7 @@ export const SymmetryDashboard = () => {
     >
       <div className="pointer-events-none fixed inset-0 -z-10 bg-mosaic opacity-50" />
 
-      <div className="border-x border-b border-white/10 p-4 sm:p-6 bg-[#0a070c]/90 backdrop-blur-xl mb-4">
+      <div className="border-x border-b border-white/10 p-4 sm:p-6 bg-[#0a070c]/55 backdrop-blur-xl backdrop-saturate-150 mb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 font-mono">
             <span className="text-xs animate-spin-slow" style={{ color: accentColorValue }}>◆</span>
@@ -211,7 +211,7 @@ export const SymmetryDashboard = () => {
       </div>
 
       <div className="border-x border-white/10">
-        <div className="grid grid-cols-2 border-b border-white/10 bg-black">
+        <div className="grid grid-cols-2 border-b border-white/10 bg-white/[0.02] backdrop-blur-xl backdrop-saturate-150">
           {([
             { label: 'Operaciones', key: 'tasks' as const, icon: ShieldCheck, index: '01' },
             { label: 'Finanzas', key: 'finances' as const, icon: WalletCards, index: '02' },
@@ -221,7 +221,7 @@ export const SymmetryDashboard = () => {
               onClick={() => setActiveTab(tab.key)}
               className={`group relative font-mono flex min-h-20 items-center justify-between border-r border-white/10 px-4 py-4 transition-all last:border-r-0 ${activeTab === tab.key
                 ? 'text-black font-black'
-                : 'bg-[#0a0a0a] text-[#a88a7e] hover:bg-[#121212] hover:text-white'
+                : 'text-[#a88a7e] hover:bg-white/[0.06] hover:text-white'
                 }`}
               style={activeTab === tab.key ? { backgroundColor: activeAccent } : undefined}
             >

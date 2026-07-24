@@ -238,7 +238,7 @@ export function Timeline({ events }: TimelineProps) {
 
     return (
         <div className="relative flex w-full flex-col items-center bg-mosaic py-8">
-            <div className="mb-10 w-full max-w-4xl border border-white/10 bg-[#0a0a0a] p-6 text-center rounded-none">
+            <div className="mb-10 w-full max-w-4xl border border-white/10 bg-white/[0.03] p-6 text-center rounded-none">
                 <p className="text-[10px] font-bold uppercase tracking-[0.32em] text-[#a88a7e] font-mono">Nuestros Momentos</p>
                 <h2 className="mt-3 text-3xl font-black uppercase tracking-normal text-white font-sans">Historia Compartida</h2>
             </div>
@@ -248,12 +248,12 @@ export function Timeline({ events }: TimelineProps) {
                     {!isAdding ? (
                         <button
                             onClick={() => setIsAdding(true)}
-                            className="flex w-full items-center justify-center gap-2 border border-white/10 bg-[#0a0a0a] py-4 font-mono text-xs font-bold uppercase tracking-[0.2em] text-[#a88a7e] transition-all hover:border-[#ff7020] hover:text-[#ffb595] rounded-none"
+                            className="flex w-full items-center justify-center gap-2 border border-white/10 bg-white/[0.03] py-4 font-mono text-xs font-bold uppercase tracking-[0.2em] text-[#a88a7e] transition-all hover:border-[#ff7020] hover:text-[#ffb595] rounded-none"
                         >
                             <Plus className="w-4 h-4 stroke-[1.5]" /> Añadir Nuevo Recuerdo
                         </button>
                     ) : (
-                        <form onSubmit={handleAddEvent} className="relative animate-in space-y-4 border border-white/10 bg-[#0a0a0a] p-6 pl-10 fade-in slide-in-from-top-4 rounded-none overflow-hidden">
+                        <form onSubmit={handleAddEvent} className="relative animate-in space-y-4 border border-white/10 bg-white/[0.03] p-6 pl-10 fade-in slide-in-from-top-4 rounded-none overflow-hidden">
                             {/* Left lateral author stripe */}
                             <div className="absolute left-0 top-0 bottom-0 w-[5px]" style={{ backgroundColor: profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)' }} />
 
@@ -378,7 +378,7 @@ export function Timeline({ events }: TimelineProps) {
 
                             {/* Content Card */}
                             <div className={`w-full pl-8 md:pl-0 md:w-5/12 ${isLeft ? 'md:text-right text-left' : 'text-left'}`}>
-                                <div className={`relative overflow-hidden border p-5 pl-10 md:p-6 md:pl-10 transition-all rounded-none bg-[#0a0a0a] ${editingId === event.id ? 'border-[#ff7020]' : 'border-white/10'}`}>
+                                <div className={`relative overflow-hidden border p-5 pl-10 md:p-6 md:pl-10 transition-all rounded-none bg-white/[0.03] ${editingId === event.id ? 'border-[#ff7020]' : 'border-white/10'}`}>
                                     
                                     {/* Left lateral author stripe */}
                                     <div className="absolute left-0 top-0 bottom-0 w-[5px]" style={{ backgroundColor: eventAccent }} />

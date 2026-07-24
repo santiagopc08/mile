@@ -157,7 +157,7 @@ export function HabitTracker() {
     return (
         <div className="space-y-6">
             {/* Header / Score */}
-            <div className="border border-white/10 bg-black/60 p-6 pl-10 md:pl-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative overflow-hidden rounded-none">
+            <div className="border border-white/10 bg-white/[0.035] p-6 pl-10 md:pl-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative overflow-hidden rounded-none">
                 {/* Left accent stripe */}
                 <div className="absolute left-0 top-0 bottom-0 w-[5px] bg-[#00dbe9]" />
                 
@@ -181,12 +181,12 @@ export function HabitTracker() {
                     </p>
                 </div>
                 <div className="flex gap-4">
-                    <div className="border border-white/10 p-4 text-center min-w-[100px] bg-[#050505] rounded-none">
+                    <div className="border border-white/10 p-4 text-center min-w-[100px] bg-white/[0.03] rounded-none">
                         <Flame className="w-6 h-6 mx-auto mb-2 text-[#ffb595] stroke-[1.5]" />
                         <div className="text-2xl font-black font-mono">{stats.streak}</div>
                         <div className="text-[8px] font-bold uppercase tracking-[0.2em] text-white/30 font-mono">Días en Equilibrio</div>
                     </div>
-                    <div className="border border-white/10 p-4 text-center min-w-[120px] bg-[#050505] rounded-none">
+                    <div className="border border-white/10 p-4 text-center min-w-[120px] bg-white/[0.03] rounded-none">
                         <CircleDollarSign className="w-6 h-6 mx-auto mb-2 text-user-c stroke-[1.5]" />
                         <div className="text-xl font-black font-mono text-user-c">{formatCOP(stats.totalSpent)}</div>
                         <div className="text-[8px] font-bold uppercase tracking-[0.2em] text-white/30 font-mono">Gastado (30 días)</div>
@@ -196,7 +196,7 @@ export function HabitTracker() {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Input Section */}
-                <div className="border border-white/10 bg-[#0a0a0a] p-6 relative rounded-none">
+                <div className="border border-white/10 bg-white/[0.03] p-6 relative rounded-none">
                     <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-white/30" />
                     <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-white/30" />
                     
@@ -271,7 +271,7 @@ export function HabitTracker() {
                 {/* Analysis & History Section */}
                 <div className="space-y-6">
                     {/* Financial Analysis */}
-                    <div className="border border-white/10 bg-[#050505] p-6 rounded-none">
+                    <div className="border border-white/10 bg-white/[0.03] p-6 rounded-none">
                         <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#a88a7e] mb-4 flex items-center gap-2 font-mono">
                             <TrendingDown className="w-4 h-4 stroke-[1.5]" /> Impacto Financiero
                         </h3>

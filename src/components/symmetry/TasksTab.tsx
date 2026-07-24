@@ -48,7 +48,7 @@ export const TasksTab = ({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
-      className="space-y-6 border-x border-white/10 bg-[#050505] p-2 sm:p-4 md:p-5"
+      className="space-y-6 border-x border-white/10 bg-[#0a070c]/40 backdrop-blur-xl backdrop-saturate-150 p-2 sm:p-4 md:p-5"
     >
       {/* Task Video Header */}
       <BrutalistPanel accentColor={accentColorValue} borderColor="rgba(255,255,255,0.1)" corners="animated" cornerSize={12} cornerThickness={1.5} className="grid gap-4 p-4 md:grid-cols-[1fr_auto] md:items-center">
@@ -120,7 +120,7 @@ export const TasksTab = ({
       </BrutalistPanel>
 
       {/* Row 1: Kanban Board (Always Expanded - Core Interface) */}
-      <div className="geometric-card relative overflow-hidden border-white/10 bg-[#0a0a0a] p-3 sm:p-4 md:p-5">
+      <div className="geometric-card relative overflow-hidden border-white/10 p-3 sm:p-4 md:p-5">
         <AnimatedBrutalistCorners color={accentColorValue} />
         <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
           <ShieldCheck size={120} style={{ color: accentColorValue }} />

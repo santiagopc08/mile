@@ -55,10 +55,16 @@ export function BrutalistPanel({
 }: BrutalistPanelProps) {
     return (
         <div
-            className={`group relative border bg-[#0a070c]/95 backdrop-blur-xl transition-all duration-300 ${className}`}
+            className={`group relative border bg-[#0a070c]/50 backdrop-blur-xl backdrop-saturate-150 glass-float transition-all duration-300 ${className}`}
             style={{ borderColor: borderColor ?? `${accentColor}35`, ...style }}
             {...rest}
         >
+            {/* Filo de luz superior — sin clip-path aquí, el vidrio flota con sombra real */}
+            <div
+                className="pointer-events-none absolute inset-x-0 top-0 z-0 h-1/4"
+                style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.09), transparent)' }}
+            />
+
             {scanlines && (
                 <div className="scanlines-overlay pointer-events-none absolute inset-0 z-0 opacity-20 bg-diagonal-stripes" />
             )}

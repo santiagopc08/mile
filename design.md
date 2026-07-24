@@ -71,13 +71,32 @@ Dos detalles que no son opcionales:
 
 ---
 
+## 2 ter. Sistema de Vidrio (Glassmorphism flotante)
+
+Los contenedores dejaron de ser cajas opacas: son **vidrio traslúcido sobre el `AmbientField`**. La retícula, el halftone y la geometría del fondo se leen a través de cada panel, y eso —no una sombra— es lo que hace que todo «flote». Antes las superficies se apilaban a `/90`–`/98` (prácticamente sólidas) o directamente `bg-[#050505]`/`bg-black`, tapando el fondo por completo: el fondo elaborado no se veía nunca bajo el contenido.
+
+Definido en `:root` de `globals.css` con utilidades `.glass` / `.glass-strong` / `.glass-float` / `.glass-sheen`:
+
+- **Dos intensidades de tinte**: `--glass-bg` (`rgba(12,8,13,.42)`) para capas ligeras (chips, botones, tarjetas) y `--glass-bg-strong` (`.66`) bajo texto denso o formularios, donde la legibilidad manda sobre la transparencia. El tinte hereda el negro violáceo de la app, no un gris: sobre gris los acentos neón se ensucian.
+- **`backdrop-blur` + `saturate(1.35)` siempre juntos**: el desenfoque apaga los neón que quedan detrás del vidrio; la saturación los revive. Uno sin el otro se ve muerto.
+- **Filo de luz superior** (`glass-sheen` / gradiente blanco al 10% en el primer tercio): el reflejo que convierte una superficie plana en vidrio.
+
+Dos reglas técnicas **no negociables**, porque ya costó descubrirlas:
+
+1. **`clip-path` recorta la `box-shadow`.** Los paneles biselados (`ChamferedPanel`, `CyberButton`) no pueden flotar con sombra exterior: el recorte poligonal se la come. Allí la flotación es **solo translucidez + desenfoque**, y la profundidad la da un `inset` shadow (que sí sobrevive al recorte). Para el `CyberButton` el despegue y el halo neón van por `filter: drop-shadow`, que **sí** sigue la forma biselada.
+2. **Nunca `filter` en `ChamferedPanel`.** `filter` crea un containing block para descendientes `position: fixed`, y varias tarjetas montan modales `fixed inset-0` dentro (Timeline, Mahjong, Toast) — el mismo motivo por el que el contenedor de página solo anima opacidad (ver *Coreografía de entrada*). Por eso `ChamferedPanel` flota sin `filter` ni sombra exterior: puro vidrio.
+
+**Qué se deja opaco a propósito** (transparentar aquí resta, no suma): campos de formulario/inputs mientras se escribe, marcos de vídeo con `mix-blend-screen`, fichas del Mahjong, y los scrims oscuros de fondo de modal (`bg-black/60`…), que existen justo para separar el modal del resto.
+
+---
+
 ## 3. Guía de Componentes
 
 ### `CyberButton`
-Componente oficial para todos los botones. Ofrece soporte para iconos, estados de carga/deshabilitados, acento de color de perfil y recorte en chaflán de 45°.
+Componente oficial para todos los botones. Ofrece soporte para iconos, estados de carga/deshabilitados, acento de color de perfil y recorte en chaflán de 45°. Es **vidrio** (`backdrop-blur` + `saturate`) y flota con `filter: drop-shadow` porque el chaflán recorta cualquier `box-shadow` (ver *Sistema de Vidrio*).
 
 ### `ChamferedPanel`
-Contenedor principal con esquinas cortadas en chaflán a 45°, marcadores HUD de retícula `[ + ]`, pestañas laterales flotantes, resplandor ambiental y animación de auto-shimmer cíclico para móvil. Con `staggerIndex={n}` entra escalonado en la coreografía de la pantalla (ver *Tokens de Movimiento*).
+Contenedor principal con esquinas cortadas en chaflán a 45°, marcadores HUD de retícula `[ + ]`, pestañas laterales flotantes, resplandor ambiental y animación de auto-shimmer cíclico para móvil. Con `staggerIndex={n}` entra escalonado en la coreografía de la pantalla (ver *Tokens de Movimiento*). Superficie de **vidrio traslúcido** (`bg-[#0a070c]/45`): el `AmbientField` se lee a través. No lleva `filter` ni sombra exterior a propósito — rompería los modales `fixed` internos y el chaflán recorta la sombra (ver *Sistema de Vidrio*).
 
 ### `AmbientField`
 **El único fondo de la app.** Sustituye a `InteractiveBackground` y `GeometricBackground`, que hacían casi lo mismo con rampas de color distintas y ocho bucles de framer-motion cada uno. Cinco capas, de atrás hacia delante:

@@ -49,28 +49,33 @@ export function CyberButton({
             ? 'px-6 py-3 text-xs sm:text-sm'
             : 'px-4 py-2 text-[10.5px]';
 
+    // El clip-path recorta la box-shadow, así que la flotación y el halo neón
+    // van por `filter: drop-shadow`, que sí sigue la forma biselada. Un tono
+    // oscuro para el despegue del fondo + (en primary/danger) un halo de color.
     const variantStyles: Record<string, React.CSSProperties> = {
         primary: {
-            backgroundColor: `${accentColor}25`,
+            backgroundColor: `${accentColor}22`,
             borderColor: accentColor,
             color: '#ffffff',
-            boxShadow: `0 0 15px ${accentColor}25`,
+            filter: `drop-shadow(0 6px 10px rgba(0,0,0,0.45)) drop-shadow(0 0 10px ${accentColor}40)`,
         },
         secondary: {
             backgroundColor: 'rgba(255, 255, 255, 0.06)',
             borderColor: 'rgba(255, 255, 255, 0.15)',
             color: '#e5e2e1',
+            filter: 'drop-shadow(0 6px 10px rgba(0,0,0,0.4))',
         },
         outline: {
-            backgroundColor: 'transparent',
+            backgroundColor: 'rgba(255, 255, 255, 0.02)',
             borderColor: accentColor,
             color: accentColor,
+            filter: 'drop-shadow(0 5px 9px rgba(0,0,0,0.35))',
         },
         danger: {
-            backgroundColor: 'rgba(239, 68, 68, 0.15)',
+            backgroundColor: 'rgba(239, 68, 68, 0.13)',
             borderColor: '#ef4444',
             color: '#fca5a5',
-            boxShadow: '0 0 15px rgba(239, 68, 68, 0.2)',
+            filter: 'drop-shadow(0 6px 10px rgba(0,0,0,0.45)) drop-shadow(0 0 10px rgba(239,68,68,0.4))',
         },
         ghost: {
             backgroundColor: 'transparent',
@@ -84,7 +89,7 @@ export function CyberButton({
             whileTap={disabled ? undefined : { scale: 0.95 }}
             transition={{ type: 'spring', stiffness: 450, damping: 25 }}
             disabled={disabled}
-            className={`group relative inline-flex items-center justify-center gap-2 font-mono font-black uppercase tracking-[0.16em] border transition-all duration-200 disabled:opacity-40 disabled:pointer-events-none select-none ${sizeClasses} ${className}`}
+            className={`group relative inline-flex items-center justify-center gap-2 font-mono font-black uppercase tracking-[0.16em] border backdrop-blur-md backdrop-saturate-150 transition-all duration-200 disabled:opacity-40 disabled:pointer-events-none select-none ${sizeClasses} ${className}`}
             style={{
                 clipPath: clipPathStyle,
                 ...variantStyles[variant],

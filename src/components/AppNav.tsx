@@ -30,7 +30,7 @@ export function AppNav() {
       <div suppressHydrationWarning className="header-safe-offset lg:h-0 lg:p-0 bg-[#120d0e]/60 backdrop-blur-md border-b border-white/5 lg:border-none" aria-hidden="true" />
 
       {/* Mobile Top Header */}
-      <header className="header-safe-offset fixed top-0 left-0 w-full bg-[#0a070c]/96 backdrop-blur-xl border-b border-white/10 flex items-center justify-between px-4 sm:px-6 lg:hidden z-40">
+      <header className="header-safe-offset fixed top-0 left-0 w-full bg-[#0a070c]/70 backdrop-blur-xl backdrop-saturate-150 border-b border-white/10 flex items-center justify-between px-4 sm:px-6 lg:hidden z-40">
         <Link
           href="/"
           className="nav-brand group relative overflow-hidden font-mono text-[10px] sm:text-xs font-black tracking-[0.25em] border px-3 py-1.5 bg-black/70 text-[#a88a7e] transition-all focus-visible:outline-none chamfered-card-sm"
@@ -51,7 +51,7 @@ export function AppNav() {
 
       {/* Mobile Bottom Nav */}
       <nav
-        className="nav-safe-offset fixed bottom-0 left-0 w-full z-50 grid grid-cols-5 bg-[#0a070c]/98 backdrop-blur-2xl border-t border-white/15 lg:hidden px-1 shadow-[0_-10px_30px_rgba(0,0,0,0.8)]"
+        className="nav-safe-offset fixed bottom-0 left-0 w-full z-50 grid grid-cols-5 bg-[#0a070c]/72 backdrop-blur-2xl backdrop-saturate-150 border-t border-white/15 lg:hidden px-1 shadow-[0_-10px_30px_rgba(0,0,0,0.55)]"
         aria-label="Navegación principal"
       >
         {navItems.map((item) => {
@@ -97,7 +97,7 @@ export function AppNav() {
 
       {/* Desktop Sidebar */}
       <aside
-        className="hidden lg:flex flex-col fixed left-0 top-0 h-full w-20 border-r border-white/10 bg-[#120d0e]/96 backdrop-blur-xl z-40 items-center py-8 gap-5"
+        className="hidden lg:flex flex-col fixed left-0 top-0 h-full w-20 border-r border-white/10 bg-[#120d0e]/70 backdrop-blur-xl backdrop-saturate-150 z-40 items-center py-8 gap-5"
         style={{ '--nav-accent': profileAccent } as CSSProperties}
         aria-label="Navegación principal"
       >

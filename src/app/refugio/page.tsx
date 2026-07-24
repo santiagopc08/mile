@@ -57,7 +57,7 @@ export default function RefugioPage() {
       <main className="relative z-10 min-h-screen w-full overflow-hidden px-4 pb-24 pt-6 text-[#e5e2e1] md:px-8 md:pt-8 font-sans">
 
         <div className="mx-auto w-full max-w-7xl border-x border-white/10">
-          <div className="border-y border-white/10 bg-[#0a0a0a]/92">
+          <div className="border-y border-white/10 bg-[#0a070c]/55 backdrop-blur-xl backdrop-saturate-150">
             <div className="relative p-5 sm:p-8 md:p-10">
               <div className={`absolute left-0 top-0 h-full w-[4px] bg-${accentClass}`} style={{ backgroundColor: accentColor }} />
               <div className="flex items-center gap-3">
@@ -105,14 +105,14 @@ export default function RefugioPage() {
             </div>
           )}
 
-          <div className="grid grid-cols-2 border-b border-white/10 bg-black sm:grid-cols-4 lg:grid-cols-4">
+          <div className="grid grid-cols-2 border-b border-white/10 bg-white/[0.02] backdrop-blur-xl backdrop-saturate-150 sm:grid-cols-4 lg:grid-cols-4">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`group relative font-mono flex min-h-20 items-center justify-between border-r border-white/10 px-4 py-4 transition-all last:border-r-0 ${activeTab === tab.id
                   ? 'text-black'
-                  : 'bg-[#0a0a0a] text-[#a88a7e] hover:bg-[#121212] hover:text-white'
+                  : 'text-[#a88a7e] hover:bg-white/[0.06] hover:text-white'
                   }`}
                 style={activeTab === tab.id ? { backgroundColor: accentColor } : {}}
               >
@@ -134,7 +134,7 @@ export default function RefugioPage() {
             ))}
           </div>
 
-          <div id="refugio-content" className="bg-[#050505] p-3 sm:p-5 md:p-8">
+          <div id="refugio-content" className="bg-[#0a070c]/40 backdrop-blur-xl backdrop-saturate-150 p-3 sm:p-5 md:p-8">
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeTab}
