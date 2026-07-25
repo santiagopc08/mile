@@ -390,10 +390,14 @@ export const MahjongService = {
 
             if (error || !data) return { el: null, ella: null };
 
-            return {
-                el: data.find(p => p.profile === 'el') || null,
-                ella: data.find(p => p.profile === 'ella') || null
-            };
+            let el = null;
+            let ella = null;
+            for (const p of data) {
+                if (p.profile === 'el' && !el) el = p;
+                else if (p.profile === 'ella' && !ella) ella = p;
+                if (el && ella) break;
+            }
+            return { el, ella };
         } catch (e) {
             console.error('Failed to fetch daily puzzle stats:', e);
             return { el: null, ella: null };
