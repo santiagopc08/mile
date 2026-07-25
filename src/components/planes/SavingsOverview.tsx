@@ -115,13 +115,19 @@ export function SavingsOverview({ items }: { items: WishlistItem[] }) {
             {/* Category breakdown */}
             {Object.keys(stats.byCategory).length > 0 && (
                 <div className="flex flex-wrap gap-2">
-                    {GOAL_CATEGORIES.filter(c => stats.byCategory[c.id]).map(cat => (
-                        <div key={cat.id} className="flex items-center gap-2 border border-white/10 bg-[#120d0e] px-2.5 py-1">
-                            <span className="text-xs">{cat.emoji}</span>
-                            <span className="font-mono text-[9px] uppercase tracking-widest text-white/40">{cat.label}</span>
-                            <span className="font-mono text-[10px] font-bold text-user-b">{formatCOP(stats.byCategory[cat.id])}</span>
-                        </div>
-                    ))}
+                    {/* ⚡ Bolt Optimization: Replace .filter().map() with a single pass reduce to avoid intermediate array allocation */}
+                    {GOAL_CATEGORIES.reduce((acc, cat) => {
+                        if (stats.byCategory[cat.id]) {
+                            acc.push(
+                                <div key={cat.id} className="flex items-center gap-2 border border-white/10 bg-[#120d0e] px-2.5 py-1">
+                                    <span className="text-xs">{cat.emoji}</span>
+                                    <span className="font-mono text-[9px] uppercase tracking-widest text-white/40">{cat.label}</span>
+                                    <span className="font-mono text-[10px] font-bold text-user-b">{formatCOP(stats.byCategory[cat.id])}</span>
+                                </div>
+                            );
+                        }
+                        return acc;
+                    }, [] as React.ReactNode[])}
                 </div>
             )}
 

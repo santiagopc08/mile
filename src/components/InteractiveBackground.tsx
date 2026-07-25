@@ -86,7 +86,7 @@ export function InteractiveBackground({ preset = 'home', profile: overrideProfil
             pulseSpeed: Math.random() * 0.02 + 0.005
         }));
 
-        let mouse = { x: -1000, y: -1000, radius: 150 };
+        const mouse = { x: -1000, y: -1000, radius: 150 };
 
         const handleMouseMove = (e: MouseEvent) => {
             mouse.x = e.clientX;
