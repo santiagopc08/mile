@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { Bell, CheckSquare, Trash2, ShieldAlert } from 'lucide-react';
 import { NotificationService } from '@/services/notificationService';
 import { useProfile } from '@/context/ProfileContext';
@@ -9,16 +9,20 @@ import { supabase } from '@/lib/supabase';
 
 export function NotificationBell({ align = 'right' }: { align?: 'left' | 'right' }) {
     const { profile } = useProfile();
-    const [notifications, setNotifications] = useState<any[]>([]);
+    const [notifications, setNotifications] = useState<Record<string, any>>({});
     const [isOpen, setIsOpen] = useState(false);
     
     const isInitialLoadRef = useRef(true);
     const notifiedIdsRef = useRef<Set<string>>(new Set());
 
+    const notificationsArray = useMemo(() => Object.values(notifications).sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    ), [notifications]);
+
     // ⚡ Bolt Optimization: Prevent O(N) intermediate array allocation when counting unread notifications
     let unreadCount = 0;
-    for (let i = 0; i < notifications.length; i++) {
-        if (!notifications[i].read) unreadCount++;
+    for (let i = 0; i < notificationsArray.length; i++) {
+        if (!notificationsArray[i].read) unreadCount++;
     }
     const accentColor = profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)';
     const profileLabel = profile === 'ella' ? 'Milena' : 'Santiago';
@@ -101,7 +105,14 @@ export function NotificationBell({ align = 'right' }: { align?: 'left' | 'right'
         if (!profile) return;
         try {
             const data = await NotificationService.getNotifications(profile);
-            setNotifications(data);
+
+            const next: Record<string, any> = {};
+            if (data) {
+                for (const n of data) {
+                    next[n.id] = n;
+                }
+            }
+            setNotifications(next);
 
             // Populate notified IDs list initially to avoid spamming historical push notifications
             if (data && data.length > 0 && isInitialLoadRef.current) {
@@ -156,7 +167,7 @@ export function NotificationBell({ align = 'right' }: { align?: 'left' | 'right'
                 (payload) => {
                     if (payload.eventType === 'INSERT') {
                         const newNotif = payload.new;
-                        setNotifications((prev) => [newNotif, ...prev]);
+                        setNotifications((prev) => ({ ...prev, [newNotif.id]: newNotif }));
                         
                         // Fire desktop push notifications instantly
                         if (!notifiedIdsRef.current.has(newNotif.id)) {
@@ -165,18 +176,14 @@ export function NotificationBell({ align = 'right' }: { align?: 'left' | 'right'
                         }
                     } else if (payload.eventType === 'UPDATE') {
                         setNotifications((prev) => {
-                            const idx = prev.findIndex((n) => n.id === payload.new.id);
-                            if (idx === -1) return prev;
-                            const next = [...prev];
-                            next[idx] = payload.new;
-                            return next;
+                            if (!prev[payload.new.id]) return prev;
+                            return { ...prev, [payload.new.id]: payload.new };
                         });
                     } else if (payload.eventType === 'DELETE') {
                         setNotifications((prev) => {
-                            const idx = prev.findIndex((n) => n.id === payload.old.id);
-                            if (idx === -1) return prev;
-                            const next = [...prev];
-                            next.splice(idx, 1);
+                            if (!prev[payload.old.id]) return prev;
+                            const next = { ...prev };
+                            delete next[payload.old.id];
                             return next;
                         });
                     }
@@ -197,9 +204,8 @@ export function NotificationBell({ align = 'right' }: { align?: 'left' | 'right'
         try {
             await NotificationService.markNotificationRead(id);
             setNotifications(prev => {
-                const idx = prev.findIndex(n => n.id === id);
-                if (idx === -1) return prev;
-                return prev.with(idx, { ...prev[idx], read: true });
+                if (!prev[id]) return prev;
+                return { ...prev, [id]: { ...prev[id], read: true } };
             });
         } catch (err) {
             console.error('Failed to mark read:', err);
@@ -214,7 +220,14 @@ export function NotificationBell({ align = 'right' }: { align?: 'left' | 'right'
                 .update({ read: true })
                 .eq('target_profile', profile)
                 .eq('read', false);
-            setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+
+            setNotifications(prev => {
+                const next: Record<string, any> = {};
+                for (const key in prev) {
+                    next[key] = { ...prev[key], read: true };
+                }
+                return next;
+            });
         } catch (err) {
             console.error('Failed to mark all read:', err);
         }
@@ -227,7 +240,7 @@ export function NotificationBell({ align = 'right' }: { align?: 'left' | 'right'
                 .from('notifications')
                 .delete()
                 .eq('target_profile', profile);
-            setNotifications([]);
+            setNotifications({});
         } catch (err) {
             console.error('Failed to clear notifications:', err);
         }
@@ -305,8 +318,8 @@ export function NotificationBell({ align = 'right' }: { align?: 'left' | 'right'
 
                             {/* Alert Items List */}
                             <div className="max-h-72 overflow-y-auto custom-scrollbar divide-y divide-white/5">
-                                {notifications.length > 0 ? (
-                                    notifications.map((n) => (
+                                {notificationsArray.length > 0 ? (
+                                    notificationsArray.map((n) => (
                                         <div
                                             key={n.id}
                                             onClick={() => handleRead(n.id)}
@@ -350,7 +363,7 @@ export function NotificationBell({ align = 'right' }: { align?: 'left' | 'right'
                             </div>
 
                             {/* Action Footer */}
-                            {notifications.length > 0 && (
+                            {notificationsArray.length > 0 && (
                                 <div className="grid grid-cols-2 divide-x divide-white/10 border-t border-white/10 bg-black/60 text-center">
                                     <button
                                         onClick={handleMarkAllRead}
