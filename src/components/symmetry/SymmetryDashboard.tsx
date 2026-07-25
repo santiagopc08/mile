@@ -160,7 +160,12 @@ export const SymmetryDashboard = () => {
   }, []);
 
   const activeAccent = profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)';
-  const activeTasks = tasks.filter(t => t.status === 'in_progress').length;
+
+  // ⚡ Bolt Optimization: Replace tasks.filter().length with a single-pass loop
+  let activeTasks = 0;
+  for (const t of tasks) {
+    if (t.status === 'in_progress') activeTasks++;
+  }
 
   // Calculate financial statistics for dynamic header cell
   const userAllocations = useMemo(() => profile === 'el' ? allocationsA : allocationsB, [profile, allocationsA, allocationsB]);
