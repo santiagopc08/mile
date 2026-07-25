@@ -18,7 +18,8 @@ export async function GET(request: Request) {
 
         // Security fix: Restrict open proxy to allowed origin (Supabase storage)
         const allowedOrigin = process.env.NEXT_PUBLIC_SUPABASE_URL;
-        if (!allowedOrigin || !url.startsWith(allowedOrigin)) {
+        const normalizedOrigin = allowedOrigin?.endsWith('/') ? allowedOrigin : `${allowedOrigin}/`;
+        if (!allowedOrigin || !url.startsWith(normalizedOrigin)) {
             return new Response('Forbidden: URL not in allowlist', { status: 403 });
         }
 
