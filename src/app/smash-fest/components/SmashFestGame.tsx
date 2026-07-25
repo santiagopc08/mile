@@ -599,7 +599,15 @@ export default function SmashFestGame({
     };
   }, [levelId]);
 
-  const totalMemoryBlocks = level?.nodes.filter((n) => n.isMemoryBlock).length || 0;
+  // ⚡ Bolt Optimization: Replace .filter().length with O(N) loop to prevent intermediate array allocations
+  const totalMemoryBlocks = useMemo(() => {
+    if (!level?.nodes) return 0;
+    let count = 0;
+    for (const n of level.nodes) {
+      if (n.isMemoryBlock) count++;
+    }
+    return count;
+  }, [level?.nodes]);
   const hasCompletedLevelRef = useRef(false);
   const hasTriggeredOutOfAmmoRef = useRef(false);
   const lastStatsRef = useRef({ remainingBalls: -1, memoryBlocksLeft: -1, totalMemoryBlocks: -1 });

@@ -128,8 +128,15 @@ export const BiometricVault = () => {
         const recentDecryptedSymptoms = recentCycles.map(c => decrypt(c.symptoms_enc));
 
         const frequentSymptoms = FLO_SYMPTOMS.filter(sym => {
-            const count = recentDecryptedSymptoms.filter(symptomsStr => symptomsStr.includes(sym)).length;
-            return count >= 2;
+            let count = 0;
+            // ⚡ Bolt Optimization: Replace .filter().length with O(N) loop to avoid intermediate array allocations
+            for (const symptomsStr of recentDecryptedSymptoms) {
+                if (symptomsStr.includes(sym)) {
+                    count++;
+                    if (count >= 2) return true; // Early exit optimization
+                }
+            }
+            return false;
         });
 
         let warningSignal = '';

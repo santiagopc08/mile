@@ -19,21 +19,23 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
   const accentClass = profile === 'ella' ? 'user-a' : 'user-b';
   const { data, updateData } = useStore();
 
-  const tasks = useMemo(() => {
+  // ⚡ Bolt Optimization: Replace separate filter and loop with single pass O(N) grouping
+  const { tasks, groupedTasksByStatus } = useMemo(() => {
     const allTasks = (data?.tasks as Task[]) || [];
-    return allTasks.filter(t => !t.assignee || t.assignee === profile);
-  }, [data?.tasks, profile]);
-
-  const groupedTasksByStatus = useMemo(() => {
+    const filteredTasks: Task[] = [];
     const grouped: Record<string, Task[]> = {};
-    for (const t of tasks) {
-      if (!grouped[t.status]) {
-        grouped[t.status] = [];
+
+    for (const t of allTasks) {
+      if (!t.assignee || t.assignee === profile) {
+        filteredTasks.push(t);
+        if (!grouped[t.status]) {
+          grouped[t.status] = [];
+        }
+        grouped[t.status].push(t);
       }
-      grouped[t.status].push(t);
     }
-    return grouped;
-  }, [tasks]);
+    return { tasks: filteredTasks, groupedTasksByStatus: grouped };
+  }, [data?.tasks, profile]);
 
   const objectives = useMemo(() => (data?.objectives as Objective[]) || [], [data?.objectives]);
   const visibleObjectives = useMemo(() => objectives.filter(o => o.author === profile), [objectives, profile]);
