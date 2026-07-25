@@ -29,7 +29,6 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
                         if (data.session) {
                             const { error: setSessionError } = await supabase.auth.setSession(data.session);
                             if (setSessionError) {
-                                console.error('Failed to set session locally:', setSessionError);
                                 return false;
                             }
                         }
@@ -51,7 +50,6 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
             });
 
             if (!res.ok) {
-                console.warn('API login failed');
                 return false;
             }
 
@@ -61,14 +59,12 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
                 // Set the session locally so client-side supabase works immediately
                 const { error: setSessionError } = await supabase.auth.setSession(loginData.session);
                 if (setSessionError) {
-                    console.error('Failed to set session locally:', setSessionError);
                     return false;
                 }
             } else {
                 // Re-fetch session from Supabase client to ensure auth state is in sync locally as fallback
                 const { error } = await supabase.auth.getSession();
                 if (error) {
-                    console.error('Supabase getSession error:', error.message);
                     return false;
                 }
             }
@@ -80,7 +76,6 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
             setIsAuthenticated(true);
             return true;
         } catch (err) {
-            console.error('Login process error:', err);
             return false;
         }
     };
@@ -111,14 +106,13 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
                             headers: {
                                 'Authorization': `Bearer ${session.access_token}`
                             }
-                        }).catch(e => console.error('Failed to sync auth token with server cookie:', e));
+                        }).catch(() => {});
                     }
                 } else if (authStatus === 'true' && (savedProfile === 'el' || savedProfile === 'ella')) {
                     // No backend session exists but we have local session, auto-login silently
                     await login(savedProfile);
                 }
             } catch (err) {
-                console.error('Session load error:', err);
                 // Ensure we don't break local auth state if backend check throws
                 if (authStatus === 'true' && (savedProfile === 'el' || savedProfile === 'ella')) {
                     setProfile(savedProfile);
@@ -134,12 +128,10 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
         try {
             await supabase.auth.signOut();
         } catch (err) {
-            console.error('Supabase signOut error:', err);
         }
         try {
             await fetch('/api/logout', { method: 'POST' });
         } catch (err) {
-            console.error('Logout API error:', err);
         }
         localStorage.removeItem('mile_auth');
         localStorage.removeItem('mile_profile');
