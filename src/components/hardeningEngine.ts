@@ -380,6 +380,11 @@ export function applyGravityCollapse(tiles: TileState[]): TileState[] {
     let changed = true;
     const result = tiles.map(t => ({ ...t }));
 
+    const idToIndex = new Map<string, number>();
+    for (let i = 0; i < result.length; i++) {
+        idToIndex.set(result[i].id, i);
+    }
+
     // Iteratively drop tiles until stable
     let iterations = 0;
     while (changed && iterations < 10) {
@@ -397,8 +402,8 @@ export function applyGravityCollapse(tiles: TileState[]): TileState[] {
                 // This tile has no support — drop it
                 const currentKey = `${t.x},${t.y},${t.z}`;
                 occupied.delete(currentKey);
-                const idx = result.findIndex(r => r.id === t.id);
-                if (idx !== -1) {
+                const idx = idToIndex.get(t.id);
+                if (idx !== undefined && idx !== -1) {
                     result[idx] = { ...result[idx], z: result[idx].z - 1 };
                     occupied.add(`${result[idx].x},${result[idx].y},${result[idx].z}`);
                     changed = true;
