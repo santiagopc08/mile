@@ -108,7 +108,7 @@ test.describe('HapticEngine', () => {
         expect(consoleWarnMock.length).toBe(0);
     });
 
-    test('should catch and warn on vibrate error', () => {
+    test('should catch and warn on vibrate error in development', () => {
         Object.defineProperty(global, 'window', { value: {}, writable: true, configurable: true });
         Object.defineProperty(global, 'navigator', {
             value: { vibrate: () => { throw new Error('Test error'); } },
@@ -116,12 +116,35 @@ test.describe('HapticEngine', () => {
             configurable: true
         });
 
+        const originalEnv = process.env.NODE_ENV;
+        process.env.NODE_ENV = 'development';
+
         haptics.vibrate(10);
+
+        process.env.NODE_ENV = originalEnv;
 
         expect(consoleWarnMock.length).toBe(1);
         const warnArgs = consoleWarnMock[0] as unknown[];
         expect(warnArgs[0]).toBe('Vibration API blocked or failed:');
         expect((warnArgs[1] as Error).message).toBe('Test error');
+    });
+
+    test('should catch but not warn on vibrate error in production', () => {
+        Object.defineProperty(global, 'window', { value: {}, writable: true, configurable: true });
+        Object.defineProperty(global, 'navigator', {
+            value: { vibrate: () => { throw new Error('Test error'); } },
+            writable: true,
+            configurable: true
+        });
+
+        const originalEnv = process.env.NODE_ENV;
+        process.env.NODE_ENV = 'production';
+
+        haptics.vibrate(10);
+
+        process.env.NODE_ENV = originalEnv;
+
+        expect(consoleWarnMock.length).toBe(0);
     });
 
     test('trigger methods should call vibrate with correct patterns', () => {
