@@ -8,31 +8,21 @@ function withFakeReactDispatcher(callback: () => void) {
 
     if (ReactInternals) {
         const prevDispatcher = ReactInternals.H;
-        const mockStates: any[] = [];
+        const mockStates: unknown[] = [];
         let stateIndex = 0;
 
         ReactInternals.H = {
-            useContext: (_context: any) => {
+            useContext: (_context: unknown) => {
                 return {
                     updateData: () => {},
                     profile: { role: 'el' },
-                    error: (msg: string) => { global.alert(msg); },
+                    error: (msg: string) => { (global as unknown as { testAlertMessage: string }).testAlertMessage = msg; },
                     success: () => {},
-                    confirm: () => {}
+                    confirm: () => {},
                 };
-                return {
-                    updateData: () => {},
-                    profile: { role: 'el' },
-                    error: () => {},
-                    success: () => {},
-                    confirm: () => {}
-                };
-                return {
-                    updateData: () => {},
-                    profile: { role: 'el' }
                 };
             },
-            useState: (initial: any) => {
+            useState: (initial: unknown) => {
                 const currentIndex = stateIndex++;
                 if (mockStates[currentIndex] === undefined) {
                     // Set isAdding to true to render the add form
@@ -96,8 +86,8 @@ test.describe('Timeline Component', () => {
     });
 
     test('handleAddEvent should handle image upload error and show alert', async () => {
-        let alertMessage = '';
-        global.alert = (msg) => { alertMessage = msg; };
+        (global as unknown as { testAlertMessage: string }).testAlertMessage = '';
+        global.alert = (msg) => { (global as unknown as { testAlertMessage: string }).testAlertMessage = msg; };
 
         TimelineService.uploadTimelineImage = async () => {
             throw new Error('Test upload failed');
@@ -129,12 +119,16 @@ test.describe('Timeline Component', () => {
             await handlers[0](formEvent);
         }
 
+<<<<<<< HEAD
+        expect((global as unknown as { testAlertMessage: string }).testAlertMessage).toContain('No se pudo subir la imagen: Test upload failed');
+=======
         expect(alertMessage).toContain('No se pudo subir la imagen: Test upload failed');
+>>>>>>> origin/main
     });
 
     test('handleEditSave should handle image upload error and show alert', async () => {
-        let alertMessage = '';
-        global.alert = (msg) => { alertMessage = msg; };
+        (global as unknown as { testAlertMessage: string }).testAlertMessage = '';
+        global.alert = (msg) => { (global as unknown as { testAlertMessage: string }).testAlertMessage = msg; };
 
         TimelineService.uploadTimelineImage = async () => {
             throw new Error('Edit upload failed');
@@ -166,6 +160,10 @@ test.describe('Timeline Component', () => {
              await handler(formEvent);
         }
 
+<<<<<<< HEAD
+        expect((global as unknown as { testAlertMessage: string }).testAlertMessage).toContain('No se pudo subir la imagen: Edit upload failed');
+=======
         expect(alertMessage).toContain('No se pudo subir la imagen: Edit upload failed');
+>>>>>>> origin/main
     });
 });
