@@ -32,7 +32,9 @@ export async function POST(request: Request) {
                 .insert({ user_id: userId, token: deviceToken });
 
             if (insertError) {
-                console.error('Failed to store sync device token:', insertError);
+                if (process.env.NODE_ENV === 'development') {
+                    console.error('Failed to store sync device token:', insertError);
+                }
             }
 
             // Enforce limit of 5 tokens per user
@@ -64,7 +66,9 @@ export async function POST(request: Request) {
 
         return NextResponse.json({ success: true, profile: user.email === 'el@mile.app' ? 'el' : 'ella' });
     } catch (e) {
-        console.error('Error syncing auth session:', e);
+        if (process.env.NODE_ENV === 'development') {
+            console.error('Error syncing auth session:', e);
+        }
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }
