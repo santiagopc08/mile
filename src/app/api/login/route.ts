@@ -37,7 +37,9 @@ export async function POST(request: Request) {
                  .insert({ user_id: userId, token: deviceToken });
 
              if (insertError) {
-                 console.error('Failed to store device token:', insertError);
+                 if (process.env.NODE_ENV === 'development') {
+                     console.error('Failed to store device token:', insertError);
+                 }
                  // We might still want to proceed, but ideally this shouldn't fail
              }
 
@@ -77,7 +79,9 @@ export async function POST(request: Request) {
         return NextResponse.json({ success: true, session: signInData.session });
 
     } catch (error: unknown) {
-        console.error('Login API error:', error);
+        if (process.env.NODE_ENV === 'development') {
+            console.error('Login API error:', error);
+        }
         return NextResponse.json({ error: (error instanceof Error ? error.message : 'Unknown error') }, { status: 500 });
     }
 }
