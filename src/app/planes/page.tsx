@@ -4,20 +4,17 @@ import { PrivateRoute } from "@/components/PrivateRoute";
 import { WishlistModule } from "@/components/WishlistModule";
 import { useProfile } from "@/context/ProfileContext";
 import { useStore } from "@/context/StoreContext";
-import { Activity, Compass, Radio } from "lucide-react";
+import { Activity, Radio } from "lucide-react";
+import { BrutalistSkeleton } from "@/components/ui/BrutalistSkeleton";
 import { useMemo, useEffect } from "react";
 import dynamic from "next/dynamic";
+import { AmbientField } from "@/components/AmbientField";
 
 const GeospatialPlanTracker = dynamic(
   () => import("@/components/GeospatialPlanTracker").then((m) => m.GeospatialPlanTracker),
   {
     loading: () => (
-      <div className="flex min-h-[400px] flex-col items-center justify-center gap-4 border border-dashed border-white/10 bg-black/60 p-8">
-        <Compass className="h-8 w-8 text-[#00dbe9] animate-pulse" />
-        <p className="text-center text-[10px] font-mono font-black uppercase tracking-[0.24em] text-[#a88a7e]">
-          Iniciando Mapa Satelital...
-        </p>
-      </div>
+      <BrutalistSkeleton label="Iniciando Mapa Satelital" accentColor="#00dbe9" className="min-h-[400px] w-full" />
     ),
     ssr: false,
   }
@@ -65,22 +62,23 @@ export default function PlanesPage() {
 
   return (
     <PrivateRoute>
-      <main className="relative z-10 min-h-screen w-full overflow-hidden bg-black px-4 pb-24 pt-6 text-[#e5e2e1] md:px-8 md:pt-8 font-sans">
-        <div className="pointer-events-none fixed inset-0 -z-10 bg-mosaic opacity-65" />
-        <div className="pointer-events-none fixed inset-x-0 top-0 -z-10 h-64 opacity-20" style={{ backgroundImage: `linear-gradient(180deg, ${accentColor}, transparent)` }} />
-        <div className="pointer-events-none fixed inset-0 -z-10 planes-warm-glow opacity-40" />
+      <AmbientField preset="planes" profile={profile} />
+      <main className="relative z-10 min-h-screen w-full overflow-hidden px-4 pb-24 pt-6 text-[#e5e2e1] md:px-8 md:pt-8 font-sans">
 
-        <div className="mx-auto w-full max-w-7xl border-x border-white/10">
-          <div className="border-y border-white/10 bg-[#0a0a0a]/95">
+        <div className="mx-auto w-full max-w-7xl space-y-6">
+          <div className="border border-white/12 bg-white/[0.04] backdrop-blur-2xl backdrop-saturate-150 shadow-[0_12px_36px_rgba(0,0,0,0.5)]">
             <div className="relative p-5 sm:p-8 md:p-10">
-              <div className={`absolute left-0 top-0 h-full w-px bg-${accentClass}`} style={{ backgroundColor: accentColor }} />
-              <h1 className="max-w-4xl text-3xl sm:text-4xl md:text-5xl font-mono font-bold uppercase leading-[0.92] tracking-tight text-white">
-                Planes
-              </h1>
+              <div className={`absolute left-0 top-0 h-full w-[4px] bg-${accentClass}`} style={{ backgroundColor: accentColor }} />
+              <div className="flex items-center gap-3">
+                <span className="font-mono text-base sm:text-xl animate-spin-slow" style={{ color: accentColor }}>◆</span>
+                <h1 className="max-w-4xl text-2xl sm:text-4xl md:text-5xl font-mono font-bold uppercase leading-[0.92] tracking-tight text-white">
+                  PLANES · ANTOJOS Y SALIDAS
+                </h1>
+              </div>
             </div>
           </div>
 
-          <section className="bg-[#050505] p-3 sm:p-5 md:p-8 space-y-4">
+          <section className="space-y-6 bg-transparent">
             <GeospatialPlanTracker />
             <div id="wishlist-section" className="border-t border-white/10" />
             <WishlistModule />

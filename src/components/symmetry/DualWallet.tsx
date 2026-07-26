@@ -11,7 +11,7 @@ import {
   CircleDollarSign,
 } from 'lucide-react';
 import { useProfile } from '@/context/ProfileContext';
-import { AnimatedBrutalistCorners } from '@/components/ui/AnimatedBrutalistCorners';
+import { BrutalistPanel } from '@/components/ui/BrutalistPanel';
 import { sound } from '@/lib/sound';
 import { haptics } from '@/lib/haptics';
 import { FinancialMovement, BudgetCategory, DEFAULT_BUDGETS, BUDGET_CATEGORIES, formatCOP, compactCOP, t, normalizeCategory, inferType, signedAmount, isThisMonth, isWithinDays, MetricCell, ChunkedProgress } from './DualWalletShared';
@@ -201,8 +201,7 @@ export const DualWallet = ({
 <DualWalletForm onAllocationsChange={onAllocationsChange} allocations={allocations} />
 
       {/* budgets (COLLAPSIBLE) */}
-      <div className="border border-white/10 bg-[#0a0a0a] rounded-none overflow-hidden transition-all duration-300 relative">
-        <AnimatedBrutalistCorners color={accentHex} size={8} thickness={1} />
+      <BrutalistPanel accentColor={accentHex} borderColor="rgba(255,255,255,0.1)" corners="animated" cornerSize={8} cornerThickness={1} className="rounded-none overflow-hidden transition-all duration-300">
         <button 
           onClick={() => {
             setIsBudgetsOpen(!isBudgetsOpen);
@@ -284,11 +283,10 @@ export const DualWallet = ({
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
+      </BrutalistPanel>
 
       {/* income (COLLAPSIBLE) */}
-      <div className="border border-white/10 bg-[#0a0a0a] rounded-none overflow-hidden transition-all duration-300 relative">
-        <AnimatedBrutalistCorners color={accentHex} size={8} thickness={1} />
+      <BrutalistPanel accentColor={accentHex} borderColor="rgba(255,255,255,0.1)" corners="animated" cornerSize={8} cornerThickness={1} className="rounded-none overflow-hidden transition-all duration-300">
         <button 
           onClick={() => {
             setIsIncomeOpen(!isIncomeOpen);
@@ -323,11 +321,10 @@ export const DualWallet = ({
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
+      </BrutalistPanel>
 
       {/* habits & alerts (COLLAPSIBLE) */}
-      <div className="border border-white/10 bg-[#0a0a0a] rounded-none overflow-hidden transition-all duration-300 relative">
-        <AnimatedBrutalistCorners color={accentHex} size={8} thickness={1} />
+      <BrutalistPanel accentColor={accentHex} borderColor="rgba(255,255,255,0.1)" corners="animated" cornerSize={8} cornerThickness={1} className="rounded-none overflow-hidden transition-all duration-300">
         <button 
           onClick={() => {
             setIsHabitsOpen(!isHabitsOpen);
@@ -398,7 +395,7 @@ export const DualWallet = ({
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
+      </BrutalistPanel>
 
 <DualWalletHistory movements={movements} deleteMovement={deleteMovement} />
     </div>

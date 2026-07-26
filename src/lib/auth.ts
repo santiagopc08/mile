@@ -21,8 +21,8 @@ export async function verifyAuth() {
                 return true;
             }
         }
-    } catch (e) {
-        console.error('Error verifying auth via header:', e);
+    } catch {
+        // Fall through to checking the device token cookie
     }
 
     // 2. Fall back to checking the device token cookie
@@ -46,8 +46,7 @@ export async function verifyAuth() {
         }
 
         return true;
-    } catch (e) {
-        console.error('Error verifying auth via cookie:', e);
+    } catch {
         return false;
     }
 }

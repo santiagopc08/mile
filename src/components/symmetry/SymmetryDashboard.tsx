@@ -160,7 +160,12 @@ export const SymmetryDashboard = () => {
   }, []);
 
   const activeAccent = profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)';
-  const activeTasks = tasks.filter(t => t.status === 'in_progress').length;
+
+  // ⚡ Bolt Optimization: Replace tasks.filter().length with a single-pass loop
+  let activeTasks = 0;
+  for (const t of tasks) {
+    if (t.status === 'in_progress') activeTasks++;
+  }
 
   // Calculate financial statistics for dynamic header cell
   const userAllocations = useMemo(() => profile === 'el' ? allocationsA : allocationsB, [profile, allocationsA, allocationsB]);
@@ -196,10 +201,22 @@ export const SymmetryDashboard = () => {
     >
       <div className="pointer-events-none fixed inset-0 -z-10 bg-mosaic opacity-50" />
 
-      <div className="border-x border-white/10">
+      <div className="border border-white/12 p-4 sm:p-6 bg-white/[0.04] backdrop-blur-2xl backdrop-saturate-150 shadow-[0_12px_32px_rgba(0,0,0,0.5)] mb-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 font-mono">
+            <span className="text-xs animate-spin-slow" style={{ color: accentColorValue }}>◆</span>
+            <h1 className="text-base sm:text-xl font-bold uppercase tracking-tight text-white">
+              DÍA A DÍA · OPERACIONES Y RITMO
+            </h1>
+          </div>
+          <span className="hidden sm:inline-block font-mono text-[9px] uppercase font-bold tracking-[0.2em] px-2.5 py-1 border border-white/15 bg-white/[0.04] backdrop-blur-md" style={{ color: accentColorValue }}>
+            SISTEMA ACTIVO
+          </span>
+        </div>
+      </div>
 
-
-        <div className="grid grid-cols-2 border-b border-white/10 bg-black">
+      <div className="mb-6">
+        <div className="grid grid-cols-2 border border-white/12 bg-white/[0.03] backdrop-blur-2xl backdrop-saturate-150 shadow-lg">
           {([
             { label: 'Operaciones', key: 'tasks' as const, icon: ShieldCheck, index: '01' },
             { label: 'Finanzas', key: 'finances' as const, icon: WalletCards, index: '02' },
@@ -209,7 +226,7 @@ export const SymmetryDashboard = () => {
               onClick={() => setActiveTab(tab.key)}
               className={`group relative font-mono flex min-h-20 items-center justify-between border-r border-white/10 px-4 py-4 transition-all last:border-r-0 ${activeTab === tab.key
                 ? 'text-black font-black'
-                : 'bg-[#0a0a0a] text-[#a88a7e] hover:bg-[#121212] hover:text-white'
+                : 'text-[#a88a7e] hover:bg-white/[0.06] hover:text-white'
                 }`}
               style={activeTab === tab.key ? { backgroundColor: activeAccent } : undefined}
             >
