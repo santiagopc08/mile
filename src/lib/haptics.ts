@@ -27,7 +27,9 @@ class HapticEngine {
       try {
         navigator.vibrate(pattern);
       } catch (e) {
-        console.warn('Vibration API blocked or failed:', e);
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('Vibration API blocked or failed:', e);
+        }
       }
     }
   }

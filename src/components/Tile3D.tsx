@@ -694,7 +694,14 @@ export function Tile3D({ tile, isFree, centerX, centerY, boardY, dockY, dockIds,
     const entryDelayRef = useRef(0);
     const startTimeRef = useRef<number | null>(null);
     const wasInDockRef = useRef(false);
+    const prevDockIndexRef = useRef<number>(-1);
     const dockMoveRef = useRef<{
+        active: boolean;
+        start: number;
+        from: [number, number, number];
+        to: [number, number, number];
+    }>({ active: false, start: 0, from: [0, 0, 0], to: [0, 0, 0] });
+    const returnMoveRef = useRef<{
         active: boolean;
         start: number;
         from: [number, number, number];
@@ -796,6 +803,7 @@ export function Tile3D({ tile, isFree, centerX, centerY, boardY, dockY, dockIds,
         }
 
         if (isInDock && !wasInDockRef.current) {
+            // Entrar al dock desde el tablero
             dockMoveRef.current = {
                 active: true,
                 start: time,
@@ -806,10 +814,36 @@ export function Tile3D({ tile, isFree, centerX, centerY, boardY, dockY, dockIds,
                 ],
                 to: [targetX, targetY, targetZ]
             };
+            returnMoveRef.current.active = false;
+        } else if (isInDock && wasInDockRef.current && prevDockIndexRef.current !== -1 && prevDockIndexRef.current !== dockIndex) {
+            // Reordenar ranura dentro del dock si otra ficha sale
+            dockMoveRef.current = {
+                active: true,
+                start: time,
+                from: [
+                    meshRef.current.position.x,
+                    meshRef.current.position.y,
+                    meshRef.current.position.z
+                ],
+                to: [targetX, targetY, targetZ]
+            };
+            returnMoveRef.current.active = false;
         } else if (!isInDock && wasInDockRef.current) {
+            // Volver del dock al tablero
             dockMoveRef.current.active = false;
+            returnMoveRef.current = {
+                active: true,
+                start: time,
+                from: [
+                    meshRef.current.position.x,
+                    meshRef.current.position.y,
+                    meshRef.current.position.z
+                ],
+                to: [targetX, targetY, targetZ]
+            };
         }
         wasInDockRef.current = isInDock;
+        prevDockIndexRef.current = dockIndex;
 
         // Si es una ficha dorada libre, flotar suavemente arriba y abajo
         if (isGolden && isFree && !isInDock) {
@@ -819,14 +853,13 @@ export function Tile3D({ tile, isFree, centerX, centerY, boardY, dockY, dockIds,
         const elapsedSinceStart = hasStarted && startTimeRef.current !== null ? time - startTimeRef.current : 0;
         const entryDelay = hasStarted ? entryDelayRef.current : 0;
         const entryActive = hasStarted && elapsedSinceStart < entryDelay;
-        const settleSpeed = entryActive ? 0.01 : (isInDock ? 10.5 : 10.5);
 
         if (dockMoveRef.current.active) {
             const move = dockMoveRef.current;
-            const moveDuration = 0.54;
+            const moveDuration = 0.38;
             const t = Math.min(1, (time - move.start) / moveDuration);
             const eased = 1 - Math.pow(1 - t, 3);
-            const arc = Math.sin(t * Math.PI) * 0.72;
+            const arc = Math.sin(t * Math.PI) * 0.55;
             const drift = Math.sin(t * Math.PI * 2) * 0.035;
             meshRef.current.position.set(
                 THREE.MathUtils.lerp(move.from[0], move.to[0], eased),
@@ -836,8 +869,23 @@ export function Tile3D({ tile, isFree, centerX, centerY, boardY, dockY, dockIds,
             if (t >= 1) {
                 dockMoveRef.current.active = false;
             }
+        } else if (returnMoveRef.current.active) {
+            const move = returnMoveRef.current;
+            const moveDuration = 0.35;
+            const t = Math.min(1, (time - move.start) / moveDuration);
+            const eased = 1 - Math.pow(1 - t, 3);
+            const arc = Math.sin(t * Math.PI) * 0.65;
+            meshRef.current.position.set(
+                THREE.MathUtils.lerp(move.from[0], move.to[0], eased),
+                THREE.MathUtils.lerp(move.from[1], move.to[1], eased),
+                THREE.MathUtils.lerp(move.from[2], move.to[2], eased) + arc
+            );
+            if (t >= 1) {
+                returnMoveRef.current.active = false;
+            }
         } else {
-            // Interpolación LERP de posición en los 3 ejes (funciona para ir y volver del dock)
+            // Interpolación LERP ágil para movimiento general
+            const settleSpeed = entryActive ? 0.01 : 18.0;
             meshRef.current.position.x = THREE.MathUtils.damp(meshRef.current.position.x, targetX, settleSpeed, safeDelta);
             meshRef.current.position.y = THREE.MathUtils.damp(meshRef.current.position.y, targetY, settleSpeed, safeDelta);
             meshRef.current.position.z = THREE.MathUtils.damp(meshRef.current.position.z, targetZ, settleSpeed, safeDelta);
