@@ -8,6 +8,12 @@ test.describe('isLocalOrPrivateIP', () => {
         expect(isLocalOrPrivateIP('127.1.2.3')).toBe(true);
     });
 
+    test('identifies unusual IP formats correctly', () => {
+        expect(isLocalOrPrivateIP('0177.0.0.1')).toBe(true); // octal
+        expect(isLocalOrPrivateIP('0x7f.0.0.1')).toBe(true); // hex
+        expect(isLocalOrPrivateIP('2130706433')).toBe(true); // decimal
+    });
+
     test('identifies IPv4 private class A addresses', () => {
         expect(isLocalOrPrivateIP('10.0.0.1')).toBe(true);
         expect(isLocalOrPrivateIP('10.255.255.255')).toBe(true);

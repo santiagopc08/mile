@@ -2,38 +2,31 @@ import dns from 'dns/promises';
 import * as http from 'http';
 import * as https from 'https';
 import { Readable } from 'stream';
+import * as ipaddr from 'ipaddr.js';
 
 export function isLocalOrPrivateIP(ip: string): boolean {
-    ip = ip.toLowerCase();
+    try {
+        let addr = ipaddr.process(ip);
 
-    // Normalize IPv4-mapped IPv6 addresses (e.g., ::ffff:127.0.0.1, 0:0:0:0:0:ffff:127.0.0.1)
-    const mappedIpv4Match = ip.match(/^(?:0:0:0:0:0:ffff:|::ffff:)(\d+\.\d+\.\d+\.\d+)$/);
-    if (mappedIpv4Match) {
-        ip = mappedIpv4Match[1];
-    }
+        if (addr.kind() === 'ipv6' && (addr as ipaddr.IPv6).isIPv4MappedAddress()) {
+            addr = (addr as ipaddr.IPv6).toIPv4Address();
+        }
 
-    if (ip.includes('.')) {
-        const parts = ip.split('.').map(Number);
+        const range = addr.range();
         return (
-            parts[0] === 127 ||
-            parts[0] === 10 ||
-            (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31) ||
-            (parts[0] === 192 && parts[1] === 168) ||
-            (parts[0] === 169 && parts[1] === 254) ||
-            parts[0] === 0 ||
-            parts[0] === 255
+            range === 'loopback' ||
+            range === 'private' ||
+            range === 'uniqueLocal' ||
+            range === 'linkLocal' ||
+            range === 'broadcast' ||
+            range === 'unspecified' ||
+            range === 'carrierGradeNat' ||
+            range === 'reserved'
         );
+    } catch {
+        // If it cannot be parsed as an IP address, block it just in case
+        return true;
     }
-    return (
-        ip === '::1' ||
-        ip === '::' ||
-        ip.startsWith('fc') ||
-        ip.startsWith('fd') ||
-        ip.startsWith('fe8') ||
-        ip.startsWith('fe9') ||
-        ip.startsWith('fea') ||
-        ip.startsWith('feb')
-    );
 }
 
 export async function resolveSafeIP(hostname: string): Promise<string> {
