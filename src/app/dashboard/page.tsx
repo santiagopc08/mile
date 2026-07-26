@@ -2,7 +2,7 @@
 
 import { PrivateRoute } from "@/components/PrivateRoute";
 import { SymmetryDashboard } from "@/components/symmetry/SymmetryDashboard";
-import { InteractiveBackground } from "@/components/InteractiveBackground";
+import { AmbientField } from "@/components/AmbientField";
 import { useProfile } from "@/context/ProfileContext";
 
 export default function Home() {
@@ -10,7 +10,7 @@ export default function Home() {
 
   return (
     <PrivateRoute>
-      <InteractiveBackground preset="dashboard" profile={profile} />
+      <AmbientField preset="dashboard" profile={profile} />
 
       <main className="w-full flex flex-col items-center justify-start pt-12 px-6 md:px-16 pb-24 relative z-10">
         <section className="w-full">

@@ -108,7 +108,7 @@ export const TaskCard = ({
       initial={{ opacity: 0, y: 4 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95 }}
-      className={`relative w-full border border-white/10 bg-[#0a0a0a] p-0 transition-colors hover:border-white/20 ${isEditing ? `border-white shadow-[0_0_10px_rgba(255,255,255,0.1)]` : ''}`}
+      className={`relative w-full border border-white/10 bg-white/[0.03] backdrop-blur-md backdrop-saturate-150 p-0 transition-colors hover:border-white/20 hover:bg-white/[0.05] ${isEditing ? `border-white shadow-[0_0_10px_rgba(255,255,255,0.1)]` : ''}`}
     >
       {isEditing ? (
         <div className="p-3 space-y-2">

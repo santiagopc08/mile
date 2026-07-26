@@ -49,42 +49,48 @@ export function CyberButton({
             ? 'px-6 py-3 text-xs sm:text-sm'
             : 'px-4 py-2 text-[10.5px]';
 
+    // El clip-path recorta la box-shadow, así que la flotación y el halo neón
+    // van por `filter: drop-shadow`, que sí sigue la forma biselada. Un tono
+    // oscuro para el despegue del fondo + (en primary/danger) un halo de color.
     const variantStyles: Record<string, React.CSSProperties> = {
         primary: {
-            backgroundColor: `${accentColor}25`,
+            backgroundColor: `${accentColor}28`,
             borderColor: accentColor,
             color: '#ffffff',
-            boxShadow: `0 0 15px ${accentColor}25`,
+            filter: `drop-shadow(0 8px 16px rgba(0,0,0,0.5)) drop-shadow(0 0 12px ${accentColor}55)`,
         },
         secondary: {
-            backgroundColor: 'rgba(255, 255, 255, 0.06)',
-            borderColor: 'rgba(255, 255, 255, 0.15)',
-            color: '#e5e2e1',
+            backgroundColor: 'rgba(255, 255, 255, 0.08)',
+            borderColor: 'rgba(255, 255, 255, 0.2)',
+            color: '#ffffff',
+            filter: 'drop-shadow(0 8px 14px rgba(0,0,0,0.45))',
         },
         outline: {
-            backgroundColor: 'transparent',
-            borderColor: accentColor,
+            backgroundColor: 'rgba(255, 255, 255, 0.04)',
+            borderColor: `${accentColor}aa`,
             color: accentColor,
+            filter: `drop-shadow(0 6px 12px rgba(0,0,0,0.4)) drop-shadow(0 0 8px ${accentColor}30)`,
         },
         danger: {
-            backgroundColor: 'rgba(239, 68, 68, 0.15)',
+            backgroundColor: 'rgba(239, 68, 68, 0.18)',
             borderColor: '#ef4444',
             color: '#fca5a5',
-            boxShadow: '0 0 15px rgba(239, 68, 68, 0.2)',
+            filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.5)) drop-shadow(0 0 12px rgba(239,68,68,0.5))',
         },
         ghost: {
-            backgroundColor: 'transparent',
-            borderColor: 'transparent',
-            color: '#a88a7e',
+            backgroundColor: 'rgba(255, 255, 255, 0.02)',
+            borderColor: 'rgba(255, 255, 255, 0.08)',
+            color: '#e5e2e1',
         },
     };
 
     return (
         <motion.button
+            whileHover={disabled ? undefined : { y: -2 }}
             whileTap={disabled ? undefined : { scale: 0.95 }}
             transition={{ type: 'spring', stiffness: 450, damping: 25 }}
             disabled={disabled}
-            className={`group relative inline-flex items-center justify-center gap-2 font-mono font-black uppercase tracking-[0.16em] border transition-all duration-200 disabled:opacity-40 disabled:pointer-events-none select-none ${sizeClasses} ${className}`}
+            className={`group relative inline-flex items-center justify-center gap-2 font-mono font-black uppercase tracking-[0.16em] border backdrop-blur-md backdrop-saturate-150 transition-all duration-200 disabled:opacity-40 disabled:pointer-events-none select-none ${sizeClasses} ${className}`}
             style={{
                 clipPath: clipPathStyle,
                 ...variantStyles[variant],

@@ -11,7 +11,7 @@ import { useStore } from "@/context/StoreContext";
 import { useProfile } from "@/context/ProfileContext";
 import { MessageCircleHeart, Mic, PawPrint, Clock, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { InteractiveBackground } from "@/components/InteractiveBackground";
+import { AmbientField } from "@/components/AmbientField";
 import { CyberButton } from "@/components/ui/CyberButton";
 
 export default function RefugioPage() {
@@ -53,11 +53,11 @@ export default function RefugioPage() {
 
   return (
     <PrivateRoute>
-      <InteractiveBackground preset="refugio" profile={profile} />
+      <AmbientField preset="refugio" profile={profile} />
       <main className="relative z-10 min-h-screen w-full overflow-hidden px-4 pb-24 pt-6 text-[#e5e2e1] md:px-8 md:pt-8 font-sans">
 
-        <div className="mx-auto w-full max-w-7xl border-x border-white/10">
-          <div className="border-y border-white/10 bg-[#0a0a0a]/92">
+        <div className="mx-auto w-full max-w-7xl space-y-6">
+          <div className="border border-white/12 bg-white/[0.04] backdrop-blur-2xl backdrop-saturate-150 shadow-[0_12px_36px_rgba(0,0,0,0.5)]">
             <div className="relative p-5 sm:p-8 md:p-10">
               <div className={`absolute left-0 top-0 h-full w-[4px] bg-${accentClass}`} style={{ backgroundColor: accentColor }} />
               <div className="flex items-center gap-3">
@@ -70,7 +70,7 @@ export default function RefugioPage() {
           </div>
 
           {isBirthdayActive && (
-            <div className="border-b border-[#ff4b89]/20 bg-[#070105]/80 p-6 sm:p-8 relative overflow-hidden flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <div className="border border-[#ff4b89]/30 bg-white/[0.04] backdrop-blur-2xl p-6 sm:p-8 relative overflow-hidden flex flex-col md:flex-row md:items-center md:justify-between gap-6 shadow-xl">
               <div className="absolute left-0 top-0 h-full w-2 bg-gradient-to-b from-[#ff4b89] via-[#c3f400] to-purple-600" />
               
               <div className="space-y-3 relative z-10 max-w-2xl">
@@ -84,12 +84,12 @@ export default function RefugioPage() {
                 </h2>
                 
                 <p className="text-xs leading-relaxed text-[#e1bfb2] font-sans">
-                  Se ha unlocked una experiencia interactiva exclusiva para ti con cartas de la tripulación, videos, pasteles interactivos y sorpresas creadas con mucho cariño. ¡No te la pierdas!
+                  Se ha unlocked una experiencia interactiva exclusiva para ti con cartas de la tripulación, pasteles interactivos y sorpresas creadas con mucho cariño.
                 </p>
 
                 <div className="flex flex-wrap items-center gap-3 pt-1 font-mono text-[9px] text-[#a88a7e] uppercase">
                   <span>ESTADO DEL PROTOCOLO:</span>
-                  <div className="flex gap-1.5 text-[#c3f400] font-bold bg-[#c3f400]/10 px-2 py-0.5 border border-[#c3f400]/20 tracking-wider">
+                  <div className="flex gap-1.5 text-[#c3f400] font-bold bg-[#c3f400]/15 backdrop-blur-md px-2 py-0.5 border border-[#c3f400]/30 tracking-wider">
                     <span>ARCHIVO PERMANENTE</span>
                   </div>
                 </div>
@@ -105,14 +105,14 @@ export default function RefugioPage() {
             </div>
           )}
 
-          <div className="grid grid-cols-2 border-b border-white/10 bg-black sm:grid-cols-4 lg:grid-cols-4">
+          <div className="grid grid-cols-2 border border-white/12 bg-white/[0.03] backdrop-blur-2xl backdrop-saturate-150 sm:grid-cols-4 lg:grid-cols-4 shadow-lg">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`group relative font-mono flex min-h-20 items-center justify-between border-r border-white/10 px-4 py-4 transition-all last:border-r-0 ${activeTab === tab.id
                   ? 'text-black'
-                  : 'bg-[#0a0a0a] text-[#a88a7e] hover:bg-[#121212] hover:text-white'
+                  : 'text-[#a88a7e] hover:bg-white/[0.06] hover:text-white'
                   }`}
                 style={activeTab === tab.id ? { backgroundColor: accentColor } : {}}
               >
@@ -134,7 +134,7 @@ export default function RefugioPage() {
             ))}
           </div>
 
-          <div id="refugio-content" className="bg-[#050505] p-3 sm:p-5 md:p-8">
+          <div id="refugio-content" className="p-0 bg-transparent">
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeTab}

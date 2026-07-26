@@ -124,7 +124,7 @@ export const DrawingCanvasModal: React.FC<DrawingCanvasModalProps> = ({ profile,
             <BrutalistPanel
                 accentColor="#c084fc"
                 cornerSize={12}
-                className="w-full max-w-lg !bg-[#0d0914] p-5 shadow-[0_0_40px_rgba(139,92,246,0.25)] flex flex-col"
+                className="w-full max-w-lg !bg-white/[0.05] !backdrop-blur-2xl p-5 shadow-[0_0_50px_rgba(139,92,246,0.35)] flex flex-col"
             >
 
                 <h3 className="mb-2 text-xl font-bold uppercase tracking-wider text-purple-400">

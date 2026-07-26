@@ -29,7 +29,8 @@ import {
 } from 'lucide-react';
 import { BrutalistPanel } from "@/components/ui/BrutalistPanel";
 import { ChamferedPanel } from "@/components/ui/ChamferedPanel";
-import { InteractiveBackground } from "@/components/InteractiveBackground";
+import { AmbientField } from "@/components/AmbientField";
+import { DecoRule } from "@/components/deco";
 
 export default function Home() {
   const { profile } = useProfile();
@@ -91,25 +92,25 @@ export default function Home() {
 
   return (
     <PrivateRoute>
-      <InteractiveBackground preset="home" profile={profile} />
+      <AmbientField preset="home" profile={profile} />
 
       <main
         className="w-full min-h-screen flex flex-col items-center justify-start py-4 sm:py-8 md:py-12 px-2 sm:px-6 relative z-10 text-[#e5e2e1] overflow-y-auto"
         style={{ '--color-profile-accent': accentColorValue } as React.CSSProperties}
       >
         {/* Main Terminal Container */}
-        <BrutalistPanel accentColor={accentColorValue} borderColor="rgba(255,255,255,0.1)" corners="animated" cornerSize={16} cornerThickness={1.5} className="w-full max-w-4xl !bg-[#0a0a0a]/95 backdrop-blur-md mb-6 sm:mb-12">
+        <BrutalistPanel accentColor={accentColorValue} borderColor="rgba(255,255,255,0.12)" corners="animated" cornerSize={16} cornerThickness={1.5} className="w-full max-w-4xl !bg-white/[0.035] !backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.6)] mb-6 sm:mb-12">
 
           {/* Birthday Surprise Banner */}
           {showBdayBanner && (
-            <div className="border-b border-[#ff4b89] bg-[#ff4b89]/10 p-4 font-mono text-xs text-center flex flex-col sm:flex-row items-center justify-between gap-3 relative z-30">
+            <div className="border-b border-[#ff4b89] bg-[#ff4b89]/15 backdrop-blur-md p-4 font-mono text-xs text-center flex flex-col sm:flex-row items-center justify-between gap-3 relative z-30">
               <div className="flex items-center gap-2 text-white font-bold">
                 <span className="text-[#ff4b89] animate-pulse">💝</span>
                 <span>¡HOY ES UN DÍA MUY ESPECIAL: CUMPLEAÑOS DE MILE!</span>
               </div>
               <Link 
                 href="/cumple" 
-                className="!min-h-0 border border-[#ff4b89] bg-[#ff4b89]/20 hover:bg-[#ff4b89] hover:text-black transition-all px-4 py-1.5 text-[10px] uppercase font-black tracking-widest flex items-center gap-1.5"
+                className="!min-h-0 border border-[#ff4b89] bg-[#ff4b89]/25 hover:bg-[#ff4b89] hover:text-black backdrop-blur-md transition-all px-4 py-1.5 text-[10px] uppercase font-black tracking-widest flex items-center gap-1.5"
               >
                 <span>Descubrir Sorpresa 🎁</span>
                 <ArrowRight size={10} className="animate-slide-loop" />
@@ -118,7 +119,7 @@ export default function Home() {
           )}
 
           {/* Header Section */}
-          <div className="border-b border-white/10 p-4 sm:p-8 lg:p-10 relative overflow-hidden">
+          <div className="stagger-item border-b border-white/10 p-4 sm:p-8 lg:p-10 relative overflow-hidden" style={{ '--i': 0 } as React.CSSProperties}>
             <div className="absolute left-0 top-0 h-full w-[4px]" style={{ backgroundColor: accentColorValue }} />
             <div className="space-y-3">
               <div className="flex items-center gap-2">
@@ -134,7 +135,7 @@ export default function Home() {
           </div>
 
           {/* Body Section */}
-          <div className="p-3 sm:p-6 lg:p-8 space-y-4 sm:space-y-8 bg-[#050505]/95">
+          <div className="p-3 sm:p-6 lg:p-8 space-y-4 sm:space-y-8 bg-transparent">
 
             {/* Primary Modules - 2 Columns */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -143,6 +144,7 @@ export default function Home() {
               <ChamferedPanel
                 accentColor={accentColorValue}
                 label="DÍA A DÍA · RITMO"
+                staggerIndex={1}
                 notchSize={20}
                 className="flex flex-col justify-between gap-4 h-full"
               >
@@ -162,14 +164,14 @@ export default function Home() {
                 </div>
 
                 <div className="w-full grid grid-cols-2 gap-2 pt-3 border-t border-white/10 relative z-20">
-                  <Link href="/dashboard?tab=tasks" className="group/link flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2.5 py-2 text-[9.5px] sm:text-xs font-mono uppercase tracking-wider text-white transition-all w-full min-w-0">
+                  <Link href="/dashboard?tab=tasks" className="group/link touch-target flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2.5 py-2 text-[9.5px] sm:text-xs font-mono uppercase tracking-wider text-white transition-all w-full min-w-0">
                     <span className="flex items-center gap-1.5 min-w-0">
                       <CheckSquare className="w-3.5 h-3.5 text-[#a88a7e] group-hover/link:text-[var(--color-profile-accent)] transition-colors shrink-0" />
                       <span className="truncate">Mis tareas</span>
                     </span>
                     <ArrowRight className="w-3 h-3 transition-transform group-hover/link:translate-x-1 shrink-0" />
                   </Link>
-                  <Link href="/dashboard?tab=finances" className="group/link flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2.5 py-2 text-[9.5px] sm:text-xs font-mono uppercase tracking-wider text-white transition-all w-full min-w-0">
+                  <Link href="/dashboard?tab=finances" className="group/link touch-target flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2.5 py-2 text-[9.5px] sm:text-xs font-mono uppercase tracking-wider text-white transition-all w-full min-w-0">
                     <span className="flex items-center gap-1.5 min-w-0">
                       <PlusCircle className="w-3.5 h-3.5 text-[#a88a7e] group-hover/link:text-[var(--color-profile-accent)] transition-colors shrink-0" />
                       <span className="truncate">Registrar Gastos</span>
@@ -183,6 +185,7 @@ export default function Home() {
               <ChamferedPanel
                 accentColor={accentColorValue}
                 label="PLANES · ANTOJOS"
+                staggerIndex={2}
                 notchSize={20}
                 className="flex flex-col justify-between gap-4 h-full"
               >
@@ -202,14 +205,14 @@ export default function Home() {
                 </div>
 
                 <div className="w-full grid grid-cols-2 gap-2 pt-3 border-t border-white/10 relative z-20">
-                  <Link href="/planes?scroll=wishlist" className="group/link flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2.5 py-2 text-[9.5px] sm:text-xs font-mono uppercase tracking-wider text-white transition-all w-full min-w-0">
+                  <Link href="/planes?scroll=wishlist" className="group/link touch-target flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2.5 py-2 text-[9.5px] sm:text-xs font-mono uppercase tracking-wider text-white transition-all w-full min-w-0">
                     <span className="flex items-center gap-1.5 min-w-0">
                       <Compass className="w-3.5 h-3.5 text-[#a88a7e] group-hover/link:text-[var(--color-profile-accent)] transition-colors shrink-0" />
                       <span className="truncate">Ver planes</span>
                     </span>
                     <ArrowRight className="w-3 h-3 transition-transform group-hover/link:translate-x-1 shrink-0" />
                   </Link>
-                  <Link href="/planes?action=add" className="group/link flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2.5 py-2 text-[9.5px] sm:text-xs font-mono uppercase tracking-wider text-white transition-all w-full min-w-0">
+                  <Link href="/planes?action=add" className="group/link touch-target flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2.5 py-2 text-[9.5px] sm:text-xs font-mono uppercase tracking-wider text-white transition-all w-full min-w-0">
                     <span className="flex items-center gap-1.5 min-w-0">
                       <PlusCircle className="w-3.5 h-3.5 text-[#a88a7e] group-hover/link:text-[var(--color-profile-accent)] transition-colors shrink-0" />
                       <span className="truncate">Agregar plan</span>
@@ -221,13 +224,13 @@ export default function Home() {
             </div>
 
             {/* Secondary Modules Header */}
-            <div className="flex items-center gap-4 py-2">
-              <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-              <div className="flex items-center gap-2">
+            <div className="stagger-item flex items-center gap-3 py-2" style={{ '--i': 3 } as React.CSSProperties}>
+              <DecoRule className="flex-1" color={accentColorValue} />
+              <div className="flex items-center gap-2 shrink-0">
                 <span className="font-mono text-xs animate-pulse" style={{ color: accentColorValue }}>◈</span>
                 <span className="text-[10px] font-mono uppercase font-black tracking-[0.25em]" style={{ color: accentColorValue }}>MÓDULOS DE SINTONÍA</span>
               </div>
-              <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+              <DecoRule className="flex-1 scale-x-[-1]" color={accentColorValue} />
             </div>
 
             {/* Secondary Modules - 3 Columns */}
@@ -237,6 +240,7 @@ export default function Home() {
               <ChamferedPanel
                 accentColor={accentColorValue}
                 label="REFUGIO · BITÁCORA"
+                staggerIndex={4}
                 notchSize={16}
                 className="flex flex-col justify-between gap-4 h-full"
               >
@@ -256,21 +260,21 @@ export default function Home() {
                 </div>
 
                 <div className="w-full grid grid-cols-2 gap-1.5 pt-2.5 border-t border-white/10 relative z-20">
-                  <Link href="/refugio?tab=escucha" className="col-span-2 group/link flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2.5 py-1.5 text-[9px] font-mono uppercase tracking-wider text-white transition-all w-full min-w-0">
+                  <Link href="/refugio?tab=escucha" className="col-span-2 group/link touch-target flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2.5 py-1.5 text-[9px] font-mono uppercase tracking-wider text-white transition-all w-full min-w-0">
                     <span className="flex items-center gap-1.5 min-w-0">
                       <FileText className="w-3 h-3 text-[#a88a7e] group-hover/link:text-[var(--color-profile-accent)] shrink-0" />
                       <span className="truncate">Bitácora</span>
                     </span>
                     <ArrowRight className="w-3 h-3 transition-transform group-hover/link:translate-x-1 shrink-0" />
                   </Link>
-                  <Link href="/refugio?tab=bebes" className="group/link flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2 py-1.5 text-[9px] font-mono uppercase tracking-wider text-white transition-all w-full min-w-0">
+                  <Link href="/refugio?tab=bebes" className="group/link touch-target flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2 py-1.5 text-[9px] font-mono uppercase tracking-wider text-white transition-all w-full min-w-0">
                     <span className="flex items-center gap-1.5 min-w-0">
                       <PawPrint className="w-3 h-3 text-[#a88a7e] group-hover/link:text-[var(--color-profile-accent)] shrink-0" />
                       <span className="truncate">Bebés</span>
                     </span>
                     <ArrowRight className="w-3 h-3 transition-transform group-hover/link:translate-x-1 shrink-0" />
                   </Link>
-                  <Link href="/refugio?tab=historia" className="group/link flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2 py-1.5 text-[9px] font-mono uppercase tracking-wider text-white transition-all w-full min-w-0">
+                  <Link href="/refugio?tab=historia" className="group/link touch-target flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2 py-1.5 text-[9px] font-mono uppercase tracking-wider text-white transition-all w-full min-w-0">
                     <span className="flex items-center gap-1.5 min-w-0">
                       <Clock className="w-3 h-3 text-[#a88a7e] group-hover/link:text-[var(--color-profile-accent)] shrink-0" />
                       <span className="truncate">Historia</span>
@@ -284,6 +288,7 @@ export default function Home() {
               <ChamferedPanel
                 accentColor={accentColorValue}
                 label="SALUD · VITALES"
+                staggerIndex={5}
                 notchSize={16}
                 className="flex flex-col justify-between gap-4 h-full"
               >
@@ -303,28 +308,28 @@ export default function Home() {
                 </div>
 
                 <div className="w-full grid grid-cols-2 gap-1.5 pt-2.5 border-t border-white/10 relative z-20">
-                  <Link href="/salud?tab=vitals" className="group/link flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2 py-1.5 text-[9px] font-mono uppercase tracking-wider text-white transition-all w-full min-w-0">
+                  <Link href="/salud?tab=vitals" className="group/link touch-target flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2 py-1.5 text-[9px] font-mono uppercase tracking-wider text-white transition-all w-full min-w-0">
                     <span className="flex items-center gap-1.5 min-w-0">
                       <HeartPulse className="w-3 h-3 text-[#a88a7e] group-hover/link:text-[var(--color-profile-accent)] shrink-0" />
                       <span className="truncate">Presión</span>
                     </span>
                     <ArrowRight className="w-3 h-3 transition-transform group-hover/link:translate-x-1 shrink-0" />
                   </Link>
-                  <Link href="/salud?tab=habits" className="group/link flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2 py-1.5 text-[9px] font-mono uppercase tracking-wider text-white transition-all w-full min-w-0">
+                  <Link href="/salud?tab=habits" className="group/link touch-target flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2 py-1.5 text-[9px] font-mono uppercase tracking-wider text-white transition-all w-full min-w-0">
                     <span className="flex items-center gap-1.5 min-w-0">
                       <Activity className="w-3 h-3 text-[#a88a7e] group-hover/link:text-[var(--color-profile-accent)] shrink-0" />
                       <span className="truncate">Hábitos</span>
                     </span>
                     <ArrowRight className="w-3 h-3 transition-transform group-hover/link:translate-x-1 shrink-0" />
                   </Link>
-                  <Link href="/salud?tab=movement" className="group/link flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2 py-1.5 text-[9px] font-mono uppercase tracking-wider text-white transition-all w-full min-w-0">
+                  <Link href="/salud?tab=movement" className="group/link touch-target flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2 py-1.5 text-[9px] font-mono uppercase tracking-wider text-white transition-all w-full min-w-0">
                     <span className="flex items-center gap-1.5 min-w-0">
                       <Flame className="w-3 h-3 text-[#a88a7e] group-hover/link:text-[var(--color-profile-accent)] shrink-0" />
                       <span className="truncate">Entrenos</span>
                     </span>
                     <ArrowRight className="w-3 h-3 transition-transform group-hover/link:translate-x-1 shrink-0" />
                   </Link>
-                  <Link href="/salud?tab=biometric" className="group/link flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2 py-1.5 text-[9px] font-mono uppercase tracking-wider text-white transition-all w-full min-w-0">
+                  <Link href="/salud?tab=biometric" className="group/link touch-target flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2 py-1.5 text-[9px] font-mono uppercase tracking-wider text-white transition-all w-full min-w-0">
                     <span className="flex items-center gap-1.5 min-w-0">
                       <Shield className="w-3 h-3 text-[#a88a7e] group-hover/link:text-[var(--color-profile-accent)] shrink-0" />
                       <span className="truncate">Biometría</span>
@@ -338,6 +343,7 @@ export default function Home() {
               <ChamferedPanel
                 accentColor={accentColorValue}
                 label="JUEGO · RECUERDOS"
+                staggerIndex={6}
                 notchSize={16}
                 className="flex flex-col justify-between gap-4 h-full"
               >
@@ -357,14 +363,14 @@ export default function Home() {
                 </div>
 
                 <div className="w-full grid grid-cols-2 gap-1.5 pt-2.5 border-t border-white/10 relative z-20">
-                  <Link href="/smash-fest" className="group/link flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2 py-1.5 text-[9px] font-mono uppercase tracking-wider text-white transition-all w-full min-w-0">
+                  <Link href="/smash-fest" className="group/link touch-target flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2 py-1.5 text-[9px] font-mono uppercase tracking-wider text-white transition-all w-full min-w-0">
                     <span className="flex items-center gap-1.5 min-w-0">
                       <Gamepad2 className="w-3 h-3 text-[#a88a7e] group-hover/link:text-[var(--color-profile-accent)] shrink-0" />
                       <span className="truncate">Smash Fest</span>
                     </span>
                     <ArrowRight className="w-3 h-3 transition-transform group-hover/link:translate-x-1 shrink-0" />
                   </Link>
-                  <Link href="/juego" className="group/link flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2 py-1.5 text-[9px] font-mono uppercase tracking-wider text-white transition-all w-full min-w-0">
+                  <Link href="/juego" className="group/link touch-target flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2 py-1.5 text-[9px] font-mono uppercase tracking-wider text-white transition-all w-full min-w-0">
                     <span className="flex items-center gap-1.5 min-w-0">
                       <Gamepad2 className="w-3 h-3 text-[#a88a7e] group-hover/link:text-[var(--color-profile-accent)] shrink-0" />
                       <span className="truncate">Mahjong</span>

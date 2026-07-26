@@ -47,6 +47,61 @@
   --background: #1f0e13;
   --foreground: #fbdae0;
   --tracking-tight: -0.02em;
+
+  /* ───────────────────────────────────────────────────────────
+     Tokens de Movimiento — gramática común de la interfaz.
+     Antes cada animación elegía su duración a ojo (2s, 2.2s, 2.6s,
+     10s, 12s, 24s, 35s…) y casi todas `ease-in-out`, así que nada
+     se sentía coreografiado. Reglas:
+       · Nada ambiental por debajo de 6s  → parece nervioso.
+       · Nada de UI por encima de 400ms  → parece lento.
+     ─────────────────────────────────────────────────────────── */
+
+  /* Curvas */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  /* entradas: rápido y frena suave */
+  --ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
+  /* transiciones simétricas */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  /* táctil: rebota un punto */
+
+  /* Duraciones */
+  --dur-tap: 120ms;
+  /* respuesta al dedo */
+  --dur-ui: 240ms;
+  /* hover, color, borde */
+  --dur-enter: 420ms;
+  /* entrada de un elemento */
+  --dur-ambient: 8s;
+  /* pulsos de fondo en bucle */
+  --dur-drift: 32s;
+  /* deriva de capas geométricas */
+
+  /* Escalonado de listas: animation-delay: calc(var(--i) * var(--stagger)) */
+  --stagger: 45ms;
+
+  /* ───────────────────────────────────────────────────────────
+     Sistema de Vidrio (Glassmorphism) — refactor «flotante».
+     Los contenedores dejan de ser cajas opacas: se vuelven vidrio
+     traslúcido sobre el AmbientField, con desenfoque, un filo de luz
+     superior y (donde el clip-path lo permite) una sombra proyectada
+     que los despega del fondo.
+
+     Dos intensidades porque no toda superficie tolera lo mismo:
+       · --glass-bg        capas ligeras, chips, botones, tarjetas
+                           sobre las que el fondo puede respirar.
+       · --glass-bg-strong bajo texto denso / formularios, donde la
+                           legibilidad manda sobre la transparencia.
+     El tinte hereda el negro violáceo de la app (#0a070c) para que el
+     vidrio no se lea gris sucio sobre los acentos neón.
+     ─────────────────────────────────────────────────────────── */
+  --glass-bg: rgba(16, 10, 18, 0.38);
+  --glass-bg-strong: rgba(14, 8, 16, 0.58);
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --glass-highlight: rgba(255, 255, 255, 0.18);
+  --glass-blur: 24px;
+  /* Sombra de flotación espacial futurista. */
+  --glass-float: 0 20px 48px -12px rgba(0, 0, 0, 0.65), 0 0 24px -4px rgba(255, 255, 255, 0.04);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -64,6 +119,174 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Safe Area (PWA iOS) — la barra inferior es `fixed bottom-0`, así
+   que sin este colchón las etiquetas quedan bajo el home indicator
+   del iPhone. `viewportFit: cover` en layout.tsx activa los env().
+   ───────────────────────────────────────────────────────────── */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* Colchón inferior del contenido = alto del nav + home indicator + respiro.
+   Antes el `<body>` solo reservaba el safe-area (el home indicator), no los
+   ~77px de la barra flotante, así que el último elemento de cada página quedaba
+   parcialmente tapado por el nav. Se aplica en un único sitio (body) para que
+   toda página lo herede. En `lg` la navegación pasa a barra lateral y no hay
+   barra inferior, así que solo queda el safe-area. */
+.pb-app-nav {
+  padding-bottom: calc(var(--app-nav-height) + var(--safe-bottom) + 0.5rem);
+}
+
+@media (min-width: 1024px) {
+  .pb-app-nav {
+    padding-bottom: var(--safe-bottom);
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Objetivo táctil mínimo (Apple HIG / Material: 44px).
+
+   Solo en punteros gruesos (dedo): en escritorio el ratón apunta fino y
+   agrandar controles solo mete aire. Los enlaces de acción del hub medían
+   28–32px de alto y los botones de icono 36px — misses frecuentes con el
+   pulgar. `min-*` gana sobre el `height`/`width` fijo del control, y el
+   contenido, ya centrado con flex, queda centrado en la caja de 44px.
+   ───────────────────────────────────────────────────────────── */
+@media (pointer: coarse) {
+  /* Red de seguridad global: en táctil, todo control interactivo mide al menos
+     44px de alto. Un barrido reveló decenas de botones de 20–36px repartidos por
+     los módulos (chips de filtro, "+ contribuir", "archivar", editar/borrar…);
+     etiquetarlos uno a uno —186 controles solo en components— era inviable y
+     no verificable en el preview de puntero fino.
+
+     Decisiones que la hacen segura:
+     · Solo `min-height`, nunca `min-width`: agrandar el ancho rompería el
+       empaquetado de filas densas (barras de filtros, toolbars de iconos). La
+       altura, en cambio, nunca provoca desborde horizontal.
+     · `:where(...)` tiene especificidad 0, así que cualquier utilidad de altura
+       explícita del componente gana sin pelea (p. ej. `!min-h-0` del banner de
+       cumpleaños, que debe seguir compacto).
+     · Los enlaces de texto en línea (`display: inline`) son inmunes: `min-height`
+       no les aplica, así que un enlace dentro de un párrafo no se infla.
+     · Excepciones: navegación y header (ya tratados), y `.no-touch` como
+       vía de escape puntual. */
+  :where(a[href], button, [role='button'], summary):not([aria-label='Navegación principal'] *):not(header *):not(.skip-link):not(.no-touch) {
+    min-height: 44px;
+  }
+
+  /* `.touch-target` sigue disponible para el caso que la red global NO cubre:
+     botones de solo icono que además necesitan ANCHO mínimo para quedar
+     cuadrados (los del header). La red da 44 de alto; esto añade los 44 de
+     ancho de forma deliberada y acotada. */
+  .touch-target {
+    min-width: 44px;
+  }
+
+  /* Campos de formulario: además de la fuente de 16px (evita el zoom de
+     Safari), la altura tocable sube a 44px. El 34px de más abajo se pensó
+     para el ratón. */
+  input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']):not([type='color']),
+  select,
+  textarea {
+    min-height: 44px !important;
+  }
+}
+
+/* Altura de la barra inferior + colchón del home indicator. La usan el nav
+   y el relleno inferior del contenido para que nada quede tapado. */
+:root {
+  --app-nav-height: 4.8rem;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-top: env(safe-area-inset-top, 0px);
+}
+
+.nav-safe-offset {
+  padding-bottom: var(--safe-bottom);
+  height: calc(var(--app-nav-height) + var(--safe-bottom));
+}
+
+/* Header móvil bajo la barra de estado del iPhone (notch / Dynamic Island). */
+.header-safe-offset {
+  padding-top: var(--safe-top);
+  height: calc(4rem + var(--safe-top));
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Foco visible global — antes solo unos pocos componentes tenían
+   anillo de foco, así que navegar con teclado era a ciegas.
+   Solo :focus-visible, para no ensuciar el toque en móvil.
+   ───────────────────────────────────────────────────────────── */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-user-c);
+  outline-offset: 2px;
+  box-shadow: 0 0 12px rgba(161, 120, 255, 0.45);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Campos de formulario en pantallas táctiles: mínimo 16px.
+
+   Safari en iOS amplía la página automáticamente al enfocar un campo
+   cuya fuente mide menos de 16px — y no la devuelve al salir, dejando
+   la interfaz descuadrada. Con el zoom ya permitido (ver viewport en
+   layout.tsx) esto afectaría a los ~10 campos con `text-xs`/`text-[10px]`.
+   De paso, escribir una reflexión en mayúsculas a 12px era ilegible.
+
+   Solo en punteros gruesos (táctil): en escritorio se respeta el diseño
+   original. `!important` porque las utilidades de Tailwind ganarían por
+   especificidad.
+   ───────────────────────────────────────────────────────────── */
+@media (pointer: coarse) {
+
+  input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']):not([type='color']),
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
+/* Enlace de salto: invisible hasta que recibe foco por teclado. */
+.skip-link {
+  position: fixed;
+  top: calc(var(--safe-top) + 0.5rem);
+  left: 0.5rem;
+  z-index: 200;
+  transform: translateY(-200%);
+  transition: transform 0.18s ease-out;
+  background: #0a070c;
+  border: 1px solid var(--color-user-c);
+  color: #fff;
+  padding: 0.6rem 1rem;
+  font-family: var(--font-quantico), monospace;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+/* `:focus` a secas (no `:focus-visible`): el enlace está fuera de pantalla, así
+   que solo se puede alcanzar tabulando, y la heurística de :focus-visible no
+   siempre lo marca cuando el foco llega por programa. */
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+/* Viewport de avisos: en móvil por debajo del header fijo (h-16); en
+   escritorio, esquina superior derecha sin header que esquivar. */
+.toast-viewport {
+  padding-top: calc(var(--safe-top) + 4.5rem);
+}
+
+@media (min-width: 1024px) {
+  .toast-viewport {
+    padding-top: 1.5rem;
+  }
 }
 
 .font-sans {
@@ -87,10 +310,70 @@ body {
   border-radius: 9999px !important;
 }
 
-/* Geometric UI Signature Classes */
+/* ─────────────────────────────────────────────────────────────
+   Utilidades de Vidrio — la base compartida del refactor flotante.
+
+   `.glass` : superficie traslúcida + desenfoque + saturación (el
+   saturate revive los neón que quedan detrás del vidrio, si no el
+   blur los apaga a gris). `.glass-strong` sube el tinte bajo texto.
+   `.glass-float` añade la sombra de flotación; NO usar en elementos
+   con clip-path (el recorte se la come — ver nota en :root).
+   `.glass-sheen` pinta el filo de luz superior que «moja» el vidrio.
+   ───────────────────────────────────────────────────────────── */
+.glass {
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.35);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.35);
+  border: 1px solid var(--glass-border);
+}
+
+.glass-strong {
+  background: var(--glass-bg-strong);
+}
+
+.glass-float {
+  box-shadow: var(--glass-float);
+}
+
+.glass-sheen {
+  position: relative;
+}
+
+.glass-sheen::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: linear-gradient(180deg, var(--glass-highlight) 0%, transparent 38%);
+  opacity: 0.55;
+}
+
+/* Superficie de cristal flotante espacial */
+.glass-floating-panel {
+  background: rgba(16, 10, 20, 0.35);
+  -webkit-backdrop-filter: blur(28px) saturate(160%);
+  backdrop-filter: blur(28px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.12);
+}
+
+.glass-floating-panel:hover {
+  border-color: rgba(255, 255, 255, 0.22);
+  box-shadow: 0 22px 50px -10px rgba(0, 0, 0, 0.65), 0 0 25px rgba(255, 255, 255, 0.05), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+}
+
+/* Floating Glass Glow Accent */
+.glass-glow-neon {
+  box-shadow: 0 0 25px var(--color-profile-accent-alpha, rgba(255, 75, 137, 0.25)), inset 0 1px 1px rgba(255, 255, 255, 0.15);
+}
+
+/* Geometric UI Signature Classes — ahora vidrio flotante en vez de fill sólido */
 .geometric-card {
-  background: var(--color-surface-dim);
-  border: 1px solid var(--color-border-subtle);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.35);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.35);
+  border: 1px solid var(--glass-border);
   border-radius: 0px;
   /* Minimalist Brutalism Signature */
   position: relative;
@@ -100,7 +383,7 @@ body {
 
 .geometric-card:hover {
   border-color: rgba(255, 255, 255, 0.25);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--glass-float);
 }
 
 /* Chamfered Cyber Cut Corners (Imagen 2 & 5) */
@@ -123,7 +406,7 @@ body {
 }
 
 .animate-mobile-auto-pulse {
-  animation: mobile-auto-pulse-keyframes 5s ease-in-out infinite;
+  animation: mobile-auto-pulse-keyframes var(--dur-ambient) var(--ease-in-out-quart) infinite;
 }
 
 @keyframes spin-slow {
@@ -137,7 +420,7 @@ body {
 
 /* Micro-Animation Utilities */
 .micro-hover-lift {
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+  transition: transform var(--dur-ui) var(--ease-out-expo), box-shadow var(--dur-ui) ease, border-color var(--dur-ui) ease;
 }
 
 .micro-hover-lift:hover {
@@ -827,6 +1110,8 @@ textarea {
   letter-spacing: 0.14em;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.03);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
   color: #a88a7e;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -919,7 +1204,9 @@ textarea {
 
 .habit-btn {
   border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(0, 0, 0, 0.4);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
   transition: all 0.2s;
 }
 
@@ -1167,96 +1454,16 @@ textarea {
   }
 }
 
-.animate-opt-dance-0 {
-  animation: option-dance-color 10s ease-in-out infinite;
-  animation-delay: 0.0s;
+/* Una sola clase parametrizada: `style={{ '--i': index }}`.
+   Sustituye a las 13 clases clonadas `.animate-opt-dance-0…12`, que solo
+   se diferenciaban en el `animation-delay`. El paso de 400ms se conserva. */
+.animate-opt-dance {
+  animation: option-dance-color 10s var(--ease-in-out-quart) infinite;
+  animation-delay: calc(var(--i, 0) * 400ms);
   transform-origin: center;
   display: inline-block;
 }
 
-.animate-opt-dance-1 {
-  animation: option-dance-color 10s ease-in-out infinite;
-  animation-delay: 0.4s;
-  transform-origin: center;
-  display: inline-block;
-}
-
-.animate-opt-dance-2 {
-  animation: option-dance-color 10s ease-in-out infinite;
-  animation-delay: 0.8s;
-  transform-origin: center;
-  display: inline-block;
-}
-
-.animate-opt-dance-3 {
-  animation: option-dance-color 10s ease-in-out infinite;
-  animation-delay: 1.2s;
-  transform-origin: center;
-  display: inline-block;
-}
-
-.animate-opt-dance-4 {
-  animation: option-dance-color 10s ease-in-out infinite;
-  animation-delay: 1.6s;
-  transform-origin: center;
-  display: inline-block;
-}
-
-.animate-opt-dance-5 {
-  animation: option-dance-color 10s ease-in-out infinite;
-  animation-delay: 2.0s;
-  transform-origin: center;
-  display: inline-block;
-}
-
-.animate-opt-dance-6 {
-  animation: option-dance-color 10s ease-in-out infinite;
-  animation-delay: 2.4s;
-  transform-origin: center;
-  display: inline-block;
-}
-
-.animate-opt-dance-7 {
-  animation: option-dance-color 10s ease-in-out infinite;
-  animation-delay: 2.8s;
-  transform-origin: center;
-  display: inline-block;
-}
-
-.animate-opt-dance-8 {
-  animation: option-dance-color 10s ease-in-out infinite;
-  animation-delay: 3.2s;
-  transform-origin: center;
-  display: inline-block;
-}
-
-.animate-opt-dance-9 {
-  animation: option-dance-color 10s ease-in-out infinite;
-  animation-delay: 3.6s;
-  transform-origin: center;
-  display: inline-block;
-}
-
-.animate-opt-dance-10 {
-  animation: option-dance-color 10s ease-in-out infinite;
-  animation-delay: 4.0s;
-  transform-origin: center;
-  display: inline-block;
-}
-
-.animate-opt-dance-11 {
-  animation: option-dance-color 10s ease-in-out infinite;
-  animation-delay: 4.4s;
-  transform-origin: center;
-  display: inline-block;
-}
-
-.animate-opt-dance-12 {
-  animation: option-dance-color 10s ease-in-out infinite;
-  animation-delay: 4.8s;
-  transform-origin: center;
-  display: inline-block;
-}
 /* Viewport units Safari normalization fix */
 .ios-viewport-fix {
   height: 100dvh;
@@ -1483,11 +1690,245 @@ textarea {
 }
 
 .page-transition {
-  animation: page-fade-in 0.3s ease-out both;
+  animation: page-fade-in var(--dur-enter) var(--ease-out-expo) both;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Escalonado de entrada (`AmbientField` aparte, esto es contenido).
+   El contenedor de página solo puede animar opacidad —ver arriba—,
+   así que la dirección del movimiento la ponen los hijos.
+
+   El fotograma final es `transform: none`, NO `translateY(0)`: un
+   `translateY(0)` computa a matriz y seguiría creando containing
+   block, rompiendo los modales `fixed inset-0` que viven dentro de
+   estas tarjetas (Timeline, Mahjong, Toast…). Con `none` el efecto
+   desaparece del todo al terminar.
+
+   Uso: `.stagger-item` en cada hijo, con el índice inline —
+   `style={{ '--i': index } as React.CSSProperties}`. Sin clase de
+   contenedor: el índice es explícito y sobrevive a reordenar el JSX.
+   ───────────────────────────────────────────────────────────── */
+@keyframes stagger-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* `backwards`, no `both`: con `both` el fotograma final se queda aplicado
+   para siempre, y ese `transform: none` gana a los estilos en línea de
+   framer-motion — el `whileTap` de ChamferedPanel dejaría de encogerse al
+   tocarlo. Con `backwards` el reposo previo se respeta durante el delay y
+   al terminar la animación suelta el control por completo. */
+.stagger-item {
+  animation: stagger-rise var(--dur-enter) var(--ease-out-expo) backwards;
+  animation-delay: calc(var(--i, 0) * var(--stagger));
+}
+
+/* ─────────────────────────────────────────────────────────────
+   AmbientField — capas de fondo.
+
+   Todas derivan con `transform: translate3d`, que el compositor
+   resuelve sin repintar. Animar `background-position` sobre una capa
+   a pantalla completa fuerza un repaint por fotograma y es justo lo
+   que hace que el scroll se sienta pastoso en móvil.
+
+   Cada capa se desplaza exactamente un múltiplo de su tile, así el
+   bucle no tiene salto visible.
+   ───────────────────────────────────────────────────────────── */
+.ambient-layer {
+  position: absolute;
+  pointer-events: none;
+}
+
+/* Retícula técnica — tile 40px */
+@keyframes ambient-drift-grid {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+
+  to {
+    transform: translate3d(-40px, -40px, 0);
+  }
+}
+
+.ambient-grid {
+  inset: -80px;
+  background-image:
+    linear-gradient(to right, var(--ambient-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--ambient-line) 1px, transparent 1px);
+  background-size: 40px 40px;
+  /* Se desvanece hacia los bordes en vez de cortarse a hueso contra el marco */
+  -webkit-mask-image: radial-gradient(ellipse 95% 75% at 50% 38%, #000 10%, transparent 78%);
+  mask-image: radial-gradient(ellipse 95% 75% at 50% 38%, #000 10%, transparent 78%);
+  animation: ambient-drift-grid var(--dur-drift) linear infinite;
+  will-change: transform;
+}
+
+/* Halftone — tile 26px, deriva contraria y más lenta: da parallax */
+@keyframes ambient-drift-halftone {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+
+  to {
+    transform: translate3d(26px, -26px, 0);
+  }
+}
+
+.ambient-halftone {
+  inset: -60px;
+  background-image: radial-gradient(var(--ambient-dot) 1.1px, transparent 1.3px);
+  background-size: 26px 26px;
+  -webkit-mask-image: radial-gradient(ellipse 75% 65% at 72% 78%, #000 0%, transparent 74%);
+  mask-image: radial-gradient(ellipse 75% 65% at 72% 78%, #000 0%, transparent 74%);
+  animation: ambient-drift-halftone calc(var(--dur-drift) * 1.9) linear infinite;
+  will-change: transform;
+}
+
+/* Geometría flotante. El desfase negativo arranca cada figura en un
+   punto distinto del ciclo, sin esperar a que le toque el turno. */
+@keyframes ambient-float {
+
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  50% {
+    transform: translate3d(0, -22px, 0);
+  }
+}
+
+.ambient-float {
+  animation: ambient-float calc(var(--dur-drift) / 2) var(--ease-in-out-quart) infinite;
+  animation-delay: calc(var(--i, 0) * -2.6s);
+}
+
+/* Grano. Rasterizado una sola vez como data-URI en lugar de un
+   filtro SVG vivo (`filter: url(#…)`), que el navegador reevalúa. */
+.ambient-grain {
+  inset: 0;
+  opacity: 0.45;
+  mix-blend-mode: overlay;
+  background-size: 200px 200px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.42 0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Viñeta — es lo que convierte «fondo decorado» en «fondo con profundidad» */
+.ambient-vignette {
+  inset: 0;
+  background: radial-gradient(ellipse 125% 95% at 50% 40%, transparent 32%, rgba(0, 0, 0, 0.6) 100%);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Recursos decorativos (`src/components/deco`).
+
+   Trazos que se DIBUJAN al entrar en pantalla en vez de aparecer con
+   un fade. Todos los `path`/`line`/`rect` llevan `pathLength={1}`, así
+   que dasharray y dashoffset se expresan en la misma unidad para
+   cualquier figura: no hace falta medir cada trazo ni pasar su
+   longitud real en una variable.
+   ───────────────────────────────────────────────────────────── */
+@keyframes deco-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.deco-draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+
+.deco-draw.is-revealed {
+  animation: deco-draw var(--dur-draw, 900ms) var(--ease-out-expo) forwards;
+  animation-delay: calc(var(--i, 0) * var(--stagger));
+}
+
+/* Aparición suave para los recursos que no son trazo (tramas, bloques) */
+@keyframes deco-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: var(--deco-opacity, 1);
+  }
+}
+
+.deco-fade {
+  opacity: 0;
+}
+
+.deco-fade.is-revealed {
+  animation: deco-fade-in var(--dur-enter) var(--ease-out-expo) forwards;
+  animation-delay: calc(var(--i, 0) * var(--stagger));
+}
+
+/* Parallax ligado al scroll — mejora progresiva pura.
+   Donde `animation-timeline: view()` no exista (iOS antiguo), el recurso
+   simplemente se queda quieto: no hay fallback en JS a propósito, porque
+   un parallax por listener de scroll cuesta más de lo que aporta. */
+@keyframes deco-parallax {
+  from {
+    transform: translate3d(0, var(--deco-shift, 20px), 0);
+  }
+
+  to {
+    transform: translate3d(0, calc(var(--deco-shift, 20px) * -1), 0);
+  }
+}
+
+@supports (animation-timeline: view()) {
+  .deco-parallax {
+    animation: deco-parallax linear both;
+    animation-timeline: view();
+    animation-range: cover 0% cover 100%;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .page-transition {
+    animation: none;
+  }
+
+  .stagger-item {
+    animation: none;
+  }
+
+  .ambient-grid,
+  .ambient-halftone,
+  .ambient-float {
+    animation: none;
+    will-change: auto;
+  }
+
+  /* El trazo se queda dibujado y la trama visible: se anula el recorrido,
+     no el resultado. Anular solo la animación dejaría `stroke-dashoffset: 1`
+     —es decir, la figura invisible— que es peor que no tener el efecto. */
+  .deco-draw,
+  .deco-draw.is-revealed {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+
+  .deco-fade,
+  .deco-fade.is-revealed {
+    animation: none;
+    opacity: var(--deco-opacity, 1);
+  }
+
+  .deco-parallax {
     animation: none;
   }
 }

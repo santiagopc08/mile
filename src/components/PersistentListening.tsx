@@ -59,7 +59,7 @@ export function PersistentListening() {
     return (
         <div className="mx-auto w-full max-w-5xl space-y-10">
             {/* Geometric Header Block */}
-            <div className="relative overflow-hidden border border-white/10 bg-[#0a0a0a] bg-mosaic p-8 text-center md:p-12 rounded-none">
+            <div className="relative overflow-hidden border border-white/12 bg-white/[0.04] backdrop-blur-2xl p-8 text-center md:p-12 shadow-lg">
                 <div className={`absolute right-0 top-0 h-16 w-16 border-b border-l border-${accentClass}/40 bg-${accentClass}/10`} style={{ borderColor: `${accentColor}66`, backgroundColor: `${accentColor}1a` }} />
                 <div className={`mb-6 inline-flex h-12 w-12 items-center justify-center border border-${secondaryClass}/40 bg-${secondaryClass}/10 text-${secondaryClass} rounded-none`} style={{ borderColor: `${secondaryColor}66`, backgroundColor: `${secondaryColor}1a`, color: secondaryColor }}>
                     <Ear className="w-5 h-5 stroke-[1.5]" />
@@ -77,21 +77,21 @@ export function PersistentListening() {
                             INICIAR NUEVA ENTRADA
                         </button>
                     ) : (
-                        <form onSubmit={handleAdd} className="origin-top w-full max-w-3xl animate-in border border-white/10 bg-[#0a0a0a] p-8 fade-in slide-in-from-top-4 rounded-none">
+                        <form onSubmit={handleAdd} className="origin-top w-full max-w-3xl animate-in border border-white/12 bg-white/[0.05] backdrop-blur-2xl p-8 fade-in slide-in-from-top-4 rounded-none shadow-xl">
                             <h3 className="mb-8 border-b border-white/10 pb-4 text-xs font-bold uppercase tracking-[0.3em] text-white font-mono">Especificación de Reflexión</h3>
                             <div className="grid md:grid-cols-2 gap-6 mb-6">
                                 <div className="space-y-2">
                                     <label className="ml-1 text-[9px] font-bold uppercase tracking-widest text-[#a88a7e] font-mono">Ref. Tema</label>
-                                    <input required value={topic} onChange={e => setTopic(e.target.value)} placeholder="TEMA DE ENFOQUE..." className={`w-full border border-white/10 bg-black px-4 py-3 text-xs uppercase tracking-widest text-white outline-none placeholder:text-[#594137] focus:border-${accentClass} rounded-none`} style={{ '--tw-ring-color': accentColor } as any} />
+                                    <input required value={topic} onChange={e => setTopic(e.target.value)} placeholder="TEMA DE ENFOQUE..." className={`w-full border border-white/10 bg-black/40 px-4 py-3 text-xs uppercase tracking-widest text-white outline-none placeholder:text-[#594137] focus:border-${accentClass} rounded-none`} style={{ '--tw-ring-color': accentColor } as any} />
                                 </div>
                                 <div className="space-y-2">
                                     <label className="ml-1 text-[9px] font-bold uppercase tracking-widest text-[#a88a7e] font-mono">Sello de Fecha</label>
-                                    <input required type="date" value={date} onChange={e => setDate(e.target.value)} className={`w-full border border-white/10 bg-black px-4 py-3 text-xs uppercase tracking-widest text-white outline-none focus:border-${accentClass} rounded-none`} style={{ '--tw-ring-color': accentColor } as any} />
+                                    <input required type="date" value={date} onChange={e => setDate(e.target.value)} className={`w-full border border-white/10 bg-black/40 px-4 py-3 text-xs uppercase tracking-widest text-white outline-none focus:border-${accentClass} rounded-none`} style={{ '--tw-ring-color': accentColor } as any} />
                                 </div>
                             </div>
                             <div className="space-y-2 mb-8">
                                 <label className="ml-1 text-[9px] font-bold uppercase tracking-widest text-[#a88a7e] font-mono">Análisis Reflexivo</label>
-                                <textarea required value={reflection} onChange={e => setReflection(e.target.value)} placeholder="CONTENIDO DE LA REFLEXIÓN..." className={`min-h-[140px] w-full resize-none border border-white/10 bg-black px-4 py-4 text-xs uppercase tracking-widest text-white outline-none placeholder:text-[#594137] focus:border-${accentClass} rounded-none`} style={{ '--tw-ring-color': accentColor } as any} />
+                                <textarea required value={reflection} onChange={e => setReflection(e.target.value)} placeholder="CONTENIDO DE LA REFLEXIÓN..." className={`min-h-[140px] w-full resize-none border border-white/10 bg-black/40 px-4 py-4 text-xs uppercase tracking-widest text-white outline-none placeholder:text-[#594137] focus:border-${accentClass} rounded-none`} style={{ '--tw-ring-color': accentColor } as any} />
                             </div>
                             <div className="flex gap-4">
                                 <button type="button" onClick={() => { setIsAdding(false); sound.playTick(); haptics.triggerTick(); }} className="flex-1 border border-white/10 py-4 text-[10px] font-bold uppercase tracking-[0.2em] text-[#a88a7e] transition-all hover:border-white/30 hover:text-white rounded-none font-mono">Abortar</button>
@@ -120,7 +120,7 @@ export function PersistentListening() {
                             whileInView={{ y: 0, opacity: 1 }}
                             viewport={{ once: true, margin: "-50px" }}
                             transition={{ delay: idx * 0.1 }}
-                            className="relative overflow-hidden border border-white/10 bg-[#0a0a0a] bg-mosaic p-8 pl-10 rounded-none"
+                            className="relative overflow-hidden border border-white/12 bg-white/[0.04] backdrop-blur-2xl p-8 pl-10 rounded-none shadow-lg"
                         >
                             {/* Solid Left Author Stripe */}
                             <div className="absolute left-0 top-0 bottom-0 w-[5px]" style={{ backgroundColor: noteAccent }} />

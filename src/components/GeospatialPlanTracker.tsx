@@ -11,6 +11,7 @@ import {
 import { supabase } from '@/lib/supabase';
 import { Navigation, Trash2, CheckCircle, Circle, AlertTriangle } from 'lucide-react';
 import { BrutalistPanel } from '@/components/ui/BrutalistPanel';
+import { useToast } from '@/components/ui/Toast';
 
 interface Ubicacion {
   id: string;
@@ -36,6 +37,7 @@ const MapController = ({ selectedLocation }: { selectedLocation?: Ubicacion }) =
 };
 
 export function GeospatialPlanTracker() {
+  const { confirm, success, error: notifyError } = useToast();
   const [locations, setLocations] = useState<Ubicacion[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
@@ -74,11 +76,26 @@ export function GeospatialPlanTracker() {
   };
 
   const deleteLocation = async (id: string) => {
+    const target = locations.find(l => l.id === id);
+    const ok = await confirm({
+      title: 'Eliminar destino',
+      message: `"${target?.nombre ?? 'Este punto'}" desaparecerá del mapa para los dos.`,
+      confirmLabel: 'Eliminar',
+      tone: 'danger',
+    });
+    if (!ok) return;
+
     const { error } = await supabase.from('ubicaciones').delete().eq('id', id);
-    if (!error) {
-      if (selectedId === id) setSelectedId(null);
-      fetchLocations();
+    if (error) {
+      // Antes esto no hacía absolutamente nada: el punto seguía en el mapa sin
+      // ninguna explicación y parecía que el botón estaba roto.
+      console.error('Failed to delete location:', error);
+      notifyError('No se pudo eliminar el destino. Sigue en el mapa.');
+      return;
     }
+    if (selectedId === id) setSelectedId(null);
+    fetchLocations();
+    success('Destino eliminado.');
   };
 
   const selectedLocation = useMemo(() =>
@@ -105,15 +122,16 @@ export function GeospatialPlanTracker() {
   }, [locations]);
 
   if (!GOOGLE_MAPS_API_KEY) {
+    // Antes este bloque ocupaba 300px+ y le pedía al usuario final que editara
+    // un `.env.local`: una instrucción de desarrollo, en la que no puede hacer
+    // nada, tapando el contenido que sí le sirve. Ahora es una franja discreta
+    // y los destinos —lo útil— suben al primer plano.
     return (
-      <div className="w-full space-y-6">
-        <div className="flex min-h-[300px] flex-col items-center justify-center gap-4 border border-dashed border-white/10 bg-black/60 p-8">
-          <AlertTriangle className="h-8 w-8 text-[#ff7020]" />
-          <p className="text-center text-[10px] font-mono font-black uppercase tracking-[0.24em] text-[#a88a7e]">
-            API Key de Google Maps no configurada
-          </p>
-          <p className="max-w-xs text-center text-[8px] font-mono uppercase tracking-[0.2em] text-white/35">
-            Agrega NEXT_PUBLIC_GOOGLE_MAPS_API_KEY a tu archivo .env.local para habilitar el mapa
+      <div className="w-full space-y-4">
+        <div className="flex items-center gap-3 border border-dashed border-white/10 bg-black/60 px-4 py-3">
+          <AlertTriangle className="h-4 w-4 shrink-0 text-[#ff7020]" aria-hidden="true" />
+          <p className="font-mono text-[9px] uppercase leading-relaxed tracking-[0.16em] text-[#a88a7e]">
+            Mapa no disponible ahora mismo · Tus destinos siguen aquí abajo
           </p>
         </div>
         <LocationLists
@@ -134,12 +152,21 @@ export function GeospatialPlanTracker() {
               defaultZoom={12}
               gestureHandling={'cooperative'}
               disableDefaultUI={true}
+              // Paleta oscura: el estilo anterior era claro (#f5f5f4) y dejaba un
+              // rectángulo casi blanco incrustado en una app negra, deslumbrando
+              // de noche —que es cuando se planean las salidas—. Estos tonos salen
+              // de las superficies de design.md.
               styles={[
-                { elementType: 'geometry', stylers: [{ color: '#f5f5f4' }] },
-                { elementType: 'labels.text.fill', stylers: [{ color: '#78716c' }] },
-                { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#e7e5e4' }] },
-                { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#d6d3d1' }] },
+                { elementType: 'geometry', stylers: [{ color: '#0f0b11' }] },
+                { elementType: 'labels.text.fill', stylers: [{ color: '#a88a7e' }] },
+                { elementType: 'labels.text.stroke', stylers: [{ color: '#060409' }] },
+                { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#1e1720' }] },
+                { featureType: 'road', elementType: 'labels.text.fill', stylers: [{ color: '#6f5f66' }] },
+                { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#050409' }] },
                 { featureType: 'poi', elementType: 'labels', stylers: [{ visibility: 'off' }] },
+                { featureType: 'poi.park', elementType: 'geometry', stylers: [{ color: '#141a12' }] },
+                { featureType: 'transit', stylers: [{ visibility: 'off' }] },
+                { featureType: 'administrative', elementType: 'geometry.stroke', stylers: [{ color: '#2b2130' }] },
               ]}
             >
               <MapController selectedLocation={selectedLocation} />
