@@ -1142,8 +1142,17 @@ export function Mahjong() {
 
     const handleTilePointerDown = useCallback((id: string) => {
         if (isProcessingRef.current || gameLost || isReturningFlipped) return;
-        if (gameMode === 'coop' && activeCoopGame && coopTurn !== profile) return; // lock board actions out of turn
-        if (dockIds.includes(id)) return;
+        if (dockIds.includes(id)) {
+            // Devolver la ficha seleccionada del dock de vuelta al tablero
+            const updatedDock = dockIds.filter(dId => dId !== id);
+            setDockIds(updatedDock);
+            setUndoStack(us => us.filter(move => !move.includes(id)));
+            MahjongAudio.playPickup();
+            if (gameMode === 'coop' && activeCoopGame) {
+                MahjongService.updateCoopGame(activeCoopGame.id, tiles, updatedDock, coopTurn);
+            }
+            return;
+        }
         const tile = tilesById.get(id);
         if (!tile || tile.isMatched || !freeTilesMap.get(id)) return;
 

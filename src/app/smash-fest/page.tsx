@@ -6,7 +6,17 @@ import { ArrowLeft, RotateCcw, Volume2, VolumeX, Sparkles, Trophy, HelpCircle, Z
 import Link from "next/link";
 import { ChamferedPanel } from "@/components/ui/ChamferedPanel";
 import { CyberButton } from "@/components/ui/CyberButton";
-import { DEFAULT_LEVELS, INITIAL_WILDCARD_AMMO, type WildcardType, type LevelSchema, type LevelResult, type WildcardAmmo } from "./components/SmashFestGame";
+import {
+  DEFAULT_LEVELS,
+  INITIAL_OVERCHARGE,
+  INITIAL_WILDCARD_AMMO,
+  MAX_SHOT_POWER,
+  MIN_SHOT_POWER,
+  type WildcardType,
+  type LevelSchema,
+  type LevelResult,
+  type WildcardAmmo,
+} from "./components/SmashFestGame";
 import {
   generateLevel,
   generateDailyLevel,
@@ -54,8 +64,9 @@ export default function SmashFestPage() {
   const [shotPower, setShotPower] = useState<number>(1.0);
   const [memoryToasts, setMemoryToasts] = useState<{ id: number; label: string; icon?: string }[]>([]);
   const [comboToast, setComboToast] = useState<{ count: number; label: string } | null>(null);
-  // Shares the engine's constant so the HUD can never disagree with the rules.
+  // Shares the engine's constants so the HUD can never disagree with the rules.
   const [wildcardAmmo, setWildcardAmmo] = useState<WildcardAmmo>(INITIAL_WILDCARD_AMMO);
+  const [overcharge, setOvercharge] = useState<number>(INITIAL_OVERCHARGE);
   const [isVictoryModalOpen, setIsVictoryModalOpen] = useState(false);
   const [isOutOfAmmoModalOpen, setIsOutOfAmmoModalOpen] = useState(false);
   const [isSoundMuted, setIsSoundMuted] = useState(false);
@@ -160,6 +171,13 @@ export default function SmashFestPage() {
       }
       return current;
     });
+  }, []);
+
+  // The engine is the authority on how much overcharge is left; the slider just
+  // follows it back down so the dial can't show a power the shot won't have.
+  const handleOverchargeUpdate = useCallback((left: number) => {
+    setOvercharge(left);
+    if (left <= 0) setShotPower((power) => Math.min(power, 1));
   }, []);
 
   const handleLevelCompleted = useCallback(
@@ -368,19 +386,32 @@ export default function SmashFestPage() {
           </button>
         </div>
 
-        {/* Shot Power Regulator */}
+        {/* Shot Power Regulator — past 100% it eats an overcharge charge */}
         <div className="flex items-center gap-2 pl-2 border-t sm:border-t-0 sm:border-l border-white/10 pt-1.5 sm:pt-0">
           <span className="text-[9px] font-bold text-[#a88a7e] uppercase">POTENCIA:</span>
           <input
             type="range"
-            min="0.6"
-            max="1.4"
-            step="0.1"
+            min={MIN_SHOT_POWER}
+            max={overcharge > 0 ? MAX_SHOT_POWER : 1}
+            step="0.05"
             value={shotPower}
             onChange={(e) => setShotPower(parseFloat(e.target.value))}
-            className="w-20 sm:w-24 accent-[#ff4b89] cursor-pointer"
+            className={`w-20 sm:w-24 cursor-pointer ${shotPower > 1 ? "accent-[#c3f400]" : "accent-[#ff4b89]"}`}
           />
-          <span className="text-[10px] font-bold text-white w-8">{Math.round(shotPower * 100)}%</span>
+          <span className={`text-[10px] font-bold w-8 ${shotPower > 1 ? "text-[#c3f400]" : "text-white"}`}>
+            {Math.round(shotPower * 100)}%
+          </span>
+          <span
+            title="Sobrecarga: disparos por encima del 100%"
+            className={`flex items-center gap-0.5 px-1.5 py-0.5 text-[9px] font-black uppercase border ${
+              overcharge > 0
+                ? "border-[#c3f400]/40 bg-[#c3f400]/10 text-[#c3f400]"
+                : "border-white/10 text-gray-500 line-through"
+            }`}
+          >
+            <Zap className="w-2.5 h-2.5" />
+            {overcharge}
+          </span>
         </div>
       </footer>
 
@@ -405,6 +436,7 @@ export default function SmashFestPage() {
           onMemoryBlockTriggered={handleMemoryBlockTriggered}
           onComboTriggered={handleComboTriggered}
           onWildcardAmmoUpdate={handleWildcardAmmoUpdate}
+          onOverchargeUpdate={handleOverchargeUpdate}
           onLevelCompleted={handleLevelCompleted}
           onOutOfAmmo={handleOutOfAmmo}
           onStatsUpdate={handleStatsUpdate}
@@ -429,10 +461,14 @@ export default function SmashFestPage() {
             </h2>
             <div className="space-y-2.5 text-[10.5px] leading-relaxed text-[#e1bfb2] mb-6 text-left border-t border-b border-white/10 py-3">
               <p>🎯 <strong className="text-white">Trayectoria Real:</strong> El arco muestra la parábola exacta del disparo y la mirilla marca el impacto. Arrastra para girar la cámara, toca para disparar.</p>
+              <p>🏛️ <strong className="text-white">La Plataforma:</strong> Cada formación se alza sobre su propia plataforma. Un recuerdo derribado <em>encima</em> de ella no cuenta: tiene que caer por el borde. Empuja hacia los lados, no solo hacia abajo.</p>
+              <p>🧱 <strong className="text-white">Estructuras Pesadas:</strong> La piedra y el metal aguantan un impacto directo. Busca la madera, los barriles y las bolas de piedra que sostienen el peso: es la diferencia entre una abolladura y un derrumbe.</p>
+              <p>🚧 <strong className="text-white">Obstáculos:</strong> Muros fijos, compuertas que se deslizan y aspas que giran se interponen en el tiro. No se pueden romper: hay que rodearlos, pasarlos por encima o esperar el hueco.</p>
               <p>💣 <strong className="text-red-400">Comodín Bomba:</strong> Detona al primer impacto y genera una onda de choque que lanza por los aires todo lo que hay cerca.</p>
-              <p>⚡ <strong className="text-lime-400">Comodín Tríptico:</strong> Dispara 3 proyectiles en abanico y consume un solo proyectil.</p>
+              <p>⚡ <strong className="text-lime-400">Comodín Tríptico:</strong> Dispara 3 proyectiles en abanico, cada uno por su carril, y consume un solo proyectil. Ideal contra muros anchos.</p>
               <p>🔨 <strong className="text-purple-300">Comodín Yunque:</strong> Bola ultra pesada y algo más lenta: la única que mueve el muro de metal.</p>
-              <p>💖 <strong className="text-white">Objetivo:</strong> Tumba los bloques resplandecientes de recuerdo de su sitio. Derribar los soportes es más eficaz que golpearlos de frente.</p>
+              <p>🔋 <strong className="text-[#c3f400]">Sobrecarga:</strong> Pasar del 100% de potencia gasta una de las {INITIAL_OVERCHARGE} cargas del nivel. Cuando se agotan, el regulador vuelve a tope de 100%.</p>
+              <p>💖 <strong className="text-white">Objetivo:</strong> Tira todos los bloques resplandecientes de recuerdo fuera de su plataforma. Derribar lo que los sostiene suele ser más eficaz que golpearlos de frente.</p>
             </div>
             <CyberButton onClick={() => setIsHelpOpen(false)} variant="primary" accentColor="#00dbe9" size="sm" className="w-full">
               ¡A DEMOLER! ⚡
@@ -508,7 +544,7 @@ export default function SmashFestPage() {
               ¡SIN PROYECTILES!
             </h2>
             <p className="text-xs leading-relaxed text-[#e1bfb2] mb-6 font-sans">
-              Quedan bloques de recuerdo en pie. Prueba usar comodines como la Bomba o el Yunque para derribar las defensas.
+              Quedan recuerdos sobre la plataforma. Prueba a apuntar a un lado para empujarlos hacia el borde, o usa la Bomba y el Yunque para barrer la base entera.
             </p>
             <div className="flex gap-3 justify-center">
               <CyberButton onClick={handleResetLevel} variant="danger" size="sm">

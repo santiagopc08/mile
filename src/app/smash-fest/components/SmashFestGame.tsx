@@ -35,6 +35,16 @@ export const INITIAL_WILDCARD_AMMO: WildcardAmmo = {
   heavy: 1,
 };
 
+/**
+ * Overcharge — the part of the power dial above 100% — is a resource, not a
+ * setting. Left free it was strictly better than any other option and the
+ * regulator had exactly one useful position; as a small budget, spending it on
+ * the right shot is a decision.
+ */
+export const MIN_SHOT_POWER = 0.6;
+export const MAX_SHOT_POWER = 1.2;
+export const INITIAL_OVERCHARGE = 3;
+
 /** Reported when a level is cleared, so the caller can award stars. */
 export interface LevelResult {
   shotsUsed: number;
@@ -51,6 +61,7 @@ interface SmashFestGameProps {
   onMemoryBlockTriggered: (memory?: MemoryItem) => void;
   onComboTriggered?: (comboCount: number) => void;
   onWildcardAmmoUpdate?: (ammo: WildcardAmmo) => void;
+  onOverchargeUpdate?: (left: number) => void;
   onLevelCompleted?: (result: LevelResult) => void;
   onOutOfAmmo?: () => void;
   onStatsUpdate?: (stats: { remainingBalls: number; memoryBlocksLeft: number; totalMemoryBlocks: number }) => void;
@@ -61,10 +72,10 @@ interface SmashFestGameProps {
 /* Physics tuning                                                             */
 /* -------------------------------------------------------------------------- */
 
-// Masses live on a ~1-50 scale: cannon's solver is far more stable when the
+// Masses live on a ~5-105 scale: cannon's solver is far more stable when the
 // heaviest body is only ~20x the lightest one, and contact stiffness defaults
 // assume this order of magnitude.
-const BASE_SHOT_SPEED = 24;
+const BASE_SHOT_SPEED = 26;
 const MAX_SHOT_SPEED = 34; // Above this a projectile can tunnel through thin slabs
 const PHYSICS_STEP = 1 / 144; // Small enough that no projectile moves further than its radius per step
 // Far enough in front of the camera that a launched ball doesn't fill the
@@ -77,13 +88,18 @@ const SHOT_COOLDOWN_MS = 220;
 const PROJECTILE_TTL_S = 9;
 const PROJECTILE_REST_S = 1.3;
 const PROJECTILE_KILL_Y = -8;
-const MAX_LIVE_PROJECTILES = 6;
+// A triple volley is three bodies, so this is two volleys in the air at once.
+const MAX_LIVE_PROJECTILES = 8;
 
-const MEMORY_FALL_DROP = 1.2; // Vertical drop from origin that counts as "liberated"
-const MEMORY_FALL_SPREAD = 1.8; // ...or a big enough horizontal displacement
+// Blocks are one 0.8 cell tall, so a drop of 0.9 is more than a settle and less
+// than "it came off its perch".
+const MEMORY_FALL_DROP = 0.9; // Vertical drop from origin that counts as "liberated"
+const MEMORY_FALL_SPREAD = 1.4; // ...or a big enough horizontal displacement
 
-const BOMB_RADIUS = 4.6;
-const BOMB_POWER = 16;
+// Impulse scales with √mass (see `detonate`), so this is tuned against the
+// heaviest block a structure can hold rather than against the lightest.
+const BOMB_RADIUS = 5;
+const BOMB_POWER = 34;
 const BOMB_LIFT = 0.45;
 
 const ARC_STEPS = 34;
@@ -103,15 +119,25 @@ export function createAimSource(): AimSource {
   return { ndc: new THREE.Vector2(0, 0), visible: true };
 }
 
+// Ammo mass is what decides whether a block moves at all — cannon needs the
+// impactor to be of comparable mass before a block wedged in a wall gives way —
+// so these are calibrated against the generator's materials (wood 9, stone 16,
+// metal 24). A standard ball opens holes in wood and dents stone; only the
+// anvil moves metal.
 const WILDCARD_SPECS: Record<
   WildcardType,
   { mass: number; radius: number; color: string | null; speedScale: number; restitution: number }
 > = {
-  standard: { mass: 3.2, radius: 0.34, color: null, speedScale: 1, restitution: 0.26 },
-  bomb: { mass: 3.0, radius: 0.42, color: "#ff003c", speedScale: 0.95, restitution: 0.08 },
-  triple: { mass: 1.9, radius: 0.3, color: "#c3f400", speedScale: 1.05, restitution: 0.3 },
-  heavy: { mass: 14, radius: 0.55, color: "#a178ff", speedScale: 0.82, restitution: 0.04 },
+  standard: { mass: 12, radius: 0.36, color: null, speedScale: 1, restitution: 0.22 },
+  bomb: { mass: 10, radius: 0.44, color: "#ff003c", speedScale: 0.95, restitution: 0.08 },
+  triple: { mass: 7, radius: 0.32, color: "#c3f400", speedScale: 1.05, restitution: 0.26 },
+  heavy: { mass: 40, radius: 0.58, color: "#a178ff", speedScale: 0.82, restitution: 0.04 },
 };
+
+/** Lateral offsets of a triple volley, in ball radii of clearance. */
+const TRIPLE_LANES = [-1, 0, 1] as const;
+const TRIPLE_LANE_OFFSET = 0.78;
+const TRIPLE_FAN = 0.05; // radians between neighbouring balls
 
 const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
 
@@ -242,6 +268,11 @@ type BodyEntry = {
   api: PublicApi;
   mass: number;
   isMemory: boolean;
+  /** The platform a memory block has to leave. */
+  releaseY?: number;
+  releaseBox?: [number, number, number, number];
+  /** Self-driven obstacles, updated every frame by the director. */
+  motion?: LevelNode["motion"];
   /** Debris colour, so a shattered block sprays its own material. */
   tint: string;
   origin: THREE.Vector3;
@@ -267,6 +298,57 @@ function bodyPosition(obj: THREE.Object3D, out: THREE.Vector3) {
 
 function useRegistry() {
   return useContext(RegistryContext);
+}
+
+function entryForObject(registry: Registry, obj: THREE.Object3D | undefined) {
+  if (!obj) return undefined;
+  for (const entry of registry.current.values()) if (entry.obj === obj) return entry;
+  return undefined;
+}
+
+/**
+ * Hands a struck block the momentum the projectile was actually carrying.
+ *
+ * cannon has no continuous collision detection: a ball at 26 m/s advances a
+ * third of its radius per step, so by the time the contact exists it is already
+ * deeply overlapped and the solver spends the whole impulse pushing the *ball*
+ * back out. Measured, a 4.6 kg ball at 26 m/s handed a 12 kg block 13 of the
+ * 141 kg·m/s it carried and bounced off — every shot bounced off the wall it
+ * should have knocked a hole in.
+ *
+ * The transfer is capped by the projectile's remaining momentum, so a ball that
+ * has already spent itself on one block cannot demolish a second.
+ */
+const KINETIC_TRANSFER = 0.55;
+const KINETIC_MIN_IMPACT = 3;
+
+function transferMomentum(
+  registry: Registry,
+  hit: THREE.Object3D | undefined,
+  normal: number[] | undefined,
+  from: THREE.Vector3,
+  impact: number,
+  mass: number,
+  budget: { left: number }
+) {
+  const entry = entryForObject(registry, hit);
+  // Only structures earn the transfer: a volley must not spend its momentum on
+  // its own siblings.
+  if (!entry || entry.kind !== "node" || entry.mass <= 0 || !normal || budget.left <= 0) return;
+
+  const carried = Math.min(budget.left, mass * impact);
+  budget.left -= carried;
+
+  const dir = new THREE.Vector3(normal[0], normal[1], normal[2]);
+  if (dir.lengthSq() < 1e-6) return;
+  dir.normalize();
+  // cannon orders the contact normal by body index, not by who hit whom.
+  const towards = bodyPosition(entry.obj, new THREE.Vector3()).sub(from);
+  if (dir.dot(towards) < 0) dir.negate();
+
+  const j = carried * KINETIC_TRANSFER;
+  entry.api.wakeUp();
+  entry.api.applyImpulse([dir.x * j, dir.y * j, dir.z * j], [0, 0, 0]);
 }
 
 // Radial impulse with linear falloff. cannon turns an impulse into Δv = J / m,
@@ -311,10 +393,15 @@ const Ground = memo(function Ground({ color }: { color: string }) {
   );
 });
 
+// Bright enough to read against the background. The old stone was #382e39,
+// which on a level made of forty stone blocks rendered as one black mass and
+// gave the player nothing to aim at.
 const NODE_COLORS: Record<string, string> = {
-  metal: "#68788c",
-  stone: "#382e39",
-  wood: "#6e5a6a",
+  metal: "#8496ad",
+  stone: "#6d5c72",
+  wood: "#a8785f",
+  // Reads as ground rather than as something you could knock over.
+  platform: "#2f2838",
 };
 
 function nodeSound(material: string): SoundName {
@@ -323,7 +410,7 @@ function nodeSound(material: string): SoundName {
 
 function nodeColor(node: LevelNode) {
   if (node.isMemoryBlock) return node.type === "cylinder" ? "#c3f400" : "#ff4b89";
-  if (node.type === "cylinder") return node.material === "metal" ? "#61728a" : "#4a3c48";
+  if (node.type === "cylinder") return node.material === "metal" ? "#7d8ea8" : "#8a6a55";
   return NODE_COLORS[node.material] ?? NODE_COLORS.wood;
 }
 
@@ -342,8 +429,11 @@ function useNodeRegistration(
       kind: "node",
       obj,
       api,
-      mass: node.isStatic ? 0 : node.mass,
+      mass: node.isStatic || node.motion ? 0 : node.mass,
       isMemory: !!node.isMemoryBlock,
+      releaseY: node.releaseY,
+      releaseBox: node.releaseBox,
+      motion: node.motion,
       tint: nodeColor(node),
       origin: new THREE.Vector3(...node.position),
       age: 0,
@@ -351,6 +441,10 @@ function useNodeRegistration(
       restFor: 0,
       expired: false,
     });
+
+    // A spinner turns at a constant rate; cannon integrates a kinematic body's
+    // orientation from this without any further help.
+    if (node.motion?.kind === "spin") api.angularVelocity.set(0, node.motion.speed, 0);
 
     return () => {
       map.delete(node.id);
@@ -362,15 +456,24 @@ function useNodeRegistration(
 // sank into place instead of tumbling; these values keep the tumble while still
 // letting bodies settle and fall asleep.
 function bodyProps(node: LevelNode, effects: EffectsApi | null): BodyProps {
+  // A driven obstacle is kinematic: it pushes whatever it meets and nothing
+  // pushes back, so it can never be knocked out of the level it is guarding.
+  const type: BodyProps["type"] = node.motion ? "Kinematic" : node.isStatic ? "Static" : "Dynamic";
+  // A boulder is in equilibrium on a flat surface only until the solver's first
+  // jitter, and then it rolls off the platform on its own. Damping its spin
+  // holds it still while leaving it free to be launched by a hit.
+  const rolls = node.type === "sphere";
   return {
-    mass: node.isStatic ? 0 : node.mass,
-    type: node.isStatic ? "Static" : "Dynamic",
+    mass: type === "Dynamic" ? node.mass : 0,
+    type,
     position: node.position,
-    linearDamping: 0.1,
-    angularDamping: 0.22,
+    linearDamping: rolls ? 0.24 : 0.1,
+    angularDamping: rolls ? 0.86 : 0.22,
     allowSleep: true,
-    sleepSpeedLimit: 0.2,
-    sleepTimeLimit: 0.5,
+    // A touch quicker to settle than cannon's defaults: a ninety-body structure
+    // otherwise keeps creeping below the old limit and never sleeps.
+    sleepSpeedLimit: 0.35,
+    sleepTimeLimit: 0.4,
     material: { friction: node.friction ?? 0.6, restitution: 0.06 },
     onCollide: (e: CollideEvent) => {
       const impact = Math.abs(e.contact?.impactVelocity ?? 0);
@@ -417,7 +520,7 @@ const CylinderNode = memo(function CylinderNode({ node }: { node: LevelNode }) {
   const [ref, api] = useCylinder<THREE.Mesh>(() => ({ ...bodyProps(node, effects), args }));
   useNodeRegistration(registry, node, ref, api);
 
-  const color = node.isMemoryBlock ? "#c3f400" : node.material === "metal" ? "#61728a" : "#4a3c48";
+  const color = node.isMemoryBlock ? "#c3f400" : node.material === "metal" ? "#7d8ea8" : "#8a6a55";
 
   return (
     <mesh ref={ref} castShadow receiveShadow>
@@ -437,7 +540,31 @@ const CylinderNode = memo(function CylinderNode({ node }: { node: LevelNode }) {
   );
 });
 
-type ProjectileState = { id: string; pos: [number, number, number]; vel: [number, number, number]; type: WildcardType };
+// A boulder: the one piece that answers a hit by rolling somewhere, which is
+// also the easiest thing in a level to send over the edge of a platform.
+const SphereNode = memo(function SphereNode({ node }: { node: LevelNode }) {
+  const registry = useRegistry();
+  const effects = useEffects();
+  const radius = node.dimensions[0];
+  const [ref, api] = useSphere<THREE.Mesh>(() => ({ ...bodyProps(node, effects), args: [radius] }));
+  useNodeRegistration(registry, node, ref, api);
+
+  return (
+    <mesh ref={ref} castShadow receiveShadow>
+      <sphereGeometry args={[radius, 20, 14]} />
+      <meshStandardMaterial
+        color={node.isMemoryBlock ? "#ff4b89" : NODE_COLORS[node.material] ?? NODE_COLORS.stone}
+        emissive={node.isMemoryBlock ? "#ff4b89" : "#000000"}
+        emissiveIntensity={node.isMemoryBlock ? 0.9 : 0}
+        metalness={node.material === "metal" ? 0.45 : 0.2}
+        roughness={0.55}
+      />
+    </mesh>
+  );
+});
+
+type Shot = { pos: [number, number, number]; vel: [number, number, number]; type: WildcardType };
+type ProjectileState = Shot & { id: string };
 
 const Projectile = memo(function Projectile({
   id,
@@ -460,6 +587,8 @@ const Projectile = memo(function Projectile({
   const ballColor = spec.color ?? color;
   const detonatedRef = useRef(false);
   const meshRef = useRef<THREE.Mesh>(null);
+  // Momentum this ball can still hand out, in kg·m/s.
+  const budgetRef = useRef({ left: spec.mass * Math.hypot(velocity[0], velocity[1], velocity[2]) });
 
   const [ref, api] = useSphere<THREE.Mesh>(() => ({
     mass: spec.mass,
@@ -490,6 +619,19 @@ const Projectile = memo(function Projectile({
 
       if (impact < 1.8) return;
       playSound(type === "heavy" ? "heavy" : "hit", impact / 12);
+
+      if (registry && impact >= KINETIC_MIN_IMPACT) {
+        const self = meshRef.current;
+        transferMomentum(
+          registry,
+          e.body,
+          e.contact?.ni,
+          self ? bodyPosition(self, new THREE.Vector3()) : new THREE.Vector3(...position),
+          impact,
+          spec.mass,
+          budgetRef.current
+        );
+      }
 
       const point = e.contact?.contactPoint;
       if (effects && point) {
@@ -596,6 +738,9 @@ const SceneDirector = memo(function SceneDirector({
   }, [memoriesLeft]);
   const fallen = useRef<Set<string>>(new Set());
   const cursor = useRef(new THREE.Vector3());
+  // Obstacle clock. Counted in rendered frames like everything else here, so a
+  // backgrounded tab resumes where it left off instead of teleporting.
+  const motionTime = useRef(0);
 
   useFrame((state, delta) => {
     const map = registry?.current;
@@ -607,8 +752,16 @@ const SceneDirector = memo(function SceneDirector({
     // projectile in flight the instant the player came back.
     const step = Math.min(delta, 0.1);
     const pulse = 0.7 + Math.sin(state.clock.elapsedTime * 3.4) * 0.35;
+    motionTime.current += step;
 
     map.forEach((entry, id) => {
+      // A sliding shutter is driven by velocity rather than by position, so
+      // whatever it meets gets pushed instead of being passed through.
+      if (entry.motion?.kind === "slide") {
+        const { speed, amplitude = 1.5, phase = 0 } = entry.motion;
+        entry.api.velocity.set(amplitude * speed * Math.cos(motionTime.current * speed + phase), 0, 0);
+      }
+
       if (entry.kind === "projectile") {
         if (entry.expired) return;
         bodyPosition(entry.obj, p);
@@ -638,10 +791,20 @@ const SceneDirector = memo(function SceneDirector({
       const drop = entry.origin.y - p.y;
       const spread = Math.hypot(p.x - entry.origin.x, p.z - entry.origin.z);
 
-      // Either a real drop or being knocked clear of its perch counts. The old
-      // rule also required y < 1.0, which made memory blocks sitting on raised
-      // platforms (level 4) impossible to clear.
-      if (drop > MEMORY_FALL_DROP || spread > MEMORY_FALL_SPREAD) {
+      // Generated levels stand on platforms, and the block has to go over the
+      // edge of its own: toppling one where it stands used to clear it, so a
+      // single collapse finished the level. Off the side counts as well as off
+      // the top, or a block that left the platform and came to rest on the
+      // rubble beside it would never register. Levels without a platform
+      // (remote ones) fall back to "it came off its perch".
+      const box = entry.releaseBox;
+      const released =
+        entry.releaseY !== undefined
+          ? p.y < entry.releaseY ||
+            (box !== undefined && (p.x < box[0] || p.x > box[1] || p.z < box[2] || p.z > box[3]))
+          : drop > MEMORY_FALL_DROP || spread > MEMORY_FALL_SPREAD;
+
+      if (released) {
         fallen.current.add(id);
         if (material) material.emissiveIntensity = 1.8;
         playSound("memory");
@@ -809,7 +972,7 @@ const ShootController = memo(function ShootController({
   shotPower,
   aim,
 }: {
-  onShoot: (shots: { pos: [number, number, number]; vel: [number, number, number]; type: WildcardType }[]) => void;
+  onShoot: (shots: Shot[], power: number) => void;
   canShoot: boolean;
   activeWildcard: WildcardType;
   shotPower: number;
@@ -828,6 +991,7 @@ const ShootController = memo(function ShootController({
     const el = gl.domElement;
     const ndc = new THREE.Vector2();
     const yAxis = new THREE.Vector3(0, 1, 0);
+    const right = new THREE.Vector3();
     let down: { x: number; y: number } | null = null;
     let lastShotAt = 0;
 
@@ -889,12 +1053,29 @@ const ShootController = memo(function ShootController({
       playSound("shoot");
 
       if (wildcard === "triple") {
-        const spread = [0, -0.1, 0.1].map((angle) =>
-          dir.clone().applyAxisAngle(yAxis, angle).multiplyScalar(speed).toArray() as [number, number, number]
+        // The three balls used to spawn at the identical point, which the
+        // solver resolves by blasting them apart — the volley sprayed at random
+        // and never went where the arc pointed. They now start in their own
+        // lanes across the camera's right axis and fan out from there.
+        right.setFromMatrixColumn(camera.matrixWorld, 0).normalize();
+
+        shoot(
+          TRIPLE_LANES.map((lane) => ({
+            pos: origin
+              .clone()
+              .addScaledVector(right, lane * TRIPLE_LANE_OFFSET)
+              .toArray() as [number, number, number],
+            vel: dir
+              .clone()
+              .applyAxisAngle(yAxis, -lane * TRIPLE_FAN)
+              .multiplyScalar(speed)
+              .toArray() as [number, number, number],
+            type: "triple" as WildcardType,
+          })),
+          power
         );
-        shoot(spread.map((vel) => ({ pos, vel, type: "triple" as WildcardType })));
       } else {
-        shoot([{ pos, vel: dir.multiplyScalar(speed).toArray() as [number, number, number], type: wildcard }]);
+        shoot([{ pos, vel: dir.multiplyScalar(speed).toArray() as [number, number, number], type: wildcard }], power);
       }
     };
 
@@ -954,6 +1135,8 @@ const LevelScene = memo(function LevelScene({
         {level.nodes.map((node) =>
           node.type === "cylinder" ? (
             <CylinderNode key={node.id} node={node} />
+          ) : node.type === "sphere" ? (
+            <SphereNode key={node.id} node={node} />
           ) : (
             <BoxNode key={node.id} node={node} />
           )
@@ -994,6 +1177,22 @@ const LevelScene = memo(function LevelScene({
 // Generated levels vary a lot in height and width, so a fixed camera either
 // clips a three-tier citadel or leaves a single tower as a speck. This fits the
 // level's bounding box to the viewport once, when the level changes.
+/* eslint-disable react-hooks/immutability --
+   Framing *is* mutating the camera: r3f hands out the live three.js object and
+   this is how every camera controller in the ecosystem drives it. */
+/** Height of the tallest point of a level, in world units. */
+function levelTop(level: LevelSchema) {
+  let top = 0;
+  for (const node of level.nodes) {
+    const height = node.type === "cylinder" ? node.dimensions[2] : node.dimensions[1];
+    top = Math.max(top, node.position[1] + height / 2);
+  }
+  return top;
+}
+
+/** Point both the camera and the orbit controls look at: mid-structure. */
+const focusHeight = (level: LevelSchema) => levelTop(level) * 0.5;
+
 const CameraFraming = memo(function CameraFraming({ level }: { level: LevelSchema }) {
   const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera;
   const controls = useThree((s) => s.controls) as { target: THREE.Vector3; update: () => void } | null;
@@ -1013,15 +1212,26 @@ const CameraFraming = memo(function CameraFraming({ level }: { level: LevelSchem
       halfDepth = Math.max(halfDepth, Math.abs(node.position[2]) + d / 2);
     }
 
-    const fovY = (camera.fov * Math.PI) / 180;
     const aspect = size.width / Math.max(1, size.height);
-    // Generous margin so the structure never tucks under the floating HUD bars.
-    const fitHeight = (top + 2.6) / (2 * Math.tan(fovY / 2));
-    const fitWidth = (halfWidth + 2.6) / (2 * Math.tan(fovY / 2) * aspect);
-    const distance = Math.max(9, Math.max(fitHeight, fitWidth) * 1.3 + halfDepth);
+    // A phone in portrait cannot frame a 14-unit-wide yard at 50°; widening the
+    // lens costs far less than pushing the camera twice as far back.
+    camera.fov = aspect < 1 ? 62 : 50;
+    const fovY = (camera.fov * Math.PI) / 180;
+    const tan = Math.tan(fovY / 2);
 
-    const focusY = top * 0.45;
-    camera.position.set(0, focusY + top * 0.35 + 1.5, distance);
+    // Generous margin so the structure never tucks under the floating HUD bars.
+    // The vertical term only has to cover half the structure (the camera looks
+    // down at its middle); the horizontal one has to cover the whole width —
+    // halving it, as this used to, cropped every level wider than five units.
+    const fitHeight = (top + 2.2) / (2 * tan);
+    const fitWidth = (halfWidth + 1.6) / (tan * aspect);
+    const distance = Math.max(9, Math.max(fitHeight * 1.15, fitWidth) + halfDepth);
+
+    // Look at the middle of the structure, not at its lower third: on a phone
+    // the fit is driven by width, so there is a lot of frame to fill and any
+    // downward tilt drops the level into the bottom of it.
+    const focusY = focusHeight(level);
+    camera.position.set(0, focusY + top * 0.22 + 1.2, distance);
     camera.updateProjectionMatrix();
 
     if (controls) {
@@ -1034,6 +1244,7 @@ const CameraFraming = memo(function CameraFraming({ level }: { level: LevelSchem
 
   return null;
 });
+/* eslint-enable react-hooks/immutability */
 
 /* -------------------------------------------------------------------------- */
 /* Session                                                                    */
@@ -1049,6 +1260,7 @@ const GameSession = memo(function GameSession({
   onMemoryBlockTriggered,
   onComboTriggered,
   onWildcardAmmoUpdate,
+  onOverchargeUpdate,
   onLevelCompleted,
   onOutOfAmmo,
   onStatsUpdate,
@@ -1059,6 +1271,7 @@ const GameSession = memo(function GameSession({
   onMemoryBlockTriggered: (memory?: MemoryItem) => void;
   onComboTriggered?: (comboCount: number) => void;
   onWildcardAmmoUpdate?: (ammo: WildcardAmmo) => void;
+  onOverchargeUpdate?: (left: number) => void;
   onLevelCompleted?: (result: LevelResult) => void;
   onOutOfAmmo?: () => void;
   onStatsUpdate?: (stats: { remainingBalls: number; memoryBlocksLeft: number; totalMemoryBlocks: number }) => void;
@@ -1068,12 +1281,19 @@ const GameSession = memo(function GameSession({
   const [shotsUsed, setShotsUsed] = useState(0);
   const [clearedMemories, setClearedMemories] = useState(0);
   const [wildcardAmmo, setWildcardAmmo] = useState<WildcardAmmo>(INITIAL_WILDCARD_AMMO);
-  // Mirrors the state so the shoot handler can read the current charges without
+  const [overcharge, setOvercharge] = useState(INITIAL_OVERCHARGE);
+  // Mirror the state so the shoot handler can read the current charges without
   // re-creating itself (and re-registering the DOM listeners) on every change.
   const wildcardAmmoRef = useRef<WildcardAmmo>(INITIAL_WILDCARD_AMMO);
+  const overchargeRef = useRef(INITIAL_OVERCHARGE);
   // "freeze" stops the solver dead; "slow" lets it advance a single fixed step
   // per rendered frame, which cannon caps without banking the leftover time.
   const [timeMode, setTimeMode] = useState<"normal" | "freeze" | "slow">("normal");
+  // The world is held exactly as authored until the first shot. A structure of
+  // ninety stacked bodies always has some latent sag in it, and letting it play
+  // out while the player is still aiming reads as the level solving itself —
+  // worse, a memory block can slide off its platform before anyone has fired.
+  const [started, setStarted] = useState(false);
 
   const registry = useRef<Map<string, BodyEntry>>(new Map());
   const targetsRef = useRef<THREE.Group | null>(null);
@@ -1091,6 +1311,10 @@ const GameSession = memo(function GameSession({
   useEffect(() => {
     onWildcardAmmoUpdate?.(wildcardAmmo);
   }, [wildcardAmmo, onWildcardAmmoUpdate]);
+
+  useEffect(() => {
+    onOverchargeUpdate?.(overcharge);
+  }, [overcharge, onOverchargeUpdate]);
 
   const handleMemoryFall = useCallback(() => {
     setClearedMemories((n) => n + 1);
@@ -1139,7 +1363,7 @@ const GameSession = memo(function GameSession({
   }, []);
 
   const handleShoot = useCallback(
-    (shots: { pos: [number, number, number]; vel: [number, number, number]; type: WildcardType }[]) => {
+    (shots: Shot[], power: number) => {
       const type = shots[0]?.type || "standard";
 
       // The charge rule lives here rather than only in the button's disabled
@@ -1155,7 +1379,15 @@ const GameSession = memo(function GameSession({
         setWildcardAmmo(wildcardAmmoRef.current);
       }
 
+      // The controller already clamped the power it fired with, so anything
+      // above 100% here really did burn a charge.
+      if (power > 1.001 && overchargeRef.current > 0) {
+        overchargeRef.current -= 1;
+        setOvercharge(overchargeRef.current);
+      }
+
       // A volley is one shot, however many balls it puts in the air.
+      setStarted(true);
       setShotsUsed((n) => n + 1);
       setProjectiles((prev) => {
         const next = [
@@ -1214,12 +1446,15 @@ const GameSession = memo(function GameSession({
 
   const trajectoryColor = WILDCARD_SPECS[activeWildcard].color ?? level.palette.projectile;
   const canShoot = remainingBalls > 0 && (totalMemoryBlocks === 0 || memoryBlocksLeft > 0);
+  // Clamped in one place so the arc previews exactly the shot that will leave
+  // the muzzle once the overcharge budget is spent.
+  const effectivePower = clamp(overcharge > 0 ? shotPower : Math.min(shotPower, 1), MIN_SHOT_POWER, MAX_SHOT_POWER);
 
   return (
     <RegistryContext.Provider value={registry}>
       <EffectsRig onHitstop={handleHitstop}>
       <Physics
-        isPaused={timeMode === "freeze"}
+        isPaused={timeMode === "freeze" || !started}
         // maxSubSteps 1 makes the world advance exactly one fixed step per
         // frame instead of catching up to real time — cannon discards the
         // leftover accumulator, so there is no fast-forward on the way out.
@@ -1228,9 +1463,12 @@ const GameSession = memo(function GameSession({
         // A projectile at max power covers ~0.24 units per step at this rate,
         // less than the smallest collider radius, so nothing tunnels through.
         stepSize={PHYSICS_STEP}
-        iterations={14}
-        // Settled towers stop being integrated entirely; with ~20 bodies the
-        // default Naive broadphase is cheaper than SAP's per-step sort.
+        // 10 is enough for stacked boxes and buys back the frames the larger
+        // structures cost. Settled towers stop being integrated entirely.
+        iterations={10}
+        // Levels now run to ~90 bodies, where the Naive broadphase's O(n²) pair
+        // test costs more than SAP's per-step sort.
+        broadphase={level.nodes.length > 30 ? "SAP" : "Naive"}
         allowSleep
         defaultContactMaterial={{
           friction: 0.55,
@@ -1258,7 +1496,7 @@ const GameSession = memo(function GameSession({
         <AimGuide
           color={trajectoryColor}
           wildcard={activeWildcard}
-          power={shotPower}
+          power={effectivePower}
           targetsRef={targetsRef}
           aim={aim}
         />
@@ -1267,7 +1505,7 @@ const GameSession = memo(function GameSession({
         onShoot={handleShoot}
         canShoot={canShoot}
         activeWildcard={activeWildcard}
-        shotPower={shotPower}
+        shotPower={effectivePower}
         aim={aim}
       />
       </EffectsRig>
@@ -1288,6 +1526,7 @@ export default function SmashFestGame({
   onMemoryBlockTriggered,
   onComboTriggered,
   onWildcardAmmoUpdate,
+  onOverchargeUpdate,
   onLevelCompleted,
   onOutOfAmmo,
   onStatsUpdate,
@@ -1371,6 +1610,7 @@ export default function SmashFestGame({
           onMemoryBlockTriggered={onMemoryBlockTriggered}
           onComboTriggered={onComboTriggered}
           onWildcardAmmoUpdate={onWildcardAmmoUpdate}
+          onOverchargeUpdate={onOverchargeUpdate}
           onLevelCompleted={onLevelCompleted}
           onOutOfAmmo={onOutOfAmmo}
           onStatsUpdate={onStatsUpdate}
@@ -1384,8 +1624,13 @@ export default function SmashFestGame({
           dampingFactor={0.08}
           rotateSpeed={0.55}
           minDistance={7}
-          maxDistance={45}
-          target={[0, 2.2, 0]}
+          // Has to clear whatever `CameraFraming` picked, or the controls snap
+          // the camera in on the first drag and crop the level.
+          maxDistance={60}
+          // drei reapplies this on every render, so it has to agree with what
+          // `CameraFraming` aims at — otherwise the framing is undone the
+          // moment anything else in the scene updates.
+          target={[0, focusHeight(level), 0]}
           maxPolarAngle={Math.PI / 2 - 0.06}
         />
       </Canvas>
