@@ -18,7 +18,8 @@ export function PendingTasks() {
     const [priority, setPriority] = useState('medium');
 
 
-    const tasks = data?.tasks || [];
+    const allTasks = data?.tasks || [];
+    const pendingTasks = allTasks.filter(t => t.status === 'todo' || t.status === 'in_progress');
     const accentColor = profile === 'ella' ? 'user-a' : 'user-b';
 
     const handleAddTask = async (e: React.FormEvent) => {
@@ -35,14 +36,14 @@ export function PendingTasks() {
             updated_at: new Date().toISOString()
         };
 
-        await updateData({ tasks: [newTask, ...tasks] });
+        await updateData({ tasks: [newTask, ...allTasks] });
         setTitle('');
         setPriority('medium');
         setIsAdding(false);
     };
 
     const handleSaveTask = async (id: string, newText: string, newPriority: 'low' | 'medium' | 'high') => {
-        const updated = tasks.map(t => t.id === id ? {
+        const updated = allTasks.map(t => t.id === id ? {
             ...t,
             text: newText,
             priority: newPriority
@@ -52,13 +53,13 @@ export function PendingTasks() {
 
     const toggleTask = async (task: Task) => {
         const newStatus: TaskStatus = task.status === 'done' ? 'todo' : 'done';
-        const updated = tasks.map((t) => t.id === task.id ? { ...t, status: newStatus } : t);
+        const updated = allTasks.map((t) => t.id === task.id ? { ...t, status: newStatus } : t);
         await updateData({ tasks: updated });
     };
 
     const deleteTask = async (id: string, e: React.MouseEvent) => {
         e.stopPropagation();
-        const task = tasks.find((t) => t.id === id);
+        const task = allTasks.find((t) => t.id === id);
         const ok = await confirm({
             title: 'Eliminar tarea',
             message: `"${task?.text ?? 'Esta tarea'}" se eliminará de la lista.`,
@@ -67,7 +68,7 @@ export function PendingTasks() {
         });
         if (!ok) return;
 
-        const updated = tasks.filter((t) => t.id !== id);
+        const updated = allTasks.filter((t) => t.id !== id);
         await updateData({ tasks: updated });
     };
 
@@ -129,12 +130,12 @@ export function PendingTasks() {
             </AnimatePresence>
 
             <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-4">
-                {tasks.length === 0 ? (
+                {pendingTasks.length === 0 ? (
                     <div className="py-20 flex flex-col items-center justify-center text-stone-700 uppercase font-bold text-[10px] tracking-[0.4em] border border-stone-800 border-dashed">
                         ¡TODO AL DÍA! SIN PENDIENTES
                     </div>
                 ) : (
-                    tasks.map((task: Task) => (
+                    pendingTasks.map((task: Task) => (
                         <TaskItem
                             key={task.id}
                             task={task}
