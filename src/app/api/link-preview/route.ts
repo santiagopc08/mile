@@ -1,12 +1,14 @@
 import { NextResponse } from 'next/server';
 import { fetchSafe } from '@/lib/fetch-safe';
-
+import { verifyAuth } from '@/lib/auth';
 
 
 // Use environment variable for API key
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
 export async function GET(request: Request) {
+    if (!(await verifyAuth())) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
     const { searchParams } = new URL(request.url);
     const targetUrl = searchParams.get('url');
 

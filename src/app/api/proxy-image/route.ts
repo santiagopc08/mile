@@ -18,9 +18,18 @@ export async function GET(request: Request) {
 
         // Security fix: Restrict open proxy to allowed origin (Supabase storage)
         const allowedOrigin = process.env.NEXT_PUBLIC_SUPABASE_URL;
-        const normalizedOrigin = allowedOrigin?.endsWith('/') ? allowedOrigin : `${allowedOrigin}/`;
-        if (!allowedOrigin || !url.startsWith(normalizedOrigin)) {
+        if (!allowedOrigin) {
             return new Response('Forbidden: URL not in allowlist', { status: 403 });
+        }
+
+        try {
+            const parsedUrl = new URL(url);
+            const parsedAllowedOrigin = new URL(allowedOrigin);
+            if (parsedUrl.origin !== parsedAllowedOrigin.origin) {
+                return new Response('Forbidden: URL not in allowlist', { status: 403 });
+            }
+        } catch (e) {
+            return new Response('Invalid URL format', { status: 400 });
         }
 
         // Fetch image on the server side to bypass browser-level CORS

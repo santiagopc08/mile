@@ -49,6 +49,8 @@ import { useDailyStats } from '@/components/mahjong/useDailyStats';
 import { useBottleMessages } from '@/components/mahjong/useBottleMessages';
 import { useDrawings } from '@/components/mahjong/useDrawings';
 import { useToast } from '@/components/ui/Toast';
+import { useFireStreak } from './mahjong/hooks/useFireStreak';
+import { ComboSign } from './mahjong/ComboSign';
 
 export function Mahjong() {
     const { profile } = useProfile();
@@ -85,85 +87,21 @@ export function Mahjong() {
     const [progressParticles, setProgressParticles] = useState<{ id: number; angle: number; speed: number; rotate: number }[]>([]);
     const [completedGamesCount, setCompletedGamesCount] = useState(0);
 
-    // Fire combo streak states
-    const [streakCombo, setStreakCombo] = useState(0);
-    const [streakTimeRemaining, setStreakTimeRemaining] = useState(0);
-    const [comboSign, setComboSign] = useState<{ id: number; text: string; combo: number } | null>(null);
-    const [comboShake, setComboShake] = useState(false);
     const [muted, setMutedState] = useState(false);
-    const streakTimerRef = useRef<NodeJS.Timeout | null>(null);
-    const comboTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const comboShakeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    // Effect for the fire combo countdown
+    const {
+        streakCombo,
+        streakTimeRemaining,
+        comboSign,
+        comboShake,
+        maxGameCombo: hookMaxGameCombo,
+        triggerStreakCombo,
+        resetFireStreak
+    } = useFireStreak();
+
     useEffect(() => {
-        if (streakCombo === 0 || streakTimeRemaining <= 0) return;
-
-        streakTimerRef.current = setTimeout(() => {
-            setStreakTimeRemaining(prev => {
-                if (prev <= 1) {
-                    // Time ran out! Fire goes off.
-                    setStreakCombo(0);
-                    setComboSign(null);
-                    return 0;
-                }
-                return prev - 1;
-            });
-        }, 1000);
-
-        return () => {
-            if (streakTimerRef.current) clearTimeout(streakTimerRef.current);
-        };
-    }, [streakCombo, streakTimeRemaining]);
-
-    const triggerStreakCombo = useCallback((newCombo: number) => {
-        setStreakCombo(newCombo);
-        setMaxGameCombo(prev => Math.max(prev, newCombo));
-        
-        const duration = 5;
-        setStreakTimeRemaining(duration);
-
-        // Gaming signs
-        let comboText = "";
-        if (newCombo === 1) {
-            comboText = "¡CHISPA ENCENDIDA!";
-        } else if (newCombo === 2) {
-            comboText = "¡BRASA ARDIENTE!";
-        } else if (newCombo === 3) {
-            comboText = "¡LLAMA ALTA!";
-        } else if (newCombo === 4) {
-            comboText = "¡LLAMARADA TOTAL!";
-        } else if (newCombo === 5) {
-            comboText = "¡TABLERO EN LLAMAS!";
-        } else {
-            comboText = `¡COMBO x${newCombo}!`;
-        }
-
-        if (comboTimeoutRef.current) {
-            clearTimeout(comboTimeoutRef.current);
-        }
-        setComboSign({ id: Date.now(), text: comboText, combo: newCombo });
-        comboTimeoutRef.current = setTimeout(() => {
-            setComboSign(null);
-        }, 1600);
-
-        // Sacudida de pantalla desde el combo 3 en adelante
-        if (newCombo >= 3) {
-            setComboShake(false);
-            if (comboShakeTimeoutRef.current) clearTimeout(comboShakeTimeoutRef.current);
-            requestAnimationFrame(() => setComboShake(true));
-            comboShakeTimeoutRef.current = setTimeout(() => setComboShake(false), 420);
-        }
-    }, []);
-
-    const resetFireStreak = useCallback(() => {
-        setStreakCombo(0);
-        setComboSign(null);
-        setComboShake(false);
-        if (comboTimeoutRef.current) clearTimeout(comboTimeoutRef.current);
-        if (streakTimerRef.current) clearTimeout(streakTimerRef.current);
-        if (comboShakeTimeoutRef.current) clearTimeout(comboShakeTimeoutRef.current);
-    }, []);
+        setMaxGameCombo(prev => Math.max(prev, hookMaxGameCombo));
+    }, [hookMaxGameCombo]);
 
     // ─── Hardening Mechanics State ───────────────────────────────────────────
     const [ghostSolidIds, setGhostSolidIds] = useState<Set<string>>(new Set());
@@ -1558,60 +1496,7 @@ export function Mahjong() {
 
             {/* Floating gaming brutalist combo sign overlay */}
             <AnimatePresence>
-                {comboSign && (() => {
-                    const tier = getComboTier(comboSign.combo);
-                    return (
-                        <motion.div
-                            key={comboSign.id}
-                            initial={{ opacity: 0, y: -45, scale: 0.35, rotate: -8 }}
-                            animate={{ opacity: 1, y: 0, scale: 1, rotate: 0 }}
-                            exit={{ opacity: 0, scale: 1.4, filter: 'blur(10px)' }}
-                            transition={{ type: 'spring', stiffness: 350, damping: 13 }}
-                            className="fixed top-[13%] left-1/2 -translate-x-1/2 z-[99995] pointer-events-none select-none"
-                        >
-                            {/* Multiplicador gigante ascendente con estallido de luz */}
-                            {comboSign.combo >= 2 && (
-                                <motion.div
-                                    key={`mult-${comboSign.id}`}
-                                    initial={{ opacity: 1, scale: 0.5, y: 0 }}
-                                    animate={{ opacity: 0, scale: 2.6, y: -45 }}
-                                    transition={{ duration: 1.2, ease: 'easeOut' }}
-                                    className="absolute -top-12 left-1/2 -translate-x-1/2 font-black italic text-6xl md:text-7xl font-mono"
-                                    style={{ color: tier.box, textShadow: `0 0 35px ${tier.glow}, 0 0 60px ${tier.box}` }}
-                                >
-                                    x{comboSign.combo}
-                                </motion.div>
-                            )}
-                            {/* Resplandor térmico de fondo detrás del banner */}
-                            <div
-                                className="absolute -inset-4 rounded-xl opacity-60 blur-xl animate-pulse"
-                                style={{ background: `radial-gradient(circle, ${tier.glow} 0%, transparent 80%)` }}
-                            />
-                            {/* Sombra 3D del letrero */}
-                            <div
-                                className="absolute inset-0 translate-x-[6px] translate-y-[6px] border-2 border-black"
-                                style={{ backgroundColor: tier.box, boxShadow: `0 0 40px ${tier.glow}` }}
-                            />
-                            {/* Caja principal */}
-                            <div
-                                className={`relative border-2 bg-black/95 px-9 py-4 text-center shimmer-sweep ${comboSign.combo >= 3 ? 'animate-combo-shake' : ''}`}
-                                style={{ borderColor: tier.box, boxShadow: `0 0 25px ${tier.glow}` }}
-                            >
-                                <div className={`flex items-center justify-center gap-2 font-mono text-[11px] font-black uppercase tracking-[0.3em] mb-1 ${tier.label}`}>
-                                    <span className="animate-bounce">{tier.emoji}</span>
-                                    Racha de Fuego
-                                    <span className="animate-bounce">{tier.emoji}</span>
-                                </div>
-                                <div
-                                    className="font-sans font-black text-2xl md:text-4xl uppercase tracking-wider text-white"
-                                    style={{ color: tier.text, textShadow: `0 0 15px ${tier.glow}, 0 2px 8px rgba(0,0,0,0.9)` }}
-                                >
-                                    {comboSign.text}
-                                </div>
-                            </div>
-                        </motion.div>
-                    );
-                })()}
+                {comboSign && <ComboSign comboSign={comboSign} />}
             </AnimatePresence>
 
             {/* Modo de Juego Tab Selector */}
