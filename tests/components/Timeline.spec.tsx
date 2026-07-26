@@ -20,6 +20,7 @@ function withFakeReactDispatcher(callback: () => void) {
                     success: () => {},
                     confirm: () => {}
                 };
+                };
             },
             useState: (initial: any) => {
                 const currentIndex = stateIndex++;

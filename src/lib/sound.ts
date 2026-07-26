@@ -56,7 +56,7 @@ class SoundEngine {
       osc.start();
       osc.stop(this.ctx.currentTime + 0.08);
     } catch (e) {
-      console.warn('Web Audio playback blocked or failed:', e);
+      // Ignore Web Audio playback blocked or failed errors
     }
   }
 
@@ -95,7 +95,7 @@ class SoundEngine {
       osc1.stop(now + 0.35);
       osc2.stop(now + 0.35);
     } catch (e) {
-      console.warn('Web Audio playback blocked or failed:', e);
+      // Ignore Web Audio playback blocked or failed errors
     }
   }
 
@@ -122,7 +122,7 @@ class SoundEngine {
       osc.start();
       osc.stop(now + 0.25);
     } catch (e) {
-      console.warn('Web Audio playback blocked or failed:', e);
+      // Ignore Web Audio playback blocked or failed errors
     }
   }
 
@@ -149,7 +149,7 @@ class SoundEngine {
       osc.start();
       osc.stop(now + 0.25);
     } catch (e) {
-      console.warn('Web Audio playback blocked or failed:', e);
+      // Ignore Web Audio playback blocked or failed errors
     }
   }
 }

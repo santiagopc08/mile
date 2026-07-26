@@ -109,6 +109,14 @@ test.describe('Proxy Image API Security', () => {
             const text = await res.text();
             expect(text).toBe('Forbidden: URL not in allowlist');
 
+            // Domain suffix bypass attempt
+            const reqBypass = createRequest('https://example.com.evil.com/image.jpg');
+            const resBypass = await mockGET(reqBypass);
+
+            expect(resBypass.status).toBe(403);
+            const textBypass = await resBypass.text();
+            expect(textBypass).toBe('Forbidden: URL not in allowlist');
+
             // Trusted domain
             mockFetchWithContentType('image/jpeg');
             delete require.cache[require.resolve('../../../src/app/api/proxy-image/route')];
