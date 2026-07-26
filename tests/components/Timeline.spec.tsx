@@ -16,7 +16,7 @@ function withFakeReactDispatcher(callback: () => void) {
                 return {
                     updateData: () => {},
                     profile: { role: 'el' },
-                    error: (msg: string) => { (global as unknown as { testAlertMessage: string }).testAlertMessage = msg; },
+                    error: (msg: string) => { if(typeof global !== 'undefined' && global.alert) global.alert(msg); },
                     success: () => {},
                     confirm: () => {},
                 };

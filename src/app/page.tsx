@@ -42,8 +42,16 @@ export default function Home() {
 
   // Compute live statistics for custom indicators
   const tasks = useMemo(() => (data?.tasks || []) as any[], [data?.tasks]);
-  const pendingTasks = useMemo(() => tasks.filter(t => t.status !== 'done' && t.status !== 'skipped'), [tasks]);
-  const assigneeTasks = useMemo(() => pendingTasks.filter(t => !t.assignee || t.assignee === profile), [pendingTasks, profile]);
+  // ⚡ Bolt Optimization: Replace multiple .filter() calls with a single O(N) pass, directly counting tasks to avoid array allocation
+  const pendingAssigneeTasksCount = useMemo(() => {
+    let count = 0;
+    for (const t of tasks) {
+      if (t.status !== 'done' && t.status !== 'skipped' && (!t.assignee || t.assignee === profile)) {
+        count++;
+      }
+    }
+    return count;
+  }, [tasks, profile]);
 
   const wishlist = useMemo(() => (data?.wishlist || []) as any[], [data?.wishlist]);
   const activePlansCount = wishlist.length;
@@ -159,7 +167,7 @@ export default function Home() {
                   </div>
                   <div className="inline-flex items-center gap-1.5 bg-black/60 px-2.5 py-1 text-[9px] font-mono uppercase tracking-wider text-[#a88a7e] border border-white/10 shrink-0">
                     <CheckSquare size={10} style={{ color: accentColorValue }} />
-                    <span>{assigneeTasks.length} Tareas Pendientes</span>
+                    <span>{pendingAssigneeTasksCount} Tareas Pendientes</span>
                   </div>
                 </div>
 
