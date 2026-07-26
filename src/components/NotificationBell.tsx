@@ -109,7 +109,7 @@ export function NotificationBell({ align = 'right' }: { align?: 'left' | 'right'
             const next: Record<string, any> = {};
             if (data) {
                 for (const n of data) {
-                    next[n.id] = n;
+                    next[(n as any).id] = n;
                 }
             }
             setNotifications(next);
