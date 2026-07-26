@@ -6,10 +6,20 @@ test.describe('Link Preview API SSRF Protections', () => {
     };
 
     const fetchSafeModulePath = require.resolve('../../../src/lib/fetch-safe');
+    const authModulePath = require.resolve('../../../src/lib/auth');
     let originalFetchSafe: unknown;
+    let originalAuth: unknown;
 
     test.beforeEach(() => {
         originalFetchSafe = require.cache[fetchSafeModulePath];
+        originalAuth = require.cache[authModulePath];
+
+        // Mock auth by default for all tests
+        require.cache[authModulePath] = {
+            exports: {
+                verifyAuth: async () => true
+            }
+        } as NodeJS.Module;
     });
 
     test.afterEach(() => {
@@ -18,6 +28,31 @@ test.describe('Link Preview API SSRF Protections', () => {
         } else {
             delete require.cache[fetchSafeModulePath];
         }
+
+        if (originalAuth) {
+            require.cache[authModulePath] = originalAuth as any;
+        } else {
+            delete require.cache[authModulePath];
+        }
+    });
+
+    test('should reject unauthenticated requests', async () => {
+        require.cache[authModulePath] = {
+            exports: {
+                verifyAuth: async () => false
+            }
+        } as NodeJS.Module;
+
+        delete require.cache[require.resolve('../../../src/app/api/link-preview/route')];
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const { GET: mockGET } = require('../../../src/app/api/link-preview/route');
+
+        const req = createRequest('https://example.com');
+        const res = await mockGET(req);
+
+        expect(res.status).toBe(401);
+        const data = await res.json();
+        expect(data.error).toBe('Unauthorized');
     });
 
     test('should allow valid public HTTP/HTTPS URLs', async () => {
