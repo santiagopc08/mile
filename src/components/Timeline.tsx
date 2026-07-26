@@ -11,6 +11,7 @@ import { useProfile } from '@/context/ProfileContext';
 import { TimelineService } from '@/services/timelineService';
 import { NotificationService } from '@/services/notificationService';
 import type { EventComment } from '@/services/storeService';
+import { useToast } from '@/components/ui/Toast';
 
 export interface TimelineEvent {
     id: string;
@@ -34,6 +35,7 @@ const EMOJI_OPTIONS = ['❤️', '😮', '😂', '✨', '☕'];
 export function Timeline({ events }: TimelineProps) {
     const { updateData } = useStore();
     const { profile } = useProfile();
+    const { error: notifyError, success, confirm } = useToast();
     const [isAdding, setIsAdding] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
 
@@ -81,7 +83,7 @@ export function Timeline({ events }: TimelineProps) {
                 try {
                     imageUrl = await TimelineService.uploadTimelineImage(file);
                 } catch (err) {
-                    alert(`Error al subir la imagen: ${err instanceof Error ? err.message : 'Error desconocido'}`);
+                    notifyError(`No se pudo subir la imagen: ${err instanceof Error ? err.message : 'error desconocido'}`);
                     setIsUploading(false);
                     return;
                 }
@@ -134,7 +136,7 @@ export function Timeline({ events }: TimelineProps) {
             try {
                 finalImageUrl = await TimelineService.uploadTimelineImage(file);
             } catch (err) {
-                alert(`Error al subir la imagen: ${err instanceof Error ? err.message : 'Error desconocido'}`);
+                notifyError(`No se pudo subir la imagen: ${err instanceof Error ? err.message : 'error desconocido'}`);
                 setIsEditUploading(false);
                 return;
             }
@@ -184,7 +186,7 @@ export function Timeline({ events }: TimelineProps) {
                 body: JSON.stringify({ action: 'react', id: event.id, reactions })
             });
         } catch (err) {
-            alert(`Error al reaccionar: ${err instanceof Error ? err.message : 'Error desconocido'}`);
+            notifyError(`No se pudo guardar tu reacción: ${err instanceof Error ? err.message : 'error desconocido'}`);
         }
     };
 
@@ -209,23 +211,34 @@ export function Timeline({ events }: TimelineProps) {
             });
             form.reset();
         } catch (err) {
-            alert(`Error al publicar el comentario: ${err instanceof Error ? err.message : 'Error desconocido'}`);
+            notifyError(`No se pudo publicar el comentario: ${err instanceof Error ? err.message : 'error desconocido'}`);
         }
     };
 
     const handleDeleteComment = async (commentId: string) => {
+        // Borrado irreversible a un toque: en móvil el icono de papelera cae
+        // justo bajo el pulgar, así que confirmamos antes.
+        const ok = await confirm({
+            title: 'Eliminar comentario',
+            message: 'Esta acción no se puede deshacer.',
+            confirmLabel: 'Eliminar',
+            tone: 'danger',
+        });
+        if (!ok) return;
+
         try {
             await fetch(`/api/timeline?id=${commentId}&type=comment`, {
                 method: 'DELETE'
             });
+            success('Comentario eliminado.');
         } catch (err) {
-            alert(`Error al eliminar el comentario: ${err instanceof Error ? err.message : 'Error desconocido'}`);
+            notifyError(`No se pudo eliminar el comentario: ${err instanceof Error ? err.message : 'error desconocido'}`);
         }
     };
 
     return (
         <div className="relative flex w-full flex-col items-center bg-mosaic py-8">
-            <div className="mb-10 w-full max-w-4xl border border-white/10 bg-[#0a0a0a] p-6 text-center rounded-none">
+            <div className="mb-10 w-full max-w-4xl border border-white/10 bg-white/[0.03] p-6 text-center rounded-none">
                 <p className="text-[10px] font-bold uppercase tracking-[0.32em] text-[#a88a7e] font-mono">Nuestros Momentos</p>
                 <h2 className="mt-3 text-3xl font-black uppercase tracking-normal text-white font-sans">Historia Compartida</h2>
             </div>
@@ -235,12 +248,12 @@ export function Timeline({ events }: TimelineProps) {
                     {!isAdding ? (
                         <button
                             onClick={() => setIsAdding(true)}
-                            className="flex w-full items-center justify-center gap-2 border border-white/10 bg-[#0a0a0a] py-4 font-mono text-xs font-bold uppercase tracking-[0.2em] text-[#a88a7e] transition-all hover:border-[#ff7020] hover:text-[#ffb595] rounded-none"
+                            className="flex w-full items-center justify-center gap-2 border border-white/10 bg-white/[0.03] py-4 font-mono text-xs font-bold uppercase tracking-[0.2em] text-[#a88a7e] transition-all hover:border-[#ff7020] hover:text-[#ffb595] rounded-none"
                         >
                             <Plus className="w-4 h-4 stroke-[1.5]" /> Añadir Nuevo Recuerdo
                         </button>
                     ) : (
-                        <form onSubmit={handleAddEvent} className="relative animate-in space-y-4 border border-white/10 bg-[#0a0a0a] p-6 pl-10 fade-in slide-in-from-top-4 rounded-none overflow-hidden">
+                        <form onSubmit={handleAddEvent} className="relative animate-in space-y-4 border border-white/10 bg-white/[0.03] p-6 pl-10 fade-in slide-in-from-top-4 rounded-none overflow-hidden">
                             {/* Left lateral author stripe */}
                             <div className="absolute left-0 top-0 bottom-0 w-[5px]" style={{ backgroundColor: profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)' }} />
 
@@ -313,9 +326,35 @@ export function Timeline({ events }: TimelineProps) {
                 </div>
             )}
 
+            {/* Estado vacío: sin esto, una historia sin recuerdos dejaba solo una
+                línea vertical desnuda bajo el título, sin decir qué era eso ni
+                cómo empezar. */}
+            {events.length === 0 && !isAdding && (
+                <div className="flex w-full max-w-4xl flex-col items-center gap-4 border border-dashed border-white/10 bg-black/40 px-6 py-14 text-center">
+                    <Calendar className="h-8 w-8 stroke-[1.2] text-[#ff7020]/70" aria-hidden="true" />
+                    <p className="font-mono text-[10px] font-black uppercase tracking-[0.28em] text-[#a88a7e]">
+                        Vuestra historia empieza aquí
+                    </p>
+                    <p className="max-w-xs text-[12px] leading-relaxed text-white/35">
+                        Todavía no hay ningún recuerdo guardado. Añade el primero y quedará en la línea
+                        de tiempo para los dos.
+                    </p>
+                    <button
+                        type="button"
+                        onClick={() => setIsAdding(true)}
+                        className="mt-2 flex items-center gap-2 border border-[#ff7020] bg-[#ff7020]/20 px-4 py-2.5 font-mono text-[10px] font-black uppercase tracking-[0.16em] text-white transition-all active:scale-95"
+                    >
+                        <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+                        Añadir el primer recuerdo
+                    </button>
+                </div>
+            )}
+
             <div className="relative w-full pl-6 md:pl-0">
                 {/* Central Line - Mobile: Left Aligned | Desktop: Centered */}
-                <div className="absolute bottom-0 left-0 top-0 w-px bg-white/10 md:left-1/2 md:-translate-x-1/2" />
+                {events.length > 0 && (
+                    <div className="absolute bottom-0 left-0 top-0 w-px bg-white/10 md:left-1/2 md:-translate-x-1/2" />
+                )}
 
                 <div className="space-y-16 md:space-y-24">
                     {events.map((event, index) => {
@@ -339,7 +378,7 @@ export function Timeline({ events }: TimelineProps) {
 
                             {/* Content Card */}
                             <div className={`w-full pl-8 md:pl-0 md:w-5/12 ${isLeft ? 'md:text-right text-left' : 'text-left'}`}>
-                                <div className={`relative overflow-hidden border p-5 pl-10 md:p-6 md:pl-10 transition-all rounded-none bg-[#0a0a0a] ${editingId === event.id ? 'border-[#ff7020]' : 'border-white/10'}`}>
+                                <div className={`relative overflow-hidden border p-5 pl-10 md:p-6 md:pl-10 transition-all rounded-none bg-white/[0.03] ${editingId === event.id ? 'border-[#ff7020]' : 'border-white/10'}`}>
                                     
                                     {/* Left lateral author stripe */}
                                     <div className="absolute left-0 top-0 bottom-0 w-[5px]" style={{ backgroundColor: eventAccent }} />
@@ -532,7 +571,7 @@ export function Timeline({ events }: TimelineProps) {
                                 animate={{ x: 0 }}
                                 exit={{ x: '100%' }}
                                 transition={{ type: 'spring', damping: 25, stiffness: 220 }}
-                                className="fixed right-0 top-0 bottom-0 z-[70] w-full max-w-md border-l border-white/10 bg-[#070707] p-6 pb-[calc(2rem+env(safe-area-inset-bottom))] lg:pb-6 shadow-2xl flex flex-col justify-between rounded-none"
+                                className="fixed right-0 top-0 bottom-0 z-[70] w-full max-w-md border-l border-white/15 bg-[#120b15]/90 backdrop-blur-2xl p-6 pb-[calc(2rem+env(safe-area-inset-bottom))] lg:pb-6 shadow-[0_0_50px_rgba(0,0,0,0.8)] flex flex-col justify-between rounded-none"
                             >
                                 <div className="flex flex-col h-full overflow-hidden">
                                     {/* Header */}

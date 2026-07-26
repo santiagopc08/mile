@@ -2,23 +2,10 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Lock, ArrowRight, User, UserCheck, ChevronLeft, Shield } from 'lucide-react';
-import { GeometricBackground } from './GeometricBackground';
+import { AmbientField } from './AmbientField';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const PROFILE_COLORS = {
-    el: {
-        primary: '#89D94A',
-        secondary: '#B8FF2E',
-        shadow: '#3C5F1F',
-        highlight: '#D6FF8A'
-    },
-    ella: {
-        primary: '#FF4F9A',
-        secondary: '#FF79B6',
-        shadow: '#7A1E47',
-        highlight: '#FFB3D0'
-    }
-};
+import { PROFILE_PALETTE as PROFILE_COLORS } from '@/lib/profilePalette';
 
 interface LoginOverlayProps {
     onLoginSuccess: (profile: 'el' | 'ella', password?: string) => Promise<boolean>;
@@ -83,7 +70,7 @@ export function LoginOverlay({ onLoginSuccess }: LoginOverlayProps) {
             className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-[#131313] p-4 text-[#fbdae0] font-sans selection:bg-white/20 select-none"
         >
             {/* Layer 01 & 03: Animated Background System */}
-            <GeometricBackground activeProfile={selectedProfile} />
+            <AmbientField preset="login" profile={selectedProfile} attach="parent" dim interactive={false} />
 
             {/* Layer 02: Blueprint Grid Lines Overlay */}
             <div className="absolute inset-0 z-[1] pointer-events-none opacity-5">
@@ -151,45 +138,38 @@ export function LoginOverlay({ onLoginSuccess }: LoginOverlayProps) {
             {/* Layer 05: Main Content Module */}
             <div className="relative z-20 w-full max-w-sm font-mono">
                 {/* Main Card Wrapper */}
-                <div className="border border-white/10 bg-[#161616] p-8 relative overflow-hidden transition-all duration-700"
+                <div className="border border-white/15 bg-white/[0.04] backdrop-blur-2xl p-8 relative overflow-hidden transition-all duration-700 shadow-[0_25px_60px_rgba(0,0,0,0.7)]"
                     style={{
-                        borderColor: selectedProfile ? `${accentColor}40` : 'rgba(255, 255, 255, 0.1)',
-                        boxShadow: selectedProfile ? `0 0 30px ${accentColor}10` : 'none'
+                        borderColor: selectedProfile ? `${accentColor}50` : 'rgba(255, 255, 255, 0.15)',
+                        boxShadow: selectedProfile ? `0 0 40px ${accentColor}25, 0 25px 60px rgba(0,0,0,0.7)` : '0 25px 60px rgba(0,0,0,0.7)'
                     }}>
                     {/* Corner Accent Box */}
-                    <div className="absolute top-0 right-0 p-1 font-mono text-[6px] text-white/30 border-b border-l border-white/10 uppercase bg-[#1e1e1e]">
+                    <div className="absolute top-0 right-0 p-1 font-mono text-[6px] text-white/40 border-b border-l border-white/10 uppercase bg-white/[0.08] backdrop-blur-md">
                         ACCESO 01
                     </div>
 
                     <div className="text-center mb-8">
                         {/* Interactive Dynamic Shield Logo */}
                         <div
-                            className="mx-auto mb-4 flex h-14 w-14 items-center justify-center border-2 bg-[#121212] transition-all duration-700"
+                            className="mx-auto mb-4 flex h-14 w-14 items-center justify-center border-2 bg-white/[0.05] backdrop-blur-md transition-all duration-700"
                             style={{
                                 borderColor: accentColor,
                                 color: highlightColor,
-                                boxShadow: selectedProfile ? `0 0 15px ${accentColor}30` : 'none',
+                                boxShadow: selectedProfile ? `0 0 20px ${accentColor}40` : 'none',
                                 transform: selectedProfile ? 'rotate(90deg)' : 'none'
                             }}
                         >
-                            {selectedProfile ? <Shield className="w-6 h-6 animate-pulse" /> : <Lock className="w-6 h-6" />}
+                            <Shield className="w-6 h-6 transition-transform duration-700" />
                         </div>
-
-                        <div className="mb-2 text-[8px] font-bold uppercase tracking-[0.25em] text-white/40">
-                            SELECCIÓN DE IDENTIDAD
-                        </div>
-                        <h1
-                            className="mb-1 text-2xl font-black uppercase leading-none tracking-tight text-white transition-colors duration-700"
-                            style={{ color: highlightColor }}
-                        >
-                            {selectedProfile ? (selectedProfile === 'el' ? 'Santiago' : 'Milena') : 'Espacio Seguro'}
-                        </h1>
-                        <p className="text-[9px] uppercase tracking-[0.15em] text-white/60">
-                            {selectedProfile ? 'Confirmar Acceso' : 'Selecciona Identidad'}
+                        <h2 className="text-sm font-bold uppercase tracking-[0.25em] text-white mb-1">
+                            CONTROL DE ACCESO
+                        </h2>
+                        <p className="text-[9px] text-[#a88a7e] uppercase tracking-[0.16em]">
+                            SELECCIONE PERFIL OPERATIVO
                         </p>
                     </div>
 
-                    {/* Content Switcher */}
+                    {/* Interactive Body */}
                     <div className="relative">
                         {!selectedProfile ? (
                             /* Grayscale-start tactile card selector */
@@ -197,31 +177,31 @@ export function LoginOverlay({ onLoginSuccess }: LoginOverlayProps) {
                                 {/* Button: Él */}
                                 <button
                                     onClick={(e) => handleProfileSelect('el', e)}
-                                    className="group relative flex flex-col items-center justify-center border border-white/10 bg-[#121212] py-8 px-4 transition-all duration-200 hover:border-[#89D94A] hover:bg-[#89D94A]/5 hover:translate-y-[-2px] active:translate-y-[0px] active:bg-[#89D94A]/10"
+                                    className="group relative flex flex-col items-center justify-center border border-white/12 bg-white/[0.04] backdrop-blur-md py-8 px-4 transition-all duration-200 hover:border-[#c3f400] hover:bg-[#c3f400]/10 hover:translate-y-[-2px] active:translate-y-[0px]"
                                 >
-                                    <div className="mb-3 flex h-12 w-12 items-center justify-center border border-white/10 text-white/50 transition-colors duration-200 group-hover:border-[#89D94A] group-hover:text-[#89D94A]">
+                                    <div className="mb-3 flex h-12 w-12 items-center justify-center border border-white/15 bg-white/[0.04] text-white/60 transition-colors duration-200 group-hover:border-[#c3f400] group-hover:text-[#c3f400]">
                                         <User className="w-5 h-5" />
                                     </div>
-                                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/70 group-hover:text-[#89D94A]">
+                                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/80 group-hover:text-[#c3f400]">
                                         ÉL
                                     </span>
                                     {/* Tech corner accent inside button */}
-                                    <div className="absolute bottom-0 right-0 w-1.5 h-1.5 bg-white/10 group-hover:bg-[#89D94A] transition-colors" />
+                                    <div className="absolute bottom-0 right-0 w-1.5 h-1.5 bg-white/15 group-hover:bg-[#c3f400] transition-colors" />
                                 </button>
 
                                 {/* Button: Ella */}
                                 <button
                                     onClick={(e) => handleProfileSelect('ella', e)}
-                                    className="group relative flex flex-col items-center justify-center border border-white/10 bg-[#121212] py-8 px-4 transition-all duration-200 hover:border-[#FF4F9A] hover:bg-[#FF4F9A]/5 hover:translate-y-[-2px] active:translate-y-[0px] active:bg-[#FF4F9A]/10"
+                                    className="group relative flex flex-col items-center justify-center border border-white/12 bg-white/[0.04] backdrop-blur-md py-8 px-4 transition-all duration-200 hover:border-[#ff4b89] hover:bg-[#ff4b89]/10 hover:translate-y-[-2px] active:translate-y-[0px]"
                                 >
-                                    <div className="mb-3 flex h-12 w-12 items-center justify-center border border-white/10 text-white/50 transition-colors duration-200 group-hover:border-[#FF4F9A] group-hover:text-[#FF4F9A]">
+                                    <div className="mb-3 flex h-12 w-12 items-center justify-center border border-white/15 bg-white/[0.04] text-white/60 transition-colors duration-200 group-hover:border-[#ff4b89] group-hover:text-[#ff4b89]">
                                         <UserCheck className="w-5 h-5" />
                                     </div>
-                                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/70 group-hover:text-[#FF4F9A]">
+                                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/80 group-hover:text-[#ff4b89]">
                                         ELLA
                                     </span>
                                     {/* Tech corner accent inside button */}
-                                    <div className="absolute bottom-0 right-0 w-1.5 h-1.5 bg-white/10 group-hover:bg-[#FF4F9A] transition-colors" />
+                                    <div className="absolute bottom-0 right-0 w-1.5 h-1.5 bg-white/15 group-hover:bg-[#ff4b89] transition-colors" />
                                 </button>
                             </div>
                         ) : (
@@ -237,7 +217,7 @@ export function LoginOverlay({ onLoginSuccess }: LoginOverlayProps) {
                                             placeholder="CONTRASEÑA"
                                             className="w-full border bg-black py-4 pl-4 pr-14 text-center text-sm font-bold tracking-[0.25em] text-white outline-none transition-all placeholder:text-white/20 placeholder:tracking-normal focus:bg-black/50"
                                             style={{
-                                                borderColor: error ? '#FF4F9A' : accentColor,
+                                                borderColor: error ? '#ff4b89' : accentColor,
                                                 color: highlightColor,
                                                 boxShadow: `0 0 10px ${accentColor}15`
                                             }}
@@ -274,7 +254,7 @@ export function LoginOverlay({ onLoginSuccess }: LoginOverlayProps) {
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -10 }}
-                            className="mt-4 border border-[#FF4F9A] bg-[#FF4F9A]/5 p-3 text-center text-[9px] font-black uppercase tracking-[0.25em] text-[#FF4F9A]"
+                            className="mt-4 border border-[#ff4b89] bg-[#ff4b89]/5 p-3 text-center text-[9px] font-black uppercase tracking-[0.25em] text-[#ff4b89]"
                         >
                             CLAVE INCORRECTA // INTENTA DE NUEVO
                         </motion.div>

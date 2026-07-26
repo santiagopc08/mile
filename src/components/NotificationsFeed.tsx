@@ -6,9 +6,11 @@ import { NotificationService } from '@/services/notificationService';
 import { useProfile } from '@/context/ProfileContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
+import { useToast } from '@/components/ui/Toast';
 
 export function NotificationsFeed() {
     const { profile } = useProfile();
+    const { confirm, success, error: notifyError } = useToast();
     const [notifications, setNotifications] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -88,14 +90,27 @@ export function NotificationsFeed() {
 
     const handleClearAll = async () => {
         if (!profile) return;
+
+        // Borra la bitácora entera de un toque: sin confirmación era la acción
+        // más destructiva de la app.
+        const ok = await confirm({
+            title: 'Vaciar bitácora',
+            message: `Se eliminarán ${notifications.length} avisos. No se pueden recuperar.`,
+            confirmLabel: 'Vaciar',
+            tone: 'danger',
+        });
+        if (!ok) return;
+
         try {
             await supabase
                 .from('notifications')
                 .delete()
                 .eq('target_profile', profile);
             setNotifications([]);
+            success('Bitácora vaciada.');
         } catch (err) {
             console.error('Failed to clear notifications:', err);
+            notifyError('No se pudo vaciar la bitácora. Inténtalo de nuevo.');
         }
     };
 

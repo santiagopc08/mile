@@ -132,7 +132,7 @@ export const FiscalAuditor: React.FC<FiscalAuditorProps> = ({ allocations, onAdd
     };
 
     return (
-        <div className={`geometric-card p-6 transition-all duration-500 ${thresholdsExceeded ? 'border-system-alert bg-fractured-mosaic bg-system-alert-soft' : 'border-white/10 bg-[#0a0a0a] bg-dot-matrix'}`}>
+        <div className={`geometric-card p-6 transition-all duration-500 ${thresholdsExceeded ? 'border-system-alert bg-fractured-mosaic bg-system-alert-soft' : 'border-white/10 bg-dot-matrix'}`}>
             <h2 className={`mb-6 flex items-center justify-between border-b pb-3 text-[10px] font-black uppercase tracking-[0.22em] font-mono ${thresholdsExceeded ? 'border-system-alert/20 text-system-alert' : 'border-white/10 text-[#a88a7e]'}`}>
                 <span className="pr-2">Fiscal Health Guardian</span>
                 <span className="text-[8px] font-mono opacity-50 pl-2">Auditor v1.0</span>

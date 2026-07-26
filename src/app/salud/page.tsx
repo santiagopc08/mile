@@ -11,6 +11,7 @@ import { Activity, HeartPulse, Shield, Flame } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Allocation, StoreService } from "@/services/storeService";
 import { MovementTracker } from "@/components/health/MovementTracker";
+import { AmbientField } from "@/components/AmbientField";
 
 export default function SaludPage() {
     type SaludTab = 'vitals' | 'biometric' | 'fiscal' | 'habits' | 'movement';
@@ -61,19 +62,24 @@ export default function SaludPage() {
 
     return (
         <PrivateRoute>
-            <main className="relative z-10 min-h-screen w-full overflow-hidden bg-black px-4 pb-24 pt-6 text-[#e5e2e1] md:px-8 md:pt-8 font-mono">
-                <div className="pointer-events-none fixed inset-0 -z-10 bg-mosaic opacity-60" />
-                <div className="pointer-events-none fixed inset-x-0 top-0 -z-10 h-64 opacity-20" style={{ backgroundImage: `linear-gradient(180deg, ${accentColor}, transparent)` }} />
-                <div className="mx-auto w-full max-w-7xl border-x border-white/10">
-                    <div className="border-y border-white/10 bg-[#0a0a0a]/95 rounded-none">
+            <AmbientField preset="salud" profile={profile} />
+            <main className="relative z-10 min-h-screen w-full overflow-hidden px-4 pb-24 pt-6 text-[#e5e2e1] md:px-8 md:pt-8 font-mono">
+                <div className="mx-auto w-full max-w-7xl">
+                    <div className="border border-white/12 bg-white/[0.04] backdrop-blur-2xl backdrop-saturate-150 shadow-[0_12px_36px_rgba(0,0,0,0.5)] mb-4">
                         <div className="relative p-5 sm:p-8 md:p-10">
                             <div className={`absolute left-0 top-0 h-full w-[5px] bg-${accentClass}`} style={{ backgroundColor: accentColor }} />
-                            <h1 className="text-3xl sm:text-4xl md:text-5xl font-mono font-bold uppercase leading-[0.92] tracking-tight text-white flex justify-between items-center">Salud
-                                <div className="relative p-1 border border-white/10 bg-black rounded-none">
+                            <div className="flex items-center justify-between gap-3 w-full">
+                                <div className="flex items-center gap-3">
+                                    <span className="font-mono text-base sm:text-xl animate-spin-slow" style={{ color: accentColor }}>◆</span>
+                                    <h1 className="text-2xl sm:text-4xl md:text-5xl font-mono font-bold uppercase leading-[0.92] tracking-tight text-white">
+                                        SALUD · SIGNOS VITALES
+                                    </h1>
+                                </div>
+                                <div className="relative p-1 border border-white/15 bg-white/[0.05] backdrop-blur-md shrink-0">
                                     <div className={`absolute top-0 left-0 w-1.5 h-1.5 border-t border-l border-${accentClass}`} style={{ borderColor: accentColor }} />
                                     <div className={`absolute bottom-0 right-0 w-1.5 h-1.5 border-b border-r border-${accentClass}`} style={{ borderColor: accentColor }} />
                                     <video
-                                        className="w-20 h-20 object-cover contrast-125 opacity-80 mix-blend-screen rounded-none"
+                                        className="w-16 h-16 sm:w-20 sm:h-20 object-cover contrast-125 opacity-80 mix-blend-screen"
                                         src="vid/dogtor.mp4"
                                         autoPlay
                                         loop
@@ -85,18 +91,18 @@ export default function SaludPage() {
                                         <div className={`w-1 h-1 bg-${secondaryClass} animate-pulse`} style={{ backgroundColor: secondaryColor }} />
                                     </div>
                                 </div>
-                            </h1>
+                            </div>
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 border-b border-white/10 bg-black sm:grid-cols-4 rounded-none">
+                    <div className="grid grid-cols-2 border border-white/12 bg-white/[0.03] backdrop-blur-2xl backdrop-saturate-150 sm:grid-cols-4 mb-6 shadow-lg">
                         {tabs.map((tab) => (
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
                                 className={`group relative font-mono flex min-h-20 items-center justify-between border-b border-white/10 px-4 py-4 transition-all last:border-b-0 sm:border-b-0 sm:border-r sm:last:border-r-0 rounded-none ${activeTab === tab.id
                                     ? 'text-black'
-                                    : 'bg-[#0a0a0a] text-[#a88a7e] hover:bg-[#121212] hover:text-white'
+                                    : 'text-[#a88a7e] hover:bg-white/[0.06] hover:text-white'
                                     }`}
                                 style={activeTab === tab.id ? { backgroundColor: accentColor } : {}}
                             >
@@ -118,7 +124,7 @@ export default function SaludPage() {
                         ))}
                     </div>
 
-                    <div id="salud-content" className="bg-[#050505] p-3 sm:p-5 md:p-8">
+                    <div id="salud-content" className="bg-[#0a070c]/40 backdrop-blur-xl backdrop-saturate-150 p-3 sm:p-5 md:p-8">
 
                         <AnimatePresence mode="wait">
                             <motion.div

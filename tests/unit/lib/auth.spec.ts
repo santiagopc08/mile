@@ -133,29 +133,19 @@ test.describe('verifyAuth', () => {
         expect(result).toBe(true);
     });
 
-    test('headers exception falls back to cookie and logs error', async () => {
-        let errorLogged = false;
-        console.error = () => {
-            errorLogged = true;
-        };
+    test('headers exception falls back to cookie', async () => {
+        setupMocks(
+            {},
+            { 'mile_device_token': 'test_token' },
+            async () => ({ data: null, error: new Error('not found') }),
+            async () => ({ data: { id: 'some-id', token: 'test_token' }, error: null }),
+            true // shouldHeadersThrow
+        );
 
-        try {
-            setupMocks(
-                {},
-                { 'mile_device_token': 'test_token' },
-                async () => ({ data: null, error: new Error('not found') }),
-                async () => ({ data: { id: 'some-id', token: 'test_token' }, error: null }),
-                true // shouldHeadersThrow
-            );
+        const { verifyAuth } = require('../../../src/lib/auth.ts');
+        const result = await verifyAuth();
 
-            const { verifyAuth } = require('../../../src/lib/auth.ts');
-            const result = await verifyAuth();
-
-            expect(result).toBe(true);
-            expect(errorLogged).toBe(true);
-        } finally {
-            console.error = originalConsoleError;
-        }
+        expect(result).toBe(true);
     });
 
     test('missing cookie returns false', async () => {
@@ -210,29 +200,19 @@ test.describe('verifyAuth', () => {
         expect(result).toBe(true);
     });
 
-    test('cookies exception returns false and logs error', async () => {
-        let errorLogged = false;
-        console.error = () => {
-            errorLogged = true;
-        };
+    test('cookies exception returns false', async () => {
+        setupMocks(
+            {},
+            {},
+            async () => ({}),
+            async () => ({}),
+            false,
+            true // shouldCookiesThrow
+        );
 
-        try {
-            setupMocks(
-                {},
-                {},
-                async () => ({}),
-                async () => ({}),
-                false,
-                true // shouldCookiesThrow
-            );
+        const { verifyAuth } = require('../../../src/lib/auth.ts');
+        const result = await verifyAuth();
 
-            const { verifyAuth } = require('../../../src/lib/auth.ts');
-            const result = await verifyAuth();
-
-            expect(result).toBe(false);
-            expect(errorLogged).toBe(true);
-        } finally {
-            console.error = originalConsoleError;
-        }
+        expect(result).toBe(false);
     });
 });

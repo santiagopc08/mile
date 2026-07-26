@@ -6,6 +6,7 @@ import * as THREE from 'three';
 import { TileState } from './MahjongTile';
 import { Tile3D } from './Tile3D';
 import { useProfile } from '@/context/ProfileContext';
+import * as MahjongAudio from '@/lib/mahjongAudio';
 
 // --- RIG DE CÁMARA (Efecto Parallax sutil con ratón y auto-escalado matemático) ---
 interface CameraRigProps {
@@ -117,19 +118,19 @@ function easeOutCubic(t: number) {
 
 function FlameBurst({ position, combo, color }: { position: [number, number, number]; combo: number; color: string }) {
     const flameRef = useRef<THREE.Group>(null);
-    const flameCount = Math.min(12, 3 + combo * 2);
+    const flameCount = Math.min(16, 4 + combo * 3);
 
     const flames = useMemo(() => {
         return Array.from({ length: flameCount }, (_, idx) => {
-            const angle = (idx / flameCount) * Math.PI * 2 + Math.random() * 0.45;
-            const radius = 0.18 + Math.random() * 0.38;
+            const angle = (idx / flameCount) * Math.PI * 2 + Math.random() * 0.35;
+            const radius = 0.22 + Math.random() * 0.45;
             return {
                 x: Math.cos(angle) * radius,
                 y: Math.sin(angle) * radius,
-                z: 0.08 + Math.random() * 0.18,
-                scale: 0.32 + Math.random() * 0.22 + combo * 0.025,
+                z: 0.10 + Math.random() * 0.22,
+                scale: 0.38 + Math.random() * 0.28 + combo * 0.035,
                 phase: Math.random() * Math.PI * 2,
-                height: 0.55 + Math.random() * 0.35 + combo * 0.035
+                height: 0.65 + Math.random() * 0.45 + combo * 0.05
             };
         });
     }, [combo, flameCount]);
@@ -139,10 +140,10 @@ function FlameBurst({ position, combo, color }: { position: [number, number, num
         const time = state.clock.elapsedTime;
         flameRef.current.children.forEach((child, idx) => {
             const flame = flames[idx];
-            const pulse = 1 + Math.sin(time * 8 + flame.phase) * 0.16;
+            const pulse = 1 + Math.sin(time * 10 + flame.phase) * 0.22;
             child.scale.set(flame.scale * pulse, flame.height * pulse, flame.scale);
-            child.position.z = flame.z + Math.sin(time * 5 + flame.phase) * 0.035;
-            child.rotation.z = Math.sin(time * 4 + flame.phase) * 0.18;
+            child.position.z = flame.z + Math.sin(time * 6 + flame.phase) * 0.045;
+            child.rotation.z = Math.sin(time * 5 + flame.phase) * 0.25;
         });
     });
 
@@ -150,11 +151,11 @@ function FlameBurst({ position, combo, color }: { position: [number, number, num
         <group ref={flameRef} position={position}>
             {flames.map((flame, idx) => (
                 <mesh key={idx} position={[flame.x, flame.y, flame.z]} rotation={[0, 0, flame.phase]}>
-                    <coneGeometry args={[0.15, 0.75, 5, 1, true]} />
+                    <coneGeometry args={[0.18, 0.85, 6, 1, true]} />
                     <meshBasicMaterial
-                        color={idx % 3 === 0 ? '#fff3a3' : idx % 3 === 1 ? '#ff8a00' : color}
+                        color={idx % 3 === 0 ? '#fff5b8' : idx % 3 === 1 ? '#ff9d00' : combo >= 4 ? '#ff2e7e' : color}
                         transparent
-                        opacity={0.58}
+                        opacity={0.72}
                         depthWrite={false}
                         blending={THREE.AdditiveBlending}
                         side={THREE.DoubleSide}
@@ -177,29 +178,29 @@ function MatchExplosion({ position, color, combo, onComplete }: ExplosionProps) 
     const vBarRef = useRef<THREE.Mesh>(null);
 
     const ageRef = useRef(0);
-    const duration = Math.min(0.95, 0.62 + combo * 0.035);
+    const duration = Math.min(1.1, 0.70 + combo * 0.04);
 
-    // Generar fragmentos cuadriculados y barras (pixel glitch brutalista)
+    // Generar fragmentos y chispas ardientes de alta velocidad
     const particles = useMemo(() => {
         const arr: Particle[] = [];
-        const count = Math.min(96, 46 + combo * 8);
+        const count = Math.min(110, 52 + combo * 10);
         for (let i = 0; i < count; i++) {
             const theta = Math.random() * Math.PI * 2;
-            const speed = 2.8 + Math.random() * (4.4 + combo * 0.22);
+            const speed = 3.2 + Math.random() * (5.2 + combo * 0.28);
 
             const velX = Math.cos(theta) * speed;
             const velY = Math.sin(theta) * speed;
-            const velZ = 0.25 + Math.random() * (1.2 + combo * 0.08);
+            const velZ = 0.35 + Math.random() * (1.5 + combo * 0.12);
 
             arr.push({
                 pos: [...position],
                 vel: [velX, velY, velZ],
                 rot: [0, 0, Math.random() * Math.PI],
-                rotVel: [0, 0, (Math.random() - 0.5) * 14],
-                scale: 0.035 + Math.random() * 0.085,
-                life: 0.65 + Math.random() * 0.35,
-                delay: Math.random() * 0.13,
-                shape: Math.random() > 0.72 ? 'bar' : Math.random() > 0.45 ? 'ember' : 'spark'
+                rotVel: [0, 0, (Math.random() - 0.5) * 16],
+                scale: 0.04 + Math.random() * 0.095,
+                life: 0.70 + Math.random() * 0.35,
+                delay: Math.random() * 0.12,
+                shape: Math.random() > 0.70 ? 'bar' : Math.random() > 0.40 ? 'ember' : 'spark'
             });
         }
         return arr.sort((a, b) => a.delay - b.delay);
@@ -220,63 +221,64 @@ function MatchExplosion({ position, color, combo, onComplete }: ExplosionProps) 
         const eased = easeOutCubic(lifeProgress);
         const time = state.clock.elapsedTime;
 
-        const flameColor = combo >= 3 ? '#ff6a00' : color;
-        const accentPulse = 0.86 + Math.sin(time * 18) * 0.14;
+        // Fuego incandescente solar o rosa deslumbrante en alto combo
+        const flameColor = combo >= 5 ? '#ff2a75' : combo >= 3 ? '#ff7700' : color;
+        const accentPulse = 0.88 + Math.sin(time * 20) * 0.12;
 
-        // Luz parpadeante
+        // Luz parpadeante de estallido
         if (lightRef.current) {
-            lightRef.current.intensity = progress * (18 + combo * 4) * accentPulse;
+            lightRef.current.intensity = progress * (24 + combo * 6) * accentPulse;
             lightRef.current.color.set(flameColor);
         }
 
         if (flashRef.current) {
-            const flashScale = 0.12 + eased * (1.7 + combo * 0.14);
+            const flashScale = 0.15 + eased * (2.1 + combo * 0.18);
             flashRef.current.scale.set(flashScale, flashScale, flashScale);
             const flashMat = flashRef.current.material as THREE.MeshStandardMaterial;
             if (flashMat) {
-                flashMat.opacity = progress * 0.55;
+                flashMat.opacity = progress * 0.75;
                 flashMat.emissive.set(flameColor);
-                flashMat.emissiveIntensity = progress * (3.5 + combo * 0.3);
+                flashMat.emissiveIntensity = progress * (4.2 + combo * 0.4);
             }
         }
 
         if (ringRef.current) {
-            const ringScale = 0.25 + eased * (4.5 + combo * 0.32);
+            const ringScale = 0.28 + eased * (5.2 + combo * 0.4);
             ringRef.current.scale.set(ringScale, ringScale, 1);
             const ringMat = ringRef.current.material as THREE.MeshBasicMaterial;
             if (ringMat) {
-                ringMat.opacity = progress * 0.72;
+                ringMat.opacity = progress * 0.85;
                 ringMat.color.set(flameColor);
             }
         }
 
         if (haloRef.current) {
-            const haloScale = 0.2 + eased * (2.8 + combo * 0.24);
-            haloRef.current.scale.set(haloScale * 1.18, haloScale, 1);
-            haloRef.current.rotation.z = time * 0.7;
+            const haloScale = 0.22 + eased * (3.2 + combo * 0.3);
+            haloRef.current.scale.set(haloScale * 1.2, haloScale, 1);
+            haloRef.current.rotation.z = time * 0.8;
             const haloMat = haloRef.current.material as THREE.MeshBasicMaterial;
             if (haloMat) {
-                haloMat.opacity = progress * 0.34;
+                haloMat.opacity = progress * 0.45;
                 haloMat.color.set(color);
             }
         }
 
         if (hBarRef.current) {
-            const hScaleX = 0.25 + eased * (5.0 + combo * 0.35);
-            hBarRef.current.scale.set(hScaleX, 1 + Math.sin(time * 16) * 0.25, 1);
+            const hScaleX = 0.28 + eased * (6.0 + combo * 0.4);
+            hBarRef.current.scale.set(hScaleX, 1 + Math.sin(time * 18) * 0.3, 1);
             const mat = hBarRef.current.material as THREE.MeshBasicMaterial;
             if (mat) {
-                mat.opacity = progress * 0.42;
+                mat.opacity = progress * 0.50;
                 mat.color.set(flameColor);
             }
         }
 
         if (vBarRef.current) {
-            const vScaleY = 0.25 + eased * (5.0 + combo * 0.35);
-            vBarRef.current.scale.set(1 + Math.cos(time * 15) * 0.2, vScaleY, 1);
+            const vScaleY = 0.28 + eased * (6.0 + combo * 0.4);
+            vBarRef.current.scale.set(1 + Math.cos(time * 18) * 0.25, vScaleY, 1);
             const mat = vBarRef.current.material as THREE.MeshBasicMaterial;
             if (mat) {
-                mat.opacity = progress * 0.36;
+                mat.opacity = progress * 0.45;
                 mat.color.set(flameColor);
             }
         }
@@ -296,25 +298,27 @@ function MatchExplosion({ position, color, combo, onComplete }: ExplosionProps) 
                     p.pos[1] += p.vel[1] * safeDelta;
                     p.pos[2] += p.vel[2] * safeDelta;
 
-                    p.vel[0] *= 0.982;
-                    p.vel[1] *= 0.982;
-                    p.vel[2] = p.vel[2] * 0.965 - safeDelta * 1.6;
+                    p.vel[0] *= 0.975;
+                    p.vel[1] *= 0.975;
+                    p.vel[2] = p.vel[2] * 0.950 - safeDelta * 2.2;
 
                     p.rot[2] += p.rotVel[2] * safeDelta;
 
                     mesh.position.set(p.pos[0], p.pos[1], p.pos[2]);
                     mesh.rotation.set(p.rot[0], p.rot[1], p.rot[2]);
 
-                    const particleFade = visible ? Math.sin(localEase * Math.PI) * (1 - localProgress * 0.35) : 0;
-                    const baseScale = p.scale * particleFade * (1 + combo * 0.045);
-                    const stretch = p.shape === 'bar' ? 3.2 : p.shape === 'ember' ? 1.45 : 1.0;
+                    const particleFade = visible ? Math.sin(localEase * Math.PI) * (1 - localProgress * 0.25) : 0;
+                    const baseScale = p.scale * particleFade * (1 + combo * 0.05);
+                    const stretch = p.shape === 'bar' ? 3.8 : p.shape === 'ember' ? 1.6 : 1.0;
                     mesh.scale.set(baseScale * stretch, baseScale * (p.shape === 'bar' ? 0.35 : 1.0), baseScale);
 
                     const mat = mesh.material as THREE.MeshStandardMaterial;
                     if (mat) {
                         mat.opacity = particleFade;
-                        mat.emissive.set(p.shape === 'ember' ? '#ff7a00' : flameColor);
-                        mat.emissiveIntensity = particleFade * (2.4 + combo * 0.2);
+                        // Evolución de color por radiación de cuerpo negro (Incandescente -> Dorado -> Carmesí)
+                        const emberColor = localProgress < 0.2 ? '#ffffff' : localProgress < 0.65 ? '#ffaa00' : '#cc1100';
+                        mat.emissive.set(p.shape === 'ember' ? emberColor : flameColor);
+                        mat.emissiveIntensity = particleFade * (3.5 + combo * 0.4);
                     }
                 }
             });
@@ -323,47 +327,47 @@ function MatchExplosion({ position, color, combo, onComplete }: ExplosionProps) 
 
     return (
         <group>
-            {/* Destello de luz dinámica de glitch */}
+            {/* Destello de luz dinámica de estallido */}
             <pointLight
                 ref={lightRef}
                 position={position}
                 color={color}
-                intensity={16}
-                distance={7.5 + combo * 0.5}
-                decay={2.2}
+                intensity={22}
+                distance={8.5 + combo * 0.6}
+                decay={2.0}
             />
 
-            {/* Núcleo digital de glitch */}
+            {/* Núcleo resplandeciente blanco de choque */}
             <mesh ref={flashRef} position={position}>
-                <sphereGeometry args={[0.42, 16, 16]} />
+                <sphereGeometry args={[0.48, 16, 16]} />
                 <meshStandardMaterial
                     color="#ffffff"
                     emissive={color}
-                    emissiveIntensity={2.5}
+                    emissiveIntensity={3.2}
                     transparent
-                    opacity={0.8}
+                    opacity={0.9}
                     depthWrite={false}
                 />
             </mesh>
 
-            {/* Anillo de onda digital segmentado (Cuadrado, 4 segmentos) */}
+            {/* Anillo de onda expansiva */}
             <mesh ref={ringRef} position={[position[0], position[1], position[2] + 0.02]}>
-                <ringGeometry args={[0.08, 0.42, 48]} />
+                <ringGeometry args={[0.09, 0.48, 48]} />
                 <meshBasicMaterial
                     color={color}
                     transparent
-                    opacity={0.85}
+                    opacity={0.9}
                     side={THREE.DoubleSide}
                     depthWrite={false}
                 />
             </mesh>
 
             <mesh ref={haloRef} position={[position[0], position[1], position[2] + 0.018]}>
-                <ringGeometry args={[0.16, 0.68, 64]} />
+                <ringGeometry args={[0.18, 0.75, 64]} />
                 <meshBasicMaterial
                     color={color}
                     transparent
-                    opacity={0.3}
+                    opacity={0.4}
                     side={THREE.DoubleSide}
                     depthWrite={false}
                     blending={THREE.AdditiveBlending}
@@ -374,41 +378,41 @@ function MatchExplosion({ position, color, combo, onComplete }: ExplosionProps) 
 
             {/* Interferencia horizontal (scanline glitch) */}
             <mesh ref={hBarRef} position={[position[0], position[1], position[2] + 0.015]}>
-                <planeGeometry args={[1.2, 0.03]} />
+                <planeGeometry args={[1.4, 0.04]} />
                 <meshBasicMaterial
                     color={color}
                     transparent
-                    opacity={0.7}
+                    opacity={0.8}
                     depthWrite={false}
                 />
             </mesh>
 
             {/* Interferencia vertical (scanline glitch) */}
             <mesh ref={vBarRef} position={[position[0], position[1], position[2] + 0.015]}>
-                <planeGeometry args={[0.03, 1.2]} />
+                <planeGeometry args={[0.04, 1.4]} />
                 <meshBasicMaterial
                     color={color}
                     transparent
-                    opacity={0.7}
+                    opacity={0.8}
                     depthWrite={false}
                 />
             </mesh>
 
-            {/* Grupo de pixeles y tiras de glitch */}
+            {/* Grupo de chispas y brasas 3D */}
             <group ref={groupRef}>
                 {particles.map((p, idx) => (
                     <mesh key={idx}>
                         {p.shape === 'spark' ? (
-                            <sphereGeometry args={[0.08, 8, 8]} />
+                            <sphereGeometry args={[0.09, 8, 8]} />
                         ) : p.shape === 'ember' ? (
-                            <sphereGeometry args={[0.07, 8, 8]} />
+                            <sphereGeometry args={[0.08, 8, 8]} />
                         ) : (
-                            <boxGeometry args={[0.22, 0.02, 0.005]} />
+                            <boxGeometry args={[0.25, 0.025, 0.006]} />
                         )}
                         <meshStandardMaterial
                             color={color}
                             emissive={color}
-                            emissiveIntensity={1.8}
+                            emissiveIntensity={2.2}
                             roughness={0.1}
                             metalness={0.8}
                             transparent
@@ -432,15 +436,41 @@ interface MahjongCanvasProps {
     streakCombo?: number;
 }
 
+// Duración de la coreografía de choque en el dock antes de la explosión
+const COLLISION_MS = 300;
+const SHATTER_MS = 180;
+
+// Hit-stop: micro-congelación del render en el instante del impacto para dar peso.
+// Escala con el combo; sin freeze en emparejamientos simples para no restar agilidad.
+function hitStopDuration(combo: number) {
+    if (combo < 2) return 0;
+    return Math.min(70, 20 + combo * 10);
+}
+
+interface DyingTile {
+    id: string;
+    start: number; // performance.now()
+    collisionPos: [number, number, number];
+    isDockTile: boolean;
+}
+
 export function MahjongCanvas({ tiles, freeTilesMap, dockIds, onTilePointerDown, isMobile, ghostSolidIds, hasStarted, streakCombo = 0 }: MahjongCanvasProps) {
     const { profile } = useProfile();
     const [explosions, setExplosions] = useState<{ id: string; pos: [number, number, number]; color: string; combo: number }[]>([]);
+    const [dyingTiles, setDyingTiles] = useState<DyingTile[]>([]);
+    const [frozen, setFrozen] = useState(false); // hit-stop
     const prevMatchedIdsRef = useRef<Set<string>>(new Set());
 
-    // En 3D ya no filtramos las fichas en el dock de la pantalla del tablero; dejamos que LERPeen libremente hacia el Dock 3D
+    const dyingMap = useMemo(() => {
+        const m = new Map<string, DyingTile>();
+        for (const d of dyingTiles) m.set(d.id, d);
+        return m;
+    }, [dyingTiles]);
+
+    // Las fichas emparejadas siguen visibles brevemente mientras corre su choque en el dock.
     const visibleTiles = useMemo(() => {
-        return tiles.filter(t => !t.isMatched);
-    }, [tiles]);
+        return tiles.filter(t => !t.isMatched || dyingMap.has(t.id));
+    }, [tiles, dyingMap]);
 
     // Calcular límites lógicos, tamaño del tablero y coordenadas Y del tablero y dock en unidades 3D
     const { centerX, centerY, boardWidth, boardHeight, boardY, dockY } = useMemo(() => {
@@ -499,7 +529,7 @@ export function MahjongCanvas({ tiles, freeTilesMap, dockIds, onTilePointerDown,
 
     const prevDockIdsRef = useRef<string[]>([]);
 
-    // Detectar coincidencias y lanzar explosiones
+    // Detectar coincidencias, coreografiar el choque en el dock y lanzar explosiones
     useEffect(() => {
         const newlyMatched = tiles.filter(t => t.isMatched && !prevMatchedIdsRef.current.has(t.id));
         if (newlyMatched.length > 0) {
@@ -509,34 +539,83 @@ export function MahjongCanvas({ tiles, freeTilesMap, dockIds, onTilePointerDown,
             const spacingY = 0.59;
             const spacingZ = 0.34;
 
-            const newExplosions = newlyMatched.map(tile => {
-                // Verificar si la ficha estaba en el dock antes del emparejamiento para detonar la explosión allí
-                const dockIndex = prevDockIdsRef.current.indexOf(tile.id);
-                const wasInDock = dockIndex !== -1;
+            const combo = Math.max(1, streakCombo);
 
-                let posX: number;
-                let posY: number;
-                let posZ: number;
+            // ¿La coincidencia salió del dock? (caso normal de emparejamiento)
+            const dockTile = newlyMatched.find(t => prevDockIdsRef.current.indexOf(t.id) !== -1);
 
-                if (wasInDock) {
-                    posX = (dockIndex - 1) * 1.30;
-                    posY = dockY;
-                    posZ = 0.25;
-                } else {
-                    posX = (tile.x - centerX) * spacingX;
-                    posY = boardY - (tile.y - centerY) * spacingY;
-                    posZ = tile.z * spacingZ;
-                }
+            if (dockTile && newlyMatched.length <= 2) {
+                // ─── CHOQUE EN EL DOCK ───
+                const dockIndex = prevDockIdsRef.current.indexOf(dockTile.id);
+                const collisionPos: [number, number, number] = [(dockIndex - 1) * 1.30, dockY, 0.35];
+                const isGolden = newlyMatched.some(t => t.content.type === 'custom');
+                const expColor = isGolden ? '#ffd700' : rawAccentColor;
 
-                return {
-                    id: `exp-${tile.id}-${Date.now()}-${Math.random()}`,
-                    pos: [posX, posY, posZ] as [number, number, number],
-                    color: tile.content.type === 'custom' ? '#ffd700' : rawAccentColor,
-                    combo: Math.max(1, streakCombo)
-                };
-            });
+                const start = performance.now();
+                const batch: DyingTile[] = newlyMatched.map(t => ({
+                    id: t.id,
+                    start,
+                    collisionPos,
+                    isDockTile: t.id === dockTile.id
+                }));
+                setDyingTiles(prev => [...prev, ...batch]);
 
-            setExplosions(prev => [...prev, ...newExplosions]);
+                // Whoosh de la ficha volando al dock + nota de combo
+                MahjongAudio.playMatch(combo);
+
+                // La explosión detona en el instante del impacto (con clink + hit-stop)
+                window.setTimeout(() => {
+                    setExplosions(prev => [...prev, {
+                        id: `exp-${dockTile.id}-${start}`,
+                        pos: collisionPos,
+                        color: expColor,
+                        combo
+                    }]);
+                    MahjongAudio.playCollision(combo);
+
+                    // Hit-stop: congela el render unos milisegundos para dar impacto
+                    const freezeMs = hitStopDuration(combo);
+                    if (freezeMs > 0) {
+                        setFrozen(true);
+                        window.setTimeout(() => setFrozen(false), freezeMs);
+                    }
+                }, COLLISION_MS);
+
+                // Retirar las fichas ya destruidas tras el estallido
+                const batchIds = new Set(batch.map(b => b.id));
+                window.setTimeout(() => {
+                    setDyingTiles(prev => prev.filter(d => !batchIds.has(d.id)));
+                }, COLLISION_MS + SHATTER_MS);
+            } else {
+                // ─── Fallback: explosión instantánea (ej. carga remota en coop) ───
+                const newExplosions = newlyMatched.map(tile => {
+                    const dockIndex = prevDockIdsRef.current.indexOf(tile.id);
+                    const wasInDock = dockIndex !== -1;
+
+                    let posX: number;
+                    let posY: number;
+                    let posZ: number;
+
+                    if (wasInDock) {
+                        posX = (dockIndex - 1) * 1.30;
+                        posY = dockY;
+                        posZ = 0.25;
+                    } else {
+                        posX = (tile.x - centerX) * spacingX;
+                        posY = boardY - (tile.y - centerY) * spacingY;
+                        posZ = tile.z * spacingZ;
+                    }
+
+                    return {
+                        id: `exp-${tile.id}-${Date.now()}-${Math.random()}`,
+                        pos: [posX, posY, posZ] as [number, number, number],
+                        color: tile.content.type === 'custom' ? '#ffd700' : rawAccentColor,
+                        combo
+                    };
+                });
+
+                setExplosions(prev => [...prev, ...newExplosions]);
+            }
         }
 
         // ⚡ Bolt Optimization: Replace double-pass filter/map with single-pass O(N) iteration
@@ -553,7 +632,8 @@ export function MahjongCanvas({ tiles, freeTilesMap, dockIds, onTilePointerDown,
     return (
         <div className="relative h-full w-full select-none" style={{ minHeight: isMobile ? '400px' : '520px' }}>
             <Canvas
-                shadows={{ type: THREE.PCFSoftShadowMap }} 
+                frameloop={frozen ? 'never' : 'always'}
+                shadows={{ type: THREE.PCFSoftShadowMap }}
                 camera={{ fov: 50, position: [0, -0.6, 6.2], near: 0.1, far: 50 }}
                 gl={{ antialias: true, alpha: true }}
                 style={{ background: 'transparent' }}
@@ -611,6 +691,7 @@ export function MahjongCanvas({ tiles, freeTilesMap, dockIds, onTilePointerDown,
                             onSelect={onTilePointerDown}
                             isGhostSolid={tile.isGhost ? ghostSolidIds?.has(tile.id) : undefined}
                             hasStarted={hasStarted}
+                            dyingInfo={dyingMap.get(tile.id)}
                         />
                     ))}
                 </group>

@@ -17,14 +17,14 @@ test.describe('Proxy Image API Security', () => {
 
     test.afterEach(() => {
         if (originalFetchSafe) {
-            require.cache[fetchSafeModulePath] = originalFetchSafe;
+            require.cache[fetchSafeModulePath] = originalFetchSafe as any;
         } else {
             delete require.cache[fetchSafeModulePath];
+        }
         if (originalSupabaseUrl !== undefined) {
             process.env.NEXT_PUBLIC_SUPABASE_URL = originalSupabaseUrl;
         } else {
             delete process.env.NEXT_PUBLIC_SUPABASE_URL;
-        }
         }
     });
 
@@ -108,6 +108,14 @@ test.describe('Proxy Image API Security', () => {
             expect(res.status).toBe(403);
             const text = await res.text();
             expect(text).toBe('Forbidden: URL not in allowlist');
+
+            // Domain suffix bypass attempt
+            const reqBypass = createRequest('https://example.com.evil.com/image.jpg');
+            const resBypass = await mockGET(reqBypass);
+
+            expect(resBypass.status).toBe(403);
+            const textBypass = await resBypass.text();
+            expect(textBypass).toBe('Forbidden: URL not in allowlist');
 
             // Trusted domain
             mockFetchWithContentType('image/jpeg');

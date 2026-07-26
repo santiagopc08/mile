@@ -5,6 +5,7 @@ import { format, differenceInDays, addDays, parseISO } from 'date-fns';
 import { StoreService } from '@/services/storeService';
 import { NotificationService } from '@/services/notificationService';
 import { AnimatedBrutalistCorners } from '@/components/ui/AnimatedBrutalistCorners';
+import { useToast } from '@/components/ui/Toast';
 
 type CycleEntry = {
     id: string;
@@ -33,6 +34,7 @@ const FLO_SYMPTOMS = ['Cólicos', 'Hinchazón', 'Cambios de Humor', 'Fatiga', 'A
 
 export const BiometricVault = () => {
     const { profile } = useProfile();
+    const { warning, success, confirm } = useToast();
     const accentColor = profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)';
     const accentClass = profile === 'ella' ? 'user-a' : 'user-b';
     const secondaryColor = profile === 'ella' ? 'var(--color-user-b)' : 'var(--color-user-a)';
@@ -126,7 +128,13 @@ export const BiometricVault = () => {
         const recentDecryptedSymptoms = recentCycles.map(c => decrypt(c.symptoms_enc));
 
         const frequentSymptoms = FLO_SYMPTOMS.filter(sym => {
-            const count = recentDecryptedSymptoms.filter(symptomsStr => symptomsStr.includes(sym)).length;
+            // ⚡ Bolt Optimization: Avoid O(N) array allocation in .filter().length
+            let count = 0;
+            for (const symptomsStr of recentDecryptedSymptoms) {
+                if (symptomsStr.includes(sym)) {
+                    count++;
+                }
+            }
             return count >= 2;
         });
 
@@ -153,27 +161,38 @@ export const BiometricVault = () => {
 
     }, [state.cycles]);
 
-    const handleLogCycle = (e: React.FormEvent) => {
+    const handleLogCycle = async (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         if (!flowLevel) {
-            alert('Por favor, selecciona un nivel de flujo para continuar.');
+            warning('Selecciona un nivel de flujo para continuar.', 'Falta un dato');
             return;
         }
 
         const newDateParsed = parseISO(dateInput);
         const hasCollision = state.cycles.some(c => Math.abs(differenceInDays(parseISO(c.date), newDateParsed)) < 14);
 
+        // Antes esto era un aviso sin salida: preguntaba si querías marcarlo como
+        // atípico y cancelaba el guardado igualmente, dejándote buscar la casilla
+        // a mano. Ahora la respuesta afirmativa marca el registro y lo guarda.
+        let atypical = isAtypical;
         if (hasCollision && !isAtypical) {
-            alert('Sangrado inusual detectado fuera de tu ciclo menstrual habitual. ¿Deseas marcar este registro como atípico?');
-            return;
+            const markAtypical = await confirm({
+                title: 'Sangrado fuera de ciclo',
+                message: 'Este registro cae a menos de 14 días del anterior. ¿Guardarlo marcado como atípico?',
+                confirmLabel: 'Marcar y guardar',
+                cancelLabel: 'Revisar',
+            });
+            if (!markAtypical) return;
+            atypical = true;
+            setIsAtypical(true);
         }
 
         const newEntry: CycleEntry = {
             id: Date.now().toString(),
             date: dateInput,
             flow_level: flowLevel,
-            is_atypical: isAtypical,
+            is_atypical: atypical,
             symptoms_enc: encrypt(selectedSymptoms.join(', ')),
             notes_enc: encrypt(notes)
         };
@@ -197,6 +216,7 @@ export const BiometricVault = () => {
         setNotes('');
         setFlowLevel('');
         setIsAtypical(false);
+        success('Registro guardado en la bóveda.', 'Bóveda biométrica');
     };
 
     const toggleSymptom = (sym: string) => {
@@ -243,7 +263,7 @@ export const BiometricVault = () => {
     const isSovereign = profile === 'ella';
 
     return (
-        <div className="relative overflow-hidden border border-white/10 bg-[#0a0a0a] p-6 pl-10 sm:p-8 sm:pl-12 rounded-none">
+        <div className="relative overflow-hidden border border-white/12 bg-white/[0.04] backdrop-blur-2xl p-6 pl-10 sm:p-8 sm:pl-12 rounded-none shadow-lg">
             {/* Left accent stripe */}
             <div className="absolute left-0 top-0 bottom-0 w-[5px] bg-[#ff4b89]" />
             

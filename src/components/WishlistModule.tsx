@@ -15,6 +15,7 @@ import { WishlistCard } from './planes/WishlistCard';
 import { ActivityFeed } from './planes/ActivityFeed';
 import { LiveLinkPreview } from './LiveLinkPreview';
 import pMap from 'p-map';
+import { useToast } from '@/components/ui/Toast';
 
 type StateFilter = WishlistState | 'ALL';
 
@@ -30,6 +31,7 @@ const STATE_FILTERS: { id: StateFilter; label: string }[] = [
 export function WishlistModule() {
     const { data, refreshData, updateData } = useStore();
     const { profile } = useProfile();
+    const { confirm, success, error: notifyError } = useToast();
     const accentClass = profile === 'ella' ? 'user-a' : 'user-b';
 
     const [catFilter, setCatFilter] = useState<GoalCategory | 'ALL'>('ALL');
@@ -346,6 +348,19 @@ export function WishlistModule() {
 
     const handleDelete = async (id: string) => {
         const itemToDelete = items.find(i => i.id === id);
+
+        // Borrado irreversible y, si el plan es compartido, también desaparece
+        // para la pareja. Un toque accidental en la papelera no debe bastar.
+        const ok = await confirm({
+            title: 'Eliminar plan',
+            message: itemToDelete?.shared
+                ? `"${itemToDelete.title}" es un plan compartido: también desaparecerá para tu pareja.`
+                : `"${itemToDelete?.title ?? 'Este plan'}" se eliminará para siempre.`,
+            confirmLabel: 'Eliminar',
+            tone: 'danger',
+        });
+        if (!ok) return;
+
         if (itemToDelete) {
             try {
                 await supabase
@@ -356,6 +371,7 @@ export function WishlistModule() {
                 window.dispatchEvent(new CustomEvent('custom:map-refresh'));
             } catch (e) {
                 console.error('Error deleting map location:', e);
+                notifyError('El plan se eliminó, pero su punto en el mapa no. Puede que siga apareciendo.');
             }
             // Disparar notificación discreta a la pareja si es compartido
             if (itemToDelete.shared) {
@@ -372,6 +388,7 @@ export function WishlistModule() {
         } else {
             await updateData({ wishlist: items });
         }
+        success('Plan eliminado.');
     };
 
     return (

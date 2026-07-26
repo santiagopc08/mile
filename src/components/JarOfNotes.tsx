@@ -229,7 +229,7 @@ export function JarOfNotes() {
                                 <Square className="w-12 h-12" strokeWidth={1} />
                             </motion.div>
 
-                            <div className={`geometric-card relative mx-4 w-full max-w-lg border-${accentClass}/50 bg-[#0a0a0a]/95 p-8 backdrop-blur-md md:p-12`} style={{ borderColor: `${accentColor}80` }}>
+                            <div className={`geometric-card relative mx-4 w-full max-w-lg border-${accentClass}/50 bg-[#0a070c]/75 p-8 backdrop-blur-xl backdrop-saturate-150 md:p-12`} style={{ borderColor: `${accentColor}80` }}>
                                 <div className="pointer-events-none absolute inset-0 bg-mosaic opacity-40" />
  
                                 <div className="relative z-10 mb-8 flex items-start justify-between border-b border-white/10 pb-4">
@@ -273,7 +273,7 @@ export function JarOfNotes() {
                             <span className="uppercase text-xs font-bold tracking-widest font-mono">Añadir Nueva Nota</span>
                         </button>
                     ) : (
-                        <form onSubmit={handleAddNote} className={`geometric-card border-${accentClass}/50 bg-[#0a0a0a]/95 p-6 backdrop-blur-md`} style={{ borderColor: `${accentColor}80` }}>
+                        <form onSubmit={handleAddNote} className={`geometric-card border-${accentClass}/50 bg-[#0a070c]/75 p-6 backdrop-blur-xl backdrop-saturate-150`} style={{ borderColor: `${accentColor}80` }}>
                             <textarea
                                 value={newNoteText}
                                 onChange={(e) => setNewNoteText(e.target.value)}

@@ -15,6 +15,20 @@ function withFakeReactDispatcher(callback: () => void) {
             useContext: (_context: any) => {
                 return {
                     updateData: () => {},
+                    profile: { role: 'el' },
+                    error: (msg: string) => { global.alert(msg); },
+                    success: () => {},
+                    confirm: () => {}
+                };
+                return {
+                    updateData: () => {},
+                    profile: { role: 'el' },
+                    error: () => {},
+                    success: () => {},
+                    confirm: () => {}
+                };
+                return {
+                    updateData: () => {},
                     profile: { role: 'el' }
                 };
             },
@@ -115,7 +129,7 @@ test.describe('Timeline Component', () => {
             await handlers[0](formEvent);
         }
 
-        expect(alertMessage).toContain('Error al subir la imagen: Test upload failed');
+        expect(alertMessage).toContain('No se pudo subir la imagen: Test upload failed');
     });
 
     test('handleEditSave should handle image upload error and show alert', async () => {
@@ -152,6 +166,6 @@ test.describe('Timeline Component', () => {
              await handler(formEvent);
         }
 
-        expect(alertMessage).toContain('Error al subir la imagen: Edit upload failed');
+        expect(alertMessage).toContain('No se pudo subir la imagen: Edit upload failed');
     });
 });

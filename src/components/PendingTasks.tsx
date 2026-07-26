@@ -7,10 +7,12 @@ import { useProfile } from '@/context/ProfileContext';
 import { Plus } from 'lucide-react';
 import { TaskItem } from './tasks/TaskItem';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useToast } from '@/components/ui/Toast';
 
 export function PendingTasks() {
     const { data, updateData } = useStore();
     const { profile } = useProfile();
+    const { confirm } = useToast();
     const [isAdding, setIsAdding] = useState(false);
     const [title, setTitle] = useState('');
     const [priority, setPriority] = useState('medium');
@@ -56,6 +58,15 @@ export function PendingTasks() {
 
     const deleteTask = async (id: string, e: React.MouseEvent) => {
         e.stopPropagation();
+        const task = tasks.find((t) => t.id === id);
+        const ok = await confirm({
+            title: 'Eliminar tarea',
+            message: `"${task?.text ?? 'Esta tarea'}" se eliminará de la lista.`,
+            confirmLabel: 'Eliminar',
+            tone: 'danger',
+        });
+        if (!ok) return;
+
         const updated = tasks.filter((t) => t.id !== id);
         await updateData({ tasks: updated });
     };

@@ -11,6 +11,8 @@ import { useProfile } from "@/context/ProfileContext";
 import { useStore } from "@/context/StoreContext";
 import { supabase } from '@/lib/supabase';
 import { AnimatedBrutalistCorners } from "@/components/ui/AnimatedBrutalistCorners";
+import { BrutalistPanel } from "@/components/ui/BrutalistPanel";
+import { useToast } from "@/components/ui/Toast";
 const FLOATING_FLOWERS = [
   '/img/flowers/icons8-flor-100-2.png',
   '/img/flowers/icons8-flor-100-3.png',
@@ -229,6 +231,7 @@ interface BirthdayScrollProps {
 export default function BirthdayScrollContainer({ setBgmTempMute }: BirthdayScrollProps) {
   const { profile } = useProfile();
   const { data } = useStore();
+  const { success, warning, confirm } = useToast();
   const events = useMemo(() => (data?.events || []) as any[], [data?.events]);
 
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -893,7 +896,11 @@ export default function BirthdayScrollContainer({ setBgmTempMute }: BirthdayScro
   const handleRedeemCoupon = async (id: string, name: string) => {
     if (redeemedCoupons.includes(id)) return;
 
-    const confirmRedeem = window.confirm(`¿Seguro que deseas canjear este cupón hoy?`);
+    const confirmRedeem = await confirm({
+      title: 'Canjear vale',
+      message: `Vas a canjear "${name}". Solo se puede una vez.`,
+      confirmLabel: 'Canjear',
+    });
     if (!confirmRedeem) return;
 
     const updated = [...redeemedCoupons, id];
@@ -908,10 +915,10 @@ export default function BirthdayScrollContainer({ setBgmTempMute }: BirthdayScro
         read: false
       });
       if (error) throw error;
-      alert(`¡Cupón canjeado con éxito! Santi ya lo sabe.`);
+      success('¡Vale canjeado! Santi ya lo sabe.', 'Canjeado');
     } catch (e: any) {
       console.error(e);
-      alert(`Cupón guardado localmente, pero falló la notificación automática en el servidor.`);
+      warning('El vale quedó guardado, pero no se pudo avisar a Santi. Díselo tú.', 'Aviso no enviado');
     }
   };
 
@@ -1031,8 +1038,7 @@ export default function BirthdayScrollContainer({ setBgmTempMute }: BirthdayScro
         className="fixed inset-0 w-full ios-viewport-fix flex flex-col items-center justify-center z-[30]"
       >
         <div className="w-full max-w-2xl px-4 text-center space-y-6 pointer-events-auto pt-[env(safe-area-inset-top,59px)] pb-[env(safe-area-inset-bottom,34px)]">
-          <div className="border border-white/10 bg-black/75 backdrop-blur-md pt-8 px-6 pb-6 sm:pt-10 sm:px-10 sm:pb-8 relative">
-            <AnimatedBrutalistCorners color="#ff4b89" size={16} thickness={1.5} />
+          <BrutalistPanel accentColor="#ff4b89" borderColor="rgba(255,255,255,0.1)" corners="animated" cornerSize={16} cornerThickness={1.5} className="!bg-black/75 backdrop-blur-md pt-8 px-6 pb-6 sm:pt-10 sm:px-10 sm:pb-8">
             <div className="space-y-4">
               <div className="flex items-center justify-center gap-2 text-[9px] font-mono font-bold uppercase tracking-[0.35em] text-[#a88a7e]">
                 <Sparkles size={12} className="text-[#ff4b89] animate-spin-slow" />
@@ -1049,7 +1055,7 @@ export default function BirthdayScrollContainer({ setBgmTempMute }: BirthdayScro
                 Mile, hoy es un día increíblemente especial. Quería prepararte un detalle único que exprese todo lo que eres para mí: complicidad, alegría y un amor inmenso que crece cada día.
               </p>
             </div>
-          </div>
+          </BrutalistPanel>
           {/* Scroll Hint */}
           <div className="animate-bounce font-mono text-[9px] uppercase tracking-[0.25em] text-white/50 pt-4">
             Desliza suavemente hacia abajo...
@@ -1085,8 +1091,7 @@ export default function BirthdayScrollContainer({ setBgmTempMute }: BirthdayScro
             className="absolute right-[-80px] top-[40%] w-20 h-20 opacity-40 pointer-events-none hidden lg:block"
           />
 
-          <div className="border border-white/10 bg-black/75 backdrop-blur-md pt-6 px-6 pb-4 sm:pt-8 sm:px-8 sm:pb-6 relative space-y-4">
-            <AnimatedBrutalistCorners color="#c3f400" size={14} thickness={1.5} />
+          <BrutalistPanel accentColor="#c3f400" borderColor="rgba(255,255,255,0.1)" corners="animated" cornerSize={14} cornerThickness={1.5} className="!bg-black/75 backdrop-blur-md pt-6 px-6 pb-4 sm:pt-8 sm:px-8 sm:pb-6 space-y-4">
 
             {/* Top-Left Corner Flower */}
             <div className="absolute top-3 left-3 pointer-events-none select-none">
@@ -1142,7 +1147,7 @@ export default function BirthdayScrollContainer({ setBgmTempMute }: BirthdayScro
                 <span className="text-lg font-black text-[#ff4b89]">{connectionStats.eventsCount} Momentos</span>
               </div>
             </div>
-          </div>
+          </BrutalistPanel>
         </div>
       </motion.section>
 
@@ -1291,7 +1296,8 @@ export default function BirthdayScrollContainer({ setBgmTempMute }: BirthdayScro
       >
         <div className="w-full max-w-4xl px-4 space-y-3 sm:space-y-4 pointer-events-auto pb-[calc(1.5rem+env(safe-area-inset-bottom,34px))] max-h-[80vh] sm:max-h-[85vh] overflow-y-auto pr-1 custom-scrollbar">
 
-          <div className="border border-white/10 bg-black/75 backdrop-blur-md pt-4 px-4 pb-10 sm:pt-6 sm:px-6 sm:pb-12 relative text-center space-y-3 sm:space-y-4 max-w-xl mx-auto">
+          {/* corners="none": las esquinas van como hijo para conservar el key que las re-aleatoriza al soplar las velas */}
+          <BrutalistPanel accentColor="#ff4b89" borderColor="rgba(255,255,255,0.1)" corners="none" className="!bg-black/75 backdrop-blur-md pt-4 px-4 pb-10 sm:pt-6 sm:px-6 sm:pb-12 text-center space-y-3 sm:space-y-4 max-w-xl mx-auto">
             <AnimatedBrutalistCorners key={`${candlesBlown}-${cakeState}-${micPermission}`} color="#ff4b89" size={14} thickness={1.5} />
 
             <div className="space-y-1">
@@ -1531,7 +1537,7 @@ export default function BirthdayScrollContainer({ setBgmTempMute }: BirthdayScro
                 </motion.div>
               )}
             </AnimatePresence>
-          </div>
+          </BrutalistPanel>
 
           {/* Clickable Gifts Grid */}
           {candlesBlown && (
