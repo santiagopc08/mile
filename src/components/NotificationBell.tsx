@@ -106,10 +106,12 @@ export function NotificationBell({ align = 'right' }: { align?: 'left' | 'right'
         try {
             const data = await NotificationService.getNotifications(profile);
 
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const next: Record<string, any> = {};
             if (data) {
                 for (const n of data) {
-                    next[n.id] = n;
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    next[(n as any).id] = n;
                 }
             }
             setNotifications(next);
