@@ -17,6 +17,7 @@
     "@serwist/next": "^9.5.7",
     "@supabase/auth-js": "^2.108.1",
     "@supabase/supabase-js": "^2.108.1",
+    "@types/matter-js": "^0.20.2",
     "@types/three": "^0.184.1",
     "@vercel/speed-insights": "^1.0.4",
     "@vis.gl/react-google-maps": "^1.8.3",
@@ -26,6 +27,7 @@
     "ipaddr.js": "^2.4.0",
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^0.577.0",
+    "matter-js": "^0.20.0",
     "next": "^16.2.3",
     "p-map": "^7.0.6",
     "pre-commit": "^2.0.0",
@@ -34,10 +36,12 @@
     "recharts": "^3.8.1",
     "server-only": "^0.0.1",
     "serwist": "^9.5.7",
+    "simplex-noise": "^4.0.3",
     "tailwind-merge": "^3.5.0",
     "three": "^0.184.0",
     "uuid": "^14.0.0",
-    "web-push": "^3.6.7"
+    "web-push": "^3.6.7",
+    "zustand": "^5.0.14"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.0",

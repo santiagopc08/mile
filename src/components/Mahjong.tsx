@@ -7,7 +7,7 @@ import { supabase as defaultSupabase } from '@/lib/supabase';
 import { MahjongService } from '@/services/mahjongService';
 import { NotificationService } from '@/services/notificationService';
 import { useProfile } from '@/context/ProfileContext';
-import { Undo2, Trophy, RotateCcw, Lightbulb, Sparkles, Flame, Volume2, VolumeX } from 'lucide-react';
+import { Undo2, Trophy, RotateCcw, Lightbulb, Sparkles, Flame, Volume2, VolumeX, ArrowLeft } from 'lucide-react';
 import * as MahjongAudio from '@/lib/mahjongAudio';
 import { AnimatedBrutalistCorners } from '@/components/ui/AnimatedBrutalistCorners';
 import { Brutalist3DButton } from '@/components/ui/Brutalist3DButton';
@@ -2128,7 +2128,7 @@ export function Mahjong() {
             )}
 
             <div
-                className={`flex w-full ${hasStarted ? 'fixed inset-0 z-[9999] h-[100dvh] w-[100dvw] bg-[#050505] max-w-none' : 'relative max-w-[880px] h-[690px] max-md:h-[590px]'} ${comboShake ? 'animate-combo-shake' : ''} max-md:max-w-none max-md:w-screen max-md:shrink-0 flex-col justify-center overflow-hidden border border-white/10 max-md:border-x-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.06),transparent_44%),linear-gradient(180deg,rgba(255,255,255,0.035),transparent)] transition-all duration-500`}
+                className={`flex w-full ${hasStarted ? 'fixed inset-0 z-[9999] h-[100dvh] w-[100dvw] bg-[#050505] max-w-none' : 'relative max-w-[880px] h-[720px] max-md:h-[650px]'} ${comboShake ? 'animate-combo-shake' : ''} max-md:max-w-none max-md:w-screen max-md:shrink-0 flex-col justify-center overflow-hidden border border-white/10 max-md:border-x-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.06),transparent_44%),linear-gradient(180deg,rgba(255,255,255,0.035),transparent)] transition-all duration-500`}
                 ref={containerRef}
             >
                 <div className="pointer-events-none absolute inset-0 bg-dot-matrix opacity-70" />
@@ -2283,13 +2283,27 @@ export function Mahjong() {
                     </div>
                 )}
 
+                {/* Exit Fullscreen button (only visible when hasStarted is true) */}
+                {hasStarted && (
+                    <button
+                        onClick={() => {
+                            setHasStarted(false);
+                            setTimerActive(false);
+                        }}
+                        className="absolute top-[calc(env(safe-area-inset-top,0px)+12px)] left-3 z-30 flex items-center gap-1.5 px-3 py-1.5 bg-black/80 border border-white/20 text-[#a88a7e] hover:text-white text-xs font-mono font-bold uppercase transition-all backdrop-blur-md"
+                        title="Salir del modo pantalla completa"
+                    >
+                        <ArrowLeft className="w-3.5 h-3.5" /> <span className="hidden sm:inline">SALIR</span>
+                    </button>
+                )}
+
                 {/* --- 3D BRUTALIST HUD: TIMER (TOP LEFT OF DOCK) --- */}
-                <div className="absolute top-[50px] right-[calc(50%+100px)] md:top-[62px] md:right-[calc(50%+155px)] left-auto z-20">
+                <div className={`absolute ${hasStarted ? 'top-[calc(env(safe-area-inset-top,0px)+12px)]' : 'top-[16px] md:top-[24px]'} right-[calc(50%+90px)] sm:right-[calc(50%+110px)] md:right-[calc(50%+155px)] left-auto z-20`}>
                     <MahjongTimer isActive={timerActive} formatTime={formatTime} ref={timerRef} accentColor={accentColor} />
                 </div>
 
                 {/* --- 3D BRUTALIST HUD: PAIR COUNTER (TOP RIGHT OF DOCK) --- */}
-                <div className="absolute top-[50px] left-[calc(50%+100px)] md:top-[62px] md:left-[calc(50%+155px)] right-auto z-20 select-none group">
+                <div className={`absolute ${hasStarted ? 'top-[calc(env(safe-area-inset-top,0px)+12px)]' : 'top-[16px] md:top-[24px]'} left-[calc(50%+90px)] sm:left-[calc(50%+110px)] md:left-[calc(50%+155px)] right-auto z-20 select-none group`}>
                     {/* Remaining fire countdown timer */}
                     {streakCombo > 0 && (
                         <div className="absolute -top-[24px] left-0 right-0 text-center font-mono text-[9px] font-black text-orange-500 animate-pulse bg-black/90 border border-orange-500/40 px-1 py-0.5 shadow-[0_0_8px_rgba(255,80,0,0.3)] rounded-sm">
@@ -2376,7 +2390,7 @@ export function Mahjong() {
                 </div>
 
                 {/* --- 3D BRUTALIST HUD: ACTIONS (BOTTOM CENTER, BELOW PROGRESS BAR) --- */}
-                <div className="absolute bottom-[8px] md:bottom-[12px] left-1/2 -translate-x-1/2 z-20 flex items-center justify-center gap-4">
+                <div className={`absolute ${hasStarted ? 'bottom-[calc(env(safe-area-inset-bottom,0px)+12px)] md:bottom-[20px]' : 'bottom-[calc(var(--app-nav-height)+env(safe-area-inset-bottom,0px)+8px)] md:bottom-[16px]'} left-1/2 -translate-x-1/2 z-20 flex items-center justify-center gap-2 sm:gap-4`}>
                     <Brutalist3DButton
                         onClick={handleUndo}
                         disabled={undoStack.length === 0}

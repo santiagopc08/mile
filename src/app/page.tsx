@@ -371,17 +371,17 @@ export default function Home() {
                 </div>
 
                 <div className="w-full grid grid-cols-2 gap-1.5 pt-2.5 border-t border-white/10 relative z-20">
-                  <Link href="/smash-fest" className="group/link touch-target flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2 py-1.5 text-[9px] font-mono uppercase tracking-wider text-white transition-all w-full min-w-0">
-                    <span className="flex items-center gap-1.5 min-w-0">
-                      <Gamepad2 className="w-3 h-3 text-[#a88a7e] group-hover/link:text-[var(--color-profile-accent)] shrink-0" />
-                      <span className="truncate">Smash Fest</span>
-                    </span>
-                    <ArrowRight className="w-3 h-3 transition-transform group-hover/link:translate-x-1 shrink-0" />
-                  </Link>
                   <Link href="/juego" className="group/link touch-target flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2 py-1.5 text-[9px] font-mono uppercase tracking-wider text-white transition-all w-full min-w-0">
                     <span className="flex items-center gap-1.5 min-w-0">
                       <Gamepad2 className="w-3 h-3 text-[#a88a7e] group-hover/link:text-[var(--color-profile-accent)] shrink-0" />
                       <span className="truncate">Mahjong</span>
+                    </span>
+                    <ArrowRight className="w-3 h-3 transition-transform group-hover/link:translate-x-1 shrink-0" />
+                  </Link>
+                  <Link href="/smash-fest" className="group/link touch-target flex items-center justify-between border border-white/10 bg-white/5 hover:border-[var(--color-profile-accent)] hover:bg-[var(--color-profile-accent)]/10 px-2 py-1.5 text-[9px] font-mono uppercase tracking-wider text-white transition-all w-full min-w-0">
+                    <span className="flex items-center gap-1.5 min-w-0">
+                      <Gamepad2 className="w-3 h-3 text-[#a88a7e] group-hover/link:text-[var(--color-profile-accent)] shrink-0" />
+                      <span className="truncate">Smash Fest</span>
                     </span>
                     <ArrowRight className="w-3 h-3 transition-transform group-hover/link:translate-x-1 shrink-0" />
                   </Link>

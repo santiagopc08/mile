@@ -213,7 +213,7 @@ export default function SmashFestPage() {
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-[#0c0a14] touch-none font-mono select-none">
       {/* Top Glass Floating Header & Controls */}
-      <header className="fixed top-3 left-3 right-3 z-40 flex flex-wrap items-center justify-between gap-2 p-2.5 sm:px-4 bg-white/[0.04] backdrop-blur-2xl border border-white/15 shadow-[0_12px_36px_rgba(0,0,0,0.6)] rounded-none pointer-events-auto">
+      <header className="fixed top-[calc(4rem+env(safe-area-inset-top,0px)+0.5rem)] lg:top-3 left-3 lg:left-[calc(5rem+0.75rem)] right-3 z-40 flex flex-wrap items-center justify-between gap-2 p-2.5 sm:px-4 bg-white/[0.04] backdrop-blur-2xl border border-white/15 shadow-[0_12px_36px_rgba(0,0,0,0.6)] rounded-none pointer-events-auto">
         <div className="flex items-center gap-2">
           <Link href="/">
             <CyberButton variant="secondary" size="xs">
@@ -324,7 +324,7 @@ export default function SmashFestPage() {
       </header>
 
       {/* Floating Bottom Wildcards Bar (COMODINES & POTENCIA) */}
-      <footer className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 flex flex-col sm:flex-row items-center gap-2.5 p-2 sm:px-4 bg-white/[0.04] backdrop-blur-2xl border border-white/15 shadow-[0_16px_40px_rgba(0,0,0,0.7)] pointer-events-auto">
+      <footer className="fixed bottom-[calc(var(--app-nav-height)+env(safe-area-inset-bottom,0px)+0.75rem)] lg:bottom-4 left-1/2 lg:left-[calc(50%+2.5rem)] -translate-x-1/2 z-40 flex flex-col sm:flex-row items-center gap-2.5 p-2 sm:px-4 bg-white/[0.04] backdrop-blur-2xl border border-white/15 shadow-[0_16px_40px_rgba(0,0,0,0.7)] pointer-events-auto">
         {/* Wildcard Selector Buttons */}
         <div className="flex items-center gap-1.5">
           <span className="text-[9px] font-bold text-[#a88a7e] uppercase mr-1 hidden md:inline">COMODÍN:</span>
@@ -445,7 +445,7 @@ export default function SmashFestPage() {
 
       {/* Combo Feedback Overlay Toast */}
       {comboToast && (
-        <div className="fixed top-14 left-1/2 -translate-x-1/2 z-[46] animate-bounce pointer-events-none">
+        <div className="fixed top-[calc(4rem+env(safe-area-inset-top,0px)+4rem)] lg:top-16 left-1/2 -translate-x-1/2 z-[46] animate-bounce pointer-events-none">
           <div className="px-4 py-1.5 bg-[#c3f400] text-black font-mono font-black text-xs uppercase tracking-widest border border-white shadow-[0_0_20px_rgba(195,244,0,0.8)]">
             {comboToast.label}
           </div>
@@ -454,7 +454,7 @@ export default function SmashFestPage() {
 
       {/* Help & Powerups Guide Modal */}
       {isHelpOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 pointer-events-auto backdrop-blur-md p-4">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 pointer-events-auto backdrop-blur-md p-4">
           <ChamferedPanel accentColor="#00dbe9" notchSize={16} label="GUÍA DE COMODINES Y FÍSICA" className="max-w-md text-center">
             <h2 className="text-base font-bold uppercase text-white tracking-wide mb-3 flex items-center justify-center gap-2">
               <Sparkles className="w-4 h-4 text-[#00dbe9]" /> MANUAL DE DEMOLICIÓN
@@ -479,7 +479,7 @@ export default function SmashFestPage() {
 
       {/* Memory Unlocked Toasts (non-blocking, physics keeps running) */}
       {memoryToasts.length > 0 && (
-        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[45] flex flex-col items-center gap-1.5 pointer-events-none max-w-sm w-full px-4">
+        <div className="fixed top-[calc(4rem+env(safe-area-inset-top,0px)+4.5rem)] lg:top-20 left-1/2 -translate-x-1/2 z-[45] flex flex-col items-center gap-1.5 pointer-events-none max-w-sm w-full px-4">
           {memoryToasts.map((toast) => (
             <div
               key={toast.id}
@@ -494,7 +494,7 @@ export default function SmashFestPage() {
 
       {/* Victory Celebration Modal */}
       {isVictoryModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 pointer-events-auto backdrop-blur-md p-4">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/85 pointer-events-auto backdrop-blur-md p-4">
           <ChamferedPanel accentColor="#c3f400" notchSize={18} label="VICTORIA · NIVEL COMPLETADO" className="max-w-sm text-center">
             <div className="flex items-center justify-center gap-2 mb-2">
               <Trophy className="w-8 h-8 text-[#c3f400] animate-bounce" />
@@ -538,7 +538,7 @@ export default function SmashFestPage() {
 
       {/* Out of Ammo Modal */}
       {isOutOfAmmoModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 pointer-events-auto backdrop-blur-md p-4">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/85 pointer-events-auto backdrop-blur-md p-4">
           <ChamferedPanel accentColor="#ef4444" notchSize={16} label="SIN PROYECTILES" className="max-w-sm text-center">
             <h2 className="text-lg font-mono font-black uppercase text-red-400 tracking-wide mb-2">
               ¡SIN PROYECTILES!
