@@ -6,7 +6,15 @@ import { Query } from './Query.js';
  * High-performance lightweight ECS World.
  */
 export class World {
-  constructor() {
+  /**
+   * @param {import('../ArcadeEngine.js').ArcadeEngine|null} [engine]
+   *   Referencia al engine anfitrión. Los sistemas de gameplay la usan para
+   *   alcanzar eventBus, uiBridge, input y audio; varios hacen `return` en
+   *   silencio si falta, así que se pide en el constructor en vez de dejarla
+   *   como una asignación externa que se puede olvidar.
+   */
+  constructor(engine = null) {
+    this.engine = engine;
     this.nextEntityId = 1;
     /** @type {Map<number, Entity>} */
     this.entities = new Map();

@@ -4,6 +4,7 @@ import { GhostAIComponent } from '../components/GhostAIComponent.js';
 import { PacmanGridComponent } from '../components/PacmanGridComponent.js';
 import { GhostType, GhostState, Direction } from '../PacmanConstants.js';
 import { PacmanConfig } from '../PacmanConfig.js';
+import { PacmanBalance } from '../PacmanBalance.js';
 
 export class GhostAISystem extends System {
   /**
@@ -34,9 +35,9 @@ export class GhostAISystem extends System {
       const transform = this.world.getComponent(entity, TransformComponent);
       const ghostAI = this.world.getComponent(entity, GhostAIComponent);
 
-      let speed = PacmanConfig.GHOST_NORMAL_SPEED;
-      if (ghostAI.state === GhostState.FRIGHTENED) speed = PacmanConfig.GHOST_FRIGHTENED_SPEED;
-      else if (ghostAI.state === GhostState.EYES) speed = PacmanConfig.GHOST_EYES_SPEED;
+      let speed = PacmanBalance.GHOST_NORMAL_SPEED;
+      if (ghostAI.state === GhostState.FRIGHTENED) speed = PacmanBalance.GHOST_FRIGHTENED_SPEED;
+      else if (ghostAI.state === GhostState.EYES) speed = PacmanBalance.GHOST_EYES_SPEED;
 
       // Handle House Release Timer
       if (ghostAI.state === GhostState.HOUSE) {

@@ -29,7 +29,7 @@ export class ArcadeEngine {
 
     // 1. Core Subsystems
     this.eventBus = new EventBus();
-    this.world = new World();
+    this.world = new World(this);
     this.uiBridge = new UIBridge(this.eventBus);
 
     // 2. Rendering & Scene Systems
@@ -57,6 +57,10 @@ export class ArcadeEngine {
     if (this.container) this.debugOverlay.mount(this.container);
     if (debug) this.debugOverlay.show();
 
+    // Una vez destruido, el engine no vuelve a arrancar: sus contextos WebGL y
+    // de audio ya no existen y un rAF revivido dibujaría contra recursos muertos.
+    this.isDestroyed = false;
+
     // 6. Deterministic Game Loop
     this.loop = new GameLoop({
       targetFps: 60,
@@ -73,7 +77,9 @@ export class ArcadeEngine {
    * @param {import('./plugin/BasePlugin.js').BasePlugin} plugin 
    */
   async loadGame(plugin) {
+    if (this.isDestroyed) return;
     await this.pluginLoader.loadPlugin(plugin);
+    if (this.isDestroyed) return;
     this.eventBus.emit(EngineEvents.GAME_LOADED, { id: plugin.id, name: plugin.name });
   }
 
@@ -81,6 +87,7 @@ export class ArcadeEngine {
    * Start the Engine and Game Loop.
    */
   start() {
+    if (this.isDestroyed) return;
     this.loop.start();
     this.eventBus.emit(EngineEvents.GAME_STARTED);
   }
@@ -133,6 +140,8 @@ export class ArcadeEngine {
    * Destroy Engine instance and clean up WebGL / audio / event contexts.
    */
   destroy() {
+    if (this.isDestroyed) return;
+    this.isDestroyed = true;
     this.loop.stop();
     this.pluginLoader.unloadActivePlugin();
     this.sceneManager.destroy();

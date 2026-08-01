@@ -1,0 +1,16 @@
+#ifndef PLATFORM_ENGINE_ASSETS_IMPORTERS_TEXTURE_IMPORTER_HPP
+#define PLATFORM_ENGINE_ASSETS_IMPORTERS_TEXTURE_IMPORTER_HPP
+
+#include "engine/assets/importers/IAssetImporter.hpp"
+
+namespace platform
+{
+    class TextureImporter : public IAssetImporter
+    {
+    public:
+        bool Import(const std::string &sourcePath, const std::string &outputPath, AssetMetadata &outMetadata) override;
+        [[nodiscard]] AssetType GetSupportedAssetType() const override { return AssetType::Texture; }
+    };
+}
+
+#endif // PLATFORM_ENGINE_ASSETS_IMPORTERS_TEXTURE_IMPORTER_HPP

@@ -1,0 +1,59 @@
+# ==============================================================================
+# Platform Engine & Tools — Git Ignore Rules
+# ==============================================================================
+
+# Build & Compiled Output Directories
+build/
+out/
+bin/
+lib/
+*.dSYM/
+
+# CMake Generated Files
+CMakeCache.txt
+CMakeFiles/
+CMakeUserPresets.json
+compile_commands.json
+CTestTestfile.cmake
+cmake_install.cmake
+Makefile
+
+# C++ Object Files & Compiled Libraries/Executables
+*.o
+*.obj
+*.so
+*.dylib
+*.dll
+*.exe
+*.a
+*.lib
+*.pdb
+*.ilk
+
+# IDE & Editor Files
+.idea/
+.vscode/
+.vs/
+*.swp
+*.swo
+*.user
+*.suo
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+
+# Runtime Generated Manifests, Layouts & Caches
+*.manifest
+*.imported
+layout.json
+test_layout.json
+editor_scene.scene
+asset_database.manifest
+test_database.manifest
+cache/
+temp/
+user/
+
+# Logs
+*.log

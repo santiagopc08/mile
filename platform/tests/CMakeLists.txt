@@ -1,0 +1,114 @@
+add_executable(
+    platform_tests
+    unit/TestCore.cpp
+    unit/TestPlatform.cpp
+    unit/TestMilestone1.cpp
+    unit/TestMilestone2.cpp
+    unit/TestMilestone3.cpp
+    unit/TestMilestone4.cpp
+    unit/TestMilestone5.cpp
+    unit/TestMilestone6.cpp
+    unit/TestMilestone7.cpp
+    unit/TestMilestone8.cpp
+    unit/TestMilestone9.cpp
+    unit/TestMilestone10.cpp
+    unit/TestMilestone11.cpp
+    unit/TestMilestone12.cpp
+    unit/TestMilestone13.cpp
+    unit/TestMilestone14.cpp
+    unit/TestEditorToolingAndHillClimb.cpp
+    unit/TestConstitution.cpp
+    unit/TestHandbookModules.cpp
+    unit/TestHandbookRuntimeECS.cpp
+    unit/TestHandbookFrameworks.cpp
+    unit/TestHandbookFinal.cpp
+    unit/TestDefinitionOfDone.cpp
+    unit/TestMilestoneVehiclePrefab.cpp
+    unit/TestMilestoneWheelAssembly.cpp
+    unit/TestMilestoneSuspension.cpp
+    unit/TestMilestoneVehicleMotor.cpp
+    unit/TestMilestoneVehicleController.cpp
+    unit/TestMilestoneCameraFollow.cpp
+    unit/TestMilestoneVehicleRecovery.cpp
+    unit/TestMilestoneProceduralTerrain.cpp
+    unit/TestMilestoneTerrainChunk.cpp
+    unit/TestMilestoneTerrainStreaming.cpp
+    unit/TestMilestoneTerrainMaterial.cpp
+    unit/TestMilestoneObstacle.cpp
+    unit/TestMilestoneTerrainValidationSuite.cpp
+    unit/TestMilestoneGameplayFramework.cpp
+    unit/TestMilestoneGameplayValidationSuite.cpp
+    unit/TestMilestonePresentationFramework.cpp
+    unit/TestMilestonePresentationValidationSuite.cpp
+    unit/TestMilestoneProductionFramework.cpp
+    unit/TestMilestoneReleaseCandidate.cpp
+    unit/TestMilestoneCharacterFramework.cpp
+    unit/TestMilestoneCharacterMovement.cpp
+    unit/TestMilestoneJumpFramework.cpp
+    unit/TestMilestoneAnimationGraph.cpp
+    unit/TestMilestonePlatformerCamera.cpp
+    unit/TestMilestoneCharacterValidationSuite.cpp
+    unit/TestMilestoneWorldFramework.cpp
+    unit/TestMilestoneWorldValidationSuite.cpp
+    unit/TestMilestoneGameplayStack.cpp
+    unit/TestMilestoneGameplayValidationSuiteMS18.cpp
+    unit/TestMilestoneLevelStack.cpp
+    unit/TestMilestoneLevelValidationSuite.cpp
+    unit/TestMilestonePolishStack.cpp
+    unit/TestMilestoneReleaseCandidateGAME002.cpp
+    unit/TestMilestoneFixedTickFramework.cpp
+    unit/TestMilestoneRhythmFramework.cpp
+    unit/TestMilestoneTimelineFramework.cpp
+    unit/TestMilestoneTriggerFramework.cpp
+    unit/TestMilestoneCameraTimeline.cpp
+    unit/TestMilestoneRhythmValidationSuite.cpp
+    unit/TestMilestoneGameplayStackGAME003.cpp
+    unit/TestMilestoneGameplayValidationSuiteGAME003.cpp
+    ../editor/app/EditorContext.cpp
+    ../editor/commands/CommandHistory.cpp
+    ../editor/commands/EntityCommands.cpp
+    ../editor/gizmos/GizmoSystem.cpp
+    ../editor/io/SceneSerializer.cpp
+    ../editor/panels/AssetBrowserPanel.cpp
+    ../editor/panels/ConsolePanel.cpp
+    ../editor/panels/HierarchyPanel.cpp
+    ../editor/panels/InspectorPanel.cpp
+    ../editor/panels/ProfilerPanel.cpp
+    ../editor/panels/ProjectPanel.cpp
+    ../editor/panels/ScenePanel.cpp
+    ../editor/selection/SelectionSystem.cpp
+    ../editor/ui/EditorMenuBar.cpp
+    ../editor/ui/EditorUI.cpp
+    ../editor/workspace/Dockspace.cpp
+    ../editor/workspace/EditorWorkspace.cpp
+    ../examples/hill_climb/FirstPlayableScene.cpp
+    ../examples/hill_climb/NativeHillClimbScene.cpp
+    ../examples/hill_climb/PhysicsValidationScene.cpp
+    ../examples/hill_climb/VehicleValidationScene.cpp
+    ../examples/hill_climb/TerrainValidationScene.cpp
+    ../examples/hill_climb/GameplayValidationScene.cpp
+    ../examples/hill_climb/ProgressionValidationScene.cpp
+    ../examples/hill_climb/PresentationValidationScene.cpp
+    ../examples/hill_climb/AudioValidationScene.cpp
+    ../examples/hill_climb/AssetValidationScene.cpp
+    ../examples/hill_climb/ContentValidationScene.cpp
+)
+
+target_include_directories(
+    platform_tests
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/..
+)
+
+target_link_libraries(
+    platform_tests
+    PRIVATE
+        platform_engine
+        Catch2::Catch2WithMain
+)
+
+if(PLATFORM_ENABLE_WARNINGS)
+    set_target_warnings(platform_tests)
+endif()
+
+add_test(NAME platform_tests COMMAND platform_tests)

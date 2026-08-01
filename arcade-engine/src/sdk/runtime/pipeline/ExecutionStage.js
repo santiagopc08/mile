@@ -1,0 +1,31 @@
+export const ExecutionStage = Object.freeze({
+  BOOT: 'BOOT',
+  PRE_UPDATE: 'PRE_UPDATE',
+  PERCEPTION: 'PERCEPTION',
+  COGNITION: 'COGNITION',
+  DECISION: 'DECISION',
+  BEHAVIOR: 'BEHAVIOR',
+  COMMANDS: 'COMMANDS',
+  MOVEMENT: 'MOVEMENT',
+  INTERACTION: 'INTERACTION',
+  PRESENTATION: 'PRESENTATION',
+  POST_UPDATE: 'POST_UPDATE',
+  RENDER: 'RENDER',
+  END_FRAME: 'END_FRAME',
+});
+
+export const STAGE_ORDER = [
+  ExecutionStage.BOOT,
+  ExecutionStage.PRE_UPDATE,
+  ExecutionStage.PERCEPTION,
+  ExecutionStage.COGNITION,
+  ExecutionStage.DECISION,
+  ExecutionStage.BEHAVIOR,
+  ExecutionStage.COMMANDS,
+  ExecutionStage.MOVEMENT,
+  ExecutionStage.INTERACTION,
+  ExecutionStage.PRESENTATION,
+  ExecutionStage.POST_UPDATE,
+  ExecutionStage.RENDER,
+  ExecutionStage.END_FRAME,
+];

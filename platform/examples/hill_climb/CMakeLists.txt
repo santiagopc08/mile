@@ -1,0 +1,44 @@
+add_executable(
+    hill_climb
+    main.cpp
+    NativeHillClimbScene.cpp
+    NativeHillClimbScene.hpp
+    FirstPlayableScene.cpp
+    FirstPlayableScene.hpp
+    PlatformerScene.cpp
+    PlatformerScene.hpp
+    PhysicsValidationScene.cpp
+    PhysicsValidationScene.hpp
+    VehicleValidationScene.cpp
+    VehicleValidationScene.hpp
+    TerrainValidationScene.cpp
+    TerrainValidationScene.hpp
+    GameplayValidationScene.cpp
+    GameplayValidationScene.hpp
+    ProgressionValidationScene.cpp
+    ProgressionValidationScene.hpp
+    PresentationValidationScene.cpp
+    PresentationValidationScene.hpp
+    AudioValidationScene.cpp
+    AudioValidationScene.hpp
+    AssetValidationScene.cpp
+    AssetValidationScene.hpp
+    ContentValidationScene.cpp
+    ContentValidationScene.hpp
+)
+
+target_include_directories(
+    hill_climb
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../..
+)
+
+target_link_libraries(
+    hill_climb
+    PRIVATE
+        platform_engine
+)
+
+if(PLATFORM_ENABLE_WARNINGS)
+    set_target_warnings(hill_climb)
+endif()

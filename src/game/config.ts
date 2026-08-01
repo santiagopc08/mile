@@ -34,6 +34,19 @@ export const GAME_CONFIG = {
     VEHICLE: DEFAULT_VEHICLE_CONFIG,
     CAMERA: DEFAULT_CAMERA_CONFIG,
 
+    // --- Gravedad asimétrica en el aire (ver physics/airGravitySystem.ts) ---
+    // Portado del JumpSystem del motor C++, que usa 1.0 subiendo y 2.0 cayendo.
+    // Aquí la subida se deja intacta a propósito: tocarla cambiaría la altura
+    // que alcanza el coche en cada rampa y con ella todo el balance del terreno,
+    // que está calibrado en banco. Sólo se añade peso a la caída.
+    // 2.0 en un buggy resulta brusco; 1.45 quita la sensación flotante sin que
+    // el aterrizaje parezca un tirón. Es el valor que más pide banco de pruebas.
+    AIR: {
+        riseScale: 1.0,
+        fallScale: 1.45,
+        apexThreshold: 0.35,
+    },
+
     TERRAIN: {
         ...DEFAULT_TERRAIN_CONFIG,
         RENDER_MARGIN: 1400,

@@ -7,6 +7,7 @@ import { PelletComponent } from '../components/PelletComponent.js';
 import { FruitComponent } from '../components/FruitComponent.js';
 import { PelletType, GhostState } from '../PacmanConstants.js';
 import { PacmanConfig } from '../PacmanConfig.js';
+import { PacmanBalance } from '../PacmanBalance.js';
 import { PacmanEvents } from '../PacmanEvents.js';
 
 export class PacmanCollisionSystem extends System {
@@ -35,7 +36,7 @@ export class PacmanCollisionSystem extends System {
       if (pellet.gridX === pacmanGrid.gridX && pellet.gridY === pacmanGrid.gridY) {
         // Eat Pellet
         const isPower = pellet.type === PelletType.POWER;
-        const points = isPower ? PacmanConfig.POWER_PELLET_POINTS : PacmanConfig.DOT_POINTS;
+        const points = isPower ? PacmanBalance.POWER_PELLET_POINTS : PacmanBalance.DOT_POINTS;
 
         this.world.engine.eventBus.emit(PacmanEvents.SCORE_CHANGED, this.world.engine.uiBridge.state.score + points);
         this.world.engine.eventBus.emit(isPower ? PacmanEvents.POWER_PELLET_COLLECTED : PacmanEvents.PELLET_COLLECTED, { points });
@@ -94,7 +95,7 @@ export class PacmanCollisionSystem extends System {
         if (ghostAI.state === GhostState.FRIGHTENED) {
           // Pac-Man Eats Ghost!
           ghostAI.state = GhostState.EYES;
-          const points = PacmanConfig.GHOST_BASE_POINTS;
+          const points = PacmanBalance.GHOST_BASE_POINTS;
           this.world.engine.eventBus.emit(PacmanEvents.SCORE_CHANGED, this.world.engine.uiBridge.state.score + points);
           this.world.engine.eventBus.emit(PacmanEvents.GHOST_KILLED, { ghost: ghostAI.type, points });
           this.world.engine.audioManager.playSFX('sfx_eat_ghost', 0.8);

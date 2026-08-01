@@ -9,6 +9,7 @@ import { CoinManager } from '../entities/coin';
 import { FuelCanisterManager } from '../entities/fuelCanister';
 import { ParticleSystem } from '../particles/particleSystem';
 import { SuspensionSystem } from '../physics/suspensionSystem';
+import { AirGravitySystem } from '../physics/airGravitySystem';
 import { GAME_CONFIG } from '../config';
 import { useHillClimbStore } from '../../stores/useHillClimbStore';
 
@@ -26,6 +27,7 @@ export class GameLoop {
     private canisters: FuelCanisterManager;
     private particles: ParticleSystem;
     private suspension: SuspensionSystem;
+    private airGravity: AirGravitySystem;
 
     private animFrameId: number | null = null;
     private isRunning = false;
@@ -50,6 +52,7 @@ export class GameLoop {
         this.canisters = new FuelCanisterManager(this.terrain);
         this.particles = new ParticleSystem();
         this.suspension = new SuspensionSystem();
+        this.airGravity = new AirGravitySystem();
     }
 
     public attachCanvas(canvas: HTMLCanvasElement) {
@@ -207,6 +210,9 @@ export class GameLoop {
             vehicle.clampWheelSpin();           // limitador del tren motriz
             this.suspension.update(vehicle);    // muelle progresivo, sólo fuerzas
             controller.update(stepSec);
+            // Después del controlador (que acaba de recalcular airTime) y antes
+            // del paso de Matter, que limpia las fuerzas al terminar.
+            this.airGravity.update(vehicle, controller.airTime > 0);
         });
         vehicle.clampWheelSpin();
 

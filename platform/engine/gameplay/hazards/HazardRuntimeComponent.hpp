@@ -1,0 +1,12 @@
+#ifndef PLATFORM_ENGINE_GAMEPLAY_HAZARDS_HAZARD_RUNTIME_COMPONENT_HPP
+#define PLATFORM_ENGINE_GAMEPLAY_HAZARDS_HAZARD_RUNTIME_COMPONENT_HPP
+
+namespace platform
+{
+    struct HazardRuntimeComponent
+    {
+        bool active{true};
+    };
+}
+
+#endif // PLATFORM_ENGINE_GAMEPLAY_HAZARDS_HAZARD_RUNTIME_COMPONENT_HPP

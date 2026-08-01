@@ -1,7 +1,7 @@
 import { System } from '../../engine/ecs/System.js';
 import { PelletComponent } from '../components/PelletComponent.js';
 import { PacmanEvents } from '../PacmanEvents.js';
-import { PacmanConfig } from '../PacmanConfig.js';
+import { PacmanBalance } from '../PacmanBalance.js';
 import { PacmanSaveManager } from '../PacmanSaveManager.js';
 
 export class PacmanGameRulesSystem extends System {
@@ -28,7 +28,7 @@ export class PacmanGameRulesSystem extends System {
         bus.emit(PacmanEvents.HIGH_SCORE_CHANGED, highScore);
 
         // Extra Life at 10,000 Points
-        if (newScore >= PacmanConfig.EXTRA_LIFE_THRESHOLD && !this.awardedExtraLife) {
+        if (newScore >= PacmanBalance.EXTRA_LIFE_THRESHOLD && !this.awardedExtraLife) {
           this.awardedExtraLife = true;
           bridge.setState({ lives: bridge.state.lives + 1 });
           bus.emit(PacmanEvents.EXTRA_LIFE);

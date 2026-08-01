@@ -96,6 +96,15 @@ export function DiagnosticSettings({
             </ol>
           </div>
         )}
+
+        <div className="mt-3 pt-2 border-t border-white/10">
+          <a
+            href="/dev"
+            className="w-full flex items-center justify-center gap-1.5 border border-white/20 bg-white/5 hover:bg-white/10 py-2 text-[9px] font-bold uppercase tracking-wider text-white transition-colors"
+          >
+            DEV & DEBUGGING HUB ➔
+          </a>
+        </div>
       </div>
     </div>
   );

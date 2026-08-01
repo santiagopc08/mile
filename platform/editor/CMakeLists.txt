@@ -1,0 +1,61 @@
+add_executable(
+    editor
+    main.cpp
+    app/EditorApplication.cpp
+    app/EditorApplication.hpp
+    app/EditorContext.cpp
+    app/EditorContext.hpp
+    commands/CommandHistory.cpp
+    commands/CommandHistory.hpp
+    commands/EntityCommands.cpp
+    commands/EntityCommands.hpp
+    commands/ICommand.hpp
+    gizmos/GizmoSystem.cpp
+    gizmos/GizmoSystem.hpp
+    gizmos/GizmoTypes.hpp
+    io/SceneSerializer.cpp
+    io/SceneSerializer.hpp
+    panels/AssetBrowserPanel.cpp
+    panels/AssetBrowserPanel.hpp
+    panels/ConsolePanel.cpp
+    panels/ConsolePanel.hpp
+    panels/EditorPanel.hpp
+    panels/HierarchyPanel.cpp
+    panels/HierarchyPanel.hpp
+    panels/InspectorPanel.cpp
+    panels/InspectorPanel.hpp
+    panels/ProfilerPanel.cpp
+    panels/ProfilerPanel.hpp
+    panels/ProjectPanel.cpp
+    panels/ProjectPanel.hpp
+    panels/ScenePanel.cpp
+    panels/ScenePanel.hpp
+    selection/SelectionSystem.cpp
+    selection/SelectionSystem.hpp
+    selection/SelectionTarget.hpp
+    ui/EditorMenuBar.cpp
+    ui/EditorMenuBar.hpp
+    ui/EditorTheme.hpp
+    ui/EditorUI.cpp
+    ui/EditorUI.hpp
+    workspace/Dockspace.cpp
+    workspace/Dockspace.hpp
+    workspace/EditorWorkspace.cpp
+    workspace/EditorWorkspace.hpp
+)
+
+target_include_directories(
+    editor
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/..
+)
+
+target_link_libraries(
+    editor
+    PRIVATE
+        platform_engine
+)
+
+if(PLATFORM_ENABLE_WARNINGS)
+    set_target_warnings(editor)
+endif()

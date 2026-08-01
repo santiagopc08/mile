@@ -1,7 +1,7 @@
 import { System } from '../../engine/ecs/System.js';
 import { GhostAIComponent } from '../components/GhostAIComponent.js';
 import { GhostState } from '../PacmanConstants.js';
-import { PacmanConfig } from '../PacmanConfig.js';
+import { PacmanBalance } from '../PacmanBalance.js';
 
 export class GhostStateSystem extends System {
   constructor() {
@@ -19,7 +19,7 @@ export class GhostStateSystem extends System {
     this.modeTimer += dt;
 
     // Cycle between Scatter (7s) and Chase (20s) modes
-    const currentDuration = this.isScatterMode ? PacmanConfig.SCATTER_DURATION : PacmanConfig.CHASE_DURATION;
+    const currentDuration = this.isScatterMode ? PacmanBalance.SCATTER_DURATION : PacmanBalance.CHASE_DURATION;
     if (this.modeTimer >= currentDuration) {
       this.modeTimer = 0.0;
       this.isScatterMode = !this.isScatterMode;
@@ -48,7 +48,7 @@ export class GhostStateSystem extends System {
       const ghostAI = this.world.getComponent(entities[i], GhostAIComponent);
       if (ghostAI.state !== GhostState.HOUSE && ghostAI.state !== GhostState.EYES) {
         ghostAI.state = GhostState.FRIGHTENED;
-        ghostAI.frightenedTimer = PacmanConfig.FRIGHTENED_DURATION;
+        ghostAI.frightenedTimer = PacmanBalance.FRIGHTENED_DURATION;
       }
     }
   }

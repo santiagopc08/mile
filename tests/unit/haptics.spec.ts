@@ -1,6 +1,14 @@
 import { test, expect } from '@playwright/test';
 import { haptics } from '../../src/lib/haptics';
 
+/**
+ * `NODE_ENV` está tipado como sólo lectura, pero estos tests necesitan
+ * alternarlo para cubrir las ramas de desarrollo y producción.
+ */
+function setNodeEnv(value: string | undefined) {
+    (process.env as Record<string, string | undefined>).NODE_ENV = value;
+}
+
 test.describe('HapticEngine', () => {
     let originalWindow: unknown;
     let originalNavigator: unknown;
@@ -117,11 +125,11 @@ test.describe('HapticEngine', () => {
         });
 
         const originalEnv = process.env.NODE_ENV;
-        process.env.NODE_ENV = 'development';
+        setNodeEnv('development');
 
         haptics.vibrate(10);
 
-        process.env.NODE_ENV = originalEnv;
+        setNodeEnv(originalEnv);
 
         expect(consoleWarnMock.length).toBe(1);
         const warnArgs = consoleWarnMock[0] as unknown[];
@@ -138,11 +146,11 @@ test.describe('HapticEngine', () => {
         });
 
         const originalEnv = process.env.NODE_ENV;
-        process.env.NODE_ENV = 'production';
+        setNodeEnv('production');
 
         haptics.vibrate(10);
 
-        process.env.NODE_ENV = originalEnv;
+        setNodeEnv(originalEnv);
 
         expect(consoleWarnMock.length).toBe(0);
     });

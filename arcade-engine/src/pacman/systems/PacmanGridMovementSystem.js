@@ -3,6 +3,7 @@ import { TransformComponent } from '../../components/TransformComponent.js';
 import { PacmanGridComponent } from '../components/PacmanGridComponent.js';
 import { Direction } from '../PacmanConstants.js';
 import { PacmanConfig } from '../PacmanConfig.js';
+import { PacmanBalance } from '../PacmanBalance.js';
 
 export class PacmanGridMovementSystem extends System {
   /**
@@ -43,7 +44,7 @@ export class PacmanGridMovementSystem extends System {
 
       if (gridComp.currentDirection !== Direction.NONE) {
         if (this._canMove(gridComp.gridX, gridComp.gridY, gridComp.currentDirection)) {
-          gridComp.progress += PacmanConfig.PACMAN_SPEED * fixedDt;
+          gridComp.progress += PacmanBalance.PACMAN_SPEED * fixedDt;
 
           if (gridComp.progress >= 1.0) {
             gridComp.progress = 0.0;

@@ -1,0 +1,13 @@
+#ifndef PLATFORM_ENGINE_GRAPHICS_COMPONENTS_RENDER_LAYER_COMPONENT_HPP
+#define PLATFORM_ENGINE_GRAPHICS_COMPONENTS_RENDER_LAYER_COMPONENT_HPP
+
+namespace platform
+{
+    struct RenderLayerComponent
+    {
+        int LayerID{0};
+        int OrderInLayer{0};
+    };
+}
+
+#endif // PLATFORM_ENGINE_GRAPHICS_COMPONENTS_RENDER_LAYER_COMPONENT_HPP

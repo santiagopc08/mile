@@ -7,6 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test": "playwright test",
+    "test:list": "playwright test --list",
+    "typecheck": "tsc --noEmit",
     "seed": "node scripts/seed.mjs",
     "gen-keys": "node scripts/gen_keys.mjs"
   },
@@ -17,8 +20,6 @@
     "@serwist/next": "^9.5.7",
     "@supabase/auth-js": "^2.108.1",
     "@supabase/supabase-js": "^2.108.1",
-    "@types/matter-js": "^0.20.2",
-    "@types/three": "^0.184.1",
     "@vercel/speed-insights": "^1.0.4",
     "@vis.gl/react-google-maps": "^1.8.3",
     "clsx": "^2.1.1",
@@ -30,7 +31,6 @@
     "matter-js": "^0.20.0",
     "next": "^16.2.3",
     "p-map": "^7.0.6",
-    "pre-commit": "^2.0.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "recharts": "^3.8.1",
@@ -46,15 +46,22 @@
   "devDependencies": {
     "@playwright/test": "^1.62.0",
     "@tailwindcss/postcss": "^4",
+    "@types/matter-js": "^0.20.2",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/three": "^0.184.1",
     "@types/uuid": "^10.0.0",
     "@types/web-push": "^3.6.4",
     "eslint": "^9.39.5",
     "eslint-config-next": "16.1.6",
     "playwright": "^1.59.1",
+    "pre-commit": "^2.0.0",
     "tailwindcss": "^4",
     "typescript": "^5.9.3"
-  }
+  },
+  "pre-commit": [
+    "typecheck",
+    "test"
+  ]
 }

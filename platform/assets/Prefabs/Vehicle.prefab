@@ -1,0 +1,29 @@
+{
+  "PrefabID": "0x56454849434C4531",
+  "Name": "VehiclePrefab",
+  "RootEntity": {
+    "Name": "VehicleRoot",
+    "Position": [0.0, 0.0],
+    "Components": ["NameComponent", "TransformComponent", "VehicleComponent"],
+    "Children": [
+      {
+        "Name": "Body",
+        "Position": [0.0, 0.0],
+        "Components": ["TransformComponent", "SpriteComponent", "RigidBodyComponent"],
+        "SpritePath": "Assets/Sprites/vehicle_body.png"
+      },
+      {
+        "Name": "FrontWheel",
+        "Position": [60.0, -20.0],
+        "Components": ["TransformComponent", "SpriteComponent", "RigidBodyComponent", "CircleColliderComponent", "WheelComponent"],
+        "SpritePath": "Assets/Sprites/wheel.png"
+      },
+      {
+        "Name": "RearWheel",
+        "Position": [-60.0, -20.0],
+        "Components": ["TransformComponent", "SpriteComponent", "RigidBodyComponent", "CircleColliderComponent", "WheelComponent"],
+        "SpritePath": "Assets/Sprites/wheel.png"
+      }
+    ]
+  }
+}
