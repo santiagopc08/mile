@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server';
 import fs from 'fs/promises';
 import path from 'path';
+import { verifyAuth } from '@/lib/auth';
 
 export async function GET() {
+    if (!(await verifyAuth())) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
     try {
         const directoryPath = path.join(process.cwd(), 'public', 'img');
         let results: string[] = [];
