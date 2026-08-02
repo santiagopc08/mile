@@ -23,8 +23,14 @@ namespace platform
         [[nodiscard]] static float GroundHeightAt(float x);
         [[nodiscard]] static float GroundSlopeAt(float x);
 
+        /// World X the run starts from. The origin sits on a steep wall, so the buggy
+        /// is placed on the nearest gentle stretch instead.
+        [[nodiscard]] static float StartX();
+
         /// Exposed for validation: current run state.
         [[nodiscard]] float GetDistance() const { return m_distance; }
+        /// Metres travelled from the start line (can go negative when reversing).
+        [[nodiscard]] float GetTravelled() const { return m_distance - StartX(); }
         [[nodiscard]] float GetSpeed() const { return m_speed; }
         [[nodiscard]] float GetFuel() const { return m_fuel; }
         [[nodiscard]] bool IsOutOfFuel() const { return m_fuel <= 0.0f; }

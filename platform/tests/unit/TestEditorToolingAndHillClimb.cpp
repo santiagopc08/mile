@@ -86,11 +86,10 @@ TEST_CASE("Hill Climb simulation advances and restarts", "[HillClimb]")
     }
     REQUIRE(std::isfinite(scene.GetDistance()));
     REQUIRE(std::isfinite(scene.GetSpeed()));
-    REQUIRE(scene.GetDistance() >= 0.0f);
     REQUIRE(scene.GetFuel() == Catch::Approx(100.0f)); // no throttle, no burn
 
     scene.Restart();
-    REQUIRE(scene.GetDistance() == Catch::Approx(0.0f));
+    REQUIRE(scene.GetTravelled() == Catch::Approx(0.0f));
     REQUIRE(scene.GetSpeed() == Catch::Approx(0.0f));
     REQUIRE(scene.GetFuel() == Catch::Approx(100.0f));
     REQUIRE(!scene.IsOutOfFuel());
@@ -114,7 +113,7 @@ TEST_CASE("Hill Climb responds to the throttle and brake keys", "[HillClimb]")
         input.NewFrame(); // key stays down, Pressed -> Held
     }
 
-    const float drivenDistance = scene.GetDistance();
+    const float drivenDistance = scene.GetTravelled();
     INFO("distance after 1s of throttle: " << drivenDistance);
     REQUIRE(drivenDistance > 20.0f);
     REQUIRE(scene.GetSpeed() > 0.0f);
@@ -141,7 +140,40 @@ TEST_CASE("Hill Climb responds to the throttle and brake keys", "[HillClimb]")
         scene.Update(1.0 / 60.0);
         input.NewFrame();
     }
-    REQUIRE(scene.GetDistance() > 20.0f);
+    REQUIRE(scene.GetTravelled() > 20.0f);
+}
+
+TEST_CASE("Hill Climb can climb its own steepest hill", "[HillClimb]")
+{
+    // The regression that made the game look frozen: the engine was weaker than
+    // gravity on the terrain's steepest grade, so full throttle went nowhere.
+    float steepestUphill = 0.0f;
+    for (float x = 0.0f; x < 20000.0f; x += 0.5f)
+    {
+        steepestUphill = std::min(steepestUphill, platform::NativeHillClimbScene::GroundSlopeAt(x));
+    }
+
+    // Uphill is a negative gradient; the pull it puts on the buggy is g*sin(atan(s)).
+    const float gravityPull = 1000.0f * std::sin(std::atan(-steepestUphill));
+    REQUIRE(gravityPull < 980.0f); // engine acceleration
+
+    platform::Input input;
+    input.Initialize();
+
+    platform::NativeHillClimbScene scene;
+    scene.BindInput(&input);
+    REQUIRE(scene.Initialize());
+    scene.Activate();
+
+    input.OnKeyDown(platform::Key::D);
+    for (int i = 0; i < 60 * 20; ++i)
+    {
+        scene.Update(1.0 / 60.0);
+        input.NewFrame();
+    }
+
+    // Twenty seconds of throttle has to clear several hills, not stall on the first.
+    REQUIRE(scene.GetTravelled() > 2000.0f);
 }
 
 TEST_CASE("Scene viewport picks the topmost entity under the cursor", "[Editor]")

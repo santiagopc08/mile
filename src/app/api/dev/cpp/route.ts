@@ -11,14 +11,24 @@ const debugBin = path.join(platformRoot, 'build', 'debug', 'bin');
 const commands = {
   hillClimb: path.join(debugBin, 'hill_climb'),
   editor: path.join(debugBin, 'editor'),
+  arcade: path.join(debugBin, 'arcade'),
   tests: path.join(debugBin, 'platform_tests'),
 } as const;
 
 type Action = keyof typeof commands;
 
+const ACTIONS = Object.keys(commands) as Action[];
+
 function isAction(value: unknown): value is Action {
-  return value === 'hillClimb' || value === 'editor' || value === 'tests';
+  return typeof value === 'string' && (ACTIONS as string[]).includes(value);
 }
+
+const WINDOW_LABELS: Record<Action, string> = {
+  hillClimb: 'Hill Climb Native',
+  editor: 'Editor de Escenas',
+  arcade: 'ORBIT Arcade',
+  tests: 'Validation Lab',
+};
 
 export async function POST(request: Request) {
   let body: { action?: unknown };
@@ -49,7 +59,7 @@ export async function POST(request: Request) {
     });
     child.unref();
 
-    return NextResponse.json({ ok: true, pid: child.pid, action: body.action });
+    return NextResponse.json({ ok: true, pid: child.pid, action: body.action, window: WINDOW_LABELS[body.action] });
   }
 
   const testFilter = '[PhysicsScene],[VehicleScene],[TerrainScene],[GameplayScene],[ProgressionScene],[PresentationScene],[AudioScene],[AssetScene],[ContentScene]';

@@ -37,6 +37,10 @@ namespace platform
         constexpr float kFuelCanSpacing = 1400.0f;
         constexpr int kFuelCanCount = 12;
 
+        // The origin sits on a 31 degree wall; start on the nearest gentle stretch so
+        // the buggy is not sliding backwards the moment the window opens.
+        constexpr float kStartX = 426.0f;
+
         std::string FormatLine(const char *format, float a, float b = 0.0f)
         {
             char buffer[160];
@@ -50,21 +54,28 @@ namespace platform
     {
     }
 
+    float NativeHillClimbScene::StartX()
+    {
+        return kStartX;
+    }
+
     float NativeHillClimbScene::GroundHeightAt(float x)
     {
         // Three octaves of sine give rolling hills with a long, slow swell underneath.
+        // Amplitudes are tuned so the combined gradient never exceeds ~0.6 (31 deg),
+        // which is what the engine can still climb at full throttle.
         return kGroundBaseY
-            - std::sin(x * 0.0032f) * 96.0f
-            - std::sin(x * 0.0091f) * 42.0f
-            - std::sin(x * 0.0007f) * 130.0f;
+            - std::sin(x * 0.0026f) * 110.0f
+            - std::sin(x * 0.0070f) * 34.0f
+            - std::sin(x * 0.0006f) * 150.0f;
     }
 
     float NativeHillClimbScene::GroundSlopeAt(float x)
     {
         // Analytic derivative of GroundHeightAt: dy/dx of the terrain profile.
-        return -std::cos(x * 0.0032f) * 96.0f * 0.0032f
-            - std::cos(x * 0.0091f) * 42.0f * 0.0091f
-            - std::cos(x * 0.0007f) * 130.0f * 0.0007f;
+        return -std::cos(x * 0.0026f) * 110.0f * 0.0026f
+            - std::cos(x * 0.0070f) * 34.0f * 0.0070f
+            - std::cos(x * 0.0006f) * 150.0f * 0.0006f;
     }
 
     EntityID NativeHillClimbScene::CreateBlock(const glm::vec2 &position, const glm::vec2 &size, const glm::vec4 &color, int layer)
@@ -173,14 +184,16 @@ namespace platform
 
     void NativeHillClimbScene::Restart()
     {
-        m_distance = 0.0f;
+        m_distance = kStartX;
         m_speed = 0.0f;
         m_fuel = 100.0f;
         m_verticalVelocity = 0.0f;
         m_airborneTime = 0.0f;
         m_wheelSpin = 0.0f;
-        m_chassisY = GroundHeightAt(0.0f) - kRideHeight;
+        m_chassisY = GroundHeightAt(kStartX) - kRideHeight;
         m_chassisAngle = 0.0f;
+        m_bestDistance = kStartX;
+        m_camera.SetPosition({kStartX, m_chassisY - 40.0f});
 
         for (size_t i = 0; i < m_fuelCans.size(); ++i)
         {
@@ -328,9 +341,10 @@ namespace platform
         renderer.SubmitCommand(std::make_unique<DrawTextCommand>(
             glm::vec2{40.0f, 26.0f}, "HILL CLIMB NATIVE", heading, 2.0f));
         renderer.SubmitCommand(std::make_unique<DrawTextCommand>(
-            glm::vec2{40.0f, 56.0f}, FormatLine("DISTANCE %.0f m    SPEED %.0f", m_distance / 10.0f, std::abs(m_speed) / 10.0f), body, 1.5f));
+            glm::vec2{40.0f, 56.0f},
+            FormatLine("DISTANCE %.0f m    SPEED %.0f", GetTravelled() / 10.0f, std::abs(m_speed) / 10.0f), body, 1.5f));
         renderer.SubmitCommand(std::make_unique<DrawTextCommand>(
-            glm::vec2{40.0f, 80.0f}, FormatLine("BEST %.0f m", m_bestDistance / 10.0f), muted, 1.5f));
+            glm::vec2{40.0f, 80.0f}, FormatLine("BEST %.0f m", (m_bestDistance - kStartX) / 10.0f), muted, 1.5f));
 
         // Fuel gauge.
         const float gaugeWidth = 260.0f;

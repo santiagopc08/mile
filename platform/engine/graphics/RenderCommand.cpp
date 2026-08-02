@@ -136,6 +136,55 @@ namespace platform
         }
     }
 
+    void DrawConvexPolygonCommand::Execute(SDL_Renderer *renderer)
+    {
+        if (!renderer || m_points.size() < 3)
+        {
+            return;
+        }
+
+        const SDL_FColor color{m_color.r, m_color.g, m_color.b, m_color.a};
+
+        std::vector<SDL_Vertex> vertices(m_points.size());
+        for (size_t i = 0; i < m_points.size(); ++i)
+        {
+            vertices[i].position = {m_points[i].x, m_points[i].y};
+            vertices[i].color = color;
+        }
+
+        std::vector<int> indices;
+        indices.reserve((m_points.size() - 2) * 3);
+        for (size_t i = 1; i + 1 < m_points.size(); ++i)
+        {
+            indices.push_back(0);
+            indices.push_back(static_cast<int>(i));
+            indices.push_back(static_cast<int>(i + 1));
+        }
+
+        SDL_RenderGeometry(renderer, nullptr, vertices.data(), static_cast<int>(vertices.size()),
+                           indices.data(), static_cast<int>(indices.size()));
+    }
+
+    void DrawPolylineCommand::Execute(SDL_Renderer *renderer)
+    {
+        if (!renderer || m_points.size() < 2)
+        {
+            return;
+        }
+
+        SDL_SetRenderDrawColorFloat(renderer, m_color.r, m_color.g, m_color.b, m_color.a);
+
+        for (size_t i = 0; i + 1 < m_points.size(); ++i)
+        {
+            SDL_RenderLine(renderer, m_points[i].x, m_points[i].y, m_points[i + 1].x, m_points[i + 1].y);
+        }
+
+        if (m_closed)
+        {
+            SDL_RenderLine(renderer, m_points.back().x, m_points.back().y, m_points.front().x, m_points.front().y);
+        }
+    }
+
     void DrawLineCommand::Execute(SDL_Renderer *renderer)
     {
         if (!renderer)

@@ -3,6 +3,8 @@
 
 #include <glm/glm.hpp>
 #include <string>
+#include <utility>
+#include <vector>
 
 struct SDL_Renderer;
 
@@ -78,6 +80,36 @@ namespace platform
         float m_radius{16.0f};
         glm::vec4 m_color{1.0f, 1.0f, 1.0f, 1.0f};
         float m_spokeRotation{0.0f};
+    };
+
+    /// Filled convex polygon in screen space. Points must be given in order; the
+    /// command fans them from the first vertex.
+    class DrawConvexPolygonCommand : public RenderCommand
+    {
+    public:
+        DrawConvexPolygonCommand(std::vector<glm::vec2> points, const glm::vec4 &color)
+            : m_points(std::move(points)), m_color(color) {}
+
+        void Execute(SDL_Renderer *renderer) override;
+
+    private:
+        std::vector<glm::vec2> m_points;
+        glm::vec4 m_color{1.0f, 1.0f, 1.0f, 1.0f};
+    };
+
+    /// Closed outline through the given points, one line per edge.
+    class DrawPolylineCommand : public RenderCommand
+    {
+    public:
+        DrawPolylineCommand(std::vector<glm::vec2> points, const glm::vec4 &color, bool closed = true)
+            : m_points(std::move(points)), m_color(color), m_closed(closed) {}
+
+        void Execute(SDL_Renderer *renderer) override;
+
+    private:
+        std::vector<glm::vec2> m_points;
+        glm::vec4 m_color{1.0f, 1.0f, 1.0f, 1.0f};
+        bool m_closed{true};
     };
 
     class DrawLineCommand : public RenderCommand

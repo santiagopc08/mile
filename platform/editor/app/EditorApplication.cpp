@@ -12,7 +12,6 @@
 #include "engine/graphics/components/VisibilityComponent.hpp"
 #include "engine/scene/components/Components.hpp"
 
-#include <cstdio>
 #include <filesystem>
 
 namespace platform
@@ -36,12 +35,6 @@ namespace platform
             Camera2D *m_camera{nullptr};
         };
 
-        std::string Format(const char *pattern, double value)
-        {
-            char buffer[96];
-            std::snprintf(buffer, sizeof(buffer), pattern, value);
-            return std::string(buffer);
-        }
     }
 
     EditorApplication::EditorApplication(const WindowConfig &config)

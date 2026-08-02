@@ -17,6 +17,7 @@ add_executable(
     unit/TestMilestone13.cpp
     unit/TestMilestone14.cpp
     unit/TestEditorToolingAndHillClimb.cpp
+    unit/TestArcadeGames.cpp
     unit/TestConstitution.cpp
     unit/TestHandbookModules.cpp
     unit/TestHandbookRuntimeECS.cpp
@@ -81,6 +82,10 @@ add_executable(
     ../editor/ui/EditorUI.cpp
     ../editor/workspace/Dockspace.cpp
     ../editor/workspace/EditorWorkspace.cpp
+    ../examples/arcade/ArcadeCommon.cpp
+    ../examples/arcade/BrickStormScene.cpp
+    ../examples/arcade/MenuScene.cpp
+    ../examples/arcade/VoidRunnerScene.cpp
     ../examples/hill_climb/FirstPlayableScene.cpp
     ../examples/hill_climb/NativeHillClimbScene.cpp
     ../examples/hill_climb/PhysicsValidationScene.cpp

@@ -150,7 +150,7 @@ export default function DevDebugPage() {
     }
   };
 
-  const handleCppAction = async (action: 'hillClimb' | 'editor' | 'tests') => {
+  const handleCppAction = async (action: 'hillClimb' | 'editor' | 'arcade' | 'tests') => {
     setCppAction(action);
     if (action === 'tests') setCppOutput('Ejecutando escenas de validación C++…');
 
@@ -166,7 +166,7 @@ export default function DevDebugPage() {
         setCppOutput(result.output || result.error || 'Sin salida del runner.');
         addLog('CPP_TESTS', result.ok ? 'success' : 'warn', result.ok ? 'Validation Lab completado correctamente.' : 'Validation Lab terminó con errores.');
       } else {
-        addLog('CPP_RUNTIME', response.ok ? 'success' : 'warn', response.ok ? `Ventana ${action === 'hillClimb' ? 'Hill Climb Native' : 'Editor'} lanzada.` : (result.error || 'No se pudo lanzar el binario.'));
+        addLog('CPP_RUNTIME', response.ok ? 'success' : 'warn', response.ok ? `Ventana ${result.window ?? action} lanzada.` : (result.error || 'No se pudo lanzar el binario.'));
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Error de conexión con el runner C++.';
@@ -462,11 +462,11 @@ export default function DevDebugPage() {
                       C++ PLATFORM LAB
                     </h3>
                     <p className="text-xs text-white/60 leading-relaxed font-sans">
-                      Juegos, demos, dummies, editor y pruebas recién creados para el runtime nativo de Mile.
+                      Arcade de dos juegos, simulador Hill Climb, editor de escenas y suite de validación sobre el runtime nativo de Mile.
                     </p>
                   </div>
                   <div className="pt-6 flex items-center justify-between border-t border-white/10 mt-6">
-                    <span className="text-[10px] text-sky-300 font-bold uppercase">3 TARGETS · CMAKE</span>
+                    <span className="text-[10px] text-sky-300 font-bold uppercase">4 TARGETS · CMAKE</span>
                     <button
                       type="button"
                       onClick={() => setActiveView('cpp')}
@@ -682,7 +682,30 @@ export default function DevDebugPage() {
                   </span>
                 </div>
 
-                <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="mt-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                  <div className="rounded-2xl border border-pink-400/25 bg-pink-400/[0.06] p-5">
+                    <div className="flex items-center justify-between">
+                      <Gamepad2 className="w-6 h-6 text-pink-300" />
+                      <span className="text-[9px] font-black uppercase text-pink-300">ARCADE</span>
+                    </div>
+                    <h3 className="mt-4 text-lg font-black uppercase text-white">ORBIT ARCADE</h3>
+                    <p className="mt-2 text-xs leading-relaxed text-white/60 font-sans">
+                      Dos juegos arcade completos sobre el runtime nativo: <span className="font-bold text-cyan-200">Brick Storm</span> (rompe bloques con power-ups) y <span className="font-bold text-pink-200">Void Runner</span> (nave vectorial y asteroides).
+                    </p>
+                    <div className="mt-5 border-t border-white/10 pt-3 text-[10px] font-bold uppercase text-pink-300">
+                      target: arcade · 2 juegos
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleCppAction('arcade')}
+                      disabled={cppAction !== null}
+                      className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-pink-300 px-4 py-2.5 text-xs font-black uppercase text-slate-950 transition hover:bg-pink-200 disabled:cursor-wait disabled:opacity-50"
+                    >
+                      <Play className="h-3.5 w-3.5" />
+                      {cppAction === 'arcade' ? 'LANZANDO…' : 'JUGAR'}
+                    </button>
+                  </div>
+
                   <div className="rounded-2xl border border-amber-400/25 bg-amber-400/[0.06] p-5">
                     <div className="flex items-center justify-between">
                       <Cpu className="w-6 h-6 text-amber-300" />
@@ -758,12 +781,18 @@ export default function DevDebugPage() {
                   <span>·</span>
                   <span>CMake 3.28+</span>
                   <span>·</span>
-                  <span>3 targets nativos</span>
+                  <span>4 targets nativos</span>
                   <span>·</span>
                   <span>validación autónoma</span>
                 </div>
 
                 <div className="mt-5 grid grid-cols-1 gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4 sm:grid-cols-2">
+                  <div>
+                    <h3 className="text-xs font-black uppercase tracking-wider text-pink-300">Cómo usar el Arcade</h3>
+                    <p className="mt-2 text-xs leading-relaxed text-white/60 font-sans">
+                      Elige juego con <kbd className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-white">↑</kbd> <kbd className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-white">↓</kbd> y <kbd className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-white">Enter</kbd> (o pulsa 1 / 2). En Brick Storm mueves la paleta con <kbd className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-white">A</kbd> <kbd className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-white">D</kbd> y lanzas con <kbd className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-white">Espacio</kbd>; en Void Runner giras con <kbd className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-white">A</kbd> <kbd className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-white">D</kbd>, aceleras con <kbd className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-white">W</kbd> y disparas con <kbd className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-white">Espacio</kbd>. <kbd className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-white">R</kbd> reinicia y <kbd className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-white">Esc</kbd> vuelve al menú.
+                    </p>
+                  </div>
                   <div>
                     <h3 className="text-xs font-black uppercase tracking-wider text-amber-300">Cómo usar Hill Climb</h3>
                     <p className="mt-2 text-xs leading-relaxed text-white/60 font-sans">

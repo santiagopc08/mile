@@ -32,6 +32,7 @@ add_subdirectory(editor)
 
 if(PLATFORM_BUILD_EXAMPLES)
     add_subdirectory(examples/hill_climb)
+    add_subdirectory(examples/arcade)
 endif()
 
 if(PLATFORM_BUILD_TESTS)
