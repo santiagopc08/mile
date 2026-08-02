@@ -43,18 +43,24 @@ export function PendingTasks() {
     };
 
     const handleSaveTask = async (id: string, newText: string, newPriority: 'low' | 'medium' | 'high') => {
-        const updated = allTasks.map(t => t.id === id ? {
-            ...t,
-            text: newText,
-            priority: newPriority
-        } : t);
-        await updateData({ tasks: updated });
+        // ⚡ Bolt Optimization: Replace O(N) map with single pass findIndex + targeted mutation
+        const taskIndex = allTasks.findIndex(t => t.id === id);
+        if (taskIndex !== -1) {
+            const updated = [...allTasks];
+            updated[taskIndex] = { ...updated[taskIndex], text: newText, priority: newPriority };
+            await updateData({ tasks: updated });
+        }
     };
 
     const toggleTask = async (task: Task) => {
         const newStatus: TaskStatus = task.status === 'done' ? 'todo' : 'done';
-        const updated = allTasks.map((t) => t.id === task.id ? { ...t, status: newStatus } : t);
-        await updateData({ tasks: updated });
+        // ⚡ Bolt Optimization: Replace O(N) map with single pass findIndex + targeted mutation
+        const taskIndex = allTasks.findIndex(t => t.id === task.id);
+        if (taskIndex !== -1) {
+            const updated = [...allTasks];
+            updated[taskIndex] = { ...updated[taskIndex], status: newStatus };
+            await updateData({ tasks: updated });
+        }
     };
 
     const deleteTask = async (id: string, e: React.MouseEvent) => {
