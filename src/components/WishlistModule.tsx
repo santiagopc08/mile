@@ -14,6 +14,7 @@ import { SavingsOverview } from './planes/SavingsOverview';
 import { WishlistCard } from './planes/WishlistCard';
 import { ActivityFeed } from './planes/ActivityFeed';
 import { LiveLinkPreview } from './LiveLinkPreview';
+import { useWishlist } from '@/hooks/useWishlist';
 import pMap from 'p-map';
 import { useToast } from '@/components/ui/Toast';
 
@@ -36,21 +37,23 @@ export function WishlistModule() {
 
     const [catFilter, setCatFilter] = useState<GoalCategory | 'ALL'>('ALL');
     const [stateFilter, setStateFilter] = useState<StateFilter>('ALL');
-    const [isAdding, setIsAdding] = useState(false);
-    const [editingItem, setEditingItem] = useState<WishlistItem | null>(null);
     const [showFeed, setShowFeed] = useState(false);
 
-    // Form state
-    const [fTitle, setFTitle] = useState('');
-    const [fDesc, setFDesc] = useState('');
-    const [fPrice, setFPrice] = useState('0');
-    const [fCategory, setFCategory] = useState<GoalCategory>('Experiences');
-    const [fLocationUrl, setFLocationUrl] = useState('');
-    const [fDetailLink, setFDetailLink] = useState('');
-    const [fImage, setFImage] = useState('');
-    const [fOwner, setFOwner] = useState<'el' | 'ella'>('el');
-    const [fShared, setFShared] = useState(false);
-    const [fPriority, setFPriority] = useState(false);
+    const {
+        isAdding, setIsAdding,
+        editingItem, setEditingItem,
+        fTitle, setFTitle,
+        fDesc, setFDesc,
+        fPrice, setFPrice,
+        fCategory, setFCategory,
+        fLocationUrl, setFLocationUrl,
+        fDetailLink, setFDetailLink,
+        fImage, setFImage,
+        fOwner, setFOwner,
+        fShared, setFShared,
+        fPriority, setFPriority,
+        resetForm, openEdit
+    } = useWishlist();
 
     const items = useMemo(() => (data?.wishlist || []) as WishlistItem[], [data?.wishlist]);
     const activity = useMemo(() => data?.wishlistActivity || [], [data?.wishlistActivity]);
@@ -283,19 +286,7 @@ export function WishlistModule() {
         });
     }, [items, catFilter, stateFilter]);
 
-    const resetForm = useCallback(() => {
-        setFTitle(''); setFDesc(''); setFPrice('0'); setFCategory('Experiences');
-        setFLocationUrl(''); setFDetailLink(''); setFImage(''); setFOwner('el'); setFShared(false); setFPriority(false);
-    }, []);
 
-    const openEdit = useCallback((item: WishlistItem) => {
-        setEditingItem(item);
-        setFTitle(item.title); setFDesc(item.description); setFPrice(String(item.price || 0));
-        setFCategory(item.goalCategory); setFLocationUrl(item.locationUrl || ''); setFDetailLink(item.externalLink || '');
-        setFImage(item.imageUrl || ''); setFOwner((item.owner as 'el' | 'ella') || 'el');
-        setFShared(item.shared); setFPriority(item.isPriority);
-        setIsAdding(true);
-    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
