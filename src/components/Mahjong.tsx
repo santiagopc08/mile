@@ -52,6 +52,8 @@ import { useToast } from '@/components/ui/Toast';
 import { useFireStreak } from './mahjong/hooks/useFireStreak';
 import { ComboSign } from './mahjong/ComboSign';
 
+const DATE_FORMATTER = new Intl.DateTimeFormat('es-CO', { dateStyle: 'long' });
+
 export function Mahjong() {
     const { profile } = useProfile();
     // Renombrados: dentro del componente ya hay variables locales `success`.
@@ -606,7 +608,7 @@ export function Mahjong() {
             detailsMap.set(dailyEvent.url, {
                 title: dailyEvent.title || 'Recuerdo Diario',
                 description: dailyEvent.description || 'Un hermoso recuerdo de nuestra historia.',
-                date: dailyEvent.date ? new Intl.DateTimeFormat('es-CO', { dateStyle: 'long' }).format(new Date(dailyEvent.date)) : 'Fecha especial'
+                date: dailyEvent.date ? DATE_FORMATTER.format(new Date(dailyEvent.date)) : 'Fecha especial'
             });
             setEventDetailsMap(detailsMap);
 
@@ -614,7 +616,7 @@ export function Mahjong() {
                 title: dailyEvent.title || 'Recuerdo Diario',
                 description: dailyEvent.description || 'Un hermoso recuerdo de nuestra historia.',
                 imageUrl: dailyEvent.url,
-                date: dailyEvent.date ? new Intl.DateTimeFormat('es-CO', { dateStyle: 'long' }).format(new Date(dailyEvent.date)) : 'Fecha especial'
+                date: dailyEvent.date ? DATE_FORMATTER.format(new Date(dailyEvent.date)) : 'Fecha especial'
             });
         }
 
@@ -732,7 +734,7 @@ export function Mahjong() {
                 detailsMap.set(img.url, {
                     title: img.title || 'Recuerdo Especial',
                     description: img.description || 'Un hermoso recuerdo de nuestra historia.',
-                    date: img.date ? new Intl.DateTimeFormat('es-CO', { dateStyle: 'long' }).format(new Date(img.date)) : 'Fecha especial'
+                    date: img.date ? DATE_FORMATTER.format(new Date(img.date)) : 'Fecha especial'
                 });
             }
         }
@@ -821,7 +823,7 @@ export function Mahjong() {
                 detailsMap.set(img.url, {
                     title: img.title || 'Recuerdo Especial',
                     description: img.description || 'Un hermoso recuerdo de nuestra historia.',
-                    date: img.date ? new Intl.DateTimeFormat('es-CO', { dateStyle: 'long' }).format(new Date(img.date)) : 'Fecha especial'
+                    date: img.date ? DATE_FORMATTER.format(new Date(img.date)) : 'Fecha especial'
                 });
             }
         }
@@ -880,7 +882,7 @@ export function Mahjong() {
                 detailsMap.set(img.url, {
                     title: img.title || 'Recuerdo Especial',
                     description: img.description || 'Un hermoso recuerdo de nuestra historia.',
-                    date: img.date ? new Intl.DateTimeFormat('es-CO', { dateStyle: 'long' }).format(new Date(img.date)) : 'Fecha especial'
+                    date: img.date ? DATE_FORMATTER.format(new Date(img.date)) : 'Fecha especial'
                 });
             }
         }
@@ -2144,7 +2146,7 @@ export function Mahjong() {
                                 DESAFÍO DIARIO
                             </h3>
                             <p className="text-[10px] text-slate-500 mb-6 uppercase tracking-widest">
-                                {new Intl.DateTimeFormat('es-CO', { dateStyle: 'long' }).format(new Date())}
+                                {DATE_FORMATTER.format(new Date())}
                             </p>
 
                             {/* Today's Results comparing Santiago vs Milena */}
