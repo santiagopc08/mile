@@ -52,22 +52,24 @@ export function applyHardeningToBoard(tiles: TileState[], activeMechanics: Harde
     // ⚡ Bolt Optimization: Replace redundant [...tiles.map()] spread with direct map assignment
     let result = tiles.map(t => ({ ...t }));
 
-    if (activeMechanics.includes('mirror')) {
+    const mechanicsSet = new Set(activeMechanics);
+
+    if (mechanicsSet.has('mirror')) {
         result = applyMirror(result, level);
     }
-    if (activeMechanics.includes('ghost')) {
+    if (mechanicsSet.has('ghost')) {
         result = applyGhost(result, level);
     }
-    if (activeMechanics.includes('padlock')) {
+    if (mechanicsSet.has('padlock')) {
         result = applyPadlock(result, level);
     }
-    if (activeMechanics.includes('ice')) {
+    if (mechanicsSet.has('ice')) {
         result = applyIce(result, level);
     }
-    if (activeMechanics.includes('bomb')) {
+    if (mechanicsSet.has('bomb')) {
         result = applyBomb(result, level);
     }
-    if (activeMechanics.includes('smoke')) {
+    if (mechanicsSet.has('smoke')) {
         result = applySmoke(result);
     }
 
