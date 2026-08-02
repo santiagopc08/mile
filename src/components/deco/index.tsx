@@ -18,7 +18,7 @@
 import React from 'react';
 import { useInView } from '@/lib/useInView';
 
-/* Anchura de trazo fina y homogénea en todo el kit */
+/* Anchura de trazo fina y homogénea en el kit completo */
 const STROKE = 1;
 
 type DivProps = React.HTMLAttributes<HTMLDivElement>;
