@@ -42,8 +42,8 @@ export const SymmetryDashboard = () => {
     const aA: any[] = [];
     const aB: any[] = [];
     for (const a of storeAllocations) {
-      if (a.profile === 'el') aA.push(a);
-      else if (a.profile === 'ella') aB.push(a);
+      if ((a as any).profile === 'el') aA.push(a);
+      else if ((a as any).profile === 'ella') aB.push(a);
     }
     return { allocationsA: aA, allocationsB: aB };
   }, [storeAllocations]);
