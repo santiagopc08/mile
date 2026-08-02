@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server';
 import { fetchSafe } from '@/lib/fetch-safe';
-
+import { verifyAuth } from '@/lib/auth';
 
 export async function GET(request: Request) {
+    if (!(await verifyAuth())) {
+        return new Response('Unauthorized', { status: 401 });
+    }
+
     try {
         const { searchParams } = new URL(request.url);
         const url = searchParams.get('url');
