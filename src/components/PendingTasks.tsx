@@ -42,17 +42,27 @@ export function PendingTasks() {
     };
 
     const handleSaveTask = async (id: string, newText: string, newPriority: 'low' | 'medium' | 'high') => {
-        const updated = tasks.map(t => t.id === id ? {
-            ...t,
-            text: newText,
-            priority: newPriority
-        } : t);
+        // ⚡ Bolt Optimization: Replace O(N) map with single pass findIndex + mutation
+        const updated = [...tasks];
+        const taskIdx = updated.findIndex(t => t.id === id);
+        if (taskIdx !== -1) {
+            updated[taskIdx] = {
+                ...updated[taskIdx],
+                text: newText,
+                priority: newPriority
+            };
+        }
         await updateData({ tasks: updated });
     };
 
     const toggleTask = async (task: Task) => {
         const newStatus: TaskStatus = task.status === 'done' ? 'todo' : 'done';
-        const updated = tasks.map((t) => t.id === task.id ? { ...t, status: newStatus } : t);
+        // ⚡ Bolt Optimization: Replace O(N) map with single pass findIndex + mutation
+        const updated = [...tasks];
+        const taskIdx = updated.findIndex((t) => t.id === task.id);
+        if (taskIdx !== -1) {
+            updated[taskIdx] = { ...updated[taskIdx], status: newStatus };
+        }
         await updateData({ tasks: updated });
     };
 
