@@ -2,16 +2,15 @@ import { test, expect } from '@playwright/test';
 import { Timeline } from '../../src/components/Timeline';
 import { TimelineService } from '../../src/services/timelineService';
 import React from 'react';
-
 function withFakeReactDispatcher(callback: () => void) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ReactInternals = (React as any).__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE || (React as any).__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
-
     if (ReactInternals) {
         const prevDispatcher = ReactInternals.H;
         const mockStates: unknown[] = [];
         let stateIndex = 0;
-
         ReactInternals.H = {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             useContext: (_context: unknown) => {
                 return {
                     updateData: () => {},
@@ -19,7 +18,6 @@ function withFakeReactDispatcher(callback: () => void) {
                     error: (msg: string) => { if(typeof global !== 'undefined' && global.alert) global.alert(msg); },
                     success: () => {},
                     confirm: () => {},
-                };
                 };
             },
             useState: (initial: unknown) => {
@@ -35,11 +33,14 @@ function withFakeReactDispatcher(callback: () => void) {
                     else if (currentIndex === 9) mockStates[currentIndex] = 'Test Desc';
                     else mockStates[currentIndex] = initial;
                 }
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 return [mockStates[currentIndex], (updater: any) => {
                     mockStates[currentIndex] = typeof updater === 'function' ? updater(mockStates[currentIndex]) : updater;
                 }];
             },
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
             useEffect: (effect: any, deps: any) => { },
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
             useMemo: (factory: any, deps: any) => { return factory(); }
         };
         try {
@@ -51,14 +52,12 @@ function withFakeReactDispatcher(callback: () => void) {
         callback();
     }
 }
-
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function findFormsWithOnSubmit(element: any, forms: any[] = []): any[] {
     if (!element) return forms;
-
     if (element.type === 'form' && element.props && element.props.onSubmit) {
         forms.push(element.props.onSubmit);
     }
-
     if (element.props && element.props.children) {
         if (Array.isArray(element.props.children)) {
             for (const child of element.props.children) {
@@ -70,35 +69,30 @@ function findFormsWithOnSubmit(element: any, forms: any[] = []): any[] {
     }
     return forms;
 }
-
 test.describe('Timeline Component', () => {
     let originalAlert: typeof global.alert;
     let originalUpload: typeof TimelineService.uploadTimelineImage;
-
     test.beforeEach(() => {
         originalAlert = global.alert;
         originalUpload = TimelineService.uploadTimelineImage;
     });
-
     test.afterEach(() => {
         global.alert = originalAlert;
         TimelineService.uploadTimelineImage = originalUpload;
     });
-
     test('handleAddEvent should handle image upload error and show alert', async () => {
         (global as unknown as { testAlertMessage: string }).testAlertMessage = '';
         global.alert = (msg) => { (global as unknown as { testAlertMessage: string }).testAlertMessage = msg; };
-
         TimelineService.uploadTimelineImage = async () => {
             throw new Error('Test upload failed');
         };
-
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         let handlers: any[] = [];
         withFakeReactDispatcher(() => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const element: any = Timeline({ events: [{ id: '1', date: '2023-01-01', title: 'Test', description: 'Test desc' }] });
             handlers = findFormsWithOnSubmit(element);
         });
-
         const formEvent = {
             preventDefault: () => {},
             currentTarget: {
@@ -113,33 +107,25 @@ test.describe('Timeline Component', () => {
                 }
             }
         };
-
         // Run the first form's onSubmit, which should be the Add Event form
         if (handlers.length > 0) {
             await handlers[0](formEvent);
         }
-
-<<<<<<< HEAD
         expect((global as unknown as { testAlertMessage: string }).testAlertMessage).toContain('No se pudo subir la imagen: Test upload failed');
-=======
-        expect(alertMessage).toContain('No se pudo subir la imagen: Test upload failed');
->>>>>>> origin/main
     });
-
     test('handleEditSave should handle image upload error and show alert', async () => {
         (global as unknown as { testAlertMessage: string }).testAlertMessage = '';
         global.alert = (msg) => { (global as unknown as { testAlertMessage: string }).testAlertMessage = msg; };
-
         TimelineService.uploadTimelineImage = async () => {
             throw new Error('Edit upload failed');
         };
-
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         let handlers: any[] = [];
         withFakeReactDispatcher(() => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const element: any = Timeline({ events: [{ id: '1', date: '2023-01-01', title: 'Test', description: 'Test desc' }] });
             handlers = findFormsWithOnSubmit(element);
         });
-
         const formEvent = {
             preventDefault: () => {},
             currentTarget: {
@@ -154,16 +140,10 @@ test.describe('Timeline Component', () => {
                 }
             }
         };
-
         // Edit form could be second or later, run all
         for (const handler of handlers) {
              await handler(formEvent);
         }
-
-<<<<<<< HEAD
         expect((global as unknown as { testAlertMessage: string }).testAlertMessage).toContain('No se pudo subir la imagen: Edit upload failed');
-=======
-        expect(alertMessage).toContain('No se pudo subir la imagen: Edit upload failed');
->>>>>>> origin/main
     });
 });
