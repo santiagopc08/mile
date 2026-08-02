@@ -38,6 +38,8 @@ const SmashFestGame = dynamic(() => import("./components/SmashFestGame"), {
   ),
 });
 
+const DEFAULT_LEVEL_KEYS = Object.keys(DEFAULT_LEVELS);
+
 function StarRow({ count, size = 10, dim = false }: { count: number; size?: number; dim?: boolean }) {
   return (
     <span className="inline-flex items-center gap-[1px]" aria-label={`${count} de 3 estrellas`}>
@@ -105,7 +107,7 @@ export default function SmashFestPage() {
   // Rolls a fresh procedural level. Difficulty tracks the level currently
   // selected, so the dice stays meaningful as the player advances.
   const handleGenerateLevel = useCallback(() => {
-    const index = Object.keys(DEFAULT_LEVELS).indexOf(levelId);
+    const index = DEFAULT_LEVEL_KEYS.indexOf(levelId);
     const difficulty = (Math.min(5, Math.max(1, index + 1)) || 3) as Difficulty;
     setGenerated(generateLevel(randomSeed(), difficulty));
     setResetKey((prev) => prev + 1);
@@ -129,7 +131,7 @@ export default function SmashFestPage() {
       handleGenerateLevel();
       return;
     }
-    const levelKeys = Object.keys(DEFAULT_LEVELS);
+    const levelKeys = DEFAULT_LEVEL_KEYS;
     setLevelId((currentLvl) => {
       const currentIndex = levelKeys.indexOf(currentLvl);
       const nextIndex = (currentIndex + 1) % levelKeys.length;
@@ -223,7 +225,7 @@ export default function SmashFestPage() {
 
           {/* Level Selector Pills */}
           <div className="flex items-center gap-1 bg-white/[0.04] border border-white/10 p-1 overflow-x-auto max-w-[280px] sm:max-w-none scrollbar-none">
-            {Object.keys(DEFAULT_LEVELS).map((lvl, index) => (
+            {DEFAULT_LEVEL_KEYS.map((lvl, index) => (
               <button
                 key={lvl}
                 onClick={() => {
