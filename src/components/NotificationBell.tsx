@@ -16,7 +16,7 @@ export function NotificationBell({ align = 'right' }: { align?: 'left' | 'right'
     const notifiedIdsRef = useRef<Set<string>>(new Set());
 
     const notificationsArray = useMemo(() => Object.values(notifications).sort(
-        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        (a, b) => b.created_at.localeCompare(a.created_at)
     ), [notifications]);
 
     // ⚡ Bolt Optimization: Prevent O(N) intermediate array allocation when counting unread notifications
