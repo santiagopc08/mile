@@ -107,6 +107,64 @@ test.describe('MahjongService', () => {
         });
     });
 
+    test.describe('saveDrawing', () => {
+        test('should save a drawing successfully', async () => {
+            const mockSupabase = createMockSupabase();
+            let insertCalled = false;
+
+            const mockSupabaseWithInsert = {
+                ...mockSupabase,
+                from: (table: string) => ({
+                    ...mockSupabase.from(table),
+                    insert: (data: Record<string, unknown>) => {
+                        insertCalled = true;
+                        expect(table).toBe('mahjong_drawings');
+                        expect(data).toEqual({
+                            sender: 'el',
+                            drawing_data: 'test_data',
+                            caption: 'test_caption'
+                        });
+                        return Promise.resolve({ error: null });
+                    }
+                })
+            } as unknown as import('@supabase/supabase-js').SupabaseClient;
+
+            const result = await MahjongService.saveDrawing('el', 'test_data', 'test_caption', mockSupabaseWithInsert);
+            expect(insertCalled).toBe(true);
+            expect(result).toBe(true);
+        });
+
+        test('should return false and log error on supabase insert error', async () => {
+            let errorLogged = false;
+            console.error = () => { errorLogged = true; };
+
+            const mockSupabaseWithInsertError = {
+                from: () => ({
+                    insert: () => Promise.resolve({ error: new Error('Insert failed') })
+                })
+            } as unknown as import('@supabase/supabase-js').SupabaseClient;
+
+            const result = await MahjongService.saveDrawing('el', 'test_data', 'test_caption', mockSupabaseWithInsertError);
+            expect(result).toBe(false);
+            expect(errorLogged).toBe(true);
+        });
+
+        test('should return false and log error on exception', async () => {
+            let errorLogged = false;
+            console.error = () => { errorLogged = true; };
+
+            const mockSupabaseWithThrow = {
+                from: () => ({
+                    insert: () => Promise.reject(new Error('Network error'))
+                })
+            } as unknown as import('@supabase/supabase-js').SupabaseClient;
+
+            const result = await MahjongService.saveDrawing('el', 'test_data', 'test_caption', mockSupabaseWithThrow);
+            expect(result).toBe(false);
+            expect(errorLogged).toBe(true);
+        });
+    });
+
     test.describe('getMahjongLeaderboard', () => {
         test('should return formatted leaderboard data separated by profile', async () => {
             const mockData = {
