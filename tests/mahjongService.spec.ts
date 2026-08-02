@@ -218,4 +218,66 @@ test.describe('MahjongService', () => {
             expect(images).toEqual([]);
         });
     });
+
+    test.describe('getTotalGamesCompletedCount', () => {
+        test('should return correct sum of counts', async () => {
+            const mockSupabase = {
+                from: (table: string) => {
+                    const chainable = {
+                        select: () => chainable,
+                        eq: () => chainable,
+                        not: () => chainable,
+                        then: (resolve: (val: unknown) => void) => {
+                            if (table === 'mahjong_scores') resolve({ count: 5, error: null });
+                            if (table === 'daily_puzzle_plays') resolve({ count: 10, error: null });
+                            if (table === 'coop_games') resolve({ count: 3, error: null });
+                        }
+                    };
+                    return chainable;
+                }
+            } as unknown as import('@supabase/supabase-js').SupabaseClient;
+
+            const count = await MahjongService.getTotalGamesCompletedCount('el', mockSupabase);
+            expect(count).toBe(18);
+        });
+
+        test('should fall back to 0 for missing count fields or query errors', async () => {
+            const mockSupabase = {
+                from: (table: string) => {
+                    const chainable = {
+                        select: () => chainable,
+                        eq: () => chainable,
+                        not: () => chainable,
+                        then: (resolve: (val: unknown) => void) => {
+                            if (table === 'mahjong_scores') resolve({ error: new Error('Query error') });
+                            if (table === 'daily_puzzle_plays') resolve({ count: null, error: null });
+                            if (table === 'coop_games') resolve({ count: undefined, error: null });
+                        }
+                    };
+                    return chainable;
+                }
+            } as unknown as import('@supabase/supabase-js').SupabaseClient;
+
+            const count = await MahjongService.getTotalGamesCompletedCount('el', mockSupabase);
+            expect(count).toBe(0);
+        });
+
+        test('should return 0 when exception is thrown in try/catch', async () => {
+            const mockSupabase = {
+                from: () => { throw new Error('Synchronous error'); }
+            } as unknown as import('@supabase/supabase-js').SupabaseClient;
+
+            const originalConsoleError = console.error;
+            let errorLogged = false;
+
+            try {
+                console.error = () => { errorLogged = true; };
+                const count = await MahjongService.getTotalGamesCompletedCount('el', mockSupabase);
+                expect(count).toBe(0);
+                expect(errorLogged).toBe(true);
+            } finally {
+                console.error = originalConsoleError;
+            }
+        });
+    });
 });
