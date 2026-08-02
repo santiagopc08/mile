@@ -25,7 +25,7 @@ export async function GET(request: Request) {
         try {
             const parsedUrl = new URL(url);
             const parsedAllowedOrigin = new URL(allowedOrigin);
-            if (parsedUrl.origin !== parsedAllowedOrigin.origin) {
+            if (parsedUrl.origin !== parsedAllowedOrigin.origin || !parsedUrl.pathname.startsWith('/storage/v1/object/public/')) {
                 return new Response('Forbidden: URL not in allowlist', { status: 403 });
             }
         } catch (e) {

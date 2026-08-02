@@ -49,7 +49,7 @@ test.describe('Proxy Image API Security', () => {
                         delete require.cache[require.resolve('../../../src/app/api/proxy-image/route')];
                         // eslint-disable-next-line @typescript-eslint/no-require-imports
         const { GET: mockGET } = require('../../../src/app/api/proxy-image/route');
-            const req = createRequest('https://example.com/image.jpg');
+            const req = createRequest('https://example.com/storage/v1/object/public/image.jpg');
             const res = await mockGET(req);
 
             expect(res.status).toBe(200);
@@ -63,7 +63,7 @@ test.describe('Proxy Image API Security', () => {
                 delete require.cache[require.resolve('../../../src/app/api/proxy-image/route')];
                         // eslint-disable-next-line @typescript-eslint/no-require-imports
         const { GET: mockGET } = require('../../../src/app/api/proxy-image/route');
-        const req = createRequest('https://example.com/page.html');
+        const req = createRequest('https://example.com/storage/v1/object/public/page.html');
         const res = await mockGET(req);
 
         expect(res.status).toBe(400);
@@ -76,7 +76,7 @@ test.describe('Proxy Image API Security', () => {
                 delete require.cache[require.resolve('../../../src/app/api/proxy-image/route')];
                         // eslint-disable-next-line @typescript-eslint/no-require-imports
         const { GET: mockGET } = require('../../../src/app/api/proxy-image/route');
-        const req = createRequest('https://example.com/image.svg');
+        const req = createRequest('https://example.com/storage/v1/object/public/image.svg');
         const res = await mockGET(req);
 
         expect(res.status).toBe(400);
@@ -89,7 +89,7 @@ test.describe('Proxy Image API Security', () => {
                 delete require.cache[require.resolve('../../../src/app/api/proxy-image/route')];
                         // eslint-disable-next-line @typescript-eslint/no-require-imports
         const { GET: mockGET } = require('../../../src/app/api/proxy-image/route');
-        const req = createRequest('https://example.com/script.js');
+        const req = createRequest('https://example.com/storage/v1/object/public/script.js');
         const res = await mockGET(req);
 
         expect(res.status).toBe(400);
@@ -121,7 +121,7 @@ test.describe('Proxy Image API Security', () => {
             mockFetchWithContentType('image/jpeg');
             delete require.cache[require.resolve('../../../src/app/api/proxy-image/route')];
             const { GET: mockGET2 } = require('../../../src/app/api/proxy-image/route');
-            const reqTrusted = createRequest('https://example.com/image.jpg');
+            const reqTrusted = createRequest('https://example.com/storage/v1/object/public/image.jpg');
             const resTrusted = await mockGET2(reqTrusted);
             expect(resTrusted.status).toBe(200);
         } finally {
@@ -143,7 +143,7 @@ test.describe('Proxy Image API Security', () => {
                 delete require.cache[require.resolve('../../../src/app/api/proxy-image/route')];
                         // eslint-disable-next-line @typescript-eslint/no-require-imports
         const { GET: mockGET } = require('../../../src/app/api/proxy-image/route');
-        const req = createRequest('https://example.com/image.jpg');
+        const req = createRequest('https://example.com/storage/v1/object/public/image.jpg');
         const res = await mockGET(req);
 
         expect(res.status).toBe(200);
@@ -163,7 +163,7 @@ test.describe('Proxy Image API Security', () => {
                         delete require.cache[require.resolve('../../../src/app/api/proxy-image/route')];
                         // eslint-disable-next-line @typescript-eslint/no-require-imports
         const { GET: mockGET } = require('../../../src/app/api/proxy-image/route');
-            const req = createRequest('https://example.com/image.jpg');
+            const req = createRequest('https://example.com/storage/v1/object/public/image.jpg');
             const res = await mockGET(req);
 
             expect(res.status).toBe(500);
