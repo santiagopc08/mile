@@ -128,12 +128,15 @@ export function MahjongCanvas({ tiles, freeTilesMap, dockIds, onTilePointerDown,
 
             const combo = Math.max(1, streakCombo);
 
+            const prevDockIdsMap = new Map(prevDockIdsRef.current.map((id, index) => [id, index]));
+
             // ¿La coincidencia salió del dock? (caso normal de emparejamiento)
-            const dockTile = newlyMatched.find(t => prevDockIdsRef.current.indexOf(t.id) !== -1);
+            // ⚡ Bolt Optimization: Replace O(N^2) indexOf in loop with O(1) Map lookup
+            const dockTile = newlyMatched.find(t => prevDockIdsMap.has(t.id));
 
             if (dockTile && newlyMatched.length <= 2) {
                 // ─── CHOQUE EN EL DOCK ───
-                const dockIndex = prevDockIdsRef.current.indexOf(dockTile.id);
+                const dockIndex = prevDockIdsMap.get(dockTile.id) ?? -1;
                 const collisionPos: [number, number, number] = [(dockIndex - 1) * 1.30, dockY, 0.35];
                 const isGolden = newlyMatched.some(t => t.content.type === 'custom');
                 const expColor = isGolden ? '#ffd700' : rawAccentColor;
@@ -176,7 +179,7 @@ export function MahjongCanvas({ tiles, freeTilesMap, dockIds, onTilePointerDown,
             } else {
                 // ─── Fallback: explosión instantánea (ej. carga remota en coop) ───
                 const newExplosions = newlyMatched.map(tile => {
-                    const dockIndex = prevDockIdsRef.current.indexOf(tile.id);
+                    const dockIndex = prevDockIdsMap.get(tile.id) ?? -1;
                     const wasInDock = dockIndex !== -1;
 
                     let posX: number;
