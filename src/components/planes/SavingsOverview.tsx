@@ -37,7 +37,13 @@ export function SavingsOverview({ items }: { items: WishlistItem[] }) {
             }
         }
 
-        return { totalSaved, totalGoal, completed, active, ready, byCategory };
+        let hasCategories = false;
+        for (const _ in byCategory) {
+            hasCategories = true;
+            break;
+        }
+
+        return { totalSaved, totalGoal, completed, active, ready, byCategory, hasCategories };
     }, [items]);
 
     // AI suggestion based on savings data
@@ -113,7 +119,7 @@ export function SavingsOverview({ items }: { items: WishlistItem[] }) {
             </div>
 
             {/* Category breakdown */}
-            {Object.keys(stats.byCategory).length > 0 && (
+            {stats.hasCategories && (
                 <div className="flex flex-wrap gap-2">
                     {/* ⚡ Bolt Optimization: Replace .filter().map() with a single pass reduce to avoid intermediate array allocation */}
                     {GOAL_CATEGORIES.reduce((acc, cat) => {
