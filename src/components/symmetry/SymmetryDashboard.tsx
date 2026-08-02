@@ -35,13 +35,17 @@ export const SymmetryDashboard = () => {
   const [isFragmented, setIsFragmented] = useState(false);
   const [dataA, setDataA] = useState({ academic: 45, fitness: 65, work: 80, home: 70, personal: 60 });
   const [dataB, setDataB] = useState({ academic: 75, fitness: 40, work: 90, home: 65, personal: 85 });
-  const [allocationsA, setAllocationsA] = useState<any[]>([]);
-  const [allocationsB, setAllocationsB] = useState<any[]>([]);
   const storeAllocations = useMemo(() => data?.allocations || [], [data?.allocations]);
 
-  useEffect(() => {
-    setAllocationsA(storeAllocations.filter((a: any) => a.profile === 'el'));
-    setAllocationsB(storeAllocations.filter((a: any) => a.profile === 'ella'));
+  // ⚡ Bolt Optimization: Replace useEffect-driven state with a single-pass useMemo to prevent double renders and redundant iterations
+  const { allocationsA, allocationsB } = useMemo(() => {
+    const aA: any[] = [];
+    const aB: any[] = [];
+    for (const a of storeAllocations) {
+      if (a.profile === 'el') aA.push(a);
+      else if (a.profile === 'ella') aB.push(a);
+    }
+    return { allocationsA: aA, allocationsB: aB };
   }, [storeAllocations]);
 
   useEffect(() => {
