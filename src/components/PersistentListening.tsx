@@ -9,6 +9,8 @@ import { useState } from 'react';
 import { sound } from '@/lib/sound';
 import { haptics } from '@/lib/haptics';
 
+const DATE_FORMATTER = new Intl.DateTimeFormat('es-CO', { dateStyle: 'short' });
+
 interface ListeningNote {
     id: string;
     topic: string;
@@ -132,7 +134,7 @@ export function PersistentListening() {
                                     </h3>
                                     <div className={`flex items-center gap-2 text-[9px] font-mono uppercase tracking-widest text-${secondaryClass}`} style={{ color: secondaryColor }}>
                                         <Calendar className="w-3.5 h-3.5 stroke-[1.5]" />
-                                        <span>{new Intl.DateTimeFormat('es-CO', { dateStyle: 'short' }).format(new Date(note.date))}</span>
+                                        <span>{DATE_FORMATTER.format(new Date(note.date))}</span>
                                     </div>
                                 </div>
 
