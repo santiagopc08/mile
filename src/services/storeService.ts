@@ -42,6 +42,7 @@ export interface Allocation {
     description: string;
     category: string;
     date: string;
+    profile?: string;
 }
 
 export type WishlistState = 'DISCOVERED' | 'SAVING' | 'READY_TO_DEPLOY' | 'COMPLETED' | 'ARCHIVED';
@@ -181,69 +182,47 @@ export const StoreService = {
         try {
             const shouldFetch = (name: string) => !tables || tables.includes(name);
 
-            // Fetch table promises dynamically
-            const eventsPromise = shouldFetch('events') 
-                ? supabase.from('events').select('*').order('date', { ascending: false }) 
-                : Promise.resolve({ data: null });
-            
-            const notesPromise = shouldFetch('notes')
-                ? supabase.from('notes').select('*').order('created_at', { ascending: false })
-                : Promise.resolve({ data: null });
 
-            const commitmentsPromise = shouldFetch('commitments')
-                ? supabase.from('commitments').select('*').order('created_at', { ascending: true })
-                : Promise.resolve({ data: null });
+            const fetchTable = async (tableName: string, options?: {
+                orderColumn?: string;
+                ascending?: boolean;
+                eqColumn?: string;
+                eqValue?: string | number | boolean;
+                inColumn?: string;
+                inValues?: (string | number)[];
+                limit?: number;
+                single?: boolean;
+            }) => {
+                if (!shouldFetch(tableName)) return Promise.resolve({ data: null });
 
-            const victoriesPromise = shouldFetch('victories')
-                ? supabase.from('victories').select('*').order('created_at', { ascending: false })
-                : Promise.resolve({ data: null });
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                let query: any = supabase.from(tableName).select('*');
 
-            const settingsPromise = shouldFetch('app_settings')
-                ? supabase.from('app_settings').select('*').eq('id', 1).single()
-                : Promise.resolve({ data: null });
+                if (options?.inColumn && options?.inValues) query = query.in(options.inColumn, options.inValues);
+                if (options?.eqColumn && options?.eqValue !== undefined) query = query.eq(options.eqColumn, options.eqValue);
+                if (options?.orderColumn) query = query.order(options.orderColumn, { ascending: options.ascending ?? true });
+                if (options?.limit) query = query.limit(options.limit);
+                if (options?.single) query = query.single();
 
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                return query as Promise<{ data: any[] | any | null }>;
+            };
 
-
-            const listeningPromise = shouldFetch('persistent_listening')
-                ? supabase.from('persistent_listening').select('*').order('date', { ascending: false })
-                : Promise.resolve({ data: null });
-
-            const tasksPromise = shouldFetch('tasks')
-                ? supabase.from('tasks').select('*').order('created_at', { ascending: false })
-                : Promise.resolve({ data: null });
-
-            const wishlistPromise = shouldFetch('wishlist')
-                ? supabase.from('wishlist').select('*').order('created_at', { ascending: false })
-                : Promise.resolve({ data: null });
-
-            const objectivesPromise = shouldFetch('objectives')
-                ? supabase.from('objectives').select('*').order('created_at', { ascending: true })
-                : Promise.resolve({ data: null });
-
-            const contribPromise = shouldFetch('wishlist_contributions')
-                ? supabase.from('wishlist_contributions').select('*').order('created_at', { ascending: false })
-                : Promise.resolve({ data: null });
-
-            const reactionsPromise = shouldFetch('wishlist_reactions')
-                ? supabase.from('wishlist_reactions').select('*')
-                : Promise.resolve({ data: null });
-
-            const activityPromise = shouldFetch('wishlist_activity')
-                ? supabase.from('wishlist_activity').select('*').order('created_at', { ascending: false }).limit(50)
-                : Promise.resolve({ data: null });
-
-            const habitsPromise = shouldFetch('health_habits')
-                ? supabase.from('health_habits').select('*').order('created_at', { ascending: false })
-                : Promise.resolve({ data: null });
-
-            const allocationsPromise = shouldFetch('allocations')
-                ? supabase.from('allocations').select('*').order('created_at', { ascending: false })
-                : Promise.resolve({ data: null });
-
-            const eventCommentsPromise = shouldFetch('event_comments')
-                ? supabase.from('event_comments').select('*').order('created_at', { ascending: true })
-                : Promise.resolve({ data: null });
-
+            const eventsPromise = fetchTable('events', { orderColumn: 'date', ascending: false });
+            const notesPromise = fetchTable('notes', { orderColumn: 'created_at', ascending: false });
+            const commitmentsPromise = fetchTable('commitments', { orderColumn: 'created_at', ascending: true });
+            const victoriesPromise = fetchTable('victories', { orderColumn: 'created_at', ascending: false });
+            const settingsPromise = fetchTable('app_settings', { eqColumn: 'id', eqValue: 1, single: true });
+            const listeningPromise = fetchTable('persistent_listening', { orderColumn: 'date', ascending: false });
+            const tasksPromise = fetchTable('tasks', { orderColumn: 'created_at', ascending: false });
+            const wishlistPromise = fetchTable('wishlist', { orderColumn: 'created_at', ascending: false });
+            const objectivesPromise = fetchTable('objectives', { orderColumn: 'created_at', ascending: true });
+            const contribPromise = fetchTable('wishlist_contributions', { orderColumn: 'created_at', ascending: false });
+            const reactionsPromise = fetchTable('wishlist_reactions');
+            const activityPromise = fetchTable('wishlist_activity', { orderColumn: 'created_at', ascending: false, limit: 50 });
+            const habitsPromise = fetchTable('health_habits', { orderColumn: 'created_at', ascending: false });
+            const allocationsPromise = fetchTable('allocations', { orderColumn: 'created_at', ascending: false });
+            const eventCommentsPromise = fetchTable('event_comments', { orderColumn: 'created_at', ascending: true });
             // Daily Tracking Logic setup
             const timeZoneOffset = (new Date()).getTimezoneOffset() * 60000;
             const localDate = new Date(Date.now() - timeZoneOffset);
@@ -252,9 +231,7 @@ export const StoreService = {
             const yesterdayStr = yesterdayDate.toISOString().split('T')[0];
 
             // ⚡ Bolt Optimization: Move daily_tracking query into the main Promise.all to prevent a waterfall request
-            const trackingPromise = shouldFetch('daily_tracking')
-                ? supabase.from('daily_tracking').select('*').in('date', [todayStr, yesterdayStr])
-                : Promise.resolve({ data: null });
+            const trackingPromise = fetchTable('daily_tracking', { inColumn: 'date', inValues: [todayStr, yesterdayStr] });
 
             const [
                 eventsRes, notesRes, commitmentsRes, victoriesRes, settingsRes,
@@ -268,16 +245,18 @@ export const StoreService = {
                 allocationsPromise, eventCommentsPromise, trackingPromise
             ]);
 
-            const settings = settingsRes?.data || { connection_date: new Date().toISOString(), last_update: new Date().toISOString() };
-            const trackingDays = Math.floor((new Date().getTime() - new Date(settings.connection_date).getTime()) / (1000 * 60 * 60 * 24));
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const settings = (settingsRes?.data as any) || { connection_date: new Date().toISOString(), last_update: new Date().toISOString() };
+            const _trackingDays = Math.floor((new Date().getTime() - new Date(settings.connection_date).getTime()) / (1000 * 60 * 60 * 24));
 
 
 
-            const formattedDate = new Intl.DateTimeFormat('es-CO', { dateStyle: 'long', timeStyle: 'short' }).format(new Date(settings.last_update));
+            const _formattedDate = new Intl.DateTimeFormat('es-CO', { dateStyle: 'long', timeStyle: 'short' }).format(new Date(settings.last_update));
 
-            const finalCommitments = commitmentsRes?.data || [];
+            const _finalCommitments = commitmentsRes?.data || [];
 
-            const trackingData: { date: string; completed_count: number }[] = trackingRes?.data || [];
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const trackingData: { date: string; completed_count: number }[] = (trackingRes?.data as any) || [];
 
             // ⚡ Bolt Optimization: Replace O(N) array finds with a single O(N) pass mapping by date
             const trackingByDate: Record<string, typeof trackingData[0]> = {};
@@ -308,7 +287,7 @@ export const StoreService = {
             const result: Partial<AppData> = {};
 
             if (shouldFetch('wishlist')) {
-                result.wishlist = (wishlistRes?.data || []).map(w => {
+                result.wishlist = (wishlistRes?.data || []).map((w: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
                     const itemContribs = contribsByWishlistId[w.id] || [];
                     const itemReactions = reactionsByWishlistId[w.id] || [];
                     return {
@@ -352,7 +331,7 @@ export const StoreService = {
             }
 
             if (shouldFetch('tasks')) {
-                result.tasks = (tasksRes?.data || []).map((t) => ({
+                result.tasks = (tasksRes?.data || []).map((t: any) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
                     id: t.id,
                     text: t.text || t.title,
                     status: t.status === 'pending' ? 'todo' : (t.status === 'skipped' ? 'skipped' : (t.status === 'done' ? 'done' : (t.status === 'in_progress' ? 'in_progress' : 'todo'))),
@@ -371,7 +350,7 @@ export const StoreService = {
             }
 
             if (shouldFetch('objectives')) {
-                result.objectives = (objectivesRes?.data || []).map(o => ({
+                result.objectives = (objectivesRes?.data || []).map((o: any) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
                     id: o.id,
                     title: o.title,
                     author: o.author,
@@ -419,16 +398,16 @@ export const StoreService = {
             }
 
             if (shouldFetch('commitments')) {
-                result.commitments = finalCommitments.map((c: { id: string; text: string; is_active: boolean; author: string }) => ({
+                result.commitments = _finalCommitments.map((c: { id: string; text: string; is_active: boolean; author: string }) => ({
                     id: c.id,
                     text: c.text,
                     completed: !c.is_active,
                     author: c.author || 'el'
                 }));
                 result.dailyProgress = {
-                    yesterdayTotal: finalCommitments.length,
+                    yesterdayTotal: _finalCommitments.length,
                     yesterdayCompleted: yesterdayTracking ? yesterdayTracking.completed_count : 0,
-                    todayTotal: finalCommitments.length,
+                    todayTotal: _finalCommitments.length,
                     todayCompleted: todayTracking ? todayTracking.completed_count : 0
                 };
             }
@@ -564,7 +543,7 @@ export const StoreService = {
                             toInsert.push(item);
                         }
                     } else {
-                        const { id: _id, ...rest } = item;
+                        const { id: _id, ...rest } = item; // eslint-disable-line @typescript-eslint/no-unused-vars
                         // If it's a temp ID, we don't send it to Supabase so it generates a new UUID
                         toInsert.push(rest);
                     }
@@ -610,7 +589,7 @@ export const StoreService = {
 
             // Tasks
             if (newData.tasks !== undefined) {
-                syncPromises.push(syncTable('tasks', newData.tasks.map((t) => ({
+                syncPromises.push(syncTable('tasks', newData.tasks.map((t: any) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
                     id: t.id,
                     title: t.text,
                     text: t.text,
@@ -631,7 +610,7 @@ export const StoreService = {
 
             // Objectives
             if (newData.objectives !== undefined) {
-                syncPromises.push(syncTable('objectives', newData.objectives.map(o => ({
+                syncPromises.push(syncTable('objectives', newData.objectives.map((o: any) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
                     id: o.id,
                     title: o.title,
                     author: o.author || 'el',
@@ -679,7 +658,7 @@ export const StoreService = {
 
             // Commitments
             if (newData.commitments !== undefined) {
-                syncPromises.push(syncTable('commitments', newData.commitments.map(c => ({
+                syncPromises.push(syncTable('commitments', newData.commitments.map((c: any) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
                     id: c.id,
                     text: c.text,
                     is_active: !c.completed,
@@ -764,7 +743,7 @@ export const StoreService = {
 
             // Update App Settings
             // ⚡ Bolt Optimization: Batch app_settings updates into a single database request
-            const appSettingsUpdate: any = { last_update: new Date().toISOString() };
+            const appSettingsUpdate: Record<string, unknown> = { last_update: new Date().toISOString() };
             if (newData.lastPulseAt !== undefined) {
                 appSettingsUpdate.last_pulse_at = newData.lastPulseAt;
             }
