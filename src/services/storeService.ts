@@ -1,6 +1,8 @@
 import { supabase as defaultSupabase } from '@/lib/supabase';
 import { SupabaseClient } from '@supabase/supabase-js';
 
+const STORE_DATE_FORMATTER = new Intl.DateTimeFormat('es-CO', { dateStyle: 'long', timeStyle: 'short' });
+
 export type TaskStatus = 'todo' | 'in_progress' | 'done' | 'skipped';
 export type TaskCategory = 'work' | 'home' | 'personal';
 
@@ -251,7 +253,7 @@ export const StoreService = {
 
 
 
-            const _formattedDate = new Intl.DateTimeFormat('es-CO', { dateStyle: 'long', timeStyle: 'short' }).format(new Date(settings.last_update));
+            const _formattedDate = STORE_DATE_FORMATTER.format(new Date(settings.last_update));
 
             const _finalCommitments = commitmentsRes?.data || [];
 
