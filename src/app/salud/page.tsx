@@ -96,7 +96,7 @@ export default function SaludPage() {
                     </div>
 
                     <div className="grid grid-cols-2 border border-white/12 bg-white/[0.03] backdrop-blur-2xl backdrop-saturate-150 sm:grid-cols-4 mb-6 shadow-lg">
-                        {tabs.map((tab) => (
+                        {tabs.map((tab, index) => (
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
@@ -111,7 +111,7 @@ export default function SaludPage() {
                                     <span className="text-[10px] font-black uppercase tracking-[0.22em]">{tab.label}</span>
                                 </span>
                                 <span className={`text-[9px] font-bold uppercase tracking-[0.2em] ${activeTab === tab.id ? 'text-black/55' : `text-white/20 group-hover:text-${secondaryClass}`}`} style={activeTab !== tab.id ? { '--tw-hover-text-opacity': 1 } as any : {}}>
-                                    0{tabs.findIndex(item => item.id === tab.id) + 1}
+                                    0{index + 1}
                                 </span>
                                 {activeTab === tab.id && (
                                     <motion.div
