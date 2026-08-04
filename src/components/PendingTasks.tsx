@@ -18,8 +18,7 @@ export function PendingTasks() {
     const [priority, setPriority] = useState('medium');
 
 
-    const allTasks = data?.tasks || [];
-    const pendingTasks = allTasks.filter(t => t.status === 'todo' || t.status === 'in_progress');
+    const tasks = data?.tasks || [];
     const accentColor = profile === 'ella' ? 'user-a' : 'user-b';
 
     const handleAddTask = async (e: React.FormEvent) => {
@@ -36,36 +35,40 @@ export function PendingTasks() {
             updated_at: new Date().toISOString()
         };
 
-        await updateData({ tasks: [newTask, ...allTasks] });
+        await updateData({ tasks: [newTask, ...tasks] });
         setTitle('');
         setPriority('medium');
         setIsAdding(false);
     };
 
     const handleSaveTask = async (id: string, newText: string, newPriority: 'low' | 'medium' | 'high') => {
-        // ⚡ Bolt Optimization: Replace O(N) map with single pass findIndex + targeted mutation
-        const taskIndex = allTasks.findIndex(t => t.id === id);
-        if (taskIndex !== -1) {
-            const updated = [...allTasks];
-            updated[taskIndex] = { ...updated[taskIndex], text: newText, priority: newPriority };
-            await updateData({ tasks: updated });
+        // ⚡ Bolt Optimization: Replace O(N) map with single pass findIndex + mutation
+        const updated = [...tasks];
+        const taskIdx = updated.findIndex(t => t.id === id);
+        if (taskIdx !== -1) {
+            updated[taskIdx] = {
+                ...updated[taskIdx],
+                text: newText,
+                priority: newPriority
+            };
         }
+        await updateData({ tasks: updated });
     };
 
     const toggleTask = async (task: Task) => {
         const newStatus: TaskStatus = task.status === 'done' ? 'todo' : 'done';
-        // ⚡ Bolt Optimization: Replace O(N) map with single pass findIndex + targeted mutation
-        const taskIndex = allTasks.findIndex(t => t.id === task.id);
-        if (taskIndex !== -1) {
-            const updated = [...allTasks];
-            updated[taskIndex] = { ...updated[taskIndex], status: newStatus };
-            await updateData({ tasks: updated });
+        // ⚡ Bolt Optimization: Replace O(N) map with single pass findIndex + mutation
+        const updated = [...tasks];
+        const taskIdx = updated.findIndex((t) => t.id === task.id);
+        if (taskIdx !== -1) {
+            updated[taskIdx] = { ...updated[taskIdx], status: newStatus };
         }
+        await updateData({ tasks: updated });
     };
 
     const deleteTask = async (id: string, e: React.MouseEvent) => {
         e.stopPropagation();
-        const task = allTasks.find((t) => t.id === id);
+        const task = tasks.find((t) => t.id === id);
         const ok = await confirm({
             title: 'Eliminar tarea',
             message: `"${task?.text ?? 'Esta tarea'}" se eliminará de la lista.`,
@@ -74,7 +77,7 @@ export function PendingTasks() {
         });
         if (!ok) return;
 
-        const updated = allTasks.filter((t) => t.id !== id);
+        const updated = tasks.filter((t) => t.id !== id);
         await updateData({ tasks: updated });
     };
 
@@ -136,12 +139,12 @@ export function PendingTasks() {
             </AnimatePresence>
 
             <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-4">
-                {pendingTasks.length === 0 ? (
+                {tasks.length === 0 ? (
                     <div className="py-20 flex flex-col items-center justify-center text-stone-700 uppercase font-bold text-[10px] tracking-[0.4em] border border-stone-800 border-dashed">
                         ¡TODO AL DÍA! SIN PENDIENTES
                     </div>
                 ) : (
-                    pendingTasks.map((task: Task) => (
+                    tasks.map((task: Task) => (
                         <TaskItem
                             key={task.id}
                             task={task}

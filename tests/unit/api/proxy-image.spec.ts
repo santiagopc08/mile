@@ -9,10 +9,28 @@ test.describe('Proxy Image API Security', () => {
     let originalFetchSafe: unknown;
 
     let originalSupabaseUrl: string | undefined;
-    test.beforeEach(() => {
+        test.beforeEach(() => {
         originalFetchSafe = require.cache[fetchSafeModulePath];
         originalSupabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
         process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://example.com';
+
+        // Mock server-only
+        require.cache[require.resolve('server-only')] = {
+            exports: {}
+        };
+        require.cache[require.resolve('../../../src/lib/supabase-server')] = {
+            exports: {
+                createServerClient: () => ({})
+            }
+        };
+
+        // Mock auth to return a valid user session
+        require.cache[require.resolve('../../../src/lib/auth')] = {
+            exports: {
+                verifyAuth: async () => true,
+                getAuthUser: async () => ({ id: 'test-user-id' })
+            }
+        };
     });
 
     test.afterEach(() => {

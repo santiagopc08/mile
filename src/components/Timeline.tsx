@@ -384,30 +384,161 @@ export function Timeline({ events }: TimelineProps) {
                                     <div className="absolute left-0 top-0 bottom-0 w-[5px]" style={{ backgroundColor: eventAccent }} />
 
                                     {editingId === event.id ? (
-                                        <TimelineEventEdit
-                                            editTitle={editTitle}
-                                            setEditTitle={setEditTitle}
-                                            editDate={editDate}
-                                            setEditDate={setEditDate}
-                                            editDesc={editDesc}
-                                            setEditDesc={setEditDesc}
-                                            editTags={editTags}
-                                            setEditTags={setEditTags}
-                                            editImageUrl={editImageUrl}
-                                            isEditUploading={isEditUploading}
-                                            setEditingId={setEditingId}
-                                            handleEditSave={handleEditSave}
-                                        />
+                                        <form onSubmit={handleEditSave} className="space-y-3 text-left">
+                                            <div className="grid md:grid-cols-2 gap-3">
+                                                <input
+                                                    autoFocus
+                                                    value={editTitle}
+                                                    onChange={e => setEditTitle(e.target.value)}
+                                                    placeholder="Título"
+                                                    className="border border-white/10 bg-black px-3 py-2 text-sm text-white outline-none placeholder:text-[#594137] focus:border-[#ff7020] rounded-none font-sans"
+                                                />
+                                                <input
+                                                    type="date"
+                                                    value={editDate}
+                                                    onChange={e => setEditDate(e.target.value)}
+                                                    className="border border-white/10 bg-black px-3 py-2 text-sm text-[#a88a7e] outline-none focus:border-[#ff7020] rounded-none font-mono"
+                                                />
+                                            </div>
+                                            <textarea
+                                                value={editDesc}
+                                                onChange={e => setEditDesc(e.target.value)}
+                                                placeholder="Descripción"
+                                                className="min-h-[80px] w-full border border-white/10 bg-black px-3 py-2 text-sm text-white outline-none placeholder:text-[#594137] focus:border-[#ff7020] rounded-none font-sans"
+                                            />
+
+                                            {/* Edit Tags Input */}
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-bold uppercase tracking-widest text-[#a88a7e] font-mono block">Etiquetas</label>
+                                                <div className="flex flex-wrap gap-1.5">
+                                                    {PRESET_TAGS.map(tag => {
+                                                        const isSelected = editTags.includes(tag);
+                                                        return (
+                                                            <button
+                                                                key={tag}
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    if (isSelected) {
+                                                                        setEditTags(editTags.filter(t => t !== tag));
+                                                                    } else {
+                                                                        setEditTags([...editTags, tag]);
+                                                                    }
+                                                                }}
+                                                                className={`border px-2 py-1 text-[10px] font-mono tracking-wider transition-all rounded-none ${isSelected ? 'border-[#ff7020] text-[#ff7020] bg-[#ff7020]/5' : 'border-white/10 text-[#a88a7e] hover:border-white/30'}`}
+                                                            >
+                                                                {tag}
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                                <input
+                                                    placeholder="Agregar etiqueta personalizada y presiona Enter (e.g. #playa)"
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter') {
+                                                            e.preventDefault();
+                                                            const val = e.currentTarget.value.trim();
+                                                            if (val) {
+                                                                const formatted = val.startsWith('#') ? val : `#${val}`;
+                                                                if (!editTags.includes(formatted)) {
+                                                                    setEditTags([...editTags, formatted]);
+                                                                }
+                                                                e.currentTarget.value = '';
+                                                            }
+                                                        }
+                                                    }}
+                                                    className="w-full border border-white/10 bg-black px-4 py-2 text-xs text-white outline-none transition-colors placeholder:text-[#594137] focus:border-[#ff7020] rounded-none font-sans"
+                                                />
+                                            </div>
+
+                                            {editImageUrl && (
+                                                <div className="overflow-hidden border border-white/10 rounded-none">
+                                                    <Image src={editImageUrl} alt="Current" width={500} height={300} className="w-full h-auto max-h-32 object-cover opacity-60" unoptimized />
+                                                </div>
+                                            )}
+
+                                            <div className="relative">
+                                                <input name="editImage" type="file" accept="image/*" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                                                <div className="flex w-full items-center justify-center gap-2 border border-dashed border-white/10 bg-black px-3 py-2 text-xs text-[#a88a7e] transition-colors hover:border-[#ff7020] rounded-none">
+                                                    <ImageIcon className="w-4 h-4 stroke-[1.5]" />
+                                                    <span className="uppercase text-[10px] tracking-wider font-mono">{editImageUrl ? 'Reemplazar Foto' : 'Subir Foto'}</span>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex gap-2 pt-1">
+                                                <button type="button" onClick={() => setEditingId(null)} className="flex-1 border border-white/10 py-2 text-xs font-bold uppercase tracking-widest text-[#a88a7e] transition-colors hover:border-white/30 hover:text-white rounded-none font-mono">
+                                                    Cancelar
+                                                </button>
+                                                <button type="submit" disabled={isEditUploading} className="flex-1 bg-[#ff7020] py-2 text-xs font-bold uppercase tracking-widest text-black transition-colors hover:bg-[#ffb595] disabled:opacity-50 rounded-none font-mono">
+                                                    {isEditUploading ? 'Subiendo...' : 'Guardar'}
+                                                </button>
+                                            </div>
+                                        </form>
                                     ) : (
-                                        <TimelineEventView
-                                            event={event}
-                                            isLeft={isLeft}
-                                            profile={profile}
-                                            handleEditStart={handleEditStart}
-                                            handleReact={handleReact}
-                                            setActiveEventId={setActiveEventId}
-                                        />
+                                    <>
+                                    <div className={`mb-2 flex items-center gap-2 text-sm text-[#a88a7e] ${isLeft ? 'justify-start md:justify-end' : 'justify-start'}`}>
+                                        <Calendar className="h-4 w-4 text-[#00dbe9] stroke-[1.5]" />
+                                        <time className="font-mono tracking-tighter text-xs">{event.date}</time>
+                                        {profile && (
+                                            <button onClick={() => handleEditStart(event)} className="ml-auto text-[#a88a7e] transition-all hover:text-[#ffb595]">
+                                                <Pencil className="w-3.5 h-3.5 stroke-[1.5]" />
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    {/* Render Tags */}
+                                    {event.tags && event.tags.length > 0 && (
+                                        <div className={`flex flex-wrap gap-1 mb-2 ${isLeft ? 'justify-start md:justify-end' : 'justify-start'}`}>
+                                            {event.tags.map(tag => (
+                                                <span key={tag} className="border border-white/5 bg-white/5 px-1.5 py-0.5 text-[8.5px] font-mono text-user-c tracking-wider font-bold rounded-none">
+                                                    {tag}
+                                                </span>
+                                            ))}
+                                        </div>
                                     )}
+
+                                    <h3 className="mb-2 text-xl font-bold uppercase tracking-normal text-white transition-colors hover:text-[#ffb595] font-sans">
+                                        {event.title}
+                                    </h3>
+                                    <p className="font-light leading-relaxed tracking-normal text-[#e1bfb2] font-sans">
+                                        {renderTextWithHashtags(event.description)}
+                                    </p>
+
+                                    {event.imageUrl && (
+                                        <div className="mt-4 min-h-32 overflow-hidden border border-white/10 bg-black rounded-none">
+                                            <Image src={event.imageUrl} alt={event.title} width={500} height={300} className="w-full h-auto object-cover grayscale hover:grayscale-0 transition-all duration-500" unoptimized />
+                                        </div>
+                                    )}
+
+                                    {/* Reactions and Comments Action Section */}
+                                    {profile && (
+                                        <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-white/5 pt-3 w-full">
+                                            <div className="flex flex-wrap items-center gap-1">
+                                                {EMOJI_OPTIONS.map(emoji => {
+                                                    const reactors = event.reactions?.[emoji] || [];
+                                                    const hasReacted = reactors.includes(profile);
+                                                    const count = reactors.length;
+                                                    return (
+                                                        <button
+                                                            key={emoji}
+                                                            onClick={() => handleReact(event, emoji)}
+                                                            className={`flex items-center gap-1 border px-2 py-1 text-xs transition-colors rounded-none font-mono ${hasReacted ? 'border-[#ff7020] text-[#ff7020] bg-[#ff7020]/5' : 'border-white/5 bg-black/40 text-white/60 hover:border-white/20'}`}
+                                                        >
+                                                            <span>{emoji}</span>
+                                                            {count > 0 && <span className="text-[10px] font-bold">{count}</span>}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                            
+                                            <div className={`${isLeft ? 'md:ml-0 md:mr-auto ml-auto' : 'ml-auto'} flex items-center`}>
+                                                <button onClick={() => setActiveEventId(event.id)} className="flex items-center gap-1.5 text-xs text-[#a88a7e] hover:text-[#ffb595] transition-colors font-mono">
+                                                    <MessageSquare className="w-3.5 h-3.5 stroke-[1.5]" />
+                                                    <span>({event.comments?.length || 0}) Comentarios</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                    </>)}
 
                                     {/* Geometric accent corner */}
                                     <div className="absolute top-0 right-0 w-8 h-8 pointer-events-none overflow-hidden">
@@ -510,209 +641,5 @@ export function Timeline({ events }: TimelineProps) {
             )
         }
         </div>
-    );
-}
-
-function TimelineEventEdit({
-    editTitle,
-    setEditTitle,
-    editDate,
-    setEditDate,
-    editDesc,
-    setEditDesc,
-    editTags,
-    setEditTags,
-    editImageUrl,
-    isEditUploading,
-    setEditingId,
-    handleEditSave
-}: {
-    editTitle: string;
-    setEditTitle: (val: string) => void;
-    editDate: string;
-    setEditDate: (val: string) => void;
-    editDesc: string;
-    setEditDesc: (val: string) => void;
-    editTags: string[];
-    setEditTags: (tags: string[]) => void;
-    editImageUrl?: string;
-    isEditUploading: boolean;
-    setEditingId: (id: string | null) => void;
-    handleEditSave: (e: React.FormEvent) => void;
-}) {
-    return (
-        <form onSubmit={handleEditSave} className="space-y-3 text-left">
-                                            <div className="grid md:grid-cols-2 gap-3">
-                                                <input
-                                                    autoFocus
-                                                    value={editTitle}
-                                                    onChange={e => setEditTitle(e.target.value)}
-                                                    placeholder="Título"
-                                                    className="border border-white/10 bg-black px-3 py-2 text-sm text-white outline-none placeholder:text-[#594137] focus:border-[#ff7020] rounded-none font-sans"
-                                                />
-                                                <input
-                                                    type="date"
-                                                    value={editDate}
-                                                    onChange={e => setEditDate(e.target.value)}
-                                                    className="border border-white/10 bg-black px-3 py-2 text-sm text-[#a88a7e] outline-none focus:border-[#ff7020] rounded-none font-mono"
-                                                />
-                                            </div>
-                                            <textarea
-                                                value={editDesc}
-                                                onChange={e => setEditDesc(e.target.value)}
-                                                placeholder="Descripción"
-                                                className="min-h-[80px] w-full border border-white/10 bg-black px-3 py-2 text-sm text-white outline-none placeholder:text-[#594137] focus:border-[#ff7020] rounded-none font-sans"
-                                            />
-
-                                            {/* Edit Tags Input */}
-                                            <div className="space-y-2">
-                                                <label className="text-[10px] font-bold uppercase tracking-widest text-[#a88a7e] font-mono block">Etiquetas</label>
-                                                <div className="flex flex-wrap gap-1.5">
-                                                    {PRESET_TAGS.map(tag => {
-                                                        const isSelected = editTags.includes(tag);
-                                                        return (
-                                                            <button
-                                                                key={tag}
-                                                                type="button"
-                                                                onClick={() => {
-                                                                    if (isSelected) {
-                                                                        setEditTags(editTags.filter(t => t !== tag));
-                                                                    } else {
-                                                                        setEditTags([...editTags, tag]);
-                                                                    }
-                                                                }}
-                                                                className={`border px-2 py-1 text-[10px] font-mono tracking-wider transition-all rounded-none ${isSelected ? 'border-[#ff7020] text-[#ff7020] bg-[#ff7020]/5' : 'border-white/10 text-[#a88a7e] hover:border-white/30'}`}
-                                                            >
-                                                                {tag}
-                                                            </button>
-                                                        );
-                                                    })}
-                                                </div>
-                                                <input
-                                                    placeholder="Agregar etiqueta personalizada y presiona Enter (e.g. #playa)"
-                                                    onKeyDown={(e) => {
-                                                        if (e.key === 'Enter') {
-                                                            e.preventDefault();
-                                                            const val = e.currentTarget.value.trim();
-                                                            if (val) {
-                                                                const formatted = val.startsWith('#') ? val : `#${val}`;
-                                                                if (!editTags.includes(formatted)) {
-                                                                    setEditTags([...editTags, formatted]);
-                                                                }
-                                                                e.currentTarget.value = '';
-                                                            }
-                                                        }
-                                                    }}
-                                                    className="w-full border border-white/10 bg-black px-4 py-2 text-xs text-white outline-none transition-colors placeholder:text-[#594137] focus:border-[#ff7020] rounded-none font-sans"
-                                                />
-                                            </div>
-
-                                            {editImageUrl && (
-                                                <div className="overflow-hidden border border-white/10 rounded-none">
-                                                    <Image src={editImageUrl} alt="Current" width={500} height={300} className="w-full h-auto max-h-32 object-cover opacity-60" unoptimized />
-                                                </div>
-                                            )}
-
-                                            <div className="relative">
-                                                <input name="editImage" type="file" accept="image/*" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-                                                <div className="flex w-full items-center justify-center gap-2 border border-dashed border-white/10 bg-black px-3 py-2 text-xs text-[#a88a7e] transition-colors hover:border-[#ff7020] rounded-none">
-                                                    <ImageIcon className="w-4 h-4 stroke-[1.5]" />
-                                                    <span className="uppercase text-[10px] tracking-wider font-mono">{editImageUrl ? 'Reemplazar Foto' : 'Subir Foto'}</span>
-                                                </div>
-                                            </div>
-
-                                            <div className="flex gap-2 pt-1">
-                                                <button type="button" onClick={() => setEditingId(null)} className="flex-1 border border-white/10 py-2 text-xs font-bold uppercase tracking-widest text-[#a88a7e] transition-colors hover:border-white/30 hover:text-white rounded-none font-mono">
-                                                    Cancelar
-                                                </button>
-                                                <button type="submit" disabled={isEditUploading} className="flex-1 bg-[#ff7020] py-2 text-xs font-bold uppercase tracking-widest text-black transition-colors hover:bg-[#ffb595] disabled:opacity-50 rounded-none font-mono">
-                                                    {isEditUploading ? 'Subiendo...' : 'Guardar'}
-                                                </button>
-                                            </div>
-                                        </form>
-    );
-}
-
-function TimelineEventView({
-    event,
-    isLeft,
-    profile,
-    handleEditStart,
-    handleReact,
-    setActiveEventId
-}: {
-    event: TimelineEvent;
-    isLeft: boolean;
-    profile: string | null;
-    handleEditStart: (event: TimelineEvent) => void;
-    handleReact: (event: TimelineEvent, emoji: string) => void;
-    setActiveEventId: (id: string) => void;
-}) {
-    return (
-        <>
-                                    <div className={`mb-2 flex items-center gap-2 text-sm text-[#a88a7e] ${isLeft ? 'justify-start md:justify-end' : 'justify-start'}`}>
-                                        <Calendar className="h-4 w-4 text-[#00dbe9] stroke-[1.5]" />
-                                        <time className="font-mono tracking-tighter text-xs">{event.date}</time>
-                                        {profile && (
-                                            <button onClick={() => handleEditStart(event)} className="ml-auto text-[#a88a7e] transition-all hover:text-[#ffb595]">
-                                                <Pencil className="w-3.5 h-3.5 stroke-[1.5]" />
-                                            </button>
-                                        )}
-                                    </div>
-
-                                    {/* Render Tags */}
-                                    {event.tags && event.tags.length > 0 && (
-                                        <div className={`flex flex-wrap gap-1 mb-2 ${isLeft ? 'justify-start md:justify-end' : 'justify-start'}`}>
-                                            {event.tags.map(tag => (
-                                                <span key={tag} className="border border-white/5 bg-white/5 px-1.5 py-0.5 text-[8.5px] font-mono text-user-c tracking-wider font-bold rounded-none">
-                                                    {tag}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    )}
-
-                                    <h3 className="mb-2 text-xl font-bold uppercase tracking-normal text-white transition-colors hover:text-[#ffb595] font-sans">
-                                        {event.title}
-                                    </h3>
-                                    <p className="font-light leading-relaxed tracking-normal text-[#e1bfb2] font-sans">
-                                        {renderTextWithHashtags(event.description)}
-                                    </p>
-
-                                    {event.imageUrl && (
-                                        <div className="mt-4 min-h-32 overflow-hidden border border-white/10 bg-black rounded-none">
-                                            <Image src={event.imageUrl} alt={event.title} width={500} height={300} className="w-full h-auto object-cover grayscale hover:grayscale-0 transition-all duration-500" unoptimized />
-                                        </div>
-                                    )}
-
-                                    {/* Reactions and Comments Action Section */}
-                                    {profile && (
-                                        <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-white/5 pt-3 w-full">
-                                            <div className="flex flex-wrap items-center gap-1">
-                                                {EMOJI_OPTIONS.map(emoji => {
-                                                    const reactors = event.reactions?.[emoji] || [];
-                                                    const hasReacted = reactors.includes(profile);
-                                                    const count = reactors.length;
-                                                    return (
-                                                        <button
-                                                            key={emoji}
-                                                            onClick={() => handleReact(event, emoji)}
-                                                            className={`flex items-center gap-1 border px-2 py-1 text-xs transition-colors rounded-none font-mono ${hasReacted ? 'border-[#ff7020] text-[#ff7020] bg-[#ff7020]/5' : 'border-white/5 bg-black/40 text-white/60 hover:border-white/20'}`}
-                                                        >
-                                                            <span>{emoji}</span>
-                                                            {count > 0 && <span className="text-[10px] font-bold">{count}</span>}
-                                                        </button>
-                                                    );
-                                                })}
-                                            </div>
-                                            
-                                            <div className={`${isLeft ? 'md:ml-0 md:mr-auto ml-auto' : 'ml-auto'} flex items-center`}>
-                                                <button onClick={() => setActiveEventId(event.id)} className="flex items-center gap-1.5 text-xs text-[#a88a7e] hover:text-[#ffb595] transition-colors font-mono">
-                                                    <MessageSquare className="w-3.5 h-3.5 stroke-[1.5]" />
-                                                    <span>({event.comments?.length || 0}) Comentarios</span>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    )}
-        </>
     );
 }

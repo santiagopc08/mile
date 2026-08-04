@@ -14,6 +14,7 @@ export function SavingsOverview({ items }: { items: WishlistItem[] }) {
         let active = 0;
         let ready = 0;
         const byCategory: Record<string, number> = {};
+        let hasCategories = false;
 
         // ⚡ Bolt Optimization: Single-pass O(N) calculation replacing multiple filter/reduce
         for (const item of items) {
@@ -34,13 +35,8 @@ export function SavingsOverview({ items }: { items: WishlistItem[] }) {
 
             if (item.state !== 'ARCHIVED') {
                 byCategory[item.goalCategory] = (byCategory[item.goalCategory] || 0) + saved;
+                hasCategories = true;
             }
-        }
-
-        let hasCategories = false;
-        for (const _ in byCategory) {
-            hasCategories = true;
-            break;
         }
 
         return { totalSaved, totalGoal, completed, active, ready, byCategory, hasCategories };
