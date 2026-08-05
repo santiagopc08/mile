@@ -13,6 +13,7 @@ import {
 } from 'recharts';
 import { useVisibility } from '@/context/VisibilityContext';
 import { useProfile } from '@/context/ProfileContext';
+import { currencyFormatter, compactCurrencyFormatter } from '@/lib/formatters';
 
 type TransactionType = 'expense' | 'income' | 'transfer' | 'budget_adjustment';
 interface FinancialMovement {
@@ -22,7 +23,7 @@ interface FinancialMovement {
 }
 
 const formatCOP = (val: number) => {
-  return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(val);
+  return currencyFormatter.format(val);
 };
 
 const getType = (movement: FinancialMovement): TransactionType => {
@@ -116,7 +117,7 @@ export const FinanceChart = ({ allocationsElla, allocationsEl }: { allocationsEl
           <YAxis
             axisLine={false}
             tickLine={false}
-            tickFormatter={(val) => new Intl.NumberFormat('es-CO', { notation: "compact", compactDisplay: "short" }).format(val)}
+            tickFormatter={(val) => compactCurrencyFormatter.format(val)}
             tick={{ fontSize: 7, fontWeight: 'bold', fill: '#555', fontFamily: 'var(--font-mono)' }}
           />
           <Tooltip

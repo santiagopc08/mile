@@ -6,6 +6,7 @@ import {
   ArrowUpRight,
   SlidersHorizontal,
 } from 'lucide-react';
+import { currencyFormatter, compactCurrencyFormatterWithDecimals } from '@/lib/formatters';
 
 export type TransactionType = 'expense' | 'income' | 'transfer' | 'budget_adjustment';
 export type BudgetCategory = 'Food' | 'Transport' | 'Health' | 'Entertainment' | 'Wishlist' | 'Savings';
@@ -128,11 +129,11 @@ export const isWithinDays = (date: string, days: number) => {
 };
 
 export const formatCOP = (val: number) => {
-  return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(val);
+  return currencyFormatter.format(val);
 };
 
 export const compactCOP = (val: number) => {
-  return new Intl.NumberFormat('es-CO', { notation: 'compact', maximumFractionDigits: 1 }).format(val);
+  return compactCurrencyFormatterWithDecimals.format(val);
 };
 
 export const ChunkedProgress = ({ value, color }: { value: number; color: string }) => {

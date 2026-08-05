@@ -7,6 +7,7 @@ import { useStore } from '@/context/StoreContext';
 import { useProfile } from '@/context/ProfileContext';
 import { HealthService } from '@/services/healthService';
 import { NotificationService } from '@/services/notificationService';
+import { currencyFormatter } from '@/lib/formatters';
 import type { HealthHabitType, HealthHabit } from '@/services/storeService';
 import { supabase } from '@/lib/supabase';
 import { sound } from '@/lib/sound';
@@ -93,8 +94,7 @@ export function HabitTracker() {
         return { totalSpent, byType, score, streak, potentialSavings };
     }, [habits, profile]);
 
-    const formatCOP = (val: number) =>
-        new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(val);
+    const formatCOP = (val: number) => currencyFormatter.format(val);
 
     const handleLogHabit = async (e: React.FormEvent) => {
         e.preventDefault();

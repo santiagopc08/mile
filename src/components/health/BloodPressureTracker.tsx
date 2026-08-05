@@ -7,6 +7,7 @@ import { Activity, Heart, Plus, Clipboard, User, Clock } from 'lucide-react';
 import { useProfile } from '@/context/ProfileContext';
 import { NotificationService } from '@/services/notificationService';
 import { BrutalistPanel } from '@/components/ui/BrutalistPanel';
+import { shortDateFormatter, shortTimeFormatter, fullDateFormatter } from '@/lib/formatters';
 import { sound } from '@/lib/sound';
 import { haptics } from '@/lib/haptics';
 import {
@@ -174,7 +175,7 @@ export const BloodPressureTracker = () => {
             const entry = entries[i];
             const date = new Date(entry.created_at);
             data.push({
-                name: `${date.toLocaleDateString([], { month: 'short', day: 'numeric' })} ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}`,
+                name: `${shortDateFormatter.format(date)} ${shortTimeFormatter.format(date)}`,
                 fullDate: date.toLocaleString(),
                 systolic: entry.systolic,
                 diastolic: entry.diastolic,
@@ -426,16 +427,9 @@ export const BloodPressureTracker = () => {
                             const entryIsElla = entry.author === 'ella';
                             const authorAccent = entryIsElla ? 'var(--color-user-a)' : '#00dbe9';
                             const authorName = entryIsElla ? 'MILENA' : 'SANTIAGO';
-                            const formattedDate = new Date(entry.created_at).toLocaleDateString([], {
-                                year: 'numeric',
-                                month: '2-digit',
-                                day: '2-digit'
-                            });
-                            const formattedTime = new Date(entry.created_at).toLocaleTimeString([], {
-                                hour: '2-digit',
-                                minute: '2-digit',
-                                hour12: false
-                            });
+                            const dateObj = new Date(entry.created_at);
+                            const formattedDate = fullDateFormatter.format(dateObj);
+                            const formattedTime = shortTimeFormatter.format(dateObj);
 
                             return (
                                 <motion.div
