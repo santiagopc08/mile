@@ -19,6 +19,8 @@ const HABIT_CONFIG: Record<HealthHabitType, { label: string; icon: typeof Pizza;
     impulse_spending: { label: 'Gasto Impulsivo', icon: CreditCard, color: '#ff003c' },
 };
 
+const COP_FORMATTER = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
+
 export function HabitTracker() {
     const { data, refreshData } = useStore();
     const { profile } = useProfile();
@@ -93,8 +95,7 @@ export function HabitTracker() {
         return { totalSpent, byType, score, streak, potentialSavings };
     }, [habits, profile]);
 
-    const formatCOP = (val: number) =>
-        new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(val);
+    const formatCOP = (val: number) => COP_FORMATTER.format(val);
 
     const handleLogHabit = async (e: React.FormEvent) => {
         e.preventDefault();

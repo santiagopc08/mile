@@ -23,8 +23,9 @@ export const REACTION_CONFIG = [
     { type: 'WANT_THIS_WITH_YOU', emoji: '💫', label: 'Contigo' },
 ] as const;
 
-export const formatCOP = (val: number) =>
-    new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(val);
+const COP_FORMATTER = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
+
+export const formatCOP = (val: number) => COP_FORMATTER.format(val);
 
 export const timeAgo = (dateStr: string) => {
     const diff = Date.now() - new Date(dateStr).getTime();
