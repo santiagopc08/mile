@@ -6,6 +6,8 @@ import { WishlistService } from '@/services/wishlistService';
 import { NotificationService } from '@/services/notificationService';
 import { STATE_CONFIG } from '@/components/planes/constants';
 
+const copFormatter = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
+
 export async function POST(request: Request) {
     try {
         if (!(await verifyAuth())) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -79,8 +81,7 @@ export async function POST(request: Request) {
             if (item.shared) {
                 const target = profile === 'el' ? 'ella' : 'el';
                 const authorName = profile === 'el' ? 'Santiago' : 'Milena';
-                const formatCOP = (v: number) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(v);
-                const amountFormatted = formatCOP(amount);
+                const amountFormatted = copFormatter.format(amount);
                 await NotificationService.addNotification(target, 'wishlist', `¡${authorName} aportó ${amountFormatted} al plan: "${item.title}"! 💰`, supabase);
             }
 
