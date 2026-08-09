@@ -78,13 +78,14 @@ describe("MahjongTimer Component", () => {
       vi.advanceTimersByTime(1000);
     });
 
-    expect(handle?.getTime()).toBe(1);
+    const timerHandle = handle as MahjongTimerHandle | null;
+    expect(timerHandle?.getTime()).toBe(1);
 
     act(() => {
-      handle?.resetTime();
+      timerHandle?.resetTime();
     });
 
-    expect(handle?.getTime()).toBe(0);
+    expect(timerHandle?.getTime()).toBe(0);
     expect(screen.getAllByText("Time: 0").length).toBeGreaterThan(0);
   });
 });
