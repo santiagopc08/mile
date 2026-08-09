@@ -9,19 +9,21 @@ import { useStore } from "@/context/StoreContext";
 import { useProfile } from "@/context/ProfileContext";
 import { Activity, HeartPulse, Shield, Flame } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Allocation, StoreService } from "@/services/storeService";
+import { Allocation } from "@/services/storeService";
 import { MovementTracker } from "@/components/health/MovementTracker";
 import { AmbientField } from "@/components/AmbientField";
+import { sound } from '@/lib/sound';
+import { haptics } from '@/lib/haptics';
 
 export default function SaludPage() {
-    type SaludTab = 'vitals' | 'biometric' | 'fiscal' | 'habits' | 'movement';
+    type SaludTab = 'vitals' | 'biometric' | 'habits' | 'movement';
     const [activeTab, setActiveTab] = useState<SaludTab>('vitals');
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
             const params = new URL(window.location.href).searchParams;
             const tab = params.get('tab') as SaludTab;
-            if (tab && ['vitals', 'biometric', 'fiscal', 'habits', 'movement'].includes(tab)) {
+            if (tab && ['vitals', 'biometric', 'habits', 'movement'].includes(tab)) {
                 setActiveTab(tab);
                 setTimeout(() => {
                     const el = document.getElementById('salud-content');
@@ -32,54 +34,61 @@ export default function SaludPage() {
             }
         }
     }, []);
-    const { data } = useStore();
+
     const { profile } = useProfile();
     const accentColor = profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)';
+    const accentHex = profile === 'ella' ? '#ff4b89' : '#c3f400';
     const accentClass = profile === 'ella' ? 'user-a' : 'user-b';
     const secondaryColor = profile === 'ella' ? 'var(--color-user-b)' : 'var(--color-user-a)';
     const secondaryClass = profile === 'ella' ? 'user-b' : 'user-a';
-    const [allocations, setAllocations] = useState<Allocation[]>([]);
 
-    // Re-implementing allocation logic from SymmetryDashboard for FiscalAuditor
-    const [allocationsA, setAllocationsA] = useState<Allocation[]>([]);
-    const [allocationsB, setAllocationsB] = useState<Allocation[]>([]);
-
-    useEffect(() => {
-        const savedA = localStorage.getItem('symmetry_A_allocations') || localStorage.getItem('symmetry_A_expenses');
-        const savedB = localStorage.getItem('symmetry_B_allocations') || localStorage.getItem('symmetry_B_expenses');
-        if (savedA) setAllocationsA(JSON.parse(savedA));
-        if (savedB) setAllocationsB(JSON.parse(savedB));
-    }, []);
-
-
-
-    const tabs: Array<{ id: SaludTab; label: string; icon: typeof Activity }> = [
-        { id: 'vitals', label: 'Signos Vitales', icon: HeartPulse },
-        { id: 'biometric', label: 'Ella', icon: Shield },
-        { id: 'habits', label: 'Hábitos', icon: Activity },
-        { id: 'movement', label: 'Movimiento', icon: Flame },
+    const tabs: Array<{
+        id: SaludTab;
+        label: string;
+        shortLabel: string;
+        detail: string;
+        icon: typeof Activity;
+    }> = [
+        { id: 'vitals', label: 'Signos Vitales', shortLabel: 'Vitales', detail: 'Presión & Pulso', icon: HeartPulse },
+        { id: 'biometric', label: 'Ella', shortLabel: 'Ella', detail: 'Bóveda Biológica', icon: Shield },
+        { id: 'habits', label: 'Hábitos', shortLabel: 'Hábitos', detail: 'Rutinas & Racha', icon: Activity },
+        { id: 'movement', label: 'Movimiento', shortLabel: 'Movimiento', detail: 'Pasos & Quema', icon: Flame },
     ];
+
+    const handleTabChange = (tabId: SaludTab) => {
+        if (tabId !== activeTab) {
+            sound.playTick();
+            haptics.triggerTick();
+            setActiveTab(tabId);
+        }
+    };
 
     return (
         <PrivateRoute>
             <AmbientField preset="salud" profile={profile} />
-            <main className="relative z-10 min-h-screen w-full overflow-hidden px-4 pb-24 pt-6 text-[#e5e2e1] md:px-8 md:pt-8 font-mono">
+            <main className="relative z-10 min-h-screen w-full overflow-hidden px-3 sm:px-4 pb-24 pt-4 sm:pt-6 text-[#e5e2e1] md:px-8 md:pt-8 font-mono">
                 <div className="mx-auto w-full max-w-7xl">
+                    {/* Header Banner */}
                     <div className="border border-white/12 bg-white/[0.04] backdrop-blur-2xl backdrop-saturate-150 shadow-[0_12px_36px_rgba(0,0,0,0.5)] mb-4">
-                        <div className="relative p-5 sm:p-8 md:p-10">
-                            <div className={`absolute left-0 top-0 h-full w-[5px] bg-${accentClass}`} style={{ backgroundColor: accentColor }} />
+                        <div className="relative p-4 sm:p-6 md:p-8">
+                            <div className="absolute left-0 top-0 h-full w-[4px]" style={{ backgroundColor: accentColor }} />
                             <div className="flex items-center justify-between gap-3 w-full">
                                 <div className="flex items-center gap-3">
                                     <span className="font-mono text-base sm:text-xl animate-spin-slow" style={{ color: accentColor }}>◆</span>
-                                    <h1 className="text-2xl sm:text-4xl md:text-5xl font-mono font-bold uppercase leading-[0.92] tracking-tight text-white">
-                                        SALUD · SIGNOS VITALES
-                                    </h1>
+                                    <div>
+                                        <p className="text-[7.5px] sm:text-[8.5px] font-mono font-bold uppercase tracking-[0.24em] text-stone-400">
+                                            MÓDULO CLÍNICO // BIOMETRÍA
+                                        </p>
+                                        <h1 className="text-xl sm:text-3xl md:text-4xl font-mono font-bold uppercase leading-tight tracking-tight text-white mt-0.5">
+                                            SALUD · SIGNOS VITALES
+                                        </h1>
+                                    </div>
                                 </div>
                                 <div className="relative p-1 border border-white/15 bg-white/[0.05] backdrop-blur-md shrink-0">
-                                    <div className={`absolute top-0 left-0 w-1.5 h-1.5 border-t border-l border-${accentClass}`} style={{ borderColor: accentColor }} />
-                                    <div className={`absolute bottom-0 right-0 w-1.5 h-1.5 border-b border-r border-${accentClass}`} style={{ borderColor: accentColor }} />
+                                    <div className="absolute top-0 left-0 w-1.5 h-1.5 border-t border-l" style={{ borderColor: accentColor }} />
+                                    <div className="absolute bottom-0 right-0 w-1.5 h-1.5 border-b border-r" style={{ borderColor: accentColor }} />
                                     <video
-                                        className="w-16 h-16 sm:w-20 sm:h-20 object-cover contrast-125 opacity-80 mix-blend-screen"
+                                        className="w-12 h-12 sm:w-16 sm:h-16 object-cover contrast-125 opacity-80 mix-blend-screen"
                                         src="vid/dogtor.mp4"
                                         autoPlay
                                         loop
@@ -87,53 +96,122 @@ export default function SaludPage() {
                                         playsInline
                                         webkit-playsinline="true"
                                     />
-                                    <div className="absolute top-2 right-2 flex gap-1">
-                                        <div className={`w-1 h-1 bg-${secondaryClass} animate-pulse`} style={{ backgroundColor: secondaryColor }} />
+                                    <div className="absolute top-1.5 right-1.5 flex gap-1">
+                                        <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: secondaryColor }} />
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 border border-white/12 bg-white/[0.03] backdrop-blur-2xl backdrop-saturate-150 sm:grid-cols-4 mb-6 shadow-lg">
-                        {tabs.map((tab, index) => (
-                            <button
-                                key={tab.id}
-                                onClick={() => setActiveTab(tab.id)}
-                                className={`group relative font-mono flex min-h-20 items-center justify-between border-b border-white/10 px-4 py-4 transition-all last:border-b-0 sm:border-b-0 sm:border-r sm:last:border-r-0 rounded-none ${activeTab === tab.id
-                                    ? 'text-black'
-                                    : 'text-[#a88a7e] hover:bg-white/[0.06] hover:text-white'
-                                    }`}
-                                style={activeTab === tab.id ? { backgroundColor: accentColor } : {}}
-                            >
-                                <span className="flex flex-col items-start gap-2">
-                                    <tab.icon className="h-4 w-4 stroke-[1.5]" />
-                                    <span className="text-[10px] font-black uppercase tracking-[0.22em]">{tab.label}</span>
-                                </span>
-                                <span className={`text-[9px] font-bold uppercase tracking-[0.2em] ${activeTab === tab.id ? 'text-black/55' : `text-white/20 group-hover:text-${secondaryClass}`}`} style={activeTab !== tab.id ? { '--tw-hover-text-opacity': 1 } as any : {}}>
-                                    0{index + 1}
-                                </span>
-                                {activeTab === tab.id && (
-                                    <motion.div
-                                        layoutId="activeTabSalud"
-                                        className={`absolute inset-x-0 bottom-0 h-1 bg-${secondaryClass}`}
-                                        style={{ backgroundColor: secondaryColor }}
-                                    />
-                                )}
-                            </button>
-                        ))}
+                    {/* Redesigned Cyber-HUD Segmented Tab Selector */}
+                    <div className="border border-white/12 bg-black/60 backdrop-blur-2xl backdrop-saturate-150 p-1 sm:p-1.5 mb-5 shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-1 sm:gap-1.5">
+                            {tabs.map((tab, index) => {
+                                const isActive = activeTab === tab.id;
+                                const TabIcon = tab.icon;
+
+                                return (
+                                    <button
+                                        key={tab.id}
+                                        type="button"
+                                        onClick={() => handleTabChange(tab.id)}
+                                        className={`group relative min-h-[50px] sm:min-h-[58px] px-3 py-2 flex items-center justify-between transition-all duration-200 border text-left overflow-hidden ${
+                                            isActive
+                                                ? 'border-white/30 text-white shadow-[0_0_16px_rgba(0,0,0,0.6)]'
+                                                : 'border-white/5 bg-white/[0.015] text-stone-400 hover:border-white/20 hover:text-stone-200 hover:bg-white/[0.04]'
+                                        }`}
+                                    >
+                                        {/* Animated Glider Background on Active Tab */}
+                                        {isActive && (
+                                            <motion.div
+                                                layoutId="activeSaludTabGlider"
+                                                transition={{ type: 'spring', stiffness: 450, damping: 30 }}
+                                                className="absolute inset-0 bg-white/[0.08] backdrop-blur-md"
+                                                style={{
+                                                    boxShadow: `inset 0 0 16px ${accentHex}20`,
+                                                }}
+                                            />
+                                        )}
+
+                                        {/* Active Top & Bottom Neon Accent Bars */}
+                                        {isActive && (
+                                            <>
+                                                <motion.div
+                                                    layoutId="activeSaludTabTopBar"
+                                                    className="absolute top-0 inset-x-0 h-[2px]"
+                                                    style={{
+                                                        backgroundColor: accentColor,
+                                                        boxShadow: `0 0 8px ${accentColor}`,
+                                                    }}
+                                                />
+                                                <motion.div
+                                                    layoutId="activeSaludTabBottomBar"
+                                                    className="absolute bottom-0 inset-x-0 h-[2px]"
+                                                    style={{
+                                                        backgroundColor: accentColor,
+                                                        boxShadow: `0 0 8px ${accentColor}`,
+                                                    }}
+                                                />
+                                            </>
+                                        )}
+
+                                        {/* Tab Content */}
+                                        <div className="relative z-10 flex items-center gap-2.5 min-w-0">
+                                            <div
+                                                className={`p-1.5 border transition-colors shrink-0 ${
+                                                    isActive
+                                                        ? 'border-white/30 bg-black/60'
+                                                        : 'border-white/10 bg-black/30 group-hover:border-white/20'
+                                                }`}
+                                            >
+                                                <TabIcon
+                                                    size={15}
+                                                    className="transition-colors stroke-[1.75]"
+                                                    style={isActive ? { color: accentColor } : {}}
+                                                />
+                                            </div>
+                                            <div className="flex flex-col min-w-0">
+                                                <span
+                                                    className={`text-[9.5px] sm:text-[10px] font-mono font-black uppercase tracking-wider truncate leading-tight ${
+                                                        isActive ? 'text-white' : 'text-stone-300 group-hover:text-white'
+                                                    }`}
+                                                >
+                                                    {tab.label}
+                                                </span>
+                                                <span className="text-[7px] sm:text-[7.5px] font-mono text-stone-500 truncate hidden xs:inline tracking-tight mt-0.5">
+                                                    {tab.detail}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {/* Index Badge */}
+                                        <div className="relative z-10 hidden sm:flex flex-col items-end shrink-0 pl-1">
+                                            <span
+                                                className={`text-[8px] font-mono font-bold tabular-nums transition-colors ${
+                                                    isActive ? 'font-black' : 'text-stone-600 group-hover:text-stone-400'
+                                                }`}
+                                                style={isActive ? { color: accentColor } : {}}
+                                            >
+                                                0{index + 1}
+                                            </span>
+                                        </div>
+                                    </button>
+                                );
+                            })}
+                        </div>
                     </div>
 
-                    <div id="salud-content" className="bg-[#0a070c]/40 backdrop-blur-xl backdrop-saturate-150 p-3 sm:p-5 md:p-8">
-
+                    {/* Active Tab Main Content */}
+                    <div id="salud-content" className="bg-[#0a070c]/50 border border-white/10 backdrop-blur-2xl backdrop-saturate-150 p-3 sm:p-5 md:p-6 shadow-[0_12px_36px_rgba(0,0,0,0.5)]">
                         <AnimatePresence mode="wait">
                             <motion.div
                                 key={activeTab}
-                                initial={{ opacity: 0, y: 10 }}
+                                initial={{ opacity: 0, y: 8 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -10 }}
-                                transition={{ duration: 0.2 }}
-                                className="min-h-[560px]"
+                                exit={{ opacity: 0, y: -8 }}
+                                transition={{ duration: 0.18 }}
+                                className="min-h-[480px]"
                             >
                                 {activeTab === 'vitals' && <BloodPressureTracker />}
                                 {activeTab === 'biometric' && <BiometricVault />}

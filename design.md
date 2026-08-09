@@ -1,3 +1,76 @@
+---
+name: Proyecto MS
+description: "Nuestro Espacio Seguro — diario y santuario digital compartido de Mile y Santi"
+colors:
+  ella: "#ff4b89"
+  el: "#c3f400"
+  sintonia: "#a178ff"
+  surface: "#1f0e13"
+  surface-dim: "#19090d"
+  surface-bright: "#493338"
+  surface-container: "#2d1a1f"
+  panel-surface: "#0a070c"
+  on-surface: "#fbdae0"
+  on-surface-variant: "#e5bcc4"
+  on-surface-muted: "#a88a7e"
+  outline: "#ac878f"
+  border-subtle: "rgba(172, 135, 143, 0.1)"
+  glass-border: "rgba(255, 255, 255, 0.12)"
+  system-alert: "#ffb4ab"
+typography:
+  display:
+    fontFamily: "Quantico, monospace"
+    fontSize: "clamp(1.25rem, 4vw, 2.25rem)"
+    fontWeight: 700
+    lineHeight: 1
+    letterSpacing: "-0.02em"
+  headline:
+    fontFamily: "Anta, Space Grotesk, sans-serif"
+    fontSize: "clamp(1.125rem, 2vw, 1.25rem)"
+    fontWeight: 900
+    lineHeight: 1.1
+    letterSpacing: "normal"
+  title:
+    fontFamily: "Anta, Space Grotesk, sans-serif"
+    fontSize: "clamp(0.875rem, 1.5vw, 1rem)"
+    fontWeight: 900
+    lineHeight: 1.2
+    letterSpacing: "normal"
+  body:
+    fontFamily: "Space Grotesk, sans-serif"
+    fontSize: "clamp(0.75rem, 1vw, 0.875rem)"
+    fontWeight: 500
+    lineHeight: 1.6
+    letterSpacing: "normal"
+  label:
+    fontFamily: "Quantico, monospace"
+    fontSize: "9px"
+    fontWeight: 900
+    lineHeight: 1.2
+    letterSpacing: "0.15em"
+components:
+  button-primary:
+    backgroundColor: "{colors.el}"
+    textColor: "#ffffff"
+    padding: "8px 16px"
+  button-secondary:
+    backgroundColor: "rgba(255, 255, 255, 0.08)"
+    textColor: "#ffffff"
+    padding: "8px 16px"
+  button-outline:
+    backgroundColor: "rgba(255, 255, 255, 0.04)"
+    textColor: "{colors.el}"
+    padding: "8px 16px"
+  button-danger:
+    backgroundColor: "rgba(239, 68, 68, 0.18)"
+    textColor: "#fca5a5"
+    padding: "8px 16px"
+  button-ghost:
+    backgroundColor: "rgba(255, 255, 255, 0.02)"
+    textColor: "#e5e2e1"
+    padding: "8px 16px"
+---
+
 # Sistema de Diseño: Cyber-Brutalista Mobile-First
 
 Este documento define la dirección estética, la Directriz de Botones y la Directriz de Títulos Geométricos Animados de la aplicación. La interfaz está diseñada prioritariamente para **Mobile-First** (pantallas táctiles de smartphone).
@@ -34,6 +107,10 @@ Este documento define la dirección estética, la Directriz de Botones y la Dire
 - **Terciario (Sintonía)**: `#a178ff` (Púrpura Profundo)
 - **Superficie Neón**: `#0a070c` (Negro Profundo con Tinte Violeta / 95% Opacidad con Glassmorphism `backdrop-blur-xl`)
 - **Bordes Subtles**: `rgba(255, 255, 255, 0.12)`
+
+**Frontmatter de este documento**: la rampa de superficie completa (`surface`, `surface-dim`, `surface-bright`, `surface-container`, `panel-surface`, `on-surface`, `on-surface-variant`, `on-surface-muted`, `outline`) sale literal de `globals.css` y vive ahora en el YAML de cabecera para que herramientas como Stitch la lean como tokens normativos; la prosa de aquí abajo sigue siendo la fuente de la intención. `on-surface-muted` (`#a88a7e`) es el tono que llevan los metadatos secundarios de las tarjetas (iconos de acceso, texto bajo el título) — se usaba ya en decenas de sitios sin estar documentado. Los componentes de `components:` (`button-primary`, `button-outline`, …) usan `{colors.el}` como valor ilustrativo — en runtime `CyberButton` recibe `accentColor` y alterna entre `{colors.ella}` y `{colors.el}` según el perfil activo, nunca un tono fijo. No hay grupo `rounded:` en el frontmatter a propósito: el sistema no usa `border-radius`, todo el biselado sale de `clip-path` (ver *Directriz de Botones* y *Paneles Biselados*), así que una escala de radios sería un token fabricado.
+
+**El paso `label` es un piso, no un valor fijo.** `typography.label.fontSize: 9px` documenta la moda de la escala real (badges, filas de acceso, botones `xs`/`sm`), pero el uso legítimo cubre 8–10.5px según la densidad del contenedor — un botón `CyberButton` `lg` en label sube a 12px (`text-xs sm:text-sm`). No se declara como rango porque el esquema de Stitch pide un tamaño único; tratar cualquier valor en esa banda como "fuera de sistema" sería un falso positivo.
 
 ### Fuente única de verdad: `src/lib/profilePalette.ts`
 
@@ -97,6 +174,20 @@ Componente oficial para todos los botones. Ofrece soporte para iconos, estados d
 
 ### `ChamferedPanel`
 Contenedor principal con esquinas cortadas en chaflán a 45°, marcadores HUD de retícula `[ + ]`, pestañas laterales flotantes, resplandor ambiental y animación de auto-shimmer cíclico para móvil. Con `staggerIndex={n}` entra escalonado en la coreografía de la pantalla (ver *Tokens de Movimiento*). Superficie de **vidrio traslúcido** (`bg-[#0a070c]/45`): el `AmbientField` se lee a través. No lleva `filter` ni sombra exterior a propósito — rompería los modales `fixed` internos y el chaflán recorta la sombra (ver *Sistema de Vidrio*).
+
+### Tarjeta de Módulo con Riel (patrón, no componente aparte)
+Composición estándar de las 5 tarjetas de módulo del dashboard (`src/app/page.tsx`: Día a Día, Antojos, Refugio, Salud, Juego), construida siempre sobre un `ChamferedPanel` con `showSideTabs={false}` — las pestañas del header quedan redundantes cuando el propio riel ya marca el módulo. Estructura interna en `flex gap-3 h-full`:
+
+- **Riel lateral**: columna angosta (`w-11` en tarjetas secundarias de 3 columnas, `w-12` en las primarias de 2 columnas — sigue el `notchSize` de cada fila), fondo `${accentColor}12` y borde `${accentColor}40`, con el icono del módulo arriba y el nombre en mayúsculas girado 90° (`[writing-mode:vertical-rl] rotate-180`) abajo. Es la identidad del módulo leída de un vistazo antes de leer una sola palabra horizontal.
+- **Columna de contenido**: título + badge de estado en la fila superior (mismo patrón que antes: `Link` con `h2`/`h3` según si la tarjeta es primaria o secundaria, badge `bg-black/60` con icono + cifra), lista de accesos en **filas apiladas** (`flex flex-col gap-1`, cada fila con `border-b` salvo la última) en vez de la grilla 2×2 anterior — más legible en el ancho angosto que deja el riel.
+- **Firma decorativa** (`pt-1`, al pie de la columna de contenido): una pieza del kit `src/components/deco` distinta por tema, nunca la misma para dos módulos — es lo que impide que las 5 tarjetas se lean como una plantilla repetida:
+  - Día a Día → `TickScale` (regla de medición: ritmo).
+  - Antojos → `ContourLines` (curvas topográficas: planes/salidas).
+  - Refugio → `DataStrip` (código de barras: bitácora/registro).
+  - Salud → `RadialBurst` (abanico radial: pulso/vitales).
+  - Juego → `WireSolid` (poliedro isométrico: lúdico/3D).
+
+**La Regla de la Firma Única.** Cada tarjeta de módulo lleva exactamente una pieza decorativa de cierre, elegida por lo que el módulo *hace*, no por disponibilidad — repetir la misma pieza en dos tarjetas es la señal de que se eligió por pereza, no por tema.
 
 ### `AmbientField`
 **El único fondo de la app.** Sustituye a `InteractiveBackground` y `GeometricBackground`, que hacían casi lo mismo con rampas de color distintas y ocho bucles de framer-motion cada uno. Cinco capas, de atrás hacia delante:

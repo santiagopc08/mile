@@ -81,7 +81,10 @@ export default function RootLayout({
             </VisibilityProvider>
           </StoreProvider>
         </ProfileProvider>
-      </body>
+      {/* impeccable-live-start */}
+<script src="http://localhost:8400/live.js?token=f2a22d5c-e331-4d85-b788-c9d768d84a87"></script>
+{/* impeccable-live-end */}
+</body>
     </html>
   );
 }
