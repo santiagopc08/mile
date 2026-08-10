@@ -136,7 +136,7 @@ export function ActivitySessionItem({
                             return (
                                 <button
                                     key={rxType}
-                                    onClick={() => handleAddReaction(session.id, rxType)}
+                                    onClick={() => handleAddReaction(session.id, rxType as ReactionType)}
                                     className={`px-2 py-1 text-[7px] font-black uppercase tracking-wider border transition-all flex items-center gap-1 rounded-none ${
                                         alreadyReacted
                                             ? 'bg-white text-black border-white'
