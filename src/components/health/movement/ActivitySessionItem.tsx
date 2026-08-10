@@ -9,7 +9,7 @@ interface ActivitySessionItemProps {
     handleDeleteSession: (id: string) => Promise<void>;
     handleAddReaction: (id: string, type: ReactionType) => Promise<void>;
     REACTION_CONFIG: Record<string, { label: string; emoji: string; color: string }>;
-    reactionKeys: string[];
+    reactionKeys: ReactionType[];
 }
 
 export function ActivitySessionItem({
@@ -129,7 +129,7 @@ export function ActivitySessionItem({
                             }
                         }
 
-                        return reactionKeys.map(rxType => {
+                        return (reactionKeys as ReactionType[]).map(rxType => {
                             const rxConfig = REACTION_CONFIG[rxType];
                             const alreadyReacted = myReactionsSet.has(rxType);
 

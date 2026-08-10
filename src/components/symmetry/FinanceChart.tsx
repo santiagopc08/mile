@@ -13,6 +13,7 @@ import {
 } from 'recharts';
 import { useVisibility } from '@/context/VisibilityContext';
 import { useProfile } from '@/context/ProfileContext';
+import { currencyFormatter, compactCurrencyFormatter } from '@/lib/formatters';
 
 type TransactionType = 'expense' | 'income' | 'transfer' | 'budget_adjustment';
 interface FinancialMovement {

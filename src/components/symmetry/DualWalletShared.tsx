@@ -6,6 +6,7 @@ import {
   ArrowUpRight,
   SlidersHorizontal,
 } from 'lucide-react';
+import { currencyFormatter, compactCurrencyFormatterWithDecimals } from '@/lib/formatters';
 
 export type TransactionType = 'expense' | 'income' | 'transfer' | 'budget_adjustment';
 export type BudgetCategory = 'Food' | 'Transport' | 'Health' | 'Entertainment' | 'Wishlist' | 'Savings';
