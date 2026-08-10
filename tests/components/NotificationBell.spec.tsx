@@ -83,11 +83,13 @@ function findHandlersWithId(element: any, idToFind: string, handlerName: string)
 
 test.describe('NotificationBell', () => {
     test('handleRead should catch error and log it when NotificationService.markNotificationRead throws', async () => {
-        let loggedError: any = null;
+        let loggedError: Error | null = null;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
         const originalConsoleError = console.error;
         console.error = (msg: string, err: unknown) => {
             if (msg === 'Failed to mark read:') {
-                loggedError = err;
+                loggedError = err as Error;
             }
         };
 
@@ -96,9 +98,9 @@ test.describe('NotificationBell', () => {
             throw new Error('Test read error');
         };
 
-        let onClickHandlers: Function[] = [];
+        let onClickHandlers: (() => unknown)[] = [];
         withFakeReactDispatcher(() => {
-            const element = NotificationBell({ align: 'right' });
+            const element = NotificationBell({ align: 'right' }) as any;
             onClickHandlers = findHandlersWithId(element, 'test-1', 'onClick');
         });
 
@@ -112,7 +114,7 @@ test.describe('NotificationBell', () => {
         }
 
         expect(loggedError).toBeInstanceOf(Error);
-        expect(loggedError?.message).toBe('Test read error');
+        expect((loggedError as Error | null)?.message).toBe('Test read error');
 
         console.error = originalConsoleError;
         NotificationService.markNotificationRead = originalMarkRead;
