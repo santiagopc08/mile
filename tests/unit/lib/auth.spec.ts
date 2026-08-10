@@ -10,6 +10,7 @@ const setupMocks = (
     shouldHeadersThrow: boolean = false,
     shouldCookiesThrow: boolean = false
 ) => {
+    delete require.cache[require.resolve('../../../src/lib/auth.ts')];
     const nextHeadersPath = require.resolve('next/headers');
     require.cache[nextHeadersPath] = {
         id: nextHeadersPath,

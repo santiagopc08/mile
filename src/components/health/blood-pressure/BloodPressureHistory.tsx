@@ -3,6 +3,9 @@ import { getPressureCategory } from './utils';
 import { POSITION_LABELS } from './types';
 import type { BloodPressureEntry } from './types';
 
+const TIME_FORMATTER = new Intl.DateTimeFormat([], { hour: '2-digit', minute: '2-digit', hour12: false });
+const LIST_DATE_FORMATTER = new Intl.DateTimeFormat([], { year: 'numeric', month: '2-digit', day: '2-digit' });
+
 interface Props {
     entries: BloodPressureEntry[];
 }
@@ -25,16 +28,9 @@ export const BloodPressureHistory = ({ entries }: Props) => {
                     const itemAuthorAccent = entryIsElla ? '#ff4b89' : '#c3f400';
                     const itemAuthorName = entryIsElla ? 'MILENA' : 'SANTIAGO';
                     const diag = getPressureCategory(entry.systolic, entry.diastolic);
-                    const formattedDate = new Date(entry.created_at).toLocaleDateString([], {
-                        year: 'numeric',
-                        month: '2-digit',
-                        day: '2-digit'
-                    });
-                    const formattedTime = new Date(entry.created_at).toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        hour12: false
-                    });
+                    const entryDate = new Date(entry.created_at);
+                    const formattedDate = LIST_DATE_FORMATTER.format(entryDate);
+                    const formattedTime = TIME_FORMATTER.format(entryDate);
 
                     return (
                         <motion.div
