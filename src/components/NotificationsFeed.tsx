@@ -1,10 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Activity, Check, CheckSquare, Trash2 } from 'lucide-react';
+import { NotificationActionBar } from './NotificationsFeed/NotificationActionBar';
+import { NotificationItem } from './NotificationsFeed/NotificationItem';
+import { NotificationEmptyState } from './NotificationsFeed/NotificationEmptyState';
 import { NotificationService } from '@/services/notificationService';
 import { useProfile } from '@/context/ProfileContext';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/components/ui/Toast';
 
@@ -121,113 +123,20 @@ export function NotificationsFeed() {
             </div>
         );
     }
-
-    // Classify notification accents based on content
-    const getNotificationColor = (message: string) => {
-        const lower = message.toLowerCase();
-        if (lower.includes('santiago') || lower.includes('él')) {
-            return 'var(--color-user-b)'; // Lime
-        }
-        if (lower.includes('milena') || lower.includes('ella')) {
-            return 'var(--color-user-a)'; // Pink
-        }
-        return '#00dbe9'; // Shared / default Cyan
-    };
-
     return (
         <div className="space-y-6 font-mono relative z-10">
-            {/* Action Bar */}
             {notifications.length > 0 && (
-                <div className="flex justify-end gap-4 border-b border-white/5 pb-4">
-                    <button
-                        onClick={handleMarkAllRead}
-                        className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-widest text-[#a88a7e] hover:text-white transition-colors border border-white/10 px-3 py-1.5 bg-black/40 hover:bg-black/80"
-                    >
-                        <CheckSquare className="w-3 h-3" />
-                        Marcar Leídos
-                    </button>
-                    <button
-                        onClick={handleClearAll}
-                        className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-widest text-red-400 hover:text-red-300 transition-colors border border-red-500/10 px-3 py-1.5 bg-red-950/10 hover:bg-red-950/30"
-                    >
-                        <Trash2 className="w-3 h-3" />
-                        Vaciar Bitácora
-                    </button>
-                </div>
+                <NotificationActionBar onMarkAllRead={handleMarkAllRead} onClearAll={handleClearAll} />
             )}
 
-            {/* List Feed */}
             <div className="max-h-80 overflow-y-auto custom-scrollbar space-y-3 pr-2">
                 <AnimatePresence initial={false}>
                     {notifications.length > 0 ? (
-                        notifications.map((n) => {
-                            const notifColor = getNotificationColor(n.message);
-                            return (
-                                <motion.div
-                                    key={n.id}
-                                    initial={{ opacity: 0, x: -10 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, x: 10 }}
-                                    className={`relative flex items-center justify-between border border-white/5 bg-black/40 p-4 transition-all hover:bg-black/60 ${
-                                        !n.read ? 'border-l-2' : ''
-                                    }`}
-                                    style={{ borderLeftColor: !n.read ? notifColor : undefined }}
-                                >
-                                    <div className="flex items-start gap-4 pr-4">
-                                        {/* Status Dot */}
-                                        <div className="mt-1 flex h-2 w-2 items-center justify-center">
-                                            <span 
-                                                className={`h-2 w-2 rounded-full ${!n.read ? 'animate-pulse' : 'opacity-25'}`}
-                                                style={{ 
-                                                    backgroundColor: notifColor,
-                                                    boxShadow: !n.read ? `0 0 6px ${notifColor}` : undefined 
-                                                }}
-                                            />
-                                        </div>
-
-                                        {/* Message Body */}
-                                        <div>
-                                            <p className={`text-xs leading-relaxed ${!n.read ? 'text-white font-bold' : 'text-white/40 font-light'}`}>
-                                                {n.message}
-                                            </p>
-                                            <div className="mt-2 flex items-center gap-4 text-[8px] font-bold tracking-widest text-[#a88a7e] opacity-50">
-                                                <span 
-                                                    className="border border-white/10 px-1 py-0.5"
-                                                    style={{ color: notifColor, borderColor: `${notifColor}33` }}
-                                                >
-                                                    {n.type || 'Sincronía'}
-                                                </span>
-                                                <span>
-                                                    {new Date(n.created_at).toLocaleString('es-CO', {
-                                                        hour: 'numeric',
-                                                        minute: 'numeric',
-                                                        day: 'numeric',
-                                                        month: 'short',
-                                                        year: 'numeric'
-                                                    })}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Action button to mark single as read */}
-                                    {!n.read && (
-                                        <button
-                                            onClick={() => handleRead(n.id)}
-                                            className="group flex h-7 w-7 items-center justify-center border border-white/10 bg-black text-[#a88a7e] transition-colors hover:border-white/40 hover:text-white"
-                                            title="Marcar como leído"
-                                        >
-                                            <Check className="w-3.5 h-3.5 transition-transform group-hover:scale-110" />
-                                        </button>
-                                    )}
-                                </motion.div>
-                            );
-                        })
+                        notifications.map((n) => (
+                            <NotificationItem key={n.id} notification={n} onRead={handleRead} />
+                        ))
                     ) : (
-                        <div className="flex flex-col items-center justify-center py-12 text-[#a88a7e] opacity-40 border border-dashed border-white/10 bg-black/10">
-                            <Activity className="w-10 h-10 mb-2 stroke-[1.2] animate-pulse" />
-                            <p className="text-[10px] uppercase tracking-widest text-center px-4">Ningún evento registrado en la bitácora aún</p>
-                        </div>
+                        <NotificationEmptyState />
                     )}
                 </AnimatePresence>
             </div>

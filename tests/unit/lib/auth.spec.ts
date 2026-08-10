@@ -133,6 +133,19 @@ test.describe('verifyAuth', () => {
         expect(result).toBe(true);
     });
 
+    test('bearer token with getUser exception falls back to cookie', async () => {
+        setupMocks(
+            { 'authorization': 'Bearer valid_token' },
+            { 'mile_device_token': 'test_token' },
+            async () => { throw new Error('Network error'); },
+            async () => ({ data: { id: 'some-id', token: 'test_token' }, error: null })
+        );
+
+        const { verifyAuth } = require('../../../src/lib/auth.ts');
+        const result = await verifyAuth();
+        expect(result).toBe(true);
+    });
+
     test('headers exception falls back to cookie', async () => {
         setupMocks(
             {},

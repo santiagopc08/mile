@@ -9,7 +9,7 @@ interface ActivitySessionItemProps {
     handleDeleteSession: (id: string) => Promise<void>;
     handleAddReaction: (id: string, type: ReactionType) => Promise<void>;
     REACTION_CONFIG: Record<string, { label: string; emoji: string; color: string }>;
-    reactionKeys: string[];
+    reactionKeys: ReactionType[];
 }
 
 export function ActivitySessionItem({
@@ -129,14 +129,14 @@ export function ActivitySessionItem({
                             }
                         }
 
-                        return reactionKeys.map(rxType => {
+                        return (reactionKeys as ReactionType[]).map(rxType => {
                             const rxConfig = REACTION_CONFIG[rxType];
                             const alreadyReacted = myReactionsSet.has(rxType);
 
                             return (
                                 <button
                                     key={rxType}
-                                    onClick={() => handleAddReaction(session.id, rxType)}
+                                    onClick={() => handleAddReaction(session.id, rxType as ReactionType)}
                                     className={`px-2 py-1 text-[7px] font-black uppercase tracking-wider border transition-all flex items-center gap-1 rounded-none ${
                                         alreadyReacted
                                             ? 'bg-white text-black border-white'
