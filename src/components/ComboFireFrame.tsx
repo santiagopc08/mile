@@ -51,6 +51,163 @@ function buildCampfirePlumes(count: number, baseHeight: number, spread: number):
     });
 }
 
+// Núcleo incandescente estilo fogata (blanco-dorado -> naranja candente -> carmesí)
+const campfireFlameBody = (hue: number) =>
+    `radial-gradient(ellipse at 50% 100%,
+        rgba(255, 255, 245, 1) 0%,
+        hsla(${hue + 38}, 100%, 75%, 0.96) 24%,
+        hsla(${hue + 18}, 100%, 58%, 0.85) 50%,
+        hsla(${hue + 2}, 100%, 46%, 0.50) 75%,
+        transparent 92%)`;
+
+const campfireFlameCore = (hue: number) =>
+    `radial-gradient(ellipse at 50% 100%,
+        rgba(255, 255, 255, 1) 0%,
+        hsla(${hue + 45}, 100%, 86%, 0.95) 35%,
+        hsla(${hue + 25}, 100%, 65%, 0.65) 65%,
+        transparent 88%)`;
+
+function CampfireEdge({ edge, list, baseHeight }: { edge: Edge; list: FlamePlume[]; baseHeight: number }) {
+    const isVertical = edge === 'left' || edge === 'right';
+
+    // Anclaje y sangrado de bordes planos fuera de pantalla (-24px)
+    const edgeContainerStyle: React.CSSProperties =
+        edge === 'bottom'
+            ? { bottom: '-26px', left: '-5%', right: '-5%', height: `${baseHeight}px` }
+            : edge === 'top'
+            ? { top: '-26px', left: '-5%', right: '-5%', height: `${baseHeight}px`, transform: 'rotate(180deg)', transformOrigin: 'center center' }
+            : edge === 'left'
+            ? { left: '-26px', top: '-5%', bottom: '-5%', width: `${baseHeight}px`, transform: 'rotate(90deg)', transformOrigin: 'left center' }
+            : { right: '-26px', top: '-5%', bottom: '-5%', width: `${baseHeight}px`, transform: 'rotate(-90deg)', transformOrigin: 'right center' };
+
+    return (
+        <div className="absolute overflow-visible pointer-events-none" style={edgeContainerStyle}>
+            {/* Manto Base Continuo de Fogata (Unifica las llamas sin grietas ni aislamiento) */}
+            <div
+                className="absolute inset-x-0 bottom-0 h-3/5 pointer-events-none"
+                style={{
+                    background: `linear-gradient(to top,
+                        rgba(255, 245, 200, 0.95) 0%,
+                        rgba(255, 150, 0, 0.80) 40%,
+                        rgba(220, 50, 0, 0.40) 75%,
+                        transparent 100%)`,
+                    mixBlendMode: 'screen',
+                    filter: 'blur(3px)',
+                }}
+            />
+
+            {/* Plumas de llamarada interconectadas */}
+            {list.map((t, i) => {
+                const posStyle: React.CSSProperties = isVertical
+                    ? {
+                          top: `${t.left}%`,
+                          left: 0,
+                          width: `${t.height}px`,
+                          height: `${t.width}px`,
+                      }
+                    : {
+                          left: `${t.left}%`,
+                          bottom: 0,
+                          width: `${t.width}px`,
+                          height: `${t.height}px`,
+                      };
+
+                return (
+                    <div key={`${edge}-${i}`} className="absolute" style={posStyle}>
+                        {/* Cuerpo principal de llamarada ancha */}
+                        <div
+                            className="absolute inset-0"
+                            style={{
+                                background: campfireFlameBody(t.hue),
+                                borderRadius: '50% 50% 35% 35% / 75% 75% 25% 25%',
+                                transformOrigin: 'bottom center',
+                                transform: `scale3d(${t.scaleX}, 1, 1)`,
+                                animation: `flame-tongue ${t.duration}s ease-in-out ${t.delay}s infinite alternate`,
+                                mixBlendMode: 'screen',
+                                filter: 'blur(1.5px)',
+                                willChange: 'transform',
+                            }}
+                        />
+                        {/* Núcleo Incandescente Blanco de Fogata */}
+                        <div
+                            className="absolute inset-x-[15%] bottom-0 top-[20%]"
+                            style={{
+                                background: campfireFlameCore(t.hue),
+                                borderRadius: '50% 50% 30% 30% / 80% 80% 20% 20%',
+                                transformOrigin: 'bottom center',
+                                animation: `flame-tongue ${t.duration * 0.75}s ease-in-out ${t.delay * 0.5}s infinite alternate`,
+                                mixBlendMode: 'screen',
+                                willChange: 'transform',
+                            }}
+                        />
+                    </div>
+                );
+            })}
+        </div>
+    );
+}
+
+function EdgeGlow({ edge, tier, glowOpacity }: { edge: Edge; tier: number; glowOpacity: number }) {
+    const isVertical = edge === 'left' || edge === 'right';
+    const dir =
+        edge === 'bottom' ? 'to top'
+        : edge === 'top' ? 'to bottom'
+        : edge === 'left' ? 'to right'
+        : 'to left';
+    const size = 130 + tier * 40;
+
+    return (
+        <div style={{
+            position: 'absolute',
+            [edge]: 0,
+            ...(isVertical
+                ? { top: 0, bottom: 0, width: size }
+                : { left: 0, right: 0, height: size }),
+            background: `linear-gradient(${dir},
+                hsla(30, 100%, 60%, ${glowOpacity}) 0%,
+                hsla(38, 100%, 64%, ${glowOpacity * 0.65}) 35%,
+                hsla(16, 100%, 46%, ${glowOpacity * 0.25}) 70%,
+                transparent 100%)`,
+            mixBlendMode: 'screen',
+            animation: `fire-glow-breathe ${1.3 + tier * 0.1}s ease-in-out infinite`,
+            willChange: 'opacity',
+        }} />
+    );
+}
+
+function CampfireEmbers({ tier }: { tier: number }) {
+    if (tier < 2) return null;
+
+    return (
+        <>
+            {Array.from({ length: 8 + tier * 4 }).map((_, i) => {
+                const emberCount = 8 + tier * 4;
+                const r = (Math.sin(i * 91.17) * 4231.7) % 1;
+                const rr = r < 0 ? -r : r;
+                const size = 3 + rr * 6;
+
+                return (
+                    <span
+                        key={`ember-${i}`}
+                        className="absolute bottom-0 rounded-full pointer-events-none"
+                        style={{
+                            left: `${(i / emberCount) * 100}%`,
+                            width: size,
+                            height: size,
+                            background: `hsl(${22 + rr * 28}, 100%, ${70 + rr * 25}%)`,
+                            boxShadow: '0 0 10px hsla(38,100%,70%,0.98)',
+                            // @ts-expect-error custom CSS variable
+                            '--ember-drift': `${(rr - 0.5) * 70}px`,
+                            animation: `fire-ember-rise ${1.1 + rr * 1.4}s ease-out ${rr * 1.6}s infinite`,
+                            willChange: 'transform, opacity',
+                        }}
+                    />
+                );
+            })}
+        </>
+    );
+}
+
 export function ComboFireFrame({ combo }: ComboFireFrameProps) {
     const tier = Math.min(5, Math.max(0, combo));
 
@@ -90,129 +247,12 @@ export function ComboFireFrame({ combo }: ComboFireFrameProps) {
         };
     }, [tier, baseHeight, hotShift]);
 
-    if (typeof document === 'undefined') return null;
-
-    // Núcleo incandescente estilo fogata (blanco-dorado -> naranja candente -> carmesí)
-    const campfireFlameBody = (hue: number) =>
-        `radial-gradient(ellipse at 50% 100%,
-            rgba(255, 255, 245, 1) 0%,
-            hsla(${hue + 38}, 100%, 75%, 0.96) 24%,
-            hsla(${hue + 18}, 100%, 58%, 0.85) 50%,
-            hsla(${hue + 2}, 100%, 46%, 0.50) 75%,
-            transparent 92%)`;
-
-    const campfireFlameCore = (hue: number) =>
-        `radial-gradient(ellipse at 50% 100%,
-            rgba(255, 255, 255, 1) 0%,
-            hsla(${hue + 45}, 100%, 86%, 0.95) 35%,
-            hsla(${hue + 25}, 100%, 65%, 0.65) 65%,
-            transparent 88%)`;
-
-    const renderEdgeFire = (edge: Edge, list: FlamePlume[]) => {
-        const isVertical = edge === 'left' || edge === 'right';
-
-        // Anclaje y sangrado de bordes planos fuera de pantalla (-24px)
-        const edgeContainerStyle: React.CSSProperties =
-            edge === 'bottom'
-                ? { bottom: '-26px', left: '-5%', right: '-5%', height: `${baseHeight}px` }
-                : edge === 'top'
-                ? { top: '-26px', left: '-5%', right: '-5%', height: `${baseHeight}px`, transform: 'rotate(180deg)', transformOrigin: 'center center' }
-                : edge === 'left'
-                ? { left: '-26px', top: '-5%', bottom: '-5%', width: `${baseHeight}px`, transform: 'rotate(90deg)', transformOrigin: 'left center' }
-                : { right: '-26px', top: '-5%', bottom: '-5%', width: `${baseHeight}px`, transform: 'rotate(-90deg)', transformOrigin: 'right center' };
-
-        return (
-            <div className="absolute overflow-visible pointer-events-none" style={edgeContainerStyle}>
-                {/* Manto Base Continuo de Fogata (Unifica las llamas sin grietas ni aislamiento) */}
-                <div
-                    className="absolute inset-x-0 bottom-0 h-3/5 pointer-events-none"
-                    style={{
-                        background: `linear-gradient(to top,
-                            rgba(255, 245, 200, 0.95) 0%,
-                            rgba(255, 150, 0, 0.80) 40%,
-                            rgba(220, 50, 0, 0.40) 75%,
-                            transparent 100%)`,
-                        mixBlendMode: 'screen',
-                        filter: 'blur(3px)',
-                    }}
-                />
-
-                {/* Plumas de llamarada interconectadas */}
-                {list.map((t, i) => {
-                    const posStyle: React.CSSProperties = isVertical
-                        ? {
-                              top: `${t.left}%`,
-                              left: 0,
-                              width: `${t.height}px`,
-                              height: `${t.width}px`,
-                          }
-                        : {
-                              left: `${t.left}%`,
-                              bottom: 0,
-                              width: `${t.width}px`,
-                              height: `${t.height}px`,
-                          };
-
-                    return (
-                        <div key={`${edge}-${i}`} className="absolute" style={posStyle}>
-                            {/* Cuerpo principal de llamarada ancha */}
-                            <div
-                                className="absolute inset-0"
-                                style={{
-                                    background: campfireFlameBody(t.hue),
-                                    borderRadius: '50% 50% 35% 35% / 75% 75% 25% 25%',
-                                    transformOrigin: 'bottom center',
-                                    transform: `scale3d(${t.scaleX}, 1, 1)`,
-                                    animation: `flame-tongue ${t.duration}s ease-in-out ${t.delay}s infinite alternate`,
-                                    mixBlendMode: 'screen',
-                                    filter: 'blur(1.5px)',
-                                    willChange: 'transform',
-                                }}
-                            />
-                            {/* Núcleo Incandescente Blanco de Fogata */}
-                            <div
-                                className="absolute inset-x-[15%] bottom-0 top-[20%]"
-                                style={{
-                                    background: campfireFlameCore(t.hue),
-                                    borderRadius: '50% 50% 30% 30% / 80% 80% 20% 20%',
-                                    transformOrigin: 'bottom center',
-                                    animation: `flame-tongue ${t.duration * 0.75}s ease-in-out ${t.delay * 0.5}s infinite alternate`,
-                                    mixBlendMode: 'screen',
-                                    willChange: 'transform',
-                                }}
-                            />
-                        </div>
-                    );
-                })}
-            </div>
-        );
-    };
-
-    const edgeGlow = (edge: Edge): React.CSSProperties => {
-        const isVertical = edge === 'left' || edge === 'right';
-        const dir =
-            edge === 'bottom' ? 'to top'
-            : edge === 'top' ? 'to bottom'
-            : edge === 'left' ? 'to right'
-            : 'to left';
-        const size = 130 + tier * 40;
-
-        return {
-            position: 'absolute',
-            [edge]: 0,
-            ...(isVertical
-                ? { top: 0, bottom: 0, width: size }
-                : { left: 0, right: 0, height: size }),
-            background: `linear-gradient(${dir},
-                hsla(30, 100%, 60%, ${glowOpacity}) 0%,
-                hsla(38, 100%, 64%, ${glowOpacity * 0.65}) 35%,
-                hsla(16, 100%, 46%, ${glowOpacity * 0.25}) 70%,
-                transparent 100%)`,
-            mixBlendMode: 'screen',
-            animation: `fire-glow-breathe ${1.3 + tier * 0.1}s ease-in-out infinite`,
-            willChange: 'opacity',
-        };
-    };
+    // Only render on client side
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+    if (!mounted || typeof document === 'undefined') return null;
 
     return createPortal(
         <AnimatePresence>
@@ -261,37 +301,13 @@ export function ComboFireFrame({ combo }: ComboFireFrameProps) {
 
                     {edges.map(edge => (
                         <div key={edge}>
-                            <div style={edgeGlow(edge)} />
-                            {renderEdgeFire(edge, plumes[edge])}
+                            <EdgeGlow edge={edge} tier={tier} glowOpacity={glowOpacity} />
+                            <CampfireEdge edge={edge} list={plumes[edge]} baseHeight={baseHeight} />
                         </div>
                     ))}
 
                     {/* Brasas ascendentes dinámicas estilo fogata con sway horizontal */}
-                    {tier >= 2 &&
-                        Array.from({ length: 8 + tier * 4 }).map((_, i) => {
-                            const emberCount = 8 + tier * 4;
-                            const r = (Math.sin(i * 91.17) * 4231.7) % 1;
-                            const rr = r < 0 ? -r : r;
-                            const size = 3 + rr * 6;
-
-                            return (
-                                <span
-                                    key={`ember-${i}`}
-                                    className="absolute bottom-0 rounded-full pointer-events-none"
-                                    style={{
-                                        left: `${(i / emberCount) * 100}%`,
-                                        width: size,
-                                        height: size,
-                                        background: `hsl(${22 + rr * 28}, 100%, ${70 + rr * 25}%)`,
-                                        boxShadow: '0 0 10px hsla(38,100%,70%,0.98)',
-                                        // @ts-expect-error custom CSS variable
-                                        '--ember-drift': `${(rr - 0.5) * 70}px`,
-                                        animation: `fire-ember-rise ${1.1 + rr * 1.4}s ease-out ${rr * 1.6}s infinite`,
-                                        willChange: 'transform, opacity',
-                                    }}
-                                />
-                            );
-                        })}
+                    <CampfireEmbers tier={tier} />
                 </motion.div>
             )}
         </AnimatePresence>,
