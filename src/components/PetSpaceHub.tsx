@@ -1,10 +1,9 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { supabase } from '@/lib/supabase';
+import { useState, useRef } from 'react';
 import { useProfile } from '@/context/ProfileContext';
 
-import { Pet, PETS } from './pet-space/types';
+import { PETS } from './pet-space/types';
 import { PetSelector } from './pet-space/PetSelector';
 import { OrbitalViewport } from './pet-space/OrbitalViewport';
 import { HabitatModule } from './pet-space/HabitatModule';
@@ -14,197 +13,47 @@ import { OrbitalRadar } from './pet-space/OrbitalRadar';
 import { Volume2, VolumeX } from 'lucide-react';
 import * as PetAudio from '@/lib/petSpaceAudio';
 
-const VITALS_KEY = 'mile_pets_vitals';
-const LOGS_KEY = 'mile_pets_logs';
-const JOY_FLOOR = 78; // La moral nunca cae debajo de esto: cariño, no culpa.
-
-// Deriva gentil de la moral hacia el piso según el tiempo desde el último mimo.
-function driftJoy(joy: number, ts: number): number {
-  if (!ts) return Math.round(joy);
-  const hours = (Date.now() - ts) / 3600000;
-  return Math.max(JOY_FLOOR, Math.round(Math.min(100, joy - hours * 1.2)));
-}
-
-// Reloj de estación aislado: gestiona su propio estado para no re-renderizar
-// el hub (pesado por las animaciones del viewport) cada segundo.
-function StationClock({ accentColor }: { accentColor: string }) {
-  const [time, setTime] = useState('');
-  useEffect(() => {
-    const tick = () => setTime(new Date().toLocaleTimeString('es-CO', { hour12: false }));
-    tick();
-    const i = setInterval(tick, 1000);
-    return () => clearInterval(i);
-  }, []);
-  return (
-    <span className="font-mono tabular-nums" style={{ color: accentColor }}>
-      {time}
-    </span>
-  );
-}
+import { StationClock } from './pet-space/StationClock';
+import {
+  usePetData,
+  usePetVitals,
+  usePetLogs,
+  usePetAudio,
+  usePetPhotos
+} from './pet-space/usePetSpace';
 
 export function PetSpaceHub() {
   const { profile } = useProfile();
   const accentColorHex = profile === 'ella' ? '#ff4b89' : '#c3f400';
   
-  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
-  const [photoDirection, setPhotoDirection] = useState(0);
   const [activeId, setActiveId] = useState(PETS[0].id);
   const [direction, setDirection] = useState(1);
   const [isWarping, setIsWarping] = useState(false);
-  const [supabasePhotos, setSupabasePhotos] = useState<string[]>([]);
-  const [isPlaying, setIsPlaying] = useState(true);
-  const [audioOn, setAudioOn] = useState(false);
-
-  // Overrides list state
-  const [petData, setPetData] = useState<Pet[]>(PETS);
-  
-  // Vitals tracking state
-  const [vitals, setVitals] = useState<Record<string, { joy: number; warmth: number }>>(() => {
-    const initial: Record<string, { joy: number; warmth: number }> = {};
-    PETS.forEach(p => {
-      initial[p.id] = { joy: p.o2, warmth: p.temp };
-    });
-    return initial;
-  });
-
-  // Daily log state
-  const [logs, setLogs] = useState<Record<string, { time: string; text: string; category: string }[]>>(() => {
-    const initialLogs: Record<string, { time: string; text: string; category: string }[]> = {};
-    PETS.forEach(p => {
-      initialLogs[p.id] = [
-        { time: '12:15:00', text: 'Descansando plácidamente en su espacio.', category: 'Hogar' },
-        { time: '14:02:45', text: 'Dosis de mimos completada. ¡Mucha felicidad!', category: 'Vida' }
-      ];
-    });
-    return initialLogs;
-  });
+  const warpTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Heart animation overlay particles
   const [hearts, setHearts] = useState<{ id: number; x: number; y: number }[]>([]);
-  
+
+  const { logs, addLog } = usePetLogs();
+  const { petData, savePetOverrides } = usePetData(addLog);
+  const { vitals, updateVitals } = usePetVitals();
+  const { audioOn, toggleAudio } = usePetAudio();
+
   const activeIdx = petData.findIndex(p => p.id === activeId);
   const activePet = activeIdx !== -1 ? petData[activeIdx] : petData[0];
   const activeVitals = vitals[activeId] || { joy: activePet.o2, warmth: activePet.temp };
 
-  const warpTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  // Marca de tiempo del último mimo por mascota (para la deriva de la moral).
-  const vitalsTsRef = useRef<Record<string, number>>({});
-
-  // Persiste los vitales con su marca de tiempo por mascota.
-  const persistVitals = (map: Record<string, { joy: number; warmth: number }>) => {
-    if (typeof window === 'undefined') return;
-    try {
-      const out: Record<string, { joy: number; warmth: number; ts: number }> = {};
-      for (const id in map) {
-        out[id] = { ...map[id], ts: vitalsTsRef.current[id] || Date.now() };
-      }
-      localStorage.setItem(VITALS_KEY, JSON.stringify(out));
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  // Load customizations + vitals + logs (una sola vez, en cliente)
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    // Overrides de personalidad
-    try {
-      const stored = localStorage.getItem('mile_pets_overrides');
-      if (stored) {
-        const overrides = JSON.parse(stored);
-        setPetData(PETS.map(p => (overrides[p.id] ? { ...p, ...overrides[p.id] } : p)));
-      }
-    } catch (e) {
-      console.error(e);
-    }
-
-    // Vitales persistidos (con deriva de la moral según el tiempo transcurrido)
-    try {
-      const storedV = localStorage.getItem(VITALS_KEY);
-      if (storedV) {
-        const parsed = JSON.parse(storedV) as Record<string, { joy: number; warmth: number; ts?: number }>;
-        const loaded: Record<string, { joy: number; warmth: number }> = {};
-        PETS.forEach(p => {
-          const rec = parsed[p.id];
-          if (rec) {
-            vitalsTsRef.current[p.id] = rec.ts || Date.now();
-            loaded[p.id] = { joy: driftJoy(rec.joy, rec.ts || 0), warmth: rec.warmth };
-          } else {
-            loaded[p.id] = { joy: p.o2, warmth: p.temp };
-          }
-        });
-        setVitals(loaded);
-      }
-    } catch (e) {
-      console.error(e);
-    }
-
-    // Bitácora persistida
-    try {
-      const storedL = localStorage.getItem(LOGS_KEY);
-      if (storedL) setLogs(JSON.parse(storedL));
-    } catch (e) {
-      console.error(e);
-    }
-  }, []);
-
-  // Preferencia de audio + ciclo de vida del ambiente de la estación.
-  // El drone se detiene al desmontar para que no siga sonando fuera del módulo.
-  useEffect(() => {
-    const pref = PetAudio.loadAudioPreference();
-    setAudioOn(pref);
-    PetAudio.resumeAmbientIfEnabled();
-    return () => PetAudio.suspendAmbient();
-  }, []);
-
-  const toggleAudio = () => {
-    const next = !audioOn;
-    PetAudio.setAudioEnabled(next);
-    setAudioOn(next);
-    if (next) PetAudio.playSelect();
-  };
-
-  const savePetOverrides = (updatedPet: Pet) => {
-    const updatedList = petData.map(p => p.id === updatedPet.id ? updatedPet : p);
-    setPetData(updatedList);
-    
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('mile_pets_overrides') || '{}';
-      try {
-        const overrides = JSON.parse(stored);
-        overrides[updatedPet.id] = {
-          role: updatedPet.role,
-          description: updatedPet.description,
-          birthDate: updatedPet.birthDate,
-          designation: updatedPet.designation,
-          gender: updatedPet.gender
-        };
-        localStorage.setItem('mile_pets_overrides', JSON.stringify(overrides));
-        addLog(updatedPet.id, `Actualizaste los detalles de personalidad y rol.`, 'Sistema');
-      } catch (e) {
-        console.error(e);
-      }
-    }
-  };
-
-  const addLog = (petId: string, text: string, category: string) => {
-    const time = new Date().toLocaleTimeString('es-CO', { hour12: false });
-    setLogs(prev => {
-      const next = {
-        ...prev,
-        [petId]: [{ time, text, category }, ...(prev[petId] || [])].slice(0, 10),
-      };
-      if (typeof window !== 'undefined') {
-        try {
-          localStorage.setItem(LOGS_KEY, JSON.stringify(next));
-        } catch (e) {
-          console.error(e);
-        }
-      }
-      return next;
-    });
-  };
+  const {
+    carouselPhotos,
+    currentPhotoIndex,
+    photoDirection,
+    handlePhotoPrev,
+    handlePhotoNext,
+    handlePhotoSelect,
+    setIsPlaying,
+    loadPhotos,
+    setCurrentPhotoIndex
+  } = usePetPhotos(activePet);
 
   const triggerHearts = () => {
     const newHearts = Array.from({ length: 6 }).map((_, i) => ({
@@ -220,91 +69,16 @@ export function PetSpaceHub() {
   };
 
   const handleGiveCuddles = () => {
-    vitalsTsRef.current[activeId] = Date.now();
-    setVitals(prev => {
-      const next = {
-        ...prev,
-        [activeId]: { ...prev[activeId], joy: 100 },
-      };
-      persistVitals(next);
-      return next;
-    });
+    updateVitals(activeId, { joy: 100 });
     triggerHearts();
     PetAudio.playCuddle();
     addLog(activeId, `Le diste mimos a ${activePet.name}. ¡Su nivel de alegría está al máximo! ❤️`, 'Vida');
   };
 
   const handleGiveWarmth = () => {
-    vitalsTsRef.current[activeId] = Date.now();
-    setVitals(prev => {
-      const current = prev[activeId] || { joy: activePet.o2, warmth: activePet.temp };
-      const nextWarmth = Math.min(Number((current.warmth + 0.3).toFixed(1)), 26.0);
-      const next = {
-        ...prev,
-        [activeId]: { ...prev[activeId], warmth: nextWarmth },
-      };
-      persistVitals(next);
-      return next;
-    });
+    updateVitals(activeId, { warmth: 0.3 });
     PetAudio.playWarmth();
     addLog(activeId, `Abrigaste a ${activePet.name}. Aumentó su calor de hogar. 🍖`, 'Hogar');
-  };
-
-  const loadPhotos = async (petId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('pet_gallery')
-        .select('image_url')
-        .eq('pet_id', petId)
-        .order('created_at', { ascending: false });
-      
-      if (!error && data) {
-        setSupabasePhotos(data.map(d => d.image_url));
-      }
-    } catch (e) {
-      console.error('Unexpected error loading photos:', e);
-    }
-  };
-
-  useEffect(() => {
-    loadPhotos(activePet.id);
-    setCurrentPhotoIndex(0);
-  }, [activePet.id]);
-
-  const carouselPhotos = supabasePhotos.length > 0 ? supabasePhotos : [activePet.src];
-
-  // Autoplay control
-  useEffect(() => {
-    if (carouselPhotos.length <= 1 || !isPlaying) return;
-    const interval = setInterval(() => {
-      setPhotoDirection(1);
-      setCurrentPhotoIndex(prev => (prev + 1) % carouselPhotos.length);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [carouselPhotos.length, isPlaying]);
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "ArrowLeft") handlePhotoPrev();
-      if (e.key === "ArrowRight") handlePhotoNext();
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [carouselPhotos.length]);
-
-  const handlePhotoPrev = () => {
-    setPhotoDirection(-1);
-    setCurrentPhotoIndex(prev => (prev - 1 + carouselPhotos.length) % carouselPhotos.length);
-  };
-
-  const handlePhotoNext = () => {
-    setPhotoDirection(1);
-    setCurrentPhotoIndex(prev => (prev + 1) % carouselPhotos.length);
-  };
-
-  const handlePhotoSelect = (index: number) => {
-    setPhotoDirection(index > currentPhotoIndex ? 1 : -1);
-    setCurrentPhotoIndex(index);
   };
 
   const triggerWarp = (newId: string, dir: number) => {
@@ -442,4 +216,3 @@ export function PetSpaceHub() {
       </div>
     </div>
   );
-}
