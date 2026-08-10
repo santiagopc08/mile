@@ -386,7 +386,8 @@ export const MahjongService = {
             const { data, error } = await supabase
                 .from('daily_puzzle_plays')
                 .select('*')
-                .eq('date', date);
+                .eq('date', date)
+                .in('profile', ['el', 'ella']);
 
             if (error || !data) return { el: null, ella: null };
 
