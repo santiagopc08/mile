@@ -5,7 +5,7 @@ import type { WishlistItem, WishlistState } from '@/services/storeService';
 import { formatCOP, STATE_CONFIG, REACTION_CONFIG, GOAL_CATEGORIES } from './constants';
 import { ExternalLink, Trash2, Pencil, MapPin, ChevronRight, Heart, Zap, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { LinkPreview } from '@/components/LinkPreview';
+import { LinkPreview } from '@/components/link-preview';
 import { FuturisticProgressBar } from '@/components/ui/FuturisticProgressBar';
 
 interface WishlistCardProps {
