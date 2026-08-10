@@ -129,7 +129,7 @@ export function ActivitySessionItem({
                             }
                         }
 
-                        return reactionKeys.map(rxType => {
+                        return (reactionKeys as ReactionType[]).map(rxType => {
                             const rxConfig = REACTION_CONFIG[rxType];
                             const alreadyReacted = myReactionsSet.has(rxType);
 
