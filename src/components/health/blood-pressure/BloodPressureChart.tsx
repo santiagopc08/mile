@@ -12,6 +12,10 @@ import {
 } from 'recharts';
 import type { BloodPressureEntry } from './types';
 
+const CHART_DATE_FORMATTER = new Intl.DateTimeFormat([], { month: 'short', day: 'numeric' });
+const TIME_FORMATTER = new Intl.DateTimeFormat([], { hour: '2-digit', minute: '2-digit', hour12: false });
+const FULL_DATE_FORMATTER = new Intl.DateTimeFormat([], { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' });
+
 interface Props {
     entries: BloodPressureEntry[];
 }
@@ -23,8 +27,8 @@ export const BloodPressureChart = ({ entries }: Props) => {
             const entry = entries[i];
             const date = new Date(entry.created_at);
             data.push({
-                name: `${date.toLocaleDateString([], { month: 'short', day: 'numeric' })} ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}`,
-                fullDate: date.toLocaleString(),
+                name: `${CHART_DATE_FORMATTER.format(date)} ${TIME_FORMATTER.format(date)}`,
+                fullDate: FULL_DATE_FORMATTER.format(date),
                 systolic: entry.systolic,
                 diastolic: entry.diastolic,
                 heartRate: entry.heart_rate,
