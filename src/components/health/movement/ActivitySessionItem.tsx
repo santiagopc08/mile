@@ -8,7 +8,7 @@ interface ActivitySessionItemProps {
     profile: string;
     handleDeleteSession: (id: string) => Promise<void>;
     handleAddReaction: (id: string, type: ReactionType) => Promise<void>;
-    REACTION_CONFIG: Record<string, { label: string; emoji: string; color: string }>;
+    REACTION_CONFIG: Record<ReactionType, { label: string; emoji: string; color: string }> | Record<string, { label: string; emoji: string; color: string }>;
     reactionKeys: ReactionType[];
 }
 
@@ -129,22 +129,22 @@ export function ActivitySessionItem({
                             }
                         }
 
-                        return (reactionKeys as ReactionType[]).map(rxType => {
+                        return reactionKeys.map((rxType: ReactionType) => {
                             const rxConfig = REACTION_CONFIG[rxType];
                             const alreadyReacted = myReactionsSet.has(rxType);
 
                             return (
                                 <button
                                     key={rxType}
-                                    onClick={() => handleAddReaction(session.id, rxType as ReactionType)}
+                                    onClick={() => handleAddReaction(session.id, rxType)}
                                     className={`px-2 py-1 text-[7px] font-black uppercase tracking-wider border transition-all flex items-center gap-1 rounded-none ${
                                         alreadyReacted
                                             ? 'bg-white text-black border-white'
                                             : 'bg-black hover:bg-white/5 border-white/10 text-white/50 hover:text-white'
                                     }`}
                                 >
-                                    <span>{rxConfig.emoji}</span>
-                                    <span>{rxConfig.label}</span>
+                                    <span>{rxConfig?.emoji}</span>
+                                    <span>{rxConfig?.label}</span>
                                 </button>
                             );
                         });

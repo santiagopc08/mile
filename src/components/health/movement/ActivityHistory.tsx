@@ -22,7 +22,7 @@ interface ActivityHistoryProps {
     loading: boolean;
     handleDeleteSession: (id: string) => Promise<void>;
     handleAddReaction: (id: string, type: ReactionType) => Promise<void>;
-    REACTION_CONFIG: Record<string, { label: string; emoji: string; color: string }>;
+    REACTION_CONFIG: Record<ReactionType, { label: string; emoji: string; color: string }> | Record<string, { label: string; emoji: string; color: string }>;
 }
 
 export function ActivityHistory({
