@@ -29,9 +29,34 @@ export function isLocalOrPrivateIP(ip: string): boolean {
     }
 }
 
+async function resolveHostAsync(hostname: string): Promise<{address: string}[]> {
+    if (ipaddr.isValid(hostname)) {
+        return [{ address: hostname }];
+    }
+
+    const results: { address: string }[] = [];
+    const [v4, v6] = await Promise.allSettled([
+        dns.resolve4(hostname),
+        dns.resolve6(hostname)
+    ]);
+
+    if (v4.status === 'fulfilled') {
+        v4.value.forEach(address => results.push({ address }));
+    }
+    if (v6.status === 'fulfilled') {
+        v6.value.forEach(address => results.push({ address }));
+    }
+
+    if (results.length === 0) {
+        return await dns.lookup(hostname, { all: true });
+    }
+
+    return results;
+}
+
 export async function resolveSafeIP(hostname: string): Promise<string> {
     try {
-        const addrs = await dns.lookup(hostname, { all: true });
+        const addrs = await resolveHostAsync(hostname);
         // If ANY resolved address is private, we must reject the hostname entirely
         // to prevent DNS rebinding or multi-A-record attacks.
         for (const addr of addrs) {
@@ -65,7 +90,7 @@ export async function validateHostname(hostname: string): Promise<boolean> {
     }
 
     try {
-        const addrs = await dns.lookup(hostname, { all: true });
+        const addrs = await resolveHostAsync(hostname);
         for (const addr of addrs) {
             if (isLocalOrPrivateIP(addr.address)) {
                 validateCache.set(hostname, { isValid: false, expiresAt: now + CACHE_TTL_MS });
