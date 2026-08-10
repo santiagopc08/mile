@@ -127,12 +127,15 @@ export const isWithinDays = (date: string, days: number) => {
   return parsed >= Date.now() - days * 24 * 60 * 60 * 1000;
 };
 
+const copFormatter = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
+const compactCopFormatter = new Intl.NumberFormat('es-CO', { notation: 'compact', maximumFractionDigits: 1 });
+
 export const formatCOP = (val: number) => {
-  return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(val);
+  return copFormatter.format(val);
 };
 
 export const compactCOP = (val: number) => {
-  return new Intl.NumberFormat('es-CO', { notation: 'compact', maximumFractionDigits: 1 }).format(val);
+  return compactCopFormatter.format(val);
 };
 
 export const ChunkedProgress = ({ value, color }: { value: number; color: string }) => {

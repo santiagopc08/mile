@@ -48,9 +48,15 @@ import { RevealDrawingModal } from '@/components/mahjong/RevealDrawingModal';
 import { useDailyStats } from '@/components/mahjong/useDailyStats';
 import { useBottleMessages } from '@/components/mahjong/useBottleMessages';
 import { useDrawings } from '@/components/mahjong/useDrawings';
+import { GameModeTabs } from "./mahjong/GameModeTabs";
+import { HeaderStatus } from "./mahjong/HeaderStatus";
+import { HardeningBadges } from "./mahjong/HardeningBadges";
+
 import { useToast } from '@/components/ui/Toast';
 import { useFireStreak } from './mahjong/hooks/useFireStreak';
 import { ComboSign } from './mahjong/ComboSign';
+
+const DATE_FORMATTER = new Intl.DateTimeFormat('es-CO', { dateStyle: 'long' });
 
 export function Mahjong() {
     const { profile } = useProfile();
@@ -606,7 +612,7 @@ export function Mahjong() {
             detailsMap.set(dailyEvent.url, {
                 title: dailyEvent.title || 'Recuerdo Diario',
                 description: dailyEvent.description || 'Un hermoso recuerdo de nuestra historia.',
-                date: dailyEvent.date ? new Intl.DateTimeFormat('es-CO', { dateStyle: 'long' }).format(new Date(dailyEvent.date)) : 'Fecha especial'
+                date: dailyEvent.date ? DATE_FORMATTER.format(new Date(dailyEvent.date)) : 'Fecha especial'
             });
             setEventDetailsMap(detailsMap);
 
@@ -614,7 +620,7 @@ export function Mahjong() {
                 title: dailyEvent.title || 'Recuerdo Diario',
                 description: dailyEvent.description || 'Un hermoso recuerdo de nuestra historia.',
                 imageUrl: dailyEvent.url,
-                date: dailyEvent.date ? new Intl.DateTimeFormat('es-CO', { dateStyle: 'long' }).format(new Date(dailyEvent.date)) : 'Fecha especial'
+                date: dailyEvent.date ? DATE_FORMATTER.format(new Date(dailyEvent.date)) : 'Fecha especial'
             });
         }
 
@@ -732,7 +738,7 @@ export function Mahjong() {
                 detailsMap.set(img.url, {
                     title: img.title || 'Recuerdo Especial',
                     description: img.description || 'Un hermoso recuerdo de nuestra historia.',
-                    date: img.date ? new Intl.DateTimeFormat('es-CO', { dateStyle: 'long' }).format(new Date(img.date)) : 'Fecha especial'
+                    date: img.date ? DATE_FORMATTER.format(new Date(img.date)) : 'Fecha especial'
                 });
             }
         }
@@ -821,7 +827,7 @@ export function Mahjong() {
                 detailsMap.set(img.url, {
                     title: img.title || 'Recuerdo Especial',
                     description: img.description || 'Un hermoso recuerdo de nuestra historia.',
-                    date: img.date ? new Intl.DateTimeFormat('es-CO', { dateStyle: 'long' }).format(new Date(img.date)) : 'Fecha especial'
+                    date: img.date ? DATE_FORMATTER.format(new Date(img.date)) : 'Fecha especial'
                 });
             }
         }
@@ -880,7 +886,7 @@ export function Mahjong() {
                 detailsMap.set(img.url, {
                     title: img.title || 'Recuerdo Especial',
                     description: img.description || 'Un hermoso recuerdo de nuestra historia.',
-                    date: img.date ? new Intl.DateTimeFormat('es-CO', { dateStyle: 'long' }).format(new Date(img.date)) : 'Fecha especial'
+                    date: img.date ? DATE_FORMATTER.format(new Date(img.date)) : 'Fecha especial'
                 });
             }
         }
@@ -1499,174 +1505,30 @@ export function Mahjong() {
                 {comboSign && <ComboSign comboSign={comboSign} />}
             </AnimatePresence>
 
-            {/* Modo de Juego Tab Selector */}
-            <div className="flex gap-2 mb-4 bg-black/40 p-1 border border-white/5 font-mono text-[10px] md:text-xs z-10">
-                <button
-                    onClick={() => {
-                        setGameMode('solo');
-                        setIsLoaded(false);
-                        requestGameFullscreen();
-                    }}
-                    className={`px-3 py-1.5 transition-all ${gameMode === 'solo' ? 'bg-white/10 text-white font-bold' : 'text-white/40 hover:text-white/75'}`}
-                >
-                    Solo
-                </button>
-                <button
-                    onClick={async () => {
-                        setGameMode('coop');
-                        setIsLoaded(false);
-                        const activeGame = await MahjongService.getActiveCoopGame();
-                        if (activeGame) {
-                            handleLoadCoopGame(activeGame);
-                        } else {
-                            setActiveCoopGame(null);
-                        }
-                    }}
-                    className={`px-3 py-1.5 transition-all ${gameMode === 'coop' ? 'bg-white/10 text-white font-bold' : 'text-white/40 hover:text-white/75'}`}
-                >
-                    Cooperativo
-                </button>
-                <button
-                    onClick={() => {
-                        setGameMode('daily');
-                        setIsLoaded(false);
-                        requestGameFullscreen();
-                    }}
-                    className={`px-3 py-1.5 transition-all ${gameMode === 'daily' ? 'bg-white/10 text-white font-bold' : 'text-white/40 hover:text-white/75'}`}
-                >
-                    Juego Diario
-                </button>
-            </div>
+            <GameModeTabs
+                gameMode={gameMode}
+                setGameMode={setGameMode}
+                setIsLoaded={setIsLoaded}
+                requestGameFullscreen={requestGameFullscreen}
+                handleLoadCoopGame={handleLoadCoopGame}
+                setActiveCoopGame={setActiveCoopGame}
+            />
+            <HeaderStatus
+                level={level}
+                activeTileset={activeTileset}
+                layoutName={layoutName}
+                accentColor={accentColor}
+                completedGamesCount={completedGamesCount}
+                pendingReceivedBottle={pendingReceivedBottle}
+                todayRevealedBottle={todayRevealedBottle}
+                setShowMessageText={setShowMessageText}
+                setHasPausedForMessage={setHasPausedForMessage}
+                setRevealedBottleMessage={setRevealedBottleMessage}
+            >
+                <HardeningBadges activeMechanics={activeMechanics} gameMode={gameMode} />
+            </HeaderStatus>
 
-            <div className="relative z-10 mb-4 flex flex-col items-center justify-center border border-white/10 bg-black/60 p-4 w-full gap-3.5">
-                {/* Title line combining Level, Tileset, and Layout */}
-                <div className="flex items-center justify-center flex-wrap gap-2 md:gap-3 text-xs md:text-sm font-black uppercase tracking-[0.15em] text-white font-mono select-none">
-                    <span className="text-base md:text-lg select-none mr-0.5" role="img" aria-label={activeTileset.name}>
-                        {activeTileset.icon}
-                    </span>
-                    <span className="text-white/50">LVL</span>
-                    <span className="font-black font-sans text-sm md:text-base -ml-1" style={{ color: accentColor }}>
-                        {level}
-                    </span>
-                    <span className="h-3 w-[1px] bg-white/20 mx-1.5" />
-                    <span className="font-black font-sans tracking-wider" style={{ color: accentColor }}>
-                        {activeTileset.name}
-                    </span>
-                    <span className="h-3 w-[1px] bg-white/20 mx-1.5" />
-                    <span className="font-bold text-[#a88a7e]">
-                        {layoutName}
-                    </span>
 
-                    {/* Resized and Inline Bottle Tile Button */}
-                    {(pendingReceivedBottle || todayRevealedBottle) && (
-                        <div className="ml-2.5 flex items-center">
-                            {pendingReceivedBottle ? (
-                                <button
-                                    onClick={() => {
-                                        setShowMessageText(false);
-                                        setHasPausedForMessage(false);
-                                        setRevealedBottleMessage({
-                                            id: pendingReceivedBottle.id,
-                                            text: pendingReceivedBottle.message,
-                                            sender: pendingReceivedBottle.sender === 'el' ? 'Santiago' : 'Milena'
-                                        });
-                                    }}
-                                    className="relative w-8 h-11 overflow-hidden rounded-none border border-r-[2px] border-b-[3px] border-[#4b403a] bg-[#111] hover:brightness-125 transition-all active:scale-95 shadow-[0_0_12px_rgba(0,255,204,0.55)] animate-bounce"
-                                    title="Revelar Botella Recibida"
-                                >
-                                    {/* Geometric corner mark */}
-                                    <div className="pointer-events-none absolute right-0 top-0 h-1 w-1 border-r border-t border-[#00ffcc]/60 z-30" />
-                                    
-                                    <div className="relative h-full w-full overflow-hidden p-[1px] flex items-center justify-center bg-[#0a2323]">
-                                        <div className="absolute inset-0 bg-gradient-to-br from-[#008080] via-[#004d4d] to-[#001a1a] opacity-75"></div>
-                                        {/* inner dark bezel */}
-                                        <div className="absolute inset-[2px] bg-black z-0"></div>
-                                        {/* Bottle emoji */}
-                                        <div className="relative z-10 text-sm select-none pointer-events-none animate-pulse">🍾</div>
-                                        {/* top glossy shine */}
-                                        <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/15 to-[#00ffcc]/20 z-20 pointer-events-none"></div>
-                                    </div>
-                                </button>
-                            ) : todayRevealedBottle ? (
-                                <button
-                                    onClick={() => {
-                                        setShowMessageText(false);
-                                        setHasPausedForMessage(false);
-                                        setRevealedBottleMessage({
-                                            id: todayRevealedBottle.id,
-                                            text: todayRevealedBottle.message,
-                                            sender: todayRevealedBottle.sender === 'el' ? 'Santiago' : 'Milena'
-                                        });
-                                    }}
-                                    className="relative w-8 h-11 overflow-hidden rounded-none border border-r-[2px] border-b-[3px] border-[#4b403a] bg-[#111] hover:brightness-110 transition-all active:scale-95 shadow-[0_0_8px_rgba(0,255,204,0.2)]"
-                                    title="Ver Botella Recibida"
-                                >
-                                    {/* Geometric corner mark */}
-                                    <div className="pointer-events-none absolute right-0 top-0 h-1 w-1 border-r border-t border-[#00ffcc]/40 z-30" />
-                                    
-                                    <div className="relative h-full w-full overflow-hidden p-[1px] flex items-center justify-center bg-[#051515]">
-                                        <div className="absolute inset-0 bg-gradient-to-br from-[#004d4d] via-[#003333] to-[#001111] opacity-75"></div>
-                                        {/* inner dark bezel */}
-                                        <div className="absolute inset-[2px] bg-black z-0"></div>
-                                        {/* Bottle emoji */}
-                                        <div className="relative z-10 text-sm select-none pointer-events-none opacity-80">🍾</div>
-                                        {/* top glossy shine */}
-                                        <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-[#00ffcc]/10 z-20 pointer-events-none"></div>
-                                    </div>
-                                </button>
-                            ) : null}
-                        </div>
-                    )}
-                </div>
-
-                {/* Level Progress Bar: 0 to 15 games completed for current level */}
-                <div className="w-full max-w-[280px] md:max-w-[340px] flex flex-col gap-1.5 font-mono text-[9px] text-[#a88a7e] select-none">
-                    <div className="flex justify-between uppercase tracking-wider font-bold">
-                        <span>Progreso Nivel</span>
-                        <span style={{ color: accentColor }}>{completedGamesCount % 15}/15 juegos</span>
-                    </div>
-                    <div className="relative h-[4px] w-full bg-white/10 overflow-hidden border border-white/5">
-                        <motion.div
-                            className="absolute left-0 top-0 bottom-0 origin-left"
-                            initial={{ width: 0 }}
-                            animate={{ width: `${(completedGamesCount % 15) * (100 / 15)}%` }}
-                            transition={{ type: 'spring', stiffness: 80, damping: 18 }}
-                            style={{
-                                backgroundColor: accentColor,
-                                boxShadow: `0 0 10px ${accentColor}, 0 0 4px ${accentColor}`
-                            }}
-                        />
-                    </div>
-                </div>
-
-                {/* Hardening Mechanics Badges */}
-                {activeMechanics.length > 0 && gameMode === 'solo' && (
-                    <div className="flex flex-wrap gap-1.5 mt-1 justify-center">
-                        {activeMechanics.map(m => {
-                            const info: Record<string, { icon: string; label: string; color: string }> = {
-                                mirror: { icon: '🪞', label: 'ESPEJO', color: '#c084fc' },
-                                ghost: { icon: '👻', label: 'FANTASMA', color: '#22d3ee' },
-                                padlock: { icon: '🔒', label: 'CANDADO', color: '#facc15' },
-                                ice: { icon: '🧊', label: 'HIELO', color: '#87ceeb' },
-                                bomb: { icon: '💣', label: 'BOMBA', color: '#ef4444' },
-                                smoke: { icon: '💨', label: 'HUMO', color: '#9ca3af' },
-                                gravity: { icon: '🏗️', label: 'GRAVEDAD', color: '#f97316' },
-                            };
-                            const { icon, label, color } = info[m] || { icon: '?', label: m, color: '#fff' };
-                            return (
-                                <div
-                                    key={m}
-                                    className="flex items-center gap-0.5 px-1.5 py-0.5 border font-mono text-[8px] font-black uppercase tracking-wider select-none"
-                                    style={{ borderColor: color + '66', color, backgroundColor: color + '15' }}
-                                >
-                                    <span>{icon}</span>
-                                    <span>{label}</span>
-                                </div>
-                            );
-                        })}
-                    </div>
-                )}
-            </div>
 
             {gameLost && typeof window !== 'undefined' && createPortal(
                 <div className="fixed inset-0 z-[100000] flex items-center justify-center bg-black/75 backdrop-blur-md p-4 overflow-hidden">
@@ -2144,7 +2006,7 @@ export function Mahjong() {
                                 DESAFÍO DIARIO
                             </h3>
                             <p className="text-[10px] text-slate-500 mb-6 uppercase tracking-widest">
-                                {new Intl.DateTimeFormat('es-CO', { dateStyle: 'long' }).format(new Date())}
+                                {DATE_FORMATTER.format(new Date())}
                             </p>
 
                             {/* Today's Results comparing Santiago vs Milena */}

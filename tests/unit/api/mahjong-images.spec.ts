@@ -1,6 +1,24 @@
 import { test, expect } from '@playwright/test';
-import { GET } from '../../../src/app/api/mahjong-images/route';
 import fs from 'fs/promises';
+
+// Mock server-only dependencies required by auth
+test.beforeAll(() => {
+    require.cache[require.resolve('server-only')] = {
+        id: 'server-only',
+        filename: 'server-only',
+        loaded: true,
+        exports: {}
+    } as any;
+
+    require.cache[require.resolve('../../../src/lib/auth.ts')] = {
+        id: '../../../src/lib/auth.ts',
+        filename: '../../../src/lib/auth.ts',
+        loaded: true,
+        exports: {
+            verifyAuth: () => Promise.resolve(true)
+        }
+    } as any;
+});
 
 test.describe('mahjong-images API', () => {
     let originalAccess: typeof fs.access;
@@ -20,6 +38,8 @@ test.describe('mahjong-images API', () => {
     });
 
     test('should return an empty array if fs.access throws an error', async () => {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const { GET } = require('../../../src/app/api/mahjong-images/route');
         fs.access = async () => {
             throw new Error('mocked access error');
         };

@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server';
 import { fetchSafe } from '@/lib/fetch-safe';
-
+import { verifyAuth } from '@/lib/auth';
 
 export async function GET(request: Request) {
+    if (!(await verifyAuth())) {
+        return new Response('Unauthorized', { status: 401 });
+    }
+
     try {
         const { searchParams } = new URL(request.url);
         const url = searchParams.get('url');
@@ -25,7 +29,7 @@ export async function GET(request: Request) {
         try {
             const parsedUrl = new URL(url);
             const parsedAllowedOrigin = new URL(allowedOrigin);
-            if (parsedUrl.origin !== parsedAllowedOrigin.origin) {
+            if (parsedUrl.origin !== parsedAllowedOrigin.origin || !parsedUrl.pathname.startsWith('/storage/v1/object/public/')) {
                 return new Response('Forbidden: URL not in allowlist', { status: 403 });
             }
         } catch (e) {

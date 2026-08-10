@@ -84,7 +84,7 @@ export class TerrainChunk {
             );
         }
 
-        // 3. Cuerpo estático compuesto para todo el chunk
+        // 3. Cuerpo estático compuesto para el chunk completo
         if (parts.length > 0) {
             this.body = Matter.Body.create({
                 parts,

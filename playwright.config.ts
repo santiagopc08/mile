@@ -19,7 +19,6 @@ import { defineConfig } from '@playwright/test';
 // ejecutar nada. Son dummies deliberados: ningún test debe tocar la red.
 process.env.NEXT_PUBLIC_SUPABASE_URL ||= 'https://test.supabase.co';
 process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||= 'test-anon-key';
-process.env.SUPABASE_SERVICE_ROLE_KEY ||= 'test-service-role-key';
 
 export default defineConfig({
   testDir: './tests',

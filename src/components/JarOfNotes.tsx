@@ -1,16 +1,18 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { renderTextWithHashtags } from '@/utils/textFormatting';
-import { motion, AnimatePresence } from 'framer-motion';
-import { MessageCircleHeart, X, Circle, Triangle, Square } from 'lucide-react';
+import { AnimatePresence } from 'framer-motion';
 import { useStore } from '@/context/StoreContext';
 import { useProfile } from '@/context/ProfileContext';
 
-type AnimState = 'idle' | 'img1' | 'img2' | 'video' | 'popup' | 'reverse-video' | 'reverse-img2' | 'reverse-img1';
+import { AnimState } from './jar-of-notes/types';
+import { JarHeader } from './jar-of-notes/JarHeader';
+import { JarMedia } from './jar-of-notes/JarMedia';
+import { JarPopup } from './jar-of-notes/JarPopup';
+import { AddNoteForm } from './jar-of-notes/AddNoteForm';
 
 export function JarOfNotes() {
-    const { data, updateData } = useStore();
+    const { data } = useStore();
     const { profile } = useProfile();
     const accentColor = profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)';
     const accentClass = profile === 'ella' ? 'user-a' : 'user-b';
@@ -19,8 +21,6 @@ export function JarOfNotes() {
 
     const [animState, setAnimState] = useState<AnimState>('idle');
     const [currentNote, setCurrentNote] = useState('');
-    const [newNoteText, setNewNoteText] = useState('');
-    const [isAddingMode, setIsAddingMode] = useState(false);
 
     const videoRef = useRef<HTMLVideoElement>(null);
     const reverseAnimRef = useRef<number | null>(null);
@@ -101,21 +101,6 @@ export function JarOfNotes() {
         }
     }, [animState]);
 
-    const handleAddNote = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (newNoteText.trim()) {
-            const newNote = {
-
-                id: Date.now().toString(),
-                text: newNoteText.trim(),
-                author: profile || 'el'
-            };
-            await updateData({ notes: [newNote, ...notes] });
-            setNewNoteText('');
-            setIsAddingMode(false);
-        }
-    };
-
     const isVideoVisible = ['video', 'popup', 'reverse-video'].includes(animState);
     const showImg2 = ['img2', 'reverse-img2'].includes(animState);
     const showImg1 = ['idle', 'img1', 'reverse-img1'].includes(animState);
@@ -126,23 +111,14 @@ export function JarOfNotes() {
                 <span>BAÚL DE RECUERDOS</span>
                 <span className={`text-${accentClass}`} style={{ color: accentColor }}>{notes.length.toString().padStart(2, '0')} RECUERDOS</span>
             </div>
+
             {/* Header info - fades out when animation starts */}
             <AnimatePresence>
                 {animState === 'idle' && (
-                    <motion.div
-                        initial={{ opacity: 0, y: -20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        className="pointer-events-none absolute left-0 right-0 top-16 z-20 px-4 text-center"
-                    >
-                        <h2 className="mb-3 text-3xl font-black uppercase tracking-normal text-white md:text-4xl font-mono">
-                            El Tarro de Notas
-                        </h2>
-                        <div className={`mx-auto mb-4 h-1 w-20 bg-${accentClass}`} style={{ backgroundColor: accentColor }} />
-                        <p className="mx-auto max-w-xs text-sm leading-6 tracking-normal text-[#e1bfb2] font-sans">
-                            La nave de Kiaro, llena de pensamientos y amor.
-                        </p>
-                    </motion.div>
+                    <JarHeader
+                        accentClass={accentClass}
+                        accentColor={accentColor}
+                    />
                 )}
             </AnimatePresence>
 
@@ -151,144 +127,37 @@ export function JarOfNotes() {
                 className="relative w-full max-w-3xl aspect-[4/3] flex items-center justify-center cursor-pointer overflow-hidden z-10"
                 onClick={startSequence}
             >
-                {/* IMG 1 */}
-                <AnimatePresence>
-                    {showImg1 && (
-                        <motion.img
-                            src="/jar/jar1.png"
-                            alt="Jar 1"
-                            className="absolute w-full h-full md:w-full md:h-full object-contain z-10"
-                            initial={{ scale: animState === 'reverse-img1' ? 1.5 : 1, opacity: 1 }}
-                            animate={{ scale: animState === 'img1' ? 1.5 : 1 }}
-                            exit={{ opacity: 0 }}
-                            transition={{ duration: animState === 'reverse-img1' ? 0.25 : 0.5 }}
-                        />
-                    )}
-                </AnimatePresence>
-
-                {/* IMG 2 */}
-                <AnimatePresence>
-                    {showImg2 && (
-                        <motion.img
-                            src="/jar/jar2.png"
-                            alt="Jar 2"
-                            className="absolute w-full h-full md:w-full md:h-full object-contain z-20"
-                            initial={{ scale: animState === 'img2' ? 1.5 : 2, opacity: 0 }}
-                            animate={{ scale: animState === 'img2' ? 2 : 1.5, opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            transition={{ duration: animState === 'reverse-img2' ? 0.25 : 0.5 }}
-                        />
-                    )}
-                </AnimatePresence>
-
-                {/* VIDEO */}
-                <video
-                    ref={videoRef}
-                    src="/jar/jarVid.mp4"
-                    className={`absolute inset-0 w-full h-full object-cover z-30 transition-opacity duration-300 ${isVideoVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
-                    playsInline
-                    webkit-playsinline="true"
-                    muted
-                    onEnded={handleVideoEnded}
+                <JarMedia
+                    animState={animState}
+                    showImg1={showImg1}
+                    showImg2={showImg2}
+                    isVideoVisible={isVideoVisible}
+                    videoRef={videoRef}
+                    handleVideoEnded={handleVideoEnded}
                 />
 
                 {/* Popup Note */}
                 <AnimatePresence>
                     {animState === 'popup' && (
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.9 }}
-                            transition={{ type: 'spring', damping: 20 }}
-                            className="absolute inset-0 z-40 flex items-center justify-center bg-black/70 backdrop-blur-sm"
-                            onClick={(e) => e.stopPropagation()} // prevent clicking through
-                        >
-                            {/* Decorative Shapes */}
-                             <motion.div
-                                className={`absolute left-1/4 top-1/4 text-${accentClass} opacity-50`}
-                                style={{ color: accentColor }}
-                                animate={{ rotate: 360, y: [0, -20, 0] }}
-                                transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-                            >
-                                <Circle className="w-16 h-16" strokeWidth={1} />
-                            </motion.div>
-                            <motion.div
-                                className={`absolute bottom-1/4 right-1/4 text-${secondaryClass} opacity-50`}
-                                style={{ color: secondaryColor }}
-                                animate={{ rotate: -360, x: [0, 20, 0] }}
-                                transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
-                            >
-                                <Triangle className="w-20 h-20" strokeWidth={1} />
-                            </motion.div>
-                            <motion.div
-                                className={`absolute right-1/3 top-1/3 text-${accentClass} opacity-50`}
-                                style={{ color: accentColor }}
-                                animate={{ rotate: 180, scale: [1, 1.2, 1] }}
-                                transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-                            >
-                                <Square className="w-12 h-12" strokeWidth={1} />
-                            </motion.div>
-
-                            <div className={`geometric-card relative mx-4 w-full max-w-lg border-${accentClass}/50 bg-[#0a070c]/75 p-8 backdrop-blur-xl backdrop-saturate-150 md:p-12`} style={{ borderColor: `${accentColor}80` }}>
-                                <div className="pointer-events-none absolute inset-0 bg-mosaic opacity-40" />
- 
-                                <div className="relative z-10 mb-8 flex items-start justify-between border-b border-white/10 pb-4">
-                                    <span className={`flex items-center gap-2 text-xs font-black uppercase tracking-[0.3em] text-${accentClass} font-mono`}>
-                                        <div className={`h-2 w-2 bg-${accentClass}`} style={{ backgroundColor: accentColor }} />
-                                        Nota Diaria
-                                    </span>
-                                    <button
-                                        onClick={closeSequence}
-                                        className={`-mr-4 -mt-4 p-2 text-[#a88a7e] transition-colors hover:text-${accentClass}`}
-                                        style={{ '--tw-hover-text-opacity': 1 } as React.CSSProperties}
-                                    >
-                                        <X className="w-6 h-6" />
-                                    </button>
-                                </div>
-                                <p className="relative z-10 px-2 py-4 text-center text-2xl font-medium leading-relaxed tracking-normal text-white md:text-3xl font-sans">
-                                    &quot;{renderTextWithHashtags(currentNote)}&quot;
-                                </p>
-
-                                <div className={`absolute bottom-0 left-0 right-0 h-1 opacity-80`} style={{ background: `linear-gradient(90deg, ${secondaryColor}, ${accentColor}, ${secondaryColor})` }} />
-                            </div>
-                        </motion.div>
+                        <JarPopup
+                            accentClass={accentClass}
+                            accentColor={accentColor}
+                            secondaryClass={secondaryClass}
+                            secondaryColor={secondaryColor}
+                            closeSequence={closeSequence}
+                            currentNote={currentNote}
+                        />
                     )}
                 </AnimatePresence>
             </div>
 
             {/* Add Note Section - Restricted to 'el' */}
             {profile === 'el' && animState === 'idle' && (
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="absolute bottom-8 z-20 w-full max-w-sm px-4"
-                >
-                    {!isAddingMode ? (
-                        <button
-                            onClick={() => setIsAddingMode(true)}
-                            className={`flex w-full items-center justify-center gap-2 border border-white/10 bg-black/80 py-4 text-[#a88a7e] backdrop-blur-sm transition-all hover:border-${accentClass} hover:text-${accentClass}`}
-                            style={{ '--tw-hover-text-opacity': 1, '--tw-hover-border-opacity': 1 } as React.CSSProperties}
-                        >
-                            <MessageCircleHeart className="w-5 h-5" />
-                            <span className="uppercase text-xs font-bold tracking-widest font-mono">Añadir Nueva Nota</span>
-                        </button>
-                    ) : (
-                        <form onSubmit={handleAddNote} className={`geometric-card border-${accentClass}/50 bg-[#0a070c]/75 p-6 backdrop-blur-xl backdrop-saturate-150`} style={{ borderColor: `${accentColor}80` }}>
-                            <textarea
-                                value={newNoteText}
-                                onChange={(e) => setNewNoteText(e.target.value)}
-                                placeholder="Escribe un pensamiento para el futuro..."
-                                className={`mb-4 min-h-[100px] w-full resize-none border border-white/10 bg-black p-4 text-sm tracking-normal text-white outline-none transition-colors placeholder:text-[#594137] focus:border-${accentClass}`}
-                                style={{ '--tw-ring-color': accentColor } as React.CSSProperties}
-                                autoFocus
-                            />
-                            <div className="flex gap-3">
-                                <button type="button" onClick={() => setIsAddingMode(false)} className="flex-1 border border-white/10 py-3 text-[10px] font-bold uppercase tracking-widest text-[#a88a7e] transition-colors hover:border-white/30 hover:text-white font-mono">Cancelar</button>
-                                <button type="submit" disabled={!newNoteText.trim()} className={`flex-1 bg-${accentClass} py-3 text-[10px] font-bold uppercase tracking-widest text-black transition-colors hover:opacity-80 disabled:opacity-50 font-mono`} style={{ backgroundColor: accentColor }}>Guardar</button>
-                            </div>
-                        </form>
-                    )}
-                </motion.div>
+                <AddNoteForm
+                    profile={profile}
+                    accentClass={accentClass}
+                    accentColor={accentColor}
+                />
             )}
         </div>
     );

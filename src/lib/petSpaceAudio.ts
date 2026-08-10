@@ -194,7 +194,7 @@ export function loadAudioPreference(): boolean {
   return enabled;
 }
 
-/** Activa/desactiva todo el audio. Llamar desde un gesto del usuario. */
+/** Activa/desactiva el audio. Llamar desde un gesto del usuario. */
 export function setAudioEnabled(on: boolean) {
   enabled = on;
   try {

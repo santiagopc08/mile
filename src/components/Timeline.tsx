@@ -143,14 +143,19 @@ export function Timeline({ events }: TimelineProps) {
             setIsEditUploading(false);
         }
 
-        const updated = events.map(ev => ev.id === editingId ? {
-            ...ev,
-            title: editTitle.trim(),
-            date: editDate,
-            description: editDesc.trim(),
-            imageUrl: finalImageUrl,
-            tags: editTags
-        } : ev);
+        // ⚡ Bolt Optimization: Replace O(N) map with single pass findIndex + mutation
+        const updated = [...events];
+        const editIdx = updated.findIndex(ev => ev.id === editingId);
+        if (editIdx !== -1) {
+            updated[editIdx] = {
+                ...updated[editIdx],
+                title: editTitle.trim(),
+                date: editDate,
+                description: editDesc.trim(),
+                imageUrl: finalImageUrl,
+                tags: editTags
+            };
+        }
 
         await updateData({ events: updated });
         setEditingId(null);
@@ -176,7 +181,12 @@ export function Timeline({ events }: TimelineProps) {
         }
 
         // Optimistic update
-        const updatedEvents = events.map(e => e.id === event.id ? { ...e, reactions } : e);
+        // ⚡ Bolt Optimization: Replace O(N) map with single pass findIndex + mutation
+        const updatedEvents = [...events];
+        const eventIdx = updatedEvents.findIndex(e => e.id === event.id);
+        if (eventIdx !== -1) {
+            updatedEvents[eventIdx] = { ...updatedEvents[eventIdx], reactions };
+        }
         await updateData({ events: updatedEvents });
 
         try {
@@ -585,7 +595,7 @@ export function Timeline({ events }: TimelineProps) {
                                             <X className="w-5 h-5 stroke-[1.5]" />
                                         </button>
                                     </div>
-                                    
+
                                     {/* Comments List */}
                                     <div className="flex-1 space-y-4 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-white/10 select-none">
                                         {(!activeEvent.comments || activeEvent.comments.length === 0) ? (
@@ -619,7 +629,7 @@ export function Timeline({ events }: TimelineProps) {
                                             })
                                         )}
                                     </div>
- 
+
                                     {/* Form */}
                                     <form onSubmit={handlePostComment} className="border-t border-white/10 pt-4 mt-4 space-y-3 shrink-0">
                                         <textarea

@@ -21,8 +21,11 @@ interface FinancialMovement {
   type?: TransactionType;
 }
 
+const copFormatter = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
+const compactCopFormatter = new Intl.NumberFormat('es-CO', { notation: "compact", compactDisplay: "short" });
+
 const formatCOP = (val: number) => {
-  return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(val);
+  return copFormatter.format(val);
 };
 
 const getType = (movement: FinancialMovement): TransactionType => {
@@ -116,7 +119,7 @@ export const FinanceChart = ({ allocationsElla, allocationsEl }: { allocationsEl
           <YAxis
             axisLine={false}
             tickLine={false}
-            tickFormatter={(val) => new Intl.NumberFormat('es-CO', { notation: "compact", compactDisplay: "short" }).format(val)}
+            tickFormatter={(val) => compactCopFormatter.format(val)}
             tick={{ fontSize: 7, fontWeight: 'bold', fill: '#555', fontFamily: 'var(--font-mono)' }}
           />
           <Tooltip

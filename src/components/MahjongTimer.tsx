@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, forwardRef, useImperativeHandle, memo } from 'react';
+import { useState, useEffect, forwardRef, useImperativeHandle, memo, useRef } from 'react';
 import { Clock } from 'lucide-react';
 
 interface MahjongTimerProps {
@@ -17,6 +17,8 @@ export interface MahjongTimerHandle {
 const MahjongTimer = memo(forwardRef<MahjongTimerHandle, MahjongTimerProps>(({ isActive, formatTime, accentColor }, ref) => {
     const [time, setTime] = useState(0);
     const [pulse, setPulse] = useState(false);
+    const timeRef = useRef(0);
+    timeRef.current = time;
 
     useEffect(() => {
         let interval: NodeJS.Timeout;
@@ -33,9 +35,12 @@ const MahjongTimer = memo(forwardRef<MahjongTimerHandle, MahjongTimerProps>(({ i
     }, [isActive]);
 
     useImperativeHandle(ref, () => ({
-        getTime: () => time,
-        resetTime: () => setTime(0)
-    }));
+        getTime: () => timeRef.current,
+        resetTime: () => {
+            timeRef.current = 0;
+            setTime(0);
+        }
+    }), []);
 
     return (
         <div className="relative group select-none">

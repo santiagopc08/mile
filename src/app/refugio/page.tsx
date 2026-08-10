@@ -13,6 +13,7 @@ import { MessageCircleHeart, Mic, PawPrint, Clock, Sparkles } from 'lucide-react
 import { motion, AnimatePresence } from 'framer-motion';
 import { AmbientField } from "@/components/AmbientField";
 import { CyberButton } from "@/components/ui/CyberButton";
+import { haptics } from "@/lib/haptics";
 
 export default function RefugioPage() {
   type RefugioTab = 'notas' | 'escucha' | 'bebes' | 'historia';
@@ -44,11 +45,17 @@ export default function RefugioPage() {
   const secondaryClass = profile === 'ella' ? 'user-b' : 'user-a';
   const events = data?.events || [];
 
-  const tabs: Array<{ id: RefugioTab; label: string; icon: typeof MessageCircleHeart }> = [
-    { id: 'historia', label: 'Historia', icon: Clock },
-    { id: 'notas', label: 'Notas', icon: MessageCircleHeart },
-    { id: 'escucha', label: 'Escucha', icon: Mic },
-    { id: 'bebes', label: 'Bebés', icon: PawPrint },
+  const modules: Array<{
+    id: RefugioTab;
+    code: string;
+    label: string;
+    detail: string;
+    icon: typeof MessageCircleHeart;
+  }> = [
+    { id: 'historia', code: 'SYS // 01', label: 'Historia', detail: 'Hitos y memorias', icon: Clock },
+    { id: 'notas', code: 'SYS // 02', label: 'Notas', detail: 'Frasco de notas', icon: MessageCircleHeart },
+    { id: 'escucha', code: 'SYS // 03', label: 'Escucha', detail: 'Bitácora activa', icon: Mic },
+    { id: 'bebes', code: 'SYS // 04', label: 'Bebés', detail: 'Espacio de bebés', icon: PawPrint },
   ];
 
   return (
@@ -105,33 +112,126 @@ export default function RefugioPage() {
             </div>
           )}
 
-          <div className="grid grid-cols-2 border border-white/12 bg-white/[0.03] backdrop-blur-2xl backdrop-saturate-150 sm:grid-cols-4 lg:grid-cols-4 shadow-lg">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`group relative font-mono flex min-h-20 items-center justify-between border-r border-white/10 px-4 py-4 transition-all last:border-r-0 ${activeTab === tab.id
-                  ? 'text-black'
-                  : 'text-[#a88a7e] hover:bg-white/[0.06] hover:text-white'
+          {/* HUD Module Command Deck */}
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5">
+            {modules.map((mod, index) => {
+              const isActive = activeTab === mod.id;
+              const Icon = mod.icon;
+
+              return (
+                <button
+                  key={mod.id}
+                  onClick={() => {
+                    if (!isActive) {
+                      haptics.triggerTick();
+                      setActiveTab(mod.id);
+                    }
+                  }}
+                  className={`group relative overflow-hidden text-left p-3.5 sm:p-4.5 border transition-all duration-300 active:scale-[0.98] flex flex-col justify-between gap-3 min-h-[96px] sm:min-h-[110px] ${
+                    isActive
+                      ? 'border-white/30 bg-white/[0.07] backdrop-blur-2xl shadow-[0_0_24px_-4px_rgba(0,0,0,0.6)]'
+                      : 'border-white/10 bg-white/[0.025] hover:border-white/20 hover:bg-white/[0.05] text-[#a88a7e]'
                   }`}
-                style={activeTab === tab.id ? { backgroundColor: accentColor } : {}}
-              >
-                <span className="flex flex-col items-start gap-2">
-                  <tab.icon className="h-4 w-4" />
-                  <span className="text-[10px] font-black uppercase tracking-[0.22em] font-mono">{tab.label}</span>
-                </span>
-                <span className={`text-[9px] font-bold uppercase tracking-[0.2em] font-mono ${activeTab === tab.id ? 'text-black/55' : `text-white/20 group-hover:text-${secondaryClass}`}`} style={activeTab !== tab.id ? { '--tw-hover-text-opacity': 1 } as any : {}}>
-                  0{tabs.findIndex((item) => item.id === tab.id) + 1}
-                </span>
-                {activeTab === tab.id && (
-                  <motion.div
-                    layoutId="activeTabRefugio"
-                    className={`absolute inset-x-0 bottom-0 h-1 bg-${secondaryClass}`}
-                    style={{ backgroundColor: secondaryColor }}
+                  style={{
+                    borderColor: isActive ? accentColor : undefined,
+                    boxShadow: isActive ? `0 0 20px -6px ${accentColor}` : undefined
+                  }}
+                >
+                  {/* Active animated backdrop indicator */}
+                  {isActive && (
+                    <motion.div
+                      layoutId="refugioActiveDeck"
+                      className="absolute inset-0 bg-gradient-to-br from-white/[0.08] via-transparent to-transparent pointer-events-none"
+                      transition={{ type: "spring", stiffness: 350, damping: 30 }}
+                    />
+                  )}
+
+                  {/* Corner HUD Brackets */}
+                  <div 
+                    className="absolute top-1.5 left-1.5 w-2 h-2 border-t-2 border-l-2 transition-all duration-300 group-hover:scale-125 pointer-events-none" 
+                    style={{ borderColor: isActive ? accentColor : 'rgba(255,255,255,0.15)' }} 
                   />
-                )}
-              </button>
-            ))}
+                  <div 
+                    className="absolute top-1.5 right-1.5 w-2 h-2 border-t-2 border-r-2 transition-all duration-300 group-hover:scale-125 pointer-events-none" 
+                    style={{ borderColor: isActive ? accentColor : 'rgba(255,255,255,0.15)' }} 
+                  />
+                  <div 
+                    className="absolute bottom-1.5 left-1.5 w-2 h-2 border-b-2 border-l-2 transition-all duration-300 group-hover:scale-125 pointer-events-none" 
+                    style={{ borderColor: isActive ? accentColor : 'rgba(255,255,255,0.15)' }} 
+                  />
+                  <div 
+                    className="absolute bottom-1.5 right-1.5 w-2 h-2 border-b-2 border-r-2 transition-all duration-300 group-hover:scale-125 pointer-events-none" 
+                    style={{ borderColor: isActive ? accentColor : 'rgba(255,255,255,0.15)' }} 
+                  />
+
+                  {/* Top Row: System Tag & Pulse Indicator */}
+                  <div className="flex items-center justify-between gap-2 relative z-10 w-full">
+                    <span 
+                      className="font-mono text-[8px] sm:text-[9px] font-black tracking-[0.2em] transition-colors"
+                      style={{ color: isActive ? accentColor : undefined }}
+                    >
+                      {mod.code}
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      {isActive && (
+                        <span className="relative flex h-2 w-2">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ backgroundColor: accentColor }} />
+                          <span className="relative inline-flex rounded-full h-2 w-2" style={{ backgroundColor: accentColor }} />
+                        </span>
+                      )}
+                      <span className={`text-[8.5px] font-mono font-bold ${isActive ? 'text-white' : 'text-white/30 group-hover:text-white/60'}`}>
+                        0{index + 1}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Bottom Row: Icon + Module Label & Detail */}
+                  <div className="flex items-center gap-3 relative z-10">
+                    <div 
+                      className={`relative flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center shrink-0 border transition-all duration-300 ${
+                        isActive 
+                          ? 'border-white/30 bg-black/40 shadow-inner' 
+                          : 'border-white/10 bg-white/[0.03] group-hover:border-white/20'
+                      }`}
+                      style={{ borderColor: isActive ? accentColor : undefined }}
+                    >
+                      <Icon 
+                        className={`h-4 w-4 sm:h-4.5 sm:w-4.5 transition-all duration-300 ${
+                          isActive 
+                            ? 'scale-110 drop-shadow-[0_0_8px_var(--color-profile-accent)]' 
+                            : 'group-hover:scale-110 group-hover:rotate-6 text-[#a88a7e] group-hover:text-white'
+                        }`}
+                        style={{ color: isActive ? accentColor : undefined }}
+                      />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <span 
+                          className={`font-mono text-xs sm:text-sm font-black uppercase tracking-tight transition-colors truncate ${
+                            isActive ? 'text-white' : 'text-[#e5e2e1]/85 group-hover:text-white'
+                          }`}
+                        >
+                          {mod.label}
+                        </span>
+                      </div>
+                      <span className="block font-sans text-[9px] sm:text-[10px] text-[#e1bfb2]/65 truncate">
+                        {mod.detail}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Active Neon Baseline Accent Bar */}
+                  {isActive && (
+                    <motion.div
+                      layoutId="refugioBaselineAccent"
+                      className="absolute bottom-0 left-0 right-0 h-[2px] shadow-[0_0_10px_var(--color-profile-accent)]"
+                      style={{ backgroundColor: accentColor }}
+                      transition={{ type: "spring", stiffness: 350, damping: 30 }}
+                    />
+                  )}
+                </button>
+              );
+            })}
           </div>
 
           <div id="refugio-content" className="p-0 bg-transparent">

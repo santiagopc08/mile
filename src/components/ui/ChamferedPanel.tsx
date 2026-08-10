@@ -8,6 +8,7 @@ interface ChamferedPanelProps extends Omit<HTMLMotionProps<'div'>, 'children'> {
     borderColor?: string;
     notchSize?: number; // Tamaño del bisel/corte en px (default: 16)
     label?: string;      // Ej: "SYS_DATA", "RITMO_v2", "REFUGIO"
+    headerRight?: React.ReactNode;
     showCornerReticles?: boolean;
     showSideTabs?: boolean;
     scanlines?: boolean;
@@ -28,6 +29,7 @@ export function ChamferedPanel({
     borderColor,
     notchSize = 16,
     label,
+    headerRight,
     showCornerReticles = true,
     showSideTabs = true,
     scanlines = false,
@@ -59,7 +61,7 @@ export function ChamferedPanel({
             style={{
                 clipPath: clipPathStyle,
                 borderColor: finalBorderColor,
-                boxShadow: `inset 0 1px 1px rgba(255,255,255,0.15), inset 0 0 20px rgba(0,0,0,0.45)`,
+                boxShadow: `inset 0 0 20px rgba(0,0,0,0.45)`,
                 ...(staggerIndex !== undefined ? ({ '--i': staggerIndex } as React.CSSProperties) : null),
                 ...style,
             }}
@@ -69,14 +71,6 @@ export function ChamferedPanel({
             {scanlines && (
                 <div className="pointer-events-none absolute inset-0 z-0 opacity-20 bg-diagonal-stripes" />
             )}
-
-            {/* Filo de luz superior: el reflejo que convierte la superficie en vidrio */}
-            <div
-                className="pointer-events-none absolute inset-x-0 top-0 z-0 h-1/3"
-                style={{
-                    background: 'linear-gradient(180deg, rgba(255,255,255,0.1), transparent)',
-                }}
-            />
 
             {/* Resplandor Neón de Fondo con Auto-Shimmer Móvil Periódico */}
             <div
@@ -117,18 +111,18 @@ export function ChamferedPanel({
             )}
 
             {/* Etiqueta Superior HUD Limpia con Diamante Geométrico Rotativo */}
-            {(label || showSideTabs) && (
+            {(label || headerRight || showSideTabs) && (
                 <div className="pointer-events-none mb-3 flex items-center justify-between border-b border-white/10 pb-2">
                     {label ? (
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
                             <span
-                                className="inline-block font-mono text-[10px] animate-spin-slow"
+                                className="inline-block font-mono text-[10px] animate-spin-slow shrink-0"
                                 style={{ color: accentColor }}
                             >
                                 ◆
                             </span>
                             <span
-                                className="font-mono text-[9.5px] font-black uppercase tracking-[0.2em]"
+                                className="font-mono text-[9.5px] font-black uppercase tracking-[0.2em] truncate"
                                 style={{ color: accentColor }}
                             >
                                 {label.replace(/\/\//g, '·').replace(/_/g, ' ')}
@@ -138,13 +132,17 @@ export function ChamferedPanel({
                         <div />
                     )}
 
-                    {showSideTabs && (
+                    {headerRight ? (
+                        <div className="pointer-events-auto shrink-0 flex items-center gap-1.5">
+                            {headerRight}
+                        </div>
+                    ) : showSideTabs ? (
                         <div className="flex items-center gap-1 opacity-60">
                             <div className="h-1.5 w-4 border-b-2" style={{ borderColor: accentColor }} />
                             <div className="h-1.5 w-1.5 bg-white/30" />
                             <div className="h-1.5 w-1.5 bg-white/20" />
                         </div>
-                    )}
+                    ) : null}
                 </div>
             )}
 
