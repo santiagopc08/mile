@@ -67,19 +67,17 @@ export async function POST(request: Request) {
         const BATCH_SIZE = 50;
         for (let i = 0; i < subscriptions.length; i += BATCH_SIZE) {
             const sendPromises: Promise<any>[] = [];
+            const idsToDelete: string[] = [];
             const endBatch = Math.min(i + BATCH_SIZE, subscriptions.length);
 
             for (let j = i; j < endBatch; j++) {
                 const subRecord = subscriptions[j] as Record<string, unknown>;
                 const sendPromise = webpush.sendNotification(subRecord.subscription as webpush.PushSubscription, payload)
-                    .catch(async (err: unknown) => {
-                        // If endpoint is no longer valid (status 410 Gone or 404 Not Found), remove it
+                    .catch((err: unknown) => {
+                        // If endpoint is no longer valid (status 410 Gone or 404 Not Found), collect it for removal
                         const errorObj = err as Record<string, unknown>;
                         if (errorObj.statusCode === 410 || errorObj.statusCode === 404) {
-                            await supabase
-                                .from('push_subscriptions')
-                                .delete()
-                                .eq('id', subRecord.id);
+                            idsToDelete.push(subRecord.id as string);
                         } else {
                             console.error(`Error sending push notification to ${subRecord.endpoint}:`, err);
                         }
@@ -89,6 +87,13 @@ export async function POST(request: Request) {
             }
 
             await Promise.all(sendPromises);
+
+            if (idsToDelete.length > 0) {
+                await supabase
+                    .from('push_subscriptions')
+                    .delete()
+                    .in('id', idsToDelete);
+            }
         }
 
         return NextResponse.json({ success: true, sent: subscriptions.length });

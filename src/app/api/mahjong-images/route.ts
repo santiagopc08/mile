@@ -17,27 +17,29 @@ export async function GET() {
             // Asynchronously read all subdirectories in public/img
             const categories = await fs.readdir(directoryPath, { withFileTypes: true });
 
-            const promises: Promise<string[]>[] = [];
+            const dirs: string[] = [];
             for (const category of categories) {
                 if (category.isDirectory()) {
-                    const subDirPath = path.join(directoryPath, category.name);
-                    promises.push(fs.readdir(subDirPath).then(files => {
-                        const validFiles: string[] = [];
-                        for (const file of files) {
-                            if (file.endsWith('.png') || file.endsWith('.jpg') || file.endsWith('.jpeg')) {
-                                validFiles.push(`/img/${category.name}/${file}`);
-                            }
-                        }
-                        return validFiles;
-                    }));
+                    dirs.push(category.name);
                 } else if (category.name.endsWith('.png') || category.name.endsWith('.jpg') || category.name.endsWith('.jpeg')) {
-                    promises.push(Promise.resolve([`/img/${category.name}`]));
+                    results.push(`/img/${category.name}`);
                 }
             }
 
-            if (promises.length > 0) {
-                const allResults = await Promise.all(promises);
-                results = allResults.flat();
+            const CONCURRENCY_LIMIT = 50;
+            for (let i = 0; i < dirs.length; i += CONCURRENCY_LIMIT) {
+                const batch = dirs.slice(i, i + CONCURRENCY_LIMIT);
+                const batchPromises = batch.map(name => {
+                    const subDirPath = path.join(directoryPath, name);
+                    return fs.readdir(subDirPath).then(files => {
+                        for (const file of files) {
+                            if (file.endsWith('.png') || file.endsWith('.jpg') || file.endsWith('.jpeg')) {
+                                results.push(`/img/${name}/${file}`);
+                            }
+                        }
+                    });
+                });
+                await Promise.all(batchPromises);
             }
         } catch (error) {
             // Folder not found or not accessible

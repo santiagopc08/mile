@@ -50,45 +50,6 @@ export const TasksTab = ({
       exit={{ opacity: 0, y: -10 }}
       className="space-y-6 bg-transparent p-0"
     >
-      {/* Task Video Header */}
-      <BrutalistPanel accentColor={accentColorValue} borderColor="rgba(255,255,255,0.12)" corners="animated" cornerSize={12} cornerThickness={1.5} className="grid gap-4 p-4 md:grid-cols-[1fr_auto] md:items-center">
-        <div className="w-full">
-          <div className="flex items-center gap-2 font-mono">
-            <span className="text-xs animate-spin-slow" style={{ color: accentColorValue }}>◆</span>
-            <p className="text-[9px] font-mono font-bold uppercase tracking-[0.24em] text-user-c">OPERACIONES Y RITMO</p>
-          </div>
-          <h2 className="text-2xl font-mono font-bold uppercase tracking-tight text-white mt-1 flex justify-between items-center w-full">
-            <span>TAREAS · REGISTRO DIARIO</span>
-            <div className="relative h-20 w-20 border border-white/15 bg-white/[0.05] backdrop-blur-md p-1 flex-shrink-0">
-              <AnimatedBrutalistCorners color="var(--color-profile-accent)" size={6} />
-              <video
-                className="h-full w-full object-cover opacity-80 mix-blend-screen contrast-125"
-                src="vid/planningCat.mp4"
-                autoPlay
-                loop
-                muted
-                playsInline
-                webkit-playsinline="true"
-              />
-            </div>
-          </h2>
-        </div>
-        <div className="grid grid-cols-3 border border-white/10 text-center bg-black/40 rounded-none shrink-0 md:min-w-[280px]">
-          <div className="border-r border-white/10 px-3 py-2">
-            <div className={`text-xl font-bold font-mono tracking-tighter ${profile === 'ella' ? 'text-user-a' : 'text-user-b'}`}>{tasks.length}</div>
-            <div className="text-[8px] font-bold uppercase tracking-[0.15em] text-[#a88a7e] mt-0.5">Tareas</div>
-          </div>
-          <div className="border-r border-white/10 px-3 py-2">
-            <div className="text-xl font-bold font-mono tracking-tighter text-user-c">{activeTasks}</div>
-            <div className="text-[8px] font-bold uppercase tracking-[0.15em] text-[#a88a7e] mt-0.5">Activas</div>
-          </div>
-          <div className="px-3 py-2">
-            <div className={`text-xl font-bold font-mono tracking-tighter ${profile === 'ella' ? 'text-user-b' : 'text-user-a'}`}>{Math.round(focusScore)}%</div>
-            <div className="text-[8px] font-bold uppercase tracking-[0.15em] text-[#a88a7e] mt-0.5">Enfoque</div>
-          </div>
-        </div>
-      </BrutalistPanel>
-
       {/* Row 0: Pomodoro (COLLAPSIBLE) */}
       <BrutalistPanel accentColor={accentColorValue} borderColor="rgba(255,255,255,0.1)" corners="animated" cornerSize={8} cornerThickness={1} className="rounded-none overflow-hidden transition-all duration-300">
         <button

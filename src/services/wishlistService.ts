@@ -1,6 +1,8 @@
 import { supabase as defaultSupabase } from '@/lib/supabase';
 import { SupabaseClient } from '@supabase/supabase-js';
 
+const copFormatter = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
+
 export const WishlistService = {
 
 
@@ -27,7 +29,7 @@ export const WishlistService = {
             }).eq('id', itemId);
         }
         // Log activity
-        const formatCOP = (v: number) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(v);
+        const formatCOP = (v: number) => copFormatter.format(v);
         await supabase.from('wishlist_activity').insert({
             wishlist_item_id: itemId,
             actor: contributor,

@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useStore } from '@/context/StoreContext';
 import { useProfile } from '@/context/ProfileContext';
-import { Link2, MapPin, Plus, X, Rss } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Plus, Rss } from 'lucide-react';
+import { AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
 import { WishlistService } from '@/services/wishlistService';
 import { NotificationService } from '@/services/notificationService';
@@ -13,9 +13,9 @@ import { GOAL_CATEGORIES } from './planes/constants';
 import { SavingsOverview } from './planes/SavingsOverview';
 import { WishlistCard } from './planes/WishlistCard';
 import { ActivityFeed } from './planes/ActivityFeed';
-import { LiveLinkPreview } from './LiveLinkPreview';
 import { useWishlist } from '@/hooks/useWishlist';
-import pMap from 'p-map';
+import { useGoogleMapsSync } from '@/hooks/useGoogleMapsSync';
+import { WishlistForm } from './planes/WishlistForm';
 import { useToast } from '@/components/ui/Toast';
 
 type StateFilter = WishlistState | 'ALL';
@@ -39,85 +39,13 @@ export function WishlistModule() {
     const [stateFilter, setStateFilter] = useState<StateFilter>('ALL');
     const [showFeed, setShowFeed] = useState(false);
 
-    const {
-        isAdding, setIsAdding,
-        editingItem, setEditingItem,
-        fTitle, setFTitle,
-        fDesc, setFDesc,
-        fPrice, setFPrice,
-        fCategory, setFCategory,
-        fLocationUrl, setFLocationUrl,
-        fDetailLink, setFDetailLink,
-        fImage, setFImage,
-        fOwner, setFOwner,
-        fShared, setFShared,
-        fPriority, setFPriority,
-        resetForm, openEdit
-    } = useWishlist();
+    const wishlistState = useWishlist();
+    const { isAdding, setIsAdding, editingItem, setEditingItem, fTitle, fDesc, fPrice, fCategory, fLocationUrl, fDetailLink, fImage, fOwner, fShared, fPriority, resetForm, openEdit } = wishlistState;
 
     const items = useMemo(() => (data?.wishlist || []) as WishlistItem[], [data?.wishlist]);
     const activity = useMemo(() => data?.wishlistActivity || [], [data?.wishlistActivity]);
 
-    const syncGoogleMapsLocation = async (title: string, url: string, state: string, author: string) => {
-        if (!url) return;
-        const isGoogleMaps = url.includes('google.com/maps') || url.includes('maps.google.com') || url.includes('maps.app.goo.gl') || url.includes('goo.gl/maps') || url.includes('share.google');
-        if (!isGoogleMaps) return;
-
-        try {
-            const res = await fetch(`/api/link-preview?url=${encodeURIComponent(url)}`);
-            if (!res.ok) return;
-
-            const data = await res.json();
-            if (data.coords && typeof data.coords.lat === 'number' && typeof data.coords.lng === 'number') {
-                const status = (state === 'COMPLETED' || state === 'ARCHIVED') ? 'visited' : 'to-visit';
-                const createdBy = author || 'el';
-
-                const { data: existing, error: checkError } = await supabase
-                    .from('ubicaciones')
-                    .select('id')
-                    .eq('nombre', title)
-                    .eq('created_by', createdBy);
-
-                if (!checkError && existing && existing.length > 0) {
-                    await supabase
-                        .from('ubicaciones')
-                        .update({
-                            latitud: data.coords.lat,
-                            longitud: data.coords.lng,
-                            status: status
-                        })
-                        .eq('id', existing[0].id);
-                } else {
-                    await supabase
-                        .from('ubicaciones')
-                        .insert({
-                            nombre: title,
-                            latitud: data.coords.lat,
-                            longitud: data.coords.lng,
-                            created_by: createdBy,
-                            status: status
-                        });
-                }
-
-                window.dispatchEvent(new CustomEvent('custom:map-refresh'));
-            }
-        } catch (e) {
-            console.error('Error syncing location:', e);
-        }
-    };
-
-    // Serialized hash of only items with Google Maps URLs and their current state/url,
-    // which isolates map backfill checks from other non-map updates.
-    const mapItemsHash = useMemo(() => {
-        return items
-            .filter(item => {
-                const url = item.locationUrl;
-                if (!url) return false;
-                return url.includes('google.com/maps') || url.includes('maps.app.goo.gl') || url.includes('goo.gl/maps');
-            })
-            .map(item => `${item.id}:${item.state}:${item.locationUrl}`)
-            .join('||');
-    }, [items]);
+    const { syncGoogleMapsLocation } = useGoogleMapsSync(items);
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
@@ -127,129 +55,8 @@ export function WishlistModule() {
                 setIsAdding(true);
             }
         }
-    }, []);
+    }, [setIsAdding]);
 
-    // Auto-backfill and sync routine for Google Maps items
-    useEffect(() => {
-        if (items.length === 0) return;
-
-        const performBackfill = async () => {
-            try {
-                const { data: currentLocations, error } = await supabase.from('ubicaciones').select('*');
-                if (error || !currentLocations) return;
-
-                const locationMap = new Map(currentLocations.map(l => [`${l.nombre.toLowerCase()}||${l.created_by}`, l]));
-                let mutated = false;
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const itemsToFetchMap = new Map<string, { item: any; url: string; expectedStatus: string }>();
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const itemsToUpdateMap = new Map<string, any>();
-
-                for (const item of items) {
-                    const url = item.locationUrl;
-                    if (!url) continue;
-
-                    const isGoogleMaps = url.includes('google.com/maps') || url.includes('maps.google.com') || url.includes('maps.app.goo.gl') || url.includes('goo.gl/maps') || url.includes('share.google');
-                    if (!isGoogleMaps) continue;
-
-                    const key = `${item.title.toLowerCase()}||${item.author}`;
-                    const existingPin = locationMap.get(key);
-                    const expectedStatus = (item.state === 'COMPLETED' || item.state === 'ARCHIVED') ? 'visited' : 'to-visit';
-
-                    if (!existingPin) {
-                        itemsToFetchMap.set(key, { item, url, expectedStatus });
-                    } else if (existingPin.status !== expectedStatus) {
-                        itemsToUpdateMap.set(key, {
-                            id: existingPin.id,
-                            nombre: existingPin.nombre,
-                            latitud: existingPin.latitud,
-                            longitud: existingPin.longitud,
-                            created_by: existingPin.created_by,
-                            status: expectedStatus
-                        });
-                    }
-                }
-
-                const itemsToFetch = Array.from(itemsToFetchMap.values());
-                const itemsToUpdate = Array.from(itemsToUpdateMap.values());
-
-                if (itemsToFetch.length > 0) {
-                    // ⚡ Bolt Optimization: Use an in-memory Promise cache to deduplicate concurrent requests
-                    // targeting the same URL within the backfill batch.
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    const urlCache = new Map<string, Promise<any>>();
-
-                    // ⚡ Bolt Optimization: Batch requests to avoid unbounded concurrent fetches
-                    // which can exhaust connections, memory, or trigger rate limits.
-                    // Using p-map for parallel processing with concurrency limit instead of sequential batches.
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    const fetchResults: any[] = await pMap(
-                        itemsToFetch,
-                        ({ item, url, expectedStatus }) => {
-                            // ⚡ Bolt Optimization: Replace .map(async () => await asyncOp()) with .map(() => asyncOp().then().catch())
-                            // to minimize intermediate promise instantiation overhead
-                            let fetchPromise = urlCache.get(url);
-                            if (!fetchPromise) {
-                                fetchPromise = fetch(`/api/link-preview?url=${encodeURIComponent(url)}`).then(res => {
-                                    if (!res.ok) throw new Error('Network response was not ok');
-                                    return res.json();
-                                });
-                                urlCache.set(url, fetchPromise);
-                            }
-
-                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                            return fetchPromise.then((resData: any) => {
-                                if (resData.coords && typeof resData.coords.lat === 'number' && typeof resData.coords.lng === 'number') {
-                                    return {
-                                        nombre: item.title,
-                                        latitud: resData.coords.lat,
-                                        longitud: resData.coords.lng,
-                                        created_by: item.author || 'el',
-                                        status: expectedStatus
-                                    };
-                                }
-                                return null;
-                            }).catch(e => {
-                                console.error(`Error fetching coordinates for ${item.title}:`, e);
-                                return null;
-                            });
-                        },
-                        { concurrency: 5 }
-                    );
-
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    const toInsert = fetchResults.filter(Boolean) as any[];
-                    if (toInsert.length > 0) {
-                        const { error: insertError } = await supabase.from('ubicaciones').insert(toInsert);
-                        if (!insertError) {
-                            mutated = true;
-                        } else {
-                            console.error("Error inserting batch locations details: message =", insertError.message, "details =", insertError.details, "hint =", insertError.hint, "code =", insertError.code, "error =", insertError);
-                        }
-                    }
-                }
-
-                if (itemsToUpdate.length > 0) {
-                    const { error: updateError } = await supabase.from('ubicaciones').upsert(itemsToUpdate);
-                    if (!updateError) {
-                        mutated = true;
-                    } else {
-                        console.error("Error updating batch locations details: message =", updateError.message, "details =", updateError.details, "hint =", updateError.hint, "code =", updateError.code, "error =", updateError);
-                    }
-                }
-
-                if (mutated) {
-                    window.dispatchEvent(new CustomEvent('custom:map-refresh'));
-                }
-            } catch (err) {
-                console.error("Error in auto-backfill:", err);
-            }
-        };
-
-        const timer = setTimeout(performBackfill, 2000);
-        return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [mapItemsHash]);
 
     const filteredItems = useMemo(() => {
         // ⚡ Bolt Optimization: Single O(N) loop to replace chained .filter()s, minimizing intermediate arrays
@@ -441,6 +248,12 @@ export function WishlistModule() {
                     {filteredItems.length} PLANES
                 </h3>
                 <div className="flex gap-2">
+                    <button onClick={() => setShowFeed(!showFeed)}
+                        className={`h-11 px-4 border text-[9px] font-mono font-black uppercase tracking-widest transition-colors ${showFeed ? `bg-${accentClass}/10 text-${accentClass}` : 'text-white/40 hover:text-white/70 bg-[#080808]'}`}
+                        style={{ borderColor: profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)' }}
+                    >
+                        Actividad
+                    </button>
                     <button onClick={() => { setIsAdding(!isAdding); setEditingItem(null); if (!isAdding) resetForm(); }}
                         className="flex h-11 w-11 items-center justify-center border transition-all bg-[#080808]"
                         style={{ borderColor: profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)', color: profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)' }}>
@@ -454,106 +267,7 @@ export function WishlistModule() {
                 <div className="space-y-4 min-w-0">
                     <AnimatePresence mode="wait">
                         {isAdding ? (
-                            <div className="w-full max-w-full overflow-hidden">
-                                <motion.form key="form" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
-                                    onSubmit={handleSubmit} className="w-full max-w-full mb-4 space-y-1.5 border border-white/10 bg-black/60 p-3.5 sm:p-5">
-                                    <div className="flex items-center justify-between mb-1">
-                                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#a88a7e] font-mono">
-                                            {editingItem ? 'Editar plan' : 'Nuevo plan'}
-                                        </span>
-                                        <button type="button" onClick={() => { setIsAdding(false); setEditingItem(null); }} className="text-white/30 hover:text-white !min-h-0">
-                                            <X className="w-4 h-4" />
-                                        </button>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                        <div className="space-y-1">
-                                            <label className="ml-1 text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Título</label>
-                                            <input required autoFocus value={fTitle} onChange={e => setFTitle(e.target.value)} placeholder="¿Qué queremos?..."
-                                                className="w-full border border-white/10 bg-[#050505] px-3 py-2 text-xs uppercase tracking-[0.16em] text-white outline-none placeholder:text-white/20 focus:border-[#00dbe9]" />
-                                        </div>
-                                        <div className="space-y-1">
-                                            <label className="ml-1 text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Precio o costo estimado (COP)</label>
-                                            <input type="number" value={fPrice} onChange={e => setFPrice(e.target.value)}
-                                                className="w-full border border-white/10 bg-[#050505] px-3 py-2 text-xs text-white outline-none focus:border-[#00dbe9]" />
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-1">
-                                        <label className="ml-1 text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Descripción</label>
-                                        <textarea value={fDesc} onChange={e => setFDesc(e.target.value)} placeholder="Detalles..."
-                                            className="h-14 w-full resize-none border border-white/10 bg-[#050505] px-3 py-2 text-xs text-white outline-none placeholder:text-white/20 focus:border-[#00dbe9]" />
-                                    </div>
-
-                                    {/* Category selector */}
-                                    <div className="space-y-1 mb-4">
-                                        <label className="ml-1 text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Categoría</label>
-                                        <div className="flex flex-wrap gap-1.5">
-                                            {GOAL_CATEGORIES.map(cat => {
-                                                const Icon = cat.icon;
-                                                const isActive = fCategory === cat.id;
-                                                return (
-                                                    <button key={cat.id} type="button" onClick={() => setFCategory(cat.id as GoalCategory)}
-                                                        className={`flex h-7 !min-h-0 items-center gap-1.5 border px-2 transition-all ${isActive
-                                                            ? 'border-user-c bg-user-c/10 text-white'
-                                                            : 'border-white/10 bg-[#050505] text-[#a88a7e] hover:border-white/25 hover:text-white'
-                                                            }`}>
-                                                        <Icon className={`h-3 w-3 ${isActive ? 'text-user-c' : 'text-white/25'}`} strokeWidth={1.5} />
-                                                        <span className="text-[7px] font-black uppercase tracking-[0.12em] font-mono">{cat.label}</span>
-                                                    </button>
-                                                )
-                                            })}
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-                                        <div className="space-y-1">
-                                            <label className="ml-1 flex items-center gap-2 text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">
-                                                <MapPin className="h-3 w-3" /> Lugar en el mapa (Enlace)
-                                            </label>
-                                            <input value={fLocationUrl} onChange={e => setFLocationUrl(e.target.value)} placeholder="Enlace de Google Maps..."
-                                                className="w-full border border-white/10 bg-[#050505] px-3 py-2 text-xs tracking-normal text-white outline-none placeholder:text-white/20 focus:border-[#00dbe9]" />
-                                            <LiveLinkPreview url={fLocationUrl} label="Mapa Detectado" />
-                                        </div>
-                                        <div className="space-y-1">
-                                            <label className="ml-1 flex items-center gap-2 text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">
-                                                <Link2 className="h-3 w-3" /> Enlace o página web
-                                            </label>
-                                            <input value={fDetailLink} onChange={e => setFDetailLink(e.target.value)} placeholder="Enlace de tienda, página web, etc..."
-                                                className="w-full border border-white/10 bg-[#050505] px-3 py-2 text-xs tracking-normal text-white outline-none placeholder:text-white/20 focus:border-[#00dbe9]" />
-                                            <LiveLinkPreview url={fDetailLink} label="Enlace Detectado" />
-                                        </div>
-                                    </div>
-
-                                    {/* Owner + shared + priority */}
-                                    <div className="flex flex-wrap gap-2 mb-4">
-                                        <div className="flex gap-1">
-                                            <button type="button" onClick={() => setFOwner('el')}
-                                                className={`border px-2 py-1 !min-h-0 text-[9px] font-bold uppercase ${fOwner === 'el' ? 'border-user-b bg-user-b/10 text-user-b' : 'border-white/10 text-[#a88a7e]'}`}>Santiago</button>
-                                            <button type="button" onClick={() => setFOwner('ella')}
-                                                className={`border px-2 py-1 !min-h-0 text-[9px] font-bold uppercase ${fOwner === 'ella' ? 'border-user-a bg-user-a/10 text-user-a' : 'border-white/10 text-[#a88a7e]'}`}>Milena</button>
-                                        </div>
-                                        <button type="button" onClick={() => setFShared(!fShared)}
-                                            className={`border px-2 py-1 !min-h-0 text-[9px] font-bold uppercase ${fShared ? 'border-user-c bg-user-c/10 text-user-c' : 'border-white/10 text-[#a88a7e]'}`}>
-                                            {fShared ? '✓ Plan para los dos' : 'Plan para los dos'}
-                                        </button>
-                                        <button type="button" onClick={() => setFPriority(!fPriority)}
-                                            className={`border px-2 py-1 !min-h-0 text-[9px] font-bold uppercase ${fPriority ? 'border-[#a100f0] bg-[#a100f0]/10 text-[#e5b5ff]' : 'border-white/10 text-[#a88a7e]'}`}>
-                                            {fPriority ? '⚡ Destacar plan' : 'Destacar plan'}
-                                        </button>
-                                    </div>
-
-                                    <div className="flex gap-4">
-                                        <button type="button" onClick={() => { setIsAdding(false); setEditingItem(null); }}
-                                            className="flex-1 border border-white/10 h-8 !min-h-0 text-[9px] font-bold uppercase tracking-[0.2em] text-[#a88a7e] hover:text-white transition-all flex items-center justify-center">Cancelar</button>
-                                        <button type="submit"
-                                            className="flex-1 h-8 !min-h-0 text-[9px] font-black uppercase tracking-[0.2em] text-black transition-all hover:opacity-80 flex items-center justify-center"
-                                            style={{ backgroundColor: profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)' }}>
-                                            {editingItem ? 'Guardar' : 'Añadir a la lista'}
-                                        </button>
-                                    </div>
-                                </motion.form>
-                            </div>
+                            <WishlistForm wishlistState={wishlistState} onSubmit={handleSubmit} profile={profile} />
                         ) : null}
                     </AnimatePresence>
 

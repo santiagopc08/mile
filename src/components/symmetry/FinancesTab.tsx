@@ -49,42 +49,6 @@ export const FinancesTab = ({
       exit={{ opacity: 0, y: -10 }}
       className="space-y-8 bg-transparent p-0"
     >
-      {/* Finance Video Header */}
-      <BrutalistPanel accentColor={accentColorValue} borderColor="rgba(255,255,255,0.12)" corners="animated" cornerSize={12} cornerThickness={1.5} className="grid gap-4 p-4 md:grid-cols-[1fr_auto] md:items-center">
-        <div className="w-full">
-          <h2 className="text-2xl font-mono font-bold uppercase tracking-tight text-white mt-1 flex justify-between items-center w-full">
-            <span>
-              <p className="text-[9px] font-mono font-bold uppercase tracking-[0.24em] text-user-c">CONTROL PRESUPUESTARIO</p>Finanzas</span>
-            <div className="relative h-20 w-20 border border-white/15 bg-white/[0.05] backdrop-blur-md p-1 flex-shrink-0">
-              <AnimatedBrutalistCorners color="var(--color-profile-accent)" size={6} />
-              <video
-                className="h-full w-full object-cover opacity-80 mix-blend-screen contrast-125"
-                src="vid/financesCat.mp4"
-                autoPlay
-                loop
-                muted
-                playsInline
-                webkit-playsinline="true"
-              />
-            </div>
-          </h2>
-        </div>
-        <div className="grid grid-cols-3 border border-white/10 text-center bg-black/40 rounded-none shrink-0 md:min-w-[280px]">
-          <div className="border-r border-white/10 px-3 py-2">
-            <div className={`text-xl font-bold font-mono tracking-tighter ${profile === 'ella' ? 'text-user-a' : 'text-user-b'}`}>{userAllocations.length}</div>
-            <div className="text-[8px] font-bold uppercase tracking-[0.15em] text-[#a88a7e] mt-0.5">Registros</div>
-          </div>
-          <div className="border-r border-white/10 px-3 py-2">
-            <div className="text-xl font-bold font-mono tracking-tighter text-user-c">{formatPriceCompact(totalSpent)}</div>
-            <div className="text-[8px] font-bold uppercase tracking-[0.15em] text-[#a88a7e] mt-0.5">Gastos Tuyos</div>
-          </div>
-          <div className="px-3 py-2">
-            <div className={`text-xl font-bold font-mono tracking-tighter ${profile === 'ella' ? 'text-user-b' : 'text-user-a'}`}>{formatPriceCompact(combinedTotalSpent)}</div>
-            <div className="text-[8px] font-bold uppercase tracking-[0.15em] text-[#a88a7e] mt-0.5">Gastado Juntos</div>
-          </div>
-        </div>
-      </BrutalistPanel>
-
       <div className="grid grid-cols-1 gap-8">
         {/* Financial Movement Log & Form (Always Expanded - Core Ledger) */}
         <div className="geometric-card relative border-white/10 p-6 overflow-hidden">

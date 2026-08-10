@@ -17,12 +17,12 @@ test.describe('Proxy Image API Security', () => {
         // Mock server-only
         require.cache[require.resolve('server-only')] = {
             exports: {}
-        };
+        } as NodeJS.Module;
         require.cache[require.resolve('../../../src/lib/supabase-server')] = {
             exports: {
                 createServerClient: () => ({})
             }
-        };
+        } as NodeJS.Module;
 
         // Mock auth to return a valid user session
         require.cache[require.resolve('../../../src/lib/auth')] = {
@@ -30,7 +30,7 @@ test.describe('Proxy Image API Security', () => {
                 verifyAuth: async () => true,
                 getAuthUser: async () => ({ id: 'test-user-id' })
             }
-        };
+        } as NodeJS.Module;
     });
 
     test.afterEach(() => {

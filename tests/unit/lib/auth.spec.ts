@@ -10,6 +10,7 @@ const setupMocks = (
     shouldHeadersThrow: boolean = false,
     shouldCookiesThrow: boolean = false
 ) => {
+    delete require.cache[require.resolve('../../../src/lib/auth.ts')];
     const nextHeadersPath = require.resolve('next/headers');
     require.cache[nextHeadersPath] = {
         id: nextHeadersPath,
@@ -125,6 +126,19 @@ test.describe('verifyAuth', () => {
             { 'authorization': 'Bearer valid_token' },
             { 'mile_device_token': 'test_token' },
             async () => ({ data: { user: null }, error: new Error('Invalid token') }),
+            async () => ({ data: { id: 'some-id', token: 'test_token' }, error: null })
+        );
+
+        const { verifyAuth } = require('../../../src/lib/auth.ts');
+        const result = await verifyAuth();
+        expect(result).toBe(true);
+    });
+
+    test('bearer token with getUser exception falls back to cookie', async () => {
+        setupMocks(
+            { 'authorization': 'Bearer valid_token' },
+            { 'mile_device_token': 'test_token' },
+            async () => { throw new Error('Network error'); },
             async () => ({ data: { id: 'some-id', token: 'test_token' }, error: null })
         );
 

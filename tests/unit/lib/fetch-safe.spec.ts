@@ -96,6 +96,16 @@ test.describe('resolveSafeIP', () => {
     });
 
     test('throws when DNS resolution fails to prevent bypasses', async () => {
+        const originalResolve4 = dns.resolve4;
+        const originalResolve6 = dns.resolve6;
+
+        dns.resolve4 = (async () => {
+            throw new Error('Simulated DNS resolve4 failure');
+        }) as unknown as typeof dns.resolve4;
+        dns.resolve6 = (async () => {
+            throw new Error('Simulated DNS resolve6 failure');
+        }) as unknown as typeof dns.resolve6;
+
         // Use an explicit type cast to unknown, then to the required function signature
         // This avoids the typescript-eslint/no-unsafe-function-type linting error.
         dns.lookup = (async () => {
@@ -103,6 +113,9 @@ test.describe('resolveSafeIP', () => {
         }) as unknown as typeof dns.lookup;
 
         await expect(resolveSafeIP('example.com')).rejects.toThrow('Private or local addresses are not allowed');
+
+        dns.resolve4 = originalResolve4;
+        dns.resolve6 = originalResolve6;
     });
 });
 
@@ -177,6 +190,16 @@ test.describe('validateHostname', () => {
         let lookupCount = 0;
         let shouldThrow = true;
 
+        const originalResolve4 = dns.resolve4;
+        const originalResolve6 = dns.resolve6;
+
+        dns.resolve4 = (async () => {
+            throw new Error('Simulated DNS resolve4 failure');
+        }) as unknown as typeof dns.resolve4;
+        dns.resolve6 = (async () => {
+            throw new Error('Simulated DNS resolve6 failure');
+        }) as unknown as typeof dns.resolve6;
+
         dns.lookup = (async () => {
             lookupCount++;
             if (shouldThrow) {
@@ -194,5 +217,8 @@ test.describe('validateHostname', () => {
         const result2 = await validateHostname('error-test.com');
         expect(result2).toBe(true);
         expect(lookupCount).toBe(2);
+
+        dns.resolve4 = originalResolve4;
+        dns.resolve6 = originalResolve6;
     });
 });
