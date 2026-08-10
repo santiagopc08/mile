@@ -557,7 +557,6 @@ export function MovementTracker() {
                     <ActivityHistory
                         sessions={sessions}
                         profile={profile as string}
-                        isElla={isElla}
                         loading={loading}
                         handleDeleteSession={handleDeleteSession}
                         handleAddReaction={handleAddReaction}
