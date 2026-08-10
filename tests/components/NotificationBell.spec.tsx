@@ -25,11 +25,11 @@ function withFakeReactDispatcher(callback: () => void) {
                     mockStates[currentIndex] = typeof initial === 'function' ? initial() : initial;
 
                     if (currentIndex === 0) {
-                        // The notifications state
-                        mockStates[currentIndex] = [{ id: 'test-1', read: false, type: 'timeline', content: { title: 'Test' } }];
-                    } else if (currentIndex === 1) {
                         // isOpen state, we need it to be true to render the list of notifications
                         mockStates[currentIndex] = true;
+                    } else if (currentIndex === 1) {
+                        // The notifications state from useNotifications
+                        mockStates[currentIndex] = [{ id: 'test-1', read: false, type: 'timeline', content: { title: 'Test' } }];
                     }
                 }
 
