@@ -30,6 +30,18 @@ const WINDOW_LABELS: Record<Action, string> = {
   tests: 'Validation Lab',
 };
 
+const SAFE_ENV_VARS = ["PATH", "HOME", "USERPROFILE", "SystemRoot", "TMP", "TEMP"];
+
+function getSafeEnv(extra: Record<string, string> = {}) {
+  const env: NodeJS.ProcessEnv = { NODE_ENV: process.env.NODE_ENV || "development" };
+  for (const key of SAFE_ENV_VARS) {
+    if (process.env[key] !== undefined) {
+      env[key] = process.env[key] as string;
+    }
+  }
+  return { ...env, ...extra };
+}
+
 export async function POST(request: Request) {
   let body: { action?: unknown };
 
@@ -54,6 +66,7 @@ export async function POST(request: Request) {
   if (body.action !== 'tests') {
     const child = spawn(executable, [], {
       cwd: platformRoot,
+      env: getSafeEnv(),
       detached: true,
       stdio: 'ignore',
     });
@@ -67,7 +80,7 @@ export async function POST(request: Request) {
   return new Promise<Response>((resolve) => {
     const child = spawn(executable, [testFilter, '-r', 'compact'], {
       cwd: platformRoot,
-      env: { ...process.env, SDL_AUDIODRIVER: 'dummy' },
+      env: getSafeEnv({ SDL_AUDIODRIVER: 'dummy' }),
     });
     let output = '';
 
