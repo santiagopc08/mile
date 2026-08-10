@@ -26,6 +26,11 @@ const POSITION_LABELS = {
     lied: 'ACOSTADO'
 } as const;
 
+const CHART_DATE_FORMATTER = new Intl.DateTimeFormat([], { month: 'short', day: 'numeric' });
+const TIME_FORMATTER = new Intl.DateTimeFormat([], { hour: '2-digit', minute: '2-digit', hour12: false });
+const LIST_DATE_FORMATTER = new Intl.DateTimeFormat([], { year: 'numeric', month: '2-digit', day: '2-digit' });
+const FULL_DATE_FORMATTER = new Intl.DateTimeFormat([], { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' });
+
 interface BloodPressureEntry {
     id: string;
     systolic: number;
@@ -247,8 +252,8 @@ export const BloodPressureTracker = () => {
             const entry = entries[i];
             const date = new Date(entry.created_at);
             data.push({
-                name: `${date.toLocaleDateString([], { month: 'short', day: 'numeric' })} ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}`,
-                fullDate: date.toLocaleString(),
+                name: `${CHART_DATE_FORMATTER.format(date)} ${TIME_FORMATTER.format(date)}`,
+                fullDate: FULL_DATE_FORMATTER.format(date),
                 systolic: entry.systolic,
                 diastolic: entry.diastolic,
                 heartRate: entry.heart_rate,
@@ -620,16 +625,9 @@ export const BloodPressureTracker = () => {
                         const itemAuthorAccent = entryIsElla ? '#ff4b89' : '#c3f400';
                         const itemAuthorName = entryIsElla ? 'MILENA' : 'SANTIAGO';
                         const diag = getPressureCategory(entry.systolic, entry.diastolic);
-                        const formattedDate = new Date(entry.created_at).toLocaleDateString([], {
-                            year: 'numeric',
-                            month: '2-digit',
-                            day: '2-digit'
-                        });
-                        const formattedTime = new Date(entry.created_at).toLocaleTimeString([], {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            hour12: false
-                        });
+                        const entryDate = new Date(entry.created_at);
+                        const formattedDate = LIST_DATE_FORMATTER.format(entryDate);
+                        const formattedTime = TIME_FORMATTER.format(entryDate);
 
                         return (
                             <motion.div
