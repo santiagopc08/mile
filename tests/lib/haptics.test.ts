@@ -71,12 +71,12 @@ describe('haptics', () => {
       });
 
       const originalNodeEnv = process.env.NODE_ENV;
-      vi.stubEnv('NODE_ENV', 'development');
+      (process.env as any).NODE_ENV = 'development';
 
       expect(() => haptics.vibrate(10)).not.toThrow();
       expect(console.warn).toHaveBeenCalledWith('Vibration API blocked or failed:', expect.any(Error));
 
-      vi.unstubAllEnvs();
+      (process.env as any).NODE_ENV = originalNodeEnv;
     });
 
     it('does not warn in production on error', () => {
@@ -86,12 +86,12 @@ describe('haptics', () => {
       });
 
       const originalNodeEnv = process.env.NODE_ENV;
-      vi.stubEnv('NODE_ENV', 'production');
+      (process.env as any).NODE_ENV = 'production';
 
       haptics.vibrate(10);
       expect(console.warn).not.toHaveBeenCalled();
 
-      vi.unstubAllEnvs();
+      (process.env as any).NODE_ENV = originalNodeEnv;
     });
   });
 
