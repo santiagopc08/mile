@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { Timeline } from '../../src/components/Timeline';
+import { TimelineAddForm } from '../../src/components/timeline/TimelineAddForm';
 import { TimelineService } from '../../src/services/timelineService';
 import React from 'react';
 
@@ -99,7 +100,7 @@ test.describe('Timeline Component', () => {
 
         let handlers: any[] = [];
         withFakeReactDispatcher(() => {
-            const element: any = Timeline({ events: [{ id: '1', date: '2023-01-01', title: 'Test', description: 'Test desc' }] });
+            const element: any = TimelineAddForm({ isAdding: true, setIsAdding: () => {}, events: [{ id: '1', date: '2023-01-01', title: 'Test', description: 'Test desc' }] });
             handlers = findFormsWithOnSubmit(element);
         });
 
@@ -136,7 +137,7 @@ test.describe('Timeline Component', () => {
 
         let handlers: any[] = [];
         withFakeReactDispatcher(() => {
-            const element: any = Timeline({ events: [{ id: '1', date: '2023-01-01', title: 'Test', description: 'Test desc' }] });
+            const element: any = TimelineAddForm({ isAdding: true, setIsAdding: () => {}, events: [{ id: '1', date: '2023-01-01', title: 'Test', description: 'Test desc' }] });
             handlers = findFormsWithOnSubmit(element);
         });
 
