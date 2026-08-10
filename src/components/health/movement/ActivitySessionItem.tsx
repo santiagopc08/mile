@@ -9,7 +9,7 @@ interface ActivitySessionItemProps {
     handleDeleteSession: (id: string) => Promise<void>;
     handleAddReaction: (id: string, type: ReactionType) => Promise<void>;
     REACTION_CONFIG: Record<string, { label: string; emoji: string; color: string }>;
-    reactionKeys: string[];
+    reactionKeys: ReactionType[];
 }
 
 export function ActivitySessionItem({
