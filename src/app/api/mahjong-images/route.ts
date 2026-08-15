@@ -28,17 +28,23 @@ export async function GET() {
 
             const CONCURRENCY_LIMIT = 50;
             for (let i = 0; i < dirs.length; i += CONCURRENCY_LIMIT) {
-                const batch = dirs.slice(i, i + CONCURRENCY_LIMIT);
-                const batchPromises = batch.map(name => {
+                // ⚡ Bolt Optimization: Replace batched .slice().map() with direct Promise array to avoid intermediate array allocations
+                const batchPromises = [];
+                const end = Math.min(i + CONCURRENCY_LIMIT, dirs.length);
+                for (let j = i; j < end; j++) {
+                    const name = dirs[j];
                     const subDirPath = path.join(directoryPath, name);
-                    return fs.readdir(subDirPath).then(files => {
-                        for (const file of files) {
-                            if (file.endsWith('.png') || file.endsWith('.jpg') || file.endsWith('.jpeg')) {
-                                results.push(`/img/${name}/${file}`);
+                    batchPromises.push(
+                        fs.readdir(subDirPath).then(files => {
+                            for (let k = 0; k < files.length; k++) {
+                                const file = files[k];
+                                if (file.endsWith('.png') || file.endsWith('.jpg') || file.endsWith('.jpeg')) {
+                                    results.push(`/img/${name}/${file}`);
+                                }
                             }
-                        }
-                    });
-                });
+                        })
+                    );
+                }
                 await Promise.all(batchPromises);
             }
         } catch (error) {
