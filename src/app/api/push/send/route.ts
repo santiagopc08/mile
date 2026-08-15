@@ -65,9 +65,10 @@ export async function POST(request: Request) {
 
         // 3. Send in batches to all active subscriptions to avoid rate limiting
         const BATCH_SIZE = 50;
+        const allIdsToDelete: string[] = [];
+
         for (let i = 0; i < subscriptions.length; i += BATCH_SIZE) {
             const sendPromises: Promise<any>[] = [];
-            const idsToDelete: string[] = [];
             const endBatch = Math.min(i + BATCH_SIZE, subscriptions.length);
 
             for (let j = i; j < endBatch; j++) {
@@ -77,7 +78,7 @@ export async function POST(request: Request) {
                         // If endpoint is no longer valid (status 410 Gone or 404 Not Found), collect it for removal
                         const errorObj = err as Record<string, unknown>;
                         if (errorObj.statusCode === 410 || errorObj.statusCode === 404) {
-                            idsToDelete.push(subRecord.id as string);
+                            allIdsToDelete.push(subRecord.id as string);
                         } else {
                             console.error(`Error sending push notification to ${subRecord.endpoint}:`, err);
                         }
@@ -87,13 +88,13 @@ export async function POST(request: Request) {
             }
 
             await Promise.all(sendPromises);
+        }
 
-            if (idsToDelete.length > 0) {
-                await supabase
-                    .from('push_subscriptions')
-                    .delete()
-                    .in('id', idsToDelete);
-            }
+        if (allIdsToDelete.length > 0) {
+            await supabase
+                .from('push_subscriptions')
+                .delete()
+                .in('id', allIdsToDelete);
         }
 
         return NextResponse.json({ success: true, sent: subscriptions.length });

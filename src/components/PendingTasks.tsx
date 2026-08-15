@@ -129,7 +129,7 @@ export function PendingTasks() {
             <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-4">
                 {tasks.length === 0 ? (
                     <div className="py-20 flex flex-col items-center justify-center text-stone-700 uppercase font-bold text-[10px] tracking-[0.4em] border border-stone-800 border-dashed">
-                        ¡TODO AL DÍA! SIN PENDIENTES
+                        ¡AL DÍA! SIN PENDIENTES
                     </div>
                 ) : (
                     tasks.map((task: Task) => (
