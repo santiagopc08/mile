@@ -82,6 +82,14 @@ test.describe('isLocalOrPrivateIP', () => {
         expect(isLocalOrPrivateIP('2001:4860:4860::8888')).toBe(false);
         expect(isLocalOrPrivateIP('2606:4700:4700::1111')).toBe(false);
     });
+
+    test('blocks invalid IP addresses', () => {
+        expect(isLocalOrPrivateIP('not-an-ip')).toBe(true);
+        expect(isLocalOrPrivateIP('')).toBe(true);
+        expect(isLocalOrPrivateIP('256.256.256.256')).toBe(true);
+        expect(isLocalOrPrivateIP('1.2.3.4.5')).toBe(true);
+        expect(isLocalOrPrivateIP('::g')).toBe(true);
+    });
 });
 
 test.describe('resolveSafeIP', () => {
