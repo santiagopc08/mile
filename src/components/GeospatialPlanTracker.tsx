@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { CheckCircle, Circle, AlertTriangle } from 'lucide-react';
 import { BrutalistPanel } from '@/components/ui/BrutalistPanel';
 
