@@ -56,6 +56,15 @@ import { useToast } from '@/components/ui/Toast';
 import { useFireStreak } from './mahjong/hooks/useFireStreak';
 import { ComboSign } from './mahjong/ComboSign';
 
+
+import { MemoryUnlockedModal } from './mahjong/ui/MemoryUnlockedModal';
+import { GameLostModal } from './mahjong/ui/GameLostModal';
+import { GameWonModal } from './mahjong/ui/GameWonModal';
+import { BottleMessageModal } from './mahjong/ui/BottleMessageModal';
+import { DailyStatsModal } from './mahjong/ui/DailyStatsModal';
+import { CoopSetupModal, CoopTurnModal } from './mahjong/ui/CoopModals';
+import { MahjongHud } from './mahjong/ui/MahjongHud';
+
 const DATE_FORMATTER = new Intl.DateTimeFormat('es-CO', { dateStyle: 'long' });
 
 export function Mahjong() {
@@ -1530,464 +1539,80 @@ export function Mahjong() {
 
 
 
-            {gameLost && typeof window !== 'undefined' && createPortal(
-                <div className="fixed inset-0 z-[100000] flex items-center justify-center bg-black/75 backdrop-blur-md p-4 overflow-hidden">
-                    {/* Background Loop Video when Bomb explodes */}
-                    {lostReason === 'bomb' && (
-                        <video
-                            src="/vid/Miel_smoke.mp4"
-                            autoPlay
-                            loop
-                            muted
-                            playsInline
-                            className="absolute inset-0 h-full w-full object-cover opacity-60 mix-blend-screen pointer-events-none z-0"
-                        />
-                    )}
 
-                    {/* Cyber scanlines */}
-                    <div className="absolute inset-0 scanlines-overlay opacity-35 pointer-events-none z-0" />
-
-                    {/* Figuras desenfocadas de fondo (Glow) */}
-                    <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-                        <div className="absolute top-[15%] left-[10%] w-80 h-80 rounded-full bg-red-600/25 blur-[100px] animate-bg-glow-float-1" />
-                        <div className="absolute bottom-[15%] right-[10%] w-80 h-80 rounded-full bg-stone-900/50 blur-[100px] animate-bg-glow-float-2" />
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] rounded-full bg-red-900/15 blur-[90px] animate-bg-glow-rotate" />
-                    </div>
-
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="relative z-10 flex w-[95%] max-w-md flex-col items-center border border-red-500 bg-black/95 px-8 py-10 shadow-[0_0_40px_rgba(239,68,68,0.22)] backdrop-blur-xl md:px-12 md:py-12 animate-glitch-container"
-                    >
-                        <BrutalistCorners color="#ef4444" size={16} />
-
-                        <div className="mb-6 flex h-16 w-16 rotate-45 items-center justify-center border border-red-500 bg-red-500/10 animate-glitch-flicker">
-                            {lostReason === 'bomb' ? (
-                                <span className="h-8 w-8 -rotate-45 text-2xl flex items-center justify-center select-none pointer-events-none">💣</span>
-                            ) : (
-                                <RotateCcw className="h-8 w-8 -rotate-45 text-red-400" />
-                            )}
-                        </div>
-                        <h3 className="mb-2 text-3xl font-black uppercase tracking-normal text-white md:text-4xl animate-glitch-text">
-                            {lostReason === 'bomb' ? '¡DETONACIÓN!' : 'Sin Espacio'}
-                        </h3>
-                        <p className="mb-8 text-center text-sm font-light tracking-normal text-[#a88a7e]">
-                            {lostReason === 'bomb' 
-                                ? 'Una ficha de bomba ha explotado. El tablero ha quedado destruido.' 
-                                : 'Tu bandeja se ha llenado con cartas sin emparejar.'}
-                        </p>
-                        <button
-                            onClick={handleRestart}
-                            className="w-full bg-red-500 py-4 text-xs font-bold uppercase tracking-[0.18em] text-white transition-all hover:bg-red-600 active:scale-95"
-                        >
-                            Reintentar
-                        </button>
-                        {lostReason !== 'bomb' && (
-                            <button
-                                onClick={handleUndo}
-                                className="mt-4 flex w-full items-center justify-center gap-2 border border-white/10 py-3 text-xs font-bold uppercase tracking-[0.18em] text-[#a88a7e] transition-all hover:bg-white/5 hover:text-white active:scale-95"
-                            >
-                                <Undo2 className="h-4 w-4" /> Deshacer
-                            </button>
-                        )}
-                    </motion.div>
-                </div>,
-                document.body
-            )}
+            <GameLostModal
+                gameLost={gameLost}
+                lostReason={lostReason}
+                handleRestart={handleRestart}
+                handleUndo={handleUndo}
+            />
 
             {/* Modal de Recuerdo Desbloqueado */}
-            {typeof window !== 'undefined' && createPortal(
-                <AnimatePresence>
-                    {memoryModalData && (
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="fixed inset-0 z-[100099] flex items-center justify-center bg-black/80 p-4 backdrop-blur-md overflow-hidden"
-                        >
-                            {/* Cyber scanlines */}
-                            <div className="absolute inset-0 scanlines-overlay opacity-35 pointer-events-none z-0" />
 
-                            {/* Figuras desenfocadas de fondo (Glow dorado) */}
-                            <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-                                <div className="absolute top-[15%] left-[10%] w-80 h-80 rounded-full bg-[#ffd700]/12 blur-[100px] animate-bg-glow-float-1" />
-                                <div className="absolute bottom-[15%] right-[10%] w-80 h-80 rounded-full bg-[#ff00ff]/8 blur-[100px] animate-bg-glow-float-2" />
-                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] rounded-full bg-[#ffd700]/5 blur-[90px] animate-bg-glow-rotate" />
-                            </div>
+            <MemoryUnlockedModal
+                memoryModalData={memoryModalData}
+                setMemoryModalData={setMemoryModalData}
+                setTimerActive={setTimerActive}
+            />
 
-                            <motion.div
-                                initial={{ scale: 0.9, y: 20 }}
-                                animate={{ scale: 1, y: 0 }}
-                                exit={{ scale: 0.9, y: 20 }}
-                                transition={{ type: 'spring', damping: 25, stiffness: 180 }}
-                                className="relative z-10 w-full max-w-lg border border-[#ffd700]/40 bg-[#0a0a0a] p-6 text-center shadow-[0_0_50px_rgba(255,215,0,0.25)] md:p-8 animate-glitch-container"
-                            >
-                                <BrutalistCorners color="#ffd700" size={16} />
 
-                                <div className="mb-4 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.24em] text-[#ffd700] animate-glitch-text">
-                                    <Sparkles className="h-4 w-4 text-[#ffd700] animate-pulse" />
-                                    Recuerdo Desbloqueado
-                                </div>
+            <GameWonModal
+                gameWon={gameWon}
+                gameMode={gameMode}
+                profile={profile as 'el' | 'ella'}
+                accentColor={accentColor}
+                accentClass={accentClass}
+                secondaryColor={secondaryColor}
+                isNewRecord={isNewRecord}
+                formatTime={formatTime}
+                timeSeconds={timerRef.current?.getTime() || 0}
+                maxGameCombo={maxGameCombo}
+                leaderboard={leaderboard}
+                levelComparisons={levelComparisons}
+                setIsLoaded={setIsLoaded}
+            />
 
-                                {/* Foto grande con bordes dorados */}
-                                <div className="relative mx-auto mb-6 aspect-video max-h-64 overflow-hidden border border-[#ffd700]/30 bg-black/60 p-[3px]">
-                                    <img
-                                        src={memoryModalData.imageUrl}
-                                        alt={memoryModalData.title}
-                                        className="h-full w-full object-cover"
-                                    />
-                                </div>
 
-                                <h3 className="mb-1 text-2xl font-black uppercase tracking-tight text-white font-mono">
-                                    {memoryModalData.title}
-                                </h3>
-
-                                <span className="mb-4 block text-[10px] font-mono uppercase text-[#a88a7e]">
-                                    {memoryModalData.date}
-                                </span>
-
-                                <p className="mb-8 border-y border-white/5 py-4 font-mono text-xs italic leading-relaxed text-[#e5e2e1]">
-                                    "{memoryModalData.description}"
-                                </p>
-
-                                <button
-                                    onClick={() => {
-                                        setMemoryModalData(null);
-                                        setTimerActive(true); // Reanudar temporizador
-                                    }}
-                                    className="w-full bg-[#ffd700] py-3 text-xs font-black uppercase tracking-[0.18em] text-black transition-all hover:bg-[#ffe57f] active:scale-95"
-                                >
-                                    Continuar
-                                </button>
-                            </motion.div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>,
-                document.body
-            )}
-
-            {gameWon && typeof window !== 'undefined' && createPortal(
-                <div className="fixed inset-0 z-[100000] flex items-center justify-center bg-black/75 backdrop-blur-md p-4 overflow-hidden">
-                    {/* Cyber scanlines */}
-                    <div className="absolute inset-0 scanlines-overlay opacity-35 pointer-events-none z-0" />
-
-                    {/* Figuras desenfocadas de fondo (Glow con colores dinámicos) */}
-                    <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-                        <div className="absolute top-[15%] left-[10%] w-80 h-80 rounded-full blur-[100px] animate-bg-glow-float-1" style={{ backgroundColor: `${accentColor}33` }} />
-                        <div className="absolute bottom-[15%] right-[10%] w-80 h-80 rounded-full blur-[100px] animate-bg-glow-float-2" style={{ backgroundColor: `${secondaryColor}22` }} />
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] rounded-full blur-[90px] animate-bg-glow-rotate" style={{ backgroundColor: `${accentColor}15` }} />
-                    </div>
-
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className={`relative z-10 flex w-[95%] max-w-md flex-col items-center border border-${accentClass} bg-black/95 px-8 py-10 shadow-none backdrop-blur-xl md:px-12 md:py-12 animate-glitch-container`}
-                        style={{ borderColor: accentColor, boxShadow: `0 0 44px ${accentColor}2e` }}
-                    >
-                        <BrutalistCorners color={accentColor} size={16} />
-
-                        <div className="mb-5 flex h-16 w-16 rotate-45 items-center justify-center border-2 border-current animate-glitch-flicker" style={{ color: accentColor }}>
-                            <Trophy className="h-8 w-8 -rotate-45 text-current" />
-                        </div>
-                        <h3 className="mb-2 text-3xl font-black uppercase tracking-normal md:text-4xl animate-glitch-text" style={{ color: accentColor }}>¡Triunfo!</h3>
-                        <p className="mb-6 text-center text-sm font-light tracking-normal text-[#a88a7e]">
-                            {gameMode === 'coop' ? '¡Tablero cooperativo completado en pareja! 💖' : gameMode === 'daily' ? '¡Desafío Diario superado con éxito! 🌟' : 'Has liberado todas nuestras memorias.'}
-                        </p>
-
-                        {/* Video de Victoria */}
-                        <div className="relative w-full mb-6 aspect-video overflow-hidden border border-white/10 bg-black/60 p-[3px]" style={{ borderColor: `${accentColor}40`, boxShadow: `0 0 15px ${accentColor}15` }}>
-                            {/* Esquinas brutalistas decorativas */}
-                            <div className="absolute top-0 left-0 h-2 w-2 border-t border-l" style={{ borderColor: accentColor }} />
-                            <div className="absolute top-0 right-0 h-2 w-2 border-t border-r" style={{ borderColor: accentColor }} />
-                            <div className="absolute bottom-0 left-0 h-2 w-2 border-b border-l" style={{ borderColor: accentColor }} />
-                            <div className="absolute bottom-0 right-0 h-2 w-2 border-b border-r" style={{ borderColor: accentColor }} />
-
-                            <video
-                                src="/vid/mahjong_victory.mp4"
-                                autoPlay
-                                loop
-                                muted
-                                playsInline
-                                className="h-full w-full object-cover"
-                            />
-                        </div>
-
-                        {isNewRecord && (
-                            <motion.div
-                                initial={{ scale: 0.8, opacity: 0 }}
-                                animate={{ scale: [1, 1.05, 1], opacity: 1 }}
-                                transition={{ repeat: Infinity, duration: 1.5 }}
-                                className={`mb-4 border border-${accentClass} bg-${accentClass}/10 px-6 py-2 text-xs font-bold uppercase tracking-[0.2em] shadow-none`}
-                                style={{ borderColor: accentColor, color: profile === 'ella' ? '#ffb595' : '#e1ff80' }}
-                            >
-                                NUEVO RÉCORD
-                            </motion.div>
-                        )}
-
-                        <div className="relative mb-6 w-full border border-white/10 bg-[#050505] p-4 flex justify-around items-center">
-                            <div className="text-center">
-                                <span className="mb-1 block text-[10px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Tu Tiempo</span>
-                                <span className="font-mono text-3xl tracking-normal text-white">{formatTime(timerRef.current?.getTime() || 0)}</span>
-                                <span className={`mt-1 block text-[10px] font-bold uppercase ${profile === 'ella' ? 'text-user-b' : 'text-user-a'}`}>
-                                    {profile === 'el' ? 'Santiago' : 'Mile'}
-                                </span>
-                            </div>
-                            <div className="border-l border-white/10 h-10" />
-                            <div className="text-center">
-                                <span className="mb-1 block text-[10px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Racha Máxima</span>
-                                <span className="font-mono text-3xl tracking-normal" style={{ color: accentColor }}>🔥 {maxGameCombo}</span>
-                                <span className="mt-1 block text-[10px] font-bold uppercase text-orange-500">
-                                    Combo
-                                </span>
-                            </div>
-                        </div>
-
-                        {gameMode === 'daily' ? (
-                            (leaderboard.el.length > 0 || leaderboard.ella.length > 0) && (
-                                <div className="w-full mb-6">
-                                    <h4 className="mb-3 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Tabla de Récords (Diario)</h4>
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <div className="space-y-1.5">
-                                            <span className="block text-center text-[10px] font-bold uppercase tracking-wider text-user-a">Él</span>
-                                            {leaderboard.el.length > 0 ? leaderboard.el.slice(0, 3).map((s, i) => (
-                                                <div key={i} className="flex items-center justify-between border border-white/10 bg-[#0a0a0a] px-3 py-1.5 text-xs font-mono">
-                                                    <span className="text-white/35">#{i + 1}</span>
-                                                    <div className="flex items-center gap-1.5">
-                                                        <span className="tabular-nums tracking-normal text-white">{formatTime(s.time_seconds)}</span>
-                                                        {s.highest_combo !== undefined && s.highest_combo > 0 && (
-                                                            <span className="text-orange-500 text-[10px] font-bold">🔥{s.highest_combo}</span>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            )) : (
-                                                <p className="text-center text-[10px] italic text-white/30">Sin récords</p>
-                                            )}
-                                        </div>
-                                        <div className="space-y-1.5">
-                                            <span className="block text-center text-[10px] font-bold uppercase tracking-wider text-user-b">Ella</span>
-                                            {leaderboard.ella.length > 0 ? leaderboard.ella.slice(0, 3).map((s, i) => (
-                                                <div key={i} className="flex items-center justify-between border border-white/10 bg-[#0a0a0a] px-3 py-1.5 text-xs font-mono">
-                                                    <span className="text-white/35">#{i + 1}</span>
-                                                    <div className="flex items-center gap-1.5">
-                                                        <span className="tabular-nums tracking-normal text-white">{formatTime(s.time_seconds)}</span>
-                                                        {s.highest_combo !== undefined && s.highest_combo > 0 && (
-                                                            <span className="text-orange-500 text-[10px] font-bold">🔥{s.highest_combo}</span>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            )) : (
-                                                <p className="text-center text-[10px] italic text-white/30">Sin récords</p>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                            )
-                        ) : gameMode === 'solo' && levelComparisons.length > 0 ? (
-                            <div className="w-full mb-6">
-                                <h4 className="mb-3 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-[#a88a7e]">Comparativa de Niveles</h4>
-                                <div className="space-y-2">
-                                    {levelComparisons.map((comp, idx) => {
-                                        const elTimeStr = comp.elTime !== null ? formatTime(comp.elTime) : '--:--';
-                                        const ellaTimeStr = comp.ellaTime !== null ? formatTime(comp.ellaTime) : '--:--';
-                                        return (
-                                            <div key={idx} className="flex flex-col items-center border border-white/10 bg-[#0a0a0a] py-2 px-3 text-xs tracking-normal font-mono">
-                                                <div className="mb-1 text-[9px] font-bold uppercase text-[#a88a7e] tracking-wider">
-                                                    {comp.levelLabel}
-                                                </div>
-                                                <div className="flex w-full justify-center gap-3 text-white">
-                                                    <span className="text-user-a font-bold">
-                                                        el lvl {comp.elLvl} {elTimeStr} {comp.elCombo > 0 && <span className="text-orange-500 font-bold text-[10px]">🔥{comp.elCombo}</span>}
-                                                    </span>
-                                                    <span className="text-white/20">|</span>
-                                                    <span className="text-user-b font-bold">
-                                                        ella lvl {comp.ellaLvl} {ellaTimeStr} {comp.ellaCombo > 0 && <span className="text-orange-500 font-bold text-[10px]">🔥{comp.ellaCombo}</span>}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        ) : null}
-
-                        <button onClick={() => { setIsLoaded(false); }} className={`w-full bg-${accentClass} py-3.5 text-xs font-black uppercase tracking-[0.18em] text-black transition-all hover:opacity-80 active:scale-95`} style={{ backgroundColor: accentColor }}>Jugar de nuevo</button>
-                    </motion.div>
-                </div>,
-                document.body
-            )}
-
-            {/* Modal para Escribir Mensaje en la Botella */}
-            {bottleNoteModal && (
-                <div className="fixed inset-0 z-[100099] flex items-center justify-center bg-black/80 p-4 backdrop-blur-md">
-                    <BrutalistPanel
-                        accentColor="#2dd4bf"
-                        cornerSize={12}
-                        className="w-full max-w-md !bg-[#0c1616] p-6 shadow-[0_0_40px_rgba(0,128,128,0.25)] md:p-8"
-                    >
-                        <h3 className="mb-2 text-xl font-bold uppercase tracking-wider text-[#00ffcc] font-mono">
-                            Mensaje en la Botella 🍾
-                        </h3>
-                        <p className="mb-4 text-xs leading-relaxed text-slate-400 font-mono">
-                            Escribe una nota de amor, un mensajito dulce o una frase especial. Tu pareja verá una botella en la parte superior de su pantalla para revelarlo.
-                        </p>
-
-                        <textarea
-                            value={bottleNoteText}
-                            onChange={(e) => setBottleNoteText(e.target.value)}
-                            placeholder="Te amo mucho, ten un día increíble..."
-                            className="w-full h-28 border border-teal-500/20 bg-black/50 p-3 font-mono text-xs text-white focus:border-teal-500 focus:outline-none placeholder:text-teal-900/60"
-                        />
-
-                        <div className="mt-6 flex gap-3">
-                            <button
-                                onClick={async () => {
-                                    if (bottleNoteText.trim()) {
-                                        const success = await MahjongService.createBottleMessage(profile as 'el' | 'ella', bottleNoteText);
-                                        if (success) {
-                                            notifySuccess('Tu mensaje ha sido embotellado y arrojado al océano.', 'Botella enviada');
-                                            const target = profile === 'el' ? 'ella' : 'el';
-                                            const senderName = profile === 'el' ? 'Santiago' : 'Milena';
-                                            NotificationService.addNotification(
-                                                target,
-                                                'bottle_sent',
-                                                `¡${senderName} te ha arrojado una botella al mar! Juega para encontrarla. 🍾`
-                                            ).catch(e => console.error(e));
-                                            handleCloseWriteModal();
-                                            refreshConnectionFeatures();
-                                        }
-                                    }
-                                }}
-                                className="flex-1 bg-[#008080] py-2.5 text-xs font-black uppercase tracking-wider text-white hover:bg-[#009999] active:scale-95 transition-all"
-                            >
-                                Lanzar al mar
-                            </button>
-                            <button
-                                onClick={handleCloseWriteModal}
-                                className="border border-white/10 px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-slate-400 hover:bg-white/5 active:scale-95 transition-all"
-                            >
-                                Cancelar
-                            </button>
-                        </div>
-                    </BrutalistPanel>
-                </div>
-            )}
-
-            {/* Modal para Revelar Mensaje de Amor de la Botella */}
-            {typeof window !== 'undefined' && createPortal(
-                <AnimatePresence>
-                    {revealedBottleMessage && (
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="fixed inset-0 z-[100099] flex items-center justify-center bg-black/85 p-4 backdrop-blur-md overflow-hidden"
-                        >
-                            {/* Cyber scanlines */}
-                            <div className="absolute inset-0 scanlines-overlay opacity-35 pointer-events-none z-0" />
-
-                            <motion.div
-                                initial={{ scale: 0, opacity: 0 }}
-                                animate={{ scale: 1, opacity: 1 }}
-                                exit={{ scale: 0, opacity: 0 }}
-                                transition={{ type: 'spring', damping: 25, stiffness: 180 }}
-                                className="relative z-10 w-full max-w-sm border border-[#00ffcc]/40 bg-[#0c1616] p-6 text-center shadow-[0_0_40px_rgba(0,255,204,0.2)] md:p-8"
-                            >
-                                <BrutalistCorners color="#00ffcc" size={16} />
-
-                                <div className="mb-4 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.24em] text-[#00ffcc]">
-                                    🍾 Mensaje de Amor Encontrado
-                                </div>
-
-                                {/* Recipient-specific video loop - Tall 9:16 aspect */}
-                                <div className="relative mx-auto mb-6 aspect-[9/16] h-[380px] max-h-[50vh] overflow-hidden border border-[#00ffcc]/20 bg-black/60 p-[3px]">
-                                    <div className="absolute top-0 left-0 h-2 w-2 border-t border-l border-[#00ffcc] z-10" />
-                                    <div className="absolute top-0 right-0 h-2 w-2 border-t border-r border-[#00ffcc] z-10" />
-                                    <div className="absolute bottom-0 left-0 h-2 w-2 border-b border-l border-[#00ffcc] z-10" />
-                                    <div className="absolute bottom-0 right-0 h-2 w-2 border-b border-r border-[#00ffcc] z-10" />
-
-                                    <video
-                                        ref={videoRef}
-                                        src="/vid/mahjong_Sam.mp4"
-                                        autoPlay
-                                        loop={false}
-                                        muted
-                                        playsInline
-                                        onTimeUpdate={(e) => {
-                                            const video = e.currentTarget;
-                                            // Start fade in message at 3.2s
-                                            if (video.currentTime >= 3.2 && video.currentTime < 4.0) {
-                                                setShowMessageText((prev) => {
-                                                    if (!prev) return true;
-                                                    return prev;
-                                                });
-                                            }
-                                            // Pause at 4.0s when the scroll opens and is fully open
-                                            if (video.currentTime >= 4.0 && !hasPausedForMessage) {
-                                                video.pause();
-                                                setHasPausedForMessage(true);
-                                            }
-                                        }}
-                                        onEnded={() => {
-                                            if (pendingReceivedBottle && revealedBottleMessage?.id === pendingReceivedBottle.id) {
-                                                MahjongService.revealBottleMessage(pendingReceivedBottle.id, profile as 'el' | 'ella')
-                                                    .then(() => refreshConnectionFeatures());
-                                            }
-                                            setRevealedBottleMessage(null);
-                                            setTimerActive(true);
-                                            setHasPausedForMessage(false);
-                                            setShowMessageText(false);
-                                        }}
-                                        className="h-full w-full object-cover"
-                                    />
-
-                                    {/* Message text overlaid inside the video box */}
-                                    <AnimatePresence>
-                                        {showMessageText && (
-                                            <motion.div
-                                                initial={{ opacity: 0, scale: 0 }}
-                                                animate={{ opacity: 1, scale: 1 }}
-                                                exit={{ opacity: 0, scale: 0 }}
-                                                transition={{ duration: 0.6, ease: "easeOut" }}
-                                                className="absolute inset-0 flex flex-col justify-center items-center bg-black/55 p-3 select-none font-serif text-teal-100 italic text-center z-20"
-                                            >
-                                                <div className="max-w-[90%] break-words bg-black/75 border border-[#00ffcc]/30 px-3 py-4 rounded shadow-2xl text-[11px] leading-relaxed font-mono">
-                                                    "{revealedBottleMessage.text}"
-                                                    <span className="block mt-3 text-[8px] uppercase tracking-wider font-mono text-[#a88a7e] not-italic">
-                                                        De: {revealedBottleMessage.sender}
-                                                    </span>
-                                                </div>
-                                            </motion.div>
-                                        )}
-                                    </AnimatePresence>
-                                </div>
-
-                                {!hasPausedForMessage || showMessageText ? (
-                                    <button
-                                        disabled={!showMessageText}
-                                        onClick={() => {
-                                            if (!showMessageText) return;
-                                            setShowMessageText(false);
-                                            if (videoRef.current) {
-                                                // Seek to 4.2s (the start of the retreat animation) and play immediately
-                                                videoRef.current.currentTime = 4.2;
-                                                videoRef.current.play().catch(e => console.error("Error playing video:", e));
-                                            }
-                                        }}
-                                        className="w-full bg-[#00ffcc] py-3 text-xs font-black uppercase tracking-[0.18em] text-black hover:bg-teal-300 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        ¡Qué tierno! Continuar
-                                    </button>
-                                ) : (
-                                    <div className="w-full py-3 text-xs font-mono uppercase tracking-[0.18em] text-teal-400 bg-teal-950/20 border border-teal-500/20">
-                                        Guardando en la memoria...
-                                    </div>
-                                )}
-                            </motion.div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>,
-                document.body
-            )}
+            <BottleMessageModal
+                bottleNoteModal={bottleNoteModal}
+                bottleNoteText={bottleNoteText}
+                setBottleNoteText={setBottleNoteText}
+                handleCloseWriteModal={handleCloseWriteModal}
+                onSend={async () => {
+                    if (bottleNoteText.trim()) {
+                        const success = await MahjongService.createBottleMessage(profile as 'el' | 'ella', bottleNoteText);
+                        if (success) {
+                            notifySuccess('Tu mensaje ha sido embotellado y arrojado al océano.', 'Botella enviada');
+                            const target = profile === 'el' ? 'ella' : 'el';
+                            const senderName = profile === 'el' ? 'Santiago' : 'Milena';
+                            NotificationService.addNotification(
+                                target,
+                                'bottle_sent',
+                                `¡${senderName} te ha arrojado una botella al mar! Juega para encontrarla. 🍾`
+                            ).catch(e => console.error(e));
+                            handleCloseWriteModal();
+                            refreshConnectionFeatures();
+                        }
+                    }
+                }}
+                revealedBottleMessage={revealedBottleMessage}
+                videoRef={videoRef}
+                hasPausedForMessage={hasPausedForMessage}
+                setHasPausedForMessage={setHasPausedForMessage}
+                showMessageText={showMessageText}
+                setShowMessageText={setShowMessageText}
+                onRevealComplete={() => {
+                    if (pendingReceivedBottle && revealedBottleMessage?.id === pendingReceivedBottle.id) {
+                        MahjongService.revealBottleMessage(pendingReceivedBottle.id, profile as 'el' | 'ella')
+                            .then(() => refreshConnectionFeatures());
+                    }
+                    setRevealedBottleMessage(null);
+                    setTimerActive(true);
+                    setHasPausedForMessage(false);
+                    setShowMessageText(false);
+                }}
+                profile={profile}
+            />
 
             <div
                 className={`flex w-full ${hasStarted ? 'fixed inset-0 z-[9999] h-[100dvh] w-[100dvw] bg-[#050505] max-w-none' : 'relative max-w-[880px] h-[720px] max-md:h-[650px]'} ${comboShake ? 'animate-combo-shake' : ''} max-md:max-w-none max-md:w-screen max-md:shrink-0 flex-col justify-center overflow-hidden border border-white/10 max-md:border-x-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.06),transparent_44%),linear-gradient(180deg,rgba(255,255,255,0.035),transparent)] transition-all duration-500`}
@@ -1996,154 +1621,36 @@ export function Mahjong() {
                 <div className="pointer-events-none absolute inset-0 bg-dot-matrix opacity-70" />
                 <AnimatedBrutalistCorners color={accentColor} size={12} thickness={1.5} />
 
+
                 {/* Daily Puzzle stats / scoreboard screen */}
-                {gameMode === 'daily' && dailyPlayRecord?.status !== 'started' && (
-                    <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/90 p-4 overflow-y-auto">
-                        <div className="border border-white/10 bg-black/95 p-6 text-center w-full max-w-md relative font-mono">
-                            <AnimatedBrutalistCorners color={accentColor} size={10} thickness={1.5} />
+                <DailyStatsModal
+                    gameMode={gameMode}
+                    dailyPlayRecord={dailyPlayRecord}
+                    accentColor={accentColor}
+                    DATE_FORMATTER={DATE_FORMATTER}
+                    dailyStats={dailyStats}
+                    formatTime={formatTime}
+                    historicDailyStats={historicDailyStats}
+                    handleStartDailyGame={handleStartDailyGame}
+                />
 
-                            <h3 className="text-xl font-black uppercase tracking-wider text-white mb-2 animate-glitch-text" style={{ color: accentColor }}>
-                                DESAFÍO DIARIO
-                            </h3>
-                            <p className="text-[10px] text-slate-500 mb-6 uppercase tracking-widest">
-                                {DATE_FORMATTER.format(new Date())}
-                            </p>
-
-                            {/* Today's Results comparing Santiago vs Milena */}
-                            <div className="mb-6 border-b border-white/10 pb-6">
-                                <h4 className="text-[10px] font-bold uppercase tracking-widest text-[#a88a7e] mb-3 text-left">
-                                    Resultados de Hoy
-                                </h4>
-                                <div className="grid grid-cols-2 gap-3 text-xs">
-                                    <div className="border border-white/10 bg-black/40 p-3 flex flex-col items-center">
-                                        <span className="text-[10px] font-bold text-user-a mb-1">Santiago</span>
-                                        {dailyStats.el ? (
-                                            dailyStats.el.status === 'completed' ? (
-                                                <div className="text-center">
-                                                    <span className="text-green-400 font-bold block">COMPLETADO</span>
-                                                    <span className="text-white/60 text-[10px] font-mono block mt-0.5">
-                                                        {formatTime(dailyStats.el.time_seconds)}
-                                                    </span>
-                                                </div>
-                                            ) : (
-                                                <span className="text-red-400 font-bold">FALLADO</span>
-                                            )
-                                        ) : (
-                                            <span className="text-white/35 italic">Pendiente</span>
-                                        )}
-                                    </div>
-                                    <div className="border border-white/10 bg-black/40 p-3 flex flex-col items-center">
-                                        <span className="text-[10px] font-bold text-user-b mb-1">Milena</span>
-                                        {dailyStats.ella ? (
-                                            dailyStats.ella.status === 'completed' ? (
-                                                <div className="text-center">
-                                                    <span className="text-green-400 font-bold block">COMPLETADO</span>
-                                                    <span className="text-white/60 text-[10px] font-mono block mt-0.5">
-                                                        {formatTime(dailyStats.ella.time_seconds)}
-                                                    </span>
-                                                </div>
-                                            ) : (
-                                                <span className="text-red-400 font-bold">FALLADO</span>
-                                            )
-                                        ) : (
-                                            <span className="text-white/35 italic">Pendiente</span>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Historic stats */}
-                            <div className="mb-6">
-                                <h4 className="text-[10px] font-bold uppercase tracking-widest text-[#a88a7e] mb-3 text-left">
-                                    Historial Acumulado
-                                </h4>
-                                <div className="space-y-3">
-                                    {/* Santiago */}
-                                    <div className="flex items-center justify-between text-[11px] border border-white/5 bg-[#050505] p-2">
-                                        <span className="font-bold text-user-a">Santiago:</span>
-                                        <span className="text-white/80">
-                                            {historicDailyStats.el.completed} ✔ | {historicDailyStats.el.failed} ❌ | {historicDailyStats.el.bestTime ? `⏱ ${formatTime(historicDailyStats.el.bestTime)}` : 'N/A'}
-                                        </span>
-                                    </div>
-                                    {/* Milena */}
-                                    <div className="flex items-center justify-between text-[11px] border border-white/5 bg-[#050505] p-2">
-                                        <span className="font-bold text-user-b">Milena:</span>
-                                        <span className="text-white/80">
-                                            {historicDailyStats.ella.completed} ✔ | {historicDailyStats.ella.failed} ❌ | {historicDailyStats.ella.bestTime ? `⏱ ${formatTime(historicDailyStats.ella.bestTime)}` : 'N/A'}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Play or locked message */}
-                            {(!dailyPlayRecord || dailyPlayRecord.status === null) ? (
-                                <button
-                                    onClick={handleStartDailyGame}
-                                    className="w-full bg-[#00ffcc] py-3 text-xs font-black uppercase tracking-[0.18em] text-black hover:bg-teal-300 active:scale-95 transition-all"
-                                    style={{ backgroundColor: accentColor, color: '#000' }}
-                                >
-                                    Iniciar Desafío Diario
-                                </button>
-                            ) : (
-                                <div className="border border-red-500/20 bg-red-950/15 p-3 text-[10px] text-red-400 uppercase tracking-wider font-bold">
-                                    Intento de hoy finalizado. ¡Vuelve mañana!
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                )}
 
                 {/* Coop Turn lock screen indicator */}
-                {gameMode === 'coop' && activeCoopGame && coopTurn !== profile && (
-                    <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/75 backdrop-blur-sm p-4">
-                        <div className="border border-white/10 bg-black/90 p-6 text-center max-w-xs relative">
-                            <AnimatedBrutalistCorners color={accentColor} size={8} thickness={1.5} />
-                            <div className="animate-pulse mb-3 text-sm font-bold uppercase tracking-widest text-[#a88a7e]">
-                                Esperando a tu pareja
-                            </div>
-                            <p className="text-xs text-slate-400 mb-4 leading-relaxed font-mono">
-                                Es el turno de {coopTurn === 'el' ? 'Santiago' : 'Milena'} para jugar y despejar recuerdos.
-                            </p>
-                            <div className="text-[10px] uppercase font-mono text-slate-500">
-                                Recibirás una notificación cuando sea tu turno.
-                            </div>
-                        </div>
-                    </div>
-                )}
+                <CoopTurnModal
+                    gameMode={gameMode}
+                    activeCoopGame={activeCoopGame}
+                    coopTurn={coopTurn}
+                    profile={profile}
+                    accentColor={accentColor}
+                />
 
                 {/* Coop game setup screen */}
-                {gameMode === 'coop' && !activeCoopGame && (
-                    <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/85 p-4">
-                        <div className="border border-white/10 bg-black/95 p-6 text-center max-w-sm relative">
-                            <AnimatedBrutalistCorners color={accentColor} size={10} thickness={1.5} />
-                            <h3 className="text-lg font-bold uppercase tracking-wider text-white mb-2 font-mono">Tablero Cooperativo</h3>
-                            <p className="text-xs text-slate-400 mb-5 leading-relaxed font-mono">
-                                Trabaja con tu pareja para despejar el tablero y desbloquear recuerdos mutuos.
-                            </p>
-
-                            <div className="flex flex-col gap-2 font-mono">
-                                <button
-                                    onClick={() => handleStartCoopGame('turtle')}
-                                    className="bg-white/5 border border-white/15 py-2 text-xs font-bold uppercase tracking-wider text-white hover:bg-white/10 hover:border-white/25 active:scale-95 transition-all"
-                                >
-                                    Iniciar: Tortuga
-                                </button>
-                                <button
-                                    onClick={() => handleStartCoopGame('peaks')}
-                                    className="bg-white/5 border border-white/15 py-2 text-xs font-bold uppercase tracking-wider text-white hover:bg-white/10 hover:border-white/25 active:scale-95 transition-all"
-                                >
-                                    Iniciar: Picos Gemelos
-                                </button>
-                                <button
-                                    onClick={() => handleStartCoopGame('random')}
-                                    className="bg-white/5 border border-white/15 py-2 text-xs font-bold uppercase tracking-wider text-white hover:bg-white/10 hover:border-white/25 active:scale-95 transition-all"
-                                >
-                                    Iniciar: Caos
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
+                <CoopSetupModal
+                    gameMode={gameMode}
+                    activeCoopGame={activeCoopGame}
+                    accentColor={accentColor}
+                    handleStartCoopGame={handleStartCoopGame}
+                />
 
                 {/* Exit Fullscreen button (only visible when hasStarted is true) */}
                 {hasStarted && (
@@ -2159,134 +1666,26 @@ export function Mahjong() {
                     </button>
                 )}
 
-                {/* --- 3D BRUTALIST HUD: TIMER (TOP LEFT OF DOCK) --- */}
-                <div className={`absolute ${hasStarted ? 'top-[calc(env(safe-area-inset-top,0px)+12px)]' : 'top-[16px] md:top-[24px]'} right-[calc(50%+90px)] sm:right-[calc(50%+110px)] md:right-[calc(50%+155px)] left-auto z-20`}>
-                    <MahjongTimer isActive={timerActive} formatTime={formatTime} ref={timerRef} accentColor={accentColor} />
-                </div>
 
-                {/* --- 3D BRUTALIST HUD: PAIR COUNTER (TOP RIGHT OF DOCK) --- */}
-                <div className={`absolute ${hasStarted ? 'top-[calc(env(safe-area-inset-top,0px)+12px)]' : 'top-[16px] md:top-[24px]'} left-[calc(50%+90px)] sm:left-[calc(50%+110px)] md:left-[calc(50%+155px)] right-auto z-20 select-none group`}>
-                    {/* Remaining fire countdown timer */}
-                    {streakCombo > 0 && (
-                        <div className="absolute -top-[24px] left-0 right-0 text-center font-mono text-[9px] font-black text-orange-500 animate-pulse bg-black/90 border border-orange-500/40 px-1 py-0.5 shadow-[0_0_8px_rgba(255,80,0,0.3)] rounded-sm">
-                            🔥 {streakTimeRemaining}s
-                        </div>
-                    )}
-                    {/* 3D shadow/extrusion */}
-                    <div
-                        className="absolute inset-0 translate-x-[3px] translate-y-[3px] border-2 border-black transition-all duration-200"
-                        style={{ backgroundColor: streakCombo > 0 ? '#ff4500' : accentColor }}
-                    />
-                    {/* Foreground container */}
-                    <div
-                        className={`relative flex items-center gap-1.5 md:gap-2 border-2 bg-[#0a0a0a] px-2 py-1 md:px-3.5 md:py-2 transition-all duration-200 group-hover:-translate-x-[1px] group-hover:-translate-y-[1px] ${
-                            isMatchPulse ? 'scale-105' : 'scale-100'
-                        }`}
-                        style={{
-                            borderColor: streakCombo > 0 ? '#ff4500' : '#ffffff',
-                            boxShadow: streakCombo > 0 
-                                ? '0 0 15px rgba(255, 69, 0, 0.4)' 
-                                : isMatchPulse 
-                                    ? `0 0 15px ${accentColor}80` 
-                                    : 'none'
-                        }}
-                    >
-                        {/* Glowing/pulsing Flame icon next to the number */}
-                        {streakCombo > 0 && (
-                            <motion.div
-                                key={streakCombo}
-                                initial={{ scale: 2.8, rotate: -18 }}
-                                animate={{ scale: [1.18, 0.96, 1.08], rotate: [-8, 8, -4] }}
-                                transition={{ duration: 0.9, repeat: Infinity, repeatType: 'mirror', ease: 'easeInOut' }}
-                                className="relative mr-0.5 text-orange-500"
-                            >
-                                <span className="absolute inset-0 rounded-full bg-orange-500/45 blur-md" />
-                                {Array.from({ length: Math.min(5, Math.max(1, streakCombo)) }).map((_, idx) => (
-                                    <motion.span
-                                        key={idx}
-                                        className="pointer-events-none absolute left-1/2 top-1/2 h-1 w-1 rounded-full bg-yellow-300"
-                                        initial={{ x: 0, y: 0, opacity: 0, scale: 0.4 }}
-                                        animate={{
-                                            x: (idx - 2) * 5,
-                                            y: [-2, -13 - idx * 2],
-                                            opacity: [0, 0.95, 0],
-                                            scale: [0.5, 1.1, 0.25]
-                                        }}
-                                        transition={{
-                                            duration: 0.7 + idx * 0.08,
-                                            repeat: Infinity,
-                                            delay: idx * 0.1,
-                                            ease: 'easeOut'
-                                        }}
-                                    />
-                                ))}
-                                <Flame
-                                    className="relative h-4 w-4 md:h-5 md:w-5 fill-orange-500 text-orange-500 drop-shadow-[0_0_8px_rgba(255,106,0,0.85)]"
-                                    style={{
-                                        filter: `drop-shadow(0 0 ${Math.min(14, 6 + streakCombo * 1.3)}px rgba(255,106,0,0.9))`
-                                    }}
-                                />
-                            </motion.div>
-                        )}
-                        <div className="flex flex-col items-start leading-none">
-                            <span className="text-[7px] md:text-[9px] font-bold uppercase tracking-[0.15em] text-[#a88a7e] mb-0.5">Parejas</span>
-                            <div className="flex items-baseline gap-1 font-mono tracking-normal">
-                                <motion.span
-                                    key={Math.floor(matchedCount / 2)}
-                                    initial={{ scale: 3.5 }}
-                                    animate={{ scale: 1 }}
-                                    transition={{ type: "spring", stiffness: 300, damping: 15 }}
-                                    className="inline-block text-xs md:text-sm font-black tabular-nums text-white"
-                                    style={{ transformOrigin: "center" }}
-                                >
-                                    {Math.floor(matchedCount / 2)}
-                                </motion.span>
-                                <span className="text-[9px] md:text-[10px] text-white/40">/ {Math.floor(tiles.length / 2)}</span>
-                            </div>
-                        </div>
-                        <Trophy
-                            className={`h-3.5 w-3.5 md:h-4.5 md:w-4.5 transition-transform duration-300 ${isMatchPulse ? 'rotate-12 scale-125' : 'rotate-0'}`}
-                            style={{ color: streakCombo > 0 ? '#ff4500' : accentColor }}
-                        />
-                    </div>
-                </div>
-
-                {/* --- 3D BRUTALIST HUD: ACTIONS (BOTTOM CENTER, BELOW PROGRESS BAR) --- */}
-                <div className={`absolute ${hasStarted ? 'bottom-[calc(env(safe-area-inset-bottom,0px)+12px)] md:bottom-[20px]' : 'bottom-[calc(var(--app-nav-height)+env(safe-area-inset-bottom,0px)+8px)] md:bottom-[16px]'} left-1/2 -translate-x-1/2 z-20 flex items-center justify-center gap-2 sm:gap-4`}>
-                    <Brutalist3DButton
-                        onClick={handleUndo}
-                        disabled={undoStack.length === 0}
-                        shadowColor={undoStack.length > 0 ? accentColor : '#333'}
-                        title="Deshacer"
-                    >
-                        <Undo2 className="h-3.5 w-3.5 transition-transform duration-300 group-hover:-rotate-45" />
-                        <span className="hidden sm:inline">Deshacer</span>
-                    </Brutalist3DButton>
-
-                    <Brutalist3DButton onClick={handleHint} shadowColor={accentColor} title="Pista">
-                        <Lightbulb className="h-3.5 w-3.5 transition-all duration-300 group-hover:scale-115 group-hover:text-yellow-300" />
-                        <span className="hidden sm:inline">Pista</span>
-                    </Brutalist3DButton>
-
-                    {gameMode !== 'daily' && (
-                        <Brutalist3DButton onClick={handleRestart} shadowColor={accentColor} title="Reiniciar">
-                            <RotateCcw className="h-3.5 w-3.5 transition-transform duration-500 group-hover:rotate-180" />
-                            <span className="hidden sm:inline">Reiniciar</span>
-                        </Brutalist3DButton>
-                    )}
-
-                    <Brutalist3DButton
-                        onClick={toggleMute}
-                        shadowColor={muted ? '#555' : accentColor}
-                        title={muted ? 'Activar sonido' : 'Silenciar'}
-                        aria-label={muted ? 'Activar sonido' : 'Silenciar'}
-                    >
-                        {muted
-                            ? <VolumeX className="h-3.5 w-3.5 text-white/50" />
-                            : <Volume2 className="h-3.5 w-3.5 transition-all duration-300 group-hover:scale-115" />}
-                        <span className="hidden sm:inline">{muted ? 'Silencio' : 'Sonido'}</span>
-                    </Brutalist3DButton>
-                </div>
+                <MahjongHud
+                    hasStarted={hasStarted}
+                    timerActive={timerActive}
+                    formatTime={formatTime}
+                    timerRef={timerRef}
+                    accentColor={accentColor}
+                    streakCombo={streakCombo}
+                    streakTimeRemaining={streakTimeRemaining}
+                    isMatchPulse={isMatchPulse}
+                    matchedCount={matchedCount}
+                    tilesLength={tiles.length}
+                    handleUndo={handleUndo}
+                    undoStackLength={undoStack.length}
+                    handleHint={handleHint}
+                    gameMode={gameMode}
+                    handleRestart={handleRestart}
+                    toggleMute={toggleMute}
+                    muted={muted}
+                />
 
                 <div className="h-6" />
 

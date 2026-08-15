@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { sound } from '@/lib/sound';
 import { haptics } from '@/lib/haptics';
-import { MovementSession, ReactionType, Reaction, SessionCategory, DifficultyLevel, EnergyLevel, CompletionStatus, MobilityStatus } from './types';
+import { MovementSession, ReactionType, Reaction } from './types';
 
 export function useMovementData(profile: string | null) {
     const [sessions, setSessions] = useState<MovementSession[]>([]);
