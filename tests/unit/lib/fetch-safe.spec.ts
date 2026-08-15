@@ -194,7 +194,7 @@ test.describe('validateHostname', () => {
         expect(lookupCount).toBe(2); // Should call lookup again
     });
 
-    test('does not cache errors', async () => {
+    test('caches errors to prevent intentional timeout bypasses', async () => {
         let lookupCount = 0;
         let shouldThrow = true;
 
@@ -220,11 +220,11 @@ test.describe('validateHostname', () => {
         expect(result1).toBe(false);
         expect(lookupCount).toBe(1);
 
-        // Next call should succeed since errors aren't cached
+        // Now errors ARE cached to prevent bypasses, so it should return false and NOT call lookup again
         shouldThrow = false;
         const result2 = await validateHostname('error-test.com');
-        expect(result2).toBe(true);
-        expect(lookupCount).toBe(2);
+        expect(result2).toBe(false);
+        expect(lookupCount).toBe(1);
 
         dns.resolve4 = originalResolve4;
         dns.resolve6 = originalResolve6;
