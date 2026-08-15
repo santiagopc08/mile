@@ -1383,10 +1383,18 @@ export function Mahjong() {
             seenValues.set(value, tile.id);
         }
 
+        // ⚡ Bolt Optimization: Replace O(N*M) nested loop find with O(N+M) Map lookup for hints
+        const freeTilesByValue = new Map();
+        for (const t of freeOnBoard) {
+            if (!freeTilesByValue.has(t.content.value)) {
+                freeTilesByValue.set(t.content.value, t);
+            }
+        }
+
         for (const dId of dockIds) {
             const dockTile = tilesById.get(dId);
             if (!dockTile) continue;
-            const match = freeOnBoard.find(t => t.content.value === dockTile.content.value);
+            const match = freeTilesByValue.get(dockTile.content.value);
             if (match) {
                 setTiles(prev => prev.map(t => t.id === match.id ? { ...t, isHinted: true } : t));
                 setTimeout(() => {
