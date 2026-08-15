@@ -20,7 +20,7 @@ export async function GET(request: Request) {
             return new Response('Invalid url scheme', { status: 400 });
         }
 
-        // Security fix: Restrict open proxy to allowed origin (Supabase storage)
+        // Restrict open proxy to allowed origin (Supabase public storage)
         const allowedOrigin = process.env.NEXT_PUBLIC_SUPABASE_URL;
         if (!allowedOrigin) {
             return new Response('Forbidden: URL not in allowlist', { status: 403 });
@@ -29,6 +29,12 @@ export async function GET(request: Request) {
         try {
             const parsedUrl = new URL(url);
             const parsedAllowedOrigin = new URL(allowedOrigin);
+
+            // Strict prefix check to prevent bypasses via URL parsing quirks
+            if (!url.startsWith(allowedOrigin + '/storage/v1/object/public/')) {
+                return new Response('Forbidden: URL not in allowlist', { status: 403 });
+            }
+
             if (parsedUrl.origin !== parsedAllowedOrigin.origin || !parsedUrl.pathname.startsWith('/storage/v1/object/public/')) {
                 return new Response('Forbidden: URL not in allowlist', { status: 403 });
             }

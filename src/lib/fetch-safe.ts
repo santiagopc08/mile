@@ -74,6 +74,7 @@ export async function resolveSafeIP(hostname: string): Promise<string> {
         if (e instanceof Error && e.message === 'Private or local addresses are not allowed') {
             throw e;
         }
+        console.error(`DNS resolution failed in resolveSafeIP for ${hostname}:`, e);
         // Block if DNS resolution fails to prevent bypasses
     }
     throw new Error('Private or local addresses are not allowed');
@@ -99,8 +100,10 @@ export async function validateHostname(hostname: string): Promise<boolean> {
         }
         validateCache.set(hostname, { isValid: true, expiresAt: now + CACHE_TTL_MS });
         return true;
-    } catch {
-        // We don't cache errors to allow transient failures to recover
+    } catch (error) {
+        console.error(`DNS resolution failed for ${hostname}:`, error);
+        // Cache errors as invalid to prevent bypasses if an attacker intentionally times out
+        validateCache.set(hostname, { isValid: false, expiresAt: now + CACHE_TTL_MS });
         return false;
     }
 }
