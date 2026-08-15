@@ -3,12 +3,11 @@
 import { useRef, useState, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { TileState } from './MahjongTile';
 import { useProfile } from '@/context/ProfileContext';
 
-import { BACK_GEOMETRY, FRONT_GEOMETRY, TILE_WIDTH, TILE_HEIGHT, TILE_BACK_DEPTH, TILE_FACE_WIDTH, TILE_FACE_HEIGHT, TILE_FACE_DEPTH } from "./mahjong/tile/Geometry";
+import { BACK_GEOMETRY, FRONT_GEOMETRY } from "./mahjong/tile/Geometry";
 import { useTileTexture } from "./mahjong/tile/useTileTexture";
-import { DyingInfo, Tile3DProps } from "./mahjong/tile/Types";
+import { Tile3DProps } from "./mahjong/tile/Types";
 export function Tile3D({ tile, isFree, centerX, centerY, boardY, dockY, dockIds, onSelect, isGhostSolid, hasStarted, dyingInfo }: Tile3DProps) {
     const { profile } = useProfile();
     const meshRef = useRef<THREE.Group>(null);
