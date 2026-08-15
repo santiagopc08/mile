@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useProfile } from '@/context/ProfileContext';
 import { NotificationService } from '@/services/notificationService';
@@ -23,8 +23,6 @@ import {
     EnergyLevel,
     CompletionStatus,
     MobilityStatus,
-    ReactionType,
-    Reaction,
     MovementSession
 } from './movement/types';
 
