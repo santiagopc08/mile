@@ -82,6 +82,14 @@ test.describe('isLocalOrPrivateIP', () => {
         expect(isLocalOrPrivateIP('2001:4860:4860::8888')).toBe(false);
         expect(isLocalOrPrivateIP('2606:4700:4700::1111')).toBe(false);
     });
+
+    test('blocks invalid IP addresses', () => {
+        expect(isLocalOrPrivateIP('not-an-ip')).toBe(true);
+        expect(isLocalOrPrivateIP('')).toBe(true);
+        expect(isLocalOrPrivateIP('256.256.256.256')).toBe(true);
+        expect(isLocalOrPrivateIP('1.2.3.4.5')).toBe(true);
+        expect(isLocalOrPrivateIP('::g')).toBe(true);
+    });
 });
 
 test.describe('resolveSafeIP', () => {
@@ -186,7 +194,7 @@ test.describe('validateHostname', () => {
         expect(lookupCount).toBe(2); // Should call lookup again
     });
 
-    test('does not cache errors', async () => {
+    test('caches errors to prevent intentional timeout bypasses', async () => {
         let lookupCount = 0;
         let shouldThrow = true;
 
@@ -212,11 +220,11 @@ test.describe('validateHostname', () => {
         expect(result1).toBe(false);
         expect(lookupCount).toBe(1);
 
-        // Next call should succeed since errors aren't cached
+        // Now errors ARE cached to prevent bypasses, so it should return false and NOT call lookup again
         shouldThrow = false;
         const result2 = await validateHostname('error-test.com');
-        expect(result2).toBe(true);
-        expect(lookupCount).toBe(2);
+        expect(result2).toBe(false);
+        expect(lookupCount).toBe(1);
 
         dns.resolve4 = originalResolve4;
         dns.resolve6 = originalResolve6;
