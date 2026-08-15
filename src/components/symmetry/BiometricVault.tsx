@@ -51,14 +51,14 @@ export const BiometricVault = () => {
     useEffect(() => {
         setTimeout(() => {
             setIsClient(true);
-            const stored = localStorage.getItem('symmetry_biometrics');
+            const stored = sessionStorage.getItem('symmetry_biometrics');
             if (stored) setState(JSON.parse(stored));
         }, 0);
     }, []);
 
     const saveState = (newState: BiometricState) => {
         setState(newState);
-        localStorage.setItem('symmetry_biometrics', JSON.stringify(newState));
+        sessionStorage.setItem('symmetry_biometrics', JSON.stringify(newState));
     };
 
     const engineStats = useMemo(() => {
