@@ -118,6 +118,15 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
     return map;
   }, [objectives]);
 
+  // ⚡ Bolt Optimization: Calculate completed visible objectives in single O(N) pass, memoized
+  const completedObjectivesCount = useMemo(() => {
+    let count = 0;
+    for (const obj of visibleObjectives) {
+      if (obj.is_complete) count++;
+    }
+    return count;
+  }, [visibleObjectives]);
+
   const objectiveStats = useMemo(() => {
     const statsMap = new Map();
     for (const obj of visibleObjectives) {
@@ -355,7 +364,7 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
               <span>🎯</span> OBJETIVOS ACTIVOS
             </span>
             <span className="text-[7.5px] font-mono text-stone-500 tabular-nums">
-              {visibleObjectives.filter(o => o.is_complete).length}/{visibleObjectives.length} COMPLETADOS
+              {completedObjectivesCount}/{visibleObjectives.length} COMPLETADOS
             </span>
           </div>
 
