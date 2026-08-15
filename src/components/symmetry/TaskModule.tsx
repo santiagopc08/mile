@@ -170,14 +170,20 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
 
   const toggleChecklistInCard = (taskId: string, listType: 'actions' | 'validations', itemId: string) => {
-    const taskIndex = tasks.findIndex(t => t.id === taskId);
-    if (taskIndex === -1) return;
-    const task = tasks[taskIndex];
-    const list = task[listType] || [];
-    const newList = list.map(i => (i.id === itemId ? { ...i, checked: !i.checked } : i));
+    let taskFound = false;
+    // ⚡ Bolt Optimization: Single-pass Array.map() replaces double iteration (findIndex + array copy)
+    const updatedTasks = tasks.map(task => {
+      if (task.id === taskId) {
+        taskFound = true;
+        const list = task[listType] || [];
+        const newList = list.map(i => (i.id === itemId ? { ...i, checked: !i.checked } : i));
+        return { ...task, [listType]: newList } as Task;
+      }
+      return task;
+    });
 
-    const updatedTasks = [...tasks];
-    updatedTasks[taskIndex] = { ...task, [listType]: newList } as Task;
+    if (!taskFound) return;
+
     updateData({ tasks: updatedTasks });
 
     sound.playTick();
@@ -252,26 +258,34 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
   };
 
   const updateTaskStatus = (id: string, status: Task['status']) => {
-    const taskIndex = tasks.findIndex(t => t.id === id);
-    if (taskIndex === -1) return;
-    const task = tasks[taskIndex];
+    let playedStatus = status;
+    let taskFound = false;
 
-    let finalStatus = status;
-    if (status === 'done' && task.validations && task.validations.length > 0) {
-      const hasChecked = task.validations.some(v => v.checked);
-      if (!hasChecked) {
-        finalStatus = 'skipped';
+    // ⚡ Bolt Optimization: Single-pass Array.map() replaces double iteration (findIndex + array copy)
+    const updatedTasks = tasks.map(task => {
+      if (task.id === id) {
+        taskFound = true;
+        let finalStatus = status;
+        if (status === 'done' && task.validations && task.validations.length > 0) {
+          const hasChecked = task.validations.some(v => v.checked);
+          if (!hasChecked) {
+            finalStatus = 'skipped';
+          }
+        }
+        playedStatus = finalStatus;
+        return { ...task, status: finalStatus, updated_at: new Date().toISOString() } as Task;
       }
-    }
+      return task;
+    });
 
-    const updatedTasks = [...tasks];
-    updatedTasks[taskIndex] = { ...task, status: finalStatus, updated_at: new Date().toISOString() } as Task;
+    if (!taskFound) return;
+
     updateData({ tasks: updatedTasks });
 
-    if (finalStatus === 'done') {
+    if (playedStatus === 'done') {
       sound.playSuccess();
       haptics.triggerSuccess();
-    } else if (finalStatus === 'skipped') {
+    } else if (playedStatus === 'skipped') {
       sound.playError();
       haptics.triggerError();
     } else {
@@ -307,15 +321,13 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
   };
 
   const handleEditSave = (updatedTask: Task) => {
-    const updatedTasks = [...tasks];
-    const taskIndex = updatedTasks.findIndex(t => t.id === editingTaskId);
-    if (taskIndex !== -1) {
-      updatedTasks[taskIndex] = {
-        ...updatedTask,
-        updated_at: new Date().toISOString(),
-      } as Task;
-      updateData({ tasks: updatedTasks });
-    }
+    // ⚡ Bolt Optimization: Single-pass Array.map() replaces double iteration (findIndex + array copy)
+    const updatedTasks = tasks.map(t =>
+      t.id === editingTaskId
+        ? { ...updatedTask, updated_at: new Date().toISOString() } as Task
+        : t
+    );
+    updateData({ tasks: updatedTasks });
     setEditingTaskId(null);
   };
 
@@ -363,9 +375,7 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
             <span className="text-[8px] sm:text-[9px] font-mono uppercase tracking-[0.2em] text-stone-400 font-bold flex items-center gap-1.5">
               <span>🎯</span> OBJETIVOS ACTIVOS
             </span>
-            <span className="text-[7.5px] font-mono text-stone-500 tabular-nums">
               {completedObjectivesCount}/{visibleObjectives.length} COMPLETADOS
-            </span>
           </div>
 
           <div className="flex items-center gap-2">

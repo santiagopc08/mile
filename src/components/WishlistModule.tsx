@@ -178,10 +178,8 @@ export function WishlistModule() {
                 try { await NotificationService.addNotification(target, 'wishlist', `${authorName} eliminó un plan de la lista.`, supabase); } catch { }
             }
         }
-        const indexToRemove = items.findIndex(i => i.id === id);
-        if (indexToRemove !== -1) {
-            const newItems = [...items];
-            newItems.splice(indexToRemove, 1);
+        const newItems = items.filter(i => i.id !== id);
+        if (newItems.length !== items.length) {
             await updateData({ wishlist: newItems });
         } else {
             await updateData({ wishlist: items });

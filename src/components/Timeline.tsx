@@ -19,10 +19,8 @@ export function Timeline({ events }: TimelineProps) {
 
     const activeEvent = useMemo(() => {
         if (!activeEventId) return null;
-        for (const e of events) {
-            if (e.id === activeEventId) return e;
-        }
-        return null;
+        // ⚡ Bolt Optimization: Replace O(N) loop with single-pass .find() lookup
+        return events.find(e => e.id === activeEventId) || null;
     }, [events, activeEventId]);
 
     return (

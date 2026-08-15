@@ -63,19 +63,19 @@ export function TimelineItem({ event, events, isLeft, setActiveEventId }: Timeli
             setIsEditUploading(false);
         }
 
-        // ⚡ Bolt Optimization: Replace O(N) map with single pass findIndex + mutation
-        const updated = [...events];
-        const editIdx = updated.findIndex(ev => ev.id === editingId);
-        if (editIdx !== -1) {
-            updated[editIdx] = {
-                ...updated[editIdx],
-                title: editTitle.trim(),
-                date: editDate,
-                description: editDesc.trim(),
-                imageUrl: finalImageUrl,
-                tags: editTags
-            };
-        }
+        // ⚡ Bolt Optimization: Single-pass Array.map() replaces double iteration (findIndex + array copy)
+        const updated = events.map(ev =>
+            ev.id === editingId
+                ? {
+                    ...ev,
+                    title: editTitle.trim(),
+                    date: editDate,
+                    description: editDesc.trim(),
+                    imageUrl: finalImageUrl,
+                    tags: editTags
+                }
+                : ev
+        );
 
         await updateData({ events: updated });
         setEditingId(null);
@@ -101,12 +101,8 @@ export function TimelineItem({ event, events, isLeft, setActiveEventId }: Timeli
         }
 
         // Optimistic update
-        // ⚡ Bolt Optimization: Replace O(N) map with single pass findIndex + mutation
-        const updatedEvents = [...events];
-        const eventIdx = updatedEvents.findIndex(e => e.id === event.id);
-        if (eventIdx !== -1) {
-            updatedEvents[eventIdx] = { ...updatedEvents[eventIdx], reactions };
-        }
+        // ⚡ Bolt Optimization: Single-pass Array.map() replaces double iteration (findIndex + array copy)
+        const updatedEvents = events.map(e => e.id === event.id ? { ...e, reactions } : e);
         await updateData({ events: updatedEvents });
 
         try {
