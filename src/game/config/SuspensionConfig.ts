@@ -1,13 +1,9 @@
 /**
  * SuspensionConfig.ts
- * Parámetros del montante progresivo (TASK-011).
+ * Parámetros de suspensión suave (plush & bouncier) con largo recorrido y amortiguación viva.
  *
  * Todas las longitudes están en píxeles de mundo y se miden a lo largo del eje
  * "abajo" del chasis, desde el punto de anclaje hasta el eje de la rueda.
- *
- * Las fuerzas van en las unidades de Matter: una fuerza de `m * g * scale`
- * sostiene una masa m. Con la gravedad del juego (1.4, escala 0.001) eso son
- * ~0.0014 por kg, así que los números son deliberadamente pequeños.
  */
 
 export interface SuspensionConfigType {
@@ -52,36 +48,31 @@ export interface SuspensionConfigType {
 }
 
 export const DEFAULT_SUSPENSION_CONFIG: SuspensionConfigType = {
-    // La geometría del coche deja el eje a 22px del anclaje. Con una longitud
-    // libre de 26 el coche se asienta hundido ~4px, en torno a un tercio del
-    // recorrido de compresión: queda margen tanto para hundirse como para estirar.
-    restLength: 26,
-    maxCompression: 12,
-    maxExtension: 9,
+    // Geometría Trophy Buggy de Ultra-Largo Recorrido (54px de recorrido total):
+    // Longitud libre de 44px con 30px de compresión y 24px de extensión droop.
+    restLength: 44,
+    maxCompression: 30,
+    maxExtension: 24,
 
-    // Escala de fuerzas: con la gravedad del juego, sostener el reparto de masa
-    // de un montante (~19.5 kg) pide del orden de 0.027. Un aterrizaje fuerte
-    // necesita frenar también al chasis y llega a pedir varias unidades, de ahí
-    // que el tope y la saturación estén dos órdenes por encima del muelle base.
-    baseStiffness: 0.0052,
-    progressiveStiffness: 0.09,
-    progressiveExponent: 2.4,
+    // Rigidez ultra-suave y elástica para el chasis ultraligero (~11.5 kg)
+    // Permite que el coche balancee, absorba dunas profundas y flexione con total libertad
+    baseStiffness: 0.00034,
+    progressiveStiffness: 0.0042,
+    progressiveExponent: 1.6,
 
-    // El suelo de amortiguación importa más de lo que parece: la vibración al
-    // rodar es de amplitud pequeña, así que la manda el damping MÍNIMO, no el
-    // progresivo. Con 0.030 el montante resonaba a 25 Hz en llano (un zumbido);
-    // con 0.055 baja a 12.7 Hz, que ya se percibe como balanceo y no como buzz.
-    compressionDamping: 0.055,
-    reboundDamping: 0.030,
-    dampingSpeedReference: 4.0,
-    dampingSpeedGain: 2.0,
+    // Amortiguación afelpada y viva (absorción profunda con rebote alegre)
+    compressionDamping: 0.0038,
+    reboundDamping: 0.0020,
+    dampingSpeedReference: 6.0,
+    dampingSpeedGain: 1.4,
 
-    bumpStopStrength: 1.2,
-    bumpStopStart: 0.68,
-    reboundStopStart: 0.72,
+    bumpStopStrength: 0.18,
+    bumpStopStart: 0.85,
+    reboundStopStart: 0.85,
 
-    maxForce: 3.0,
+    maxForce: 1.8,
 
-    lateralStiffness: 0.12,
-    lateralDamping: 0.024,
+    // Guía lateral flexible que permite articulación fluida sin trabar las ruedas
+    lateralStiffness: 0.014,
+    lateralDamping: 0.002,
 };

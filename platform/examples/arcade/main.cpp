@@ -2,8 +2,15 @@
 #include "engine/app/HeadlessOptions.hpp"
 #include "engine/core/Logger.hpp"
 #include "examples/arcade/ArcadeCommon.hpp"
+#include "examples/arcade/BallShooterScene.hpp"
 #include "examples/arcade/BrickStormScene.hpp"
+#include "examples/arcade/CyberFroggerScene.hpp"
+#include "examples/arcade/CyberViperScene.hpp"
 #include "examples/arcade/MenuScene.hpp"
+#include "examples/arcade/SupplementShooterScene.hpp"
+#include "examples/arcade/TankDefenseScene.hpp"
+#include "examples/arcade/TetrisMatrixScene.hpp"
+#include "examples/arcade/TurboRaceScene.hpp"
 #include "examples/arcade/VoidRunnerScene.hpp"
 
 #include <memory>
@@ -82,6 +89,27 @@ namespace
                 break;
             case ArcadeScreen::VoidRunner:
                 scene = std::make_unique<VoidRunnerScene>(&m_session);
+                break;
+            case ArcadeScreen::CyberViper:
+                scene = std::make_unique<CyberViperScene>(&m_session);
+                break;
+            case ArcadeScreen::TetrisMatrix:
+                scene = std::make_unique<TetrisMatrixScene>(&m_session);
+                break;
+            case ArcadeScreen::BallShooter:
+                scene = std::make_unique<BallShooterScene>(&m_session);
+                break;
+            case ArcadeScreen::TankDefense:
+                scene = std::make_unique<TankDefenseScene>(&m_session);
+                break;
+            case ArcadeScreen::TurboRace:
+                scene = std::make_unique<TurboRaceScene>(&m_session);
+                break;
+            case ArcadeScreen::CyberFrogger:
+                scene = std::make_unique<CyberFroggerScene>(&m_session);
+                break;
+            case ArcadeScreen::SupplementShooter:
+                scene = std::make_unique<SupplementShooterScene>(&m_session);
                 break;
             case ArcadeScreen::Menu:
             default:

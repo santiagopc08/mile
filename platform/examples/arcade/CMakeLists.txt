@@ -9,6 +9,20 @@ add_executable(
     BrickStormScene.hpp
     VoidRunnerScene.cpp
     VoidRunnerScene.hpp
+    CyberViperScene.cpp
+    CyberViperScene.hpp
+    TetrisMatrixScene.cpp
+    TetrisMatrixScene.hpp
+    BallShooterScene.cpp
+    BallShooterScene.hpp
+    TankDefenseScene.cpp
+    TankDefenseScene.hpp
+    TurboRaceScene.cpp
+    TurboRaceScene.hpp
+    CyberFroggerScene.cpp
+    CyberFroggerScene.hpp
+    SupplementShooterScene.cpp
+    SupplementShooterScene.hpp
 )
 
 target_include_directories(

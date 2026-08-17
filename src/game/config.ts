@@ -14,17 +14,8 @@ export const GAME_CONFIG = {
 
     // --- Motor de física (Matter.js) ---
     PHYSICS: {
-        GRAVITY_Y: 1.4,
+        GRAVITY_Y: 1.12,
         GRAVITY_X: 0,
-        // La suspensión progresiva se integra con fuerzas explícitas, que sólo
-        // son estables si ω·dt < 2: a 60 Hz diverge con cualquier ajuste útil.
-        // 240 Hz mantiene el ritmo de conducción (646 m/90 s, frente a 681 del
-        // modelo anterior); 360 Hz reduce el castañeteo a la mitad pero deja el
-        // coche en ~300 m. El coste de CPU es despreciable en ambos casos
-        // (0.05 ms por frame medido a 240 Hz).
-        // Matter normaliza las velocidades a un delta base, así que cambiar la
-        // frecuencia NO reescala las constantes del juego (verificado: la caída
-        // libre de 1 s da el mismo resultado a 60 y a 360 Hz).
         TIME_STEP: 1000 / 240,        // 4 subpasos por frame a 60 FPS
         MAX_STEPS_PER_FRAME: 16,      // Tope anti espiral de la muerte
         POSITION_ITERATIONS: 10,
@@ -35,15 +26,9 @@ export const GAME_CONFIG = {
     CAMERA: DEFAULT_CAMERA_CONFIG,
 
     // --- Gravedad asimétrica en el aire (ver physics/airGravitySystem.ts) ---
-    // Portado del JumpSystem del motor C++, que usa 1.0 subiendo y 2.0 cayendo.
-    // Aquí la subida se deja intacta a propósito: tocarla cambiaría la altura
-    // que alcanza el coche en cada rampa y con ella todo el balance del terreno,
-    // que está calibrado en banco. Sólo se añade peso a la caída.
-    // 2.0 en un buggy resulta brusco; 1.45 quita la sensación flotante sin que
-    // el aterrizaje parezca un tirón. Es el valor que más pide banco de pruebas.
     AIR: {
         riseScale: 1.0,
-        fallScale: 1.45,
+        fallScale: 1.08,
         apexThreshold: 0.35,
     },
 

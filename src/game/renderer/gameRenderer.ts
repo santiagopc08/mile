@@ -708,31 +708,109 @@ export class GameRenderer {
         // 1. Sombra proyectada sobre el suelo
         this.drawVehicleShadow(vehicle, segments);
 
-        // 2. Montantes (por detrás de ruedas y carrocería)
+        // 2. Montantes de Suspensión Progresiva (Muelle helicoidal 3D + Amortiguador hidráulico)
         ctx.save();
-        ctx.lineCap = 'round';
         for (const [wheel, offsetX] of [
             [vehicle.rearWheel, cfg.wheelOffsetRearX] as const,
             [vehicle.frontWheel, cfg.wheelOffsetFrontX] as const,
         ]) {
             const a = vehicle.getAnchorWorld(offsetX);
-            // Vaina exterior
-            ctx.strokeStyle = '#2b2b33';
-            ctx.lineWidth = 7;
+            const wx = wheel.position.x;
+            const wy = wheel.position.y;
+
+            const dx = wx - a.x;
+            const dy = wy - a.y;
+            const dist = Math.hypot(dx, dy);
+            const angle = Math.atan2(dy, dx);
+
+            ctx.save();
+            ctx.translate(a.x, a.y);
+            ctx.rotate(angle);
+
+            // A. Brazo de suspensión / Wishbone (enlace estructural al chasis)
+            ctx.strokeStyle = '#181920';
+            ctx.lineWidth = 6;
+            ctx.lineCap = 'round';
             ctx.beginPath();
-            ctx.moveTo(a.x, a.y);
-            ctx.lineTo(wheel.position.x, wheel.position.y);
+            ctx.moveTo(0, 0);
+            ctx.lineTo(dist, 0);
             ctx.stroke();
-            // Vástago interior: se ve entrar y salir al comprimirse
-            ctx.strokeStyle = '#8d8f9c';
-            ctx.lineWidth = 3;
+
+            // B. Cilindro exterior del amortiguador hidráulico
+            const cylinderLen = dist * 0.52;
+            ctx.fillStyle = '#22232a';
+            ctx.strokeStyle = '#3f414e';
+            ctx.lineWidth = 1.2;
+            ctx.fillRect(0, -3.5, cylinderLen, 7);
+            ctx.strokeRect(0, -3.5, cylinderLen, 7);
+
+            // C. Vástago interior cromado (se retrae o estira según compresión de la suspensión)
+            ctx.fillStyle = '#e2e8f0';
+            ctx.fillRect(cylinderLen - 2, -2, Math.max(4, dist - cylinderLen + 2), 4);
+
+            // D. Muelle Helicoidal Progresivo (Coil Spring 3D con compresión visual reactiva)
+            const coilStart = 3;
+            const coilEnd = dist - 3;
+            const coilSpan = Math.max(10, coilEnd - coilStart);
+            const numCoils = 7;
+            const coilStep = coilSpan / numCoils;
+            const coilWidth = 7.5;
+
+            // Sombra profunda del muelle
+            ctx.strokeStyle = 'rgba(0,0,0,0.55)';
+            ctx.lineWidth = 3.8;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
             ctx.beginPath();
-            ctx.moveTo(a.x, a.y);
-            ctx.lineTo(
-                a.x + (wheel.position.x - a.x) * 0.55,
-                a.y + (wheel.position.y - a.y) * 0.55
-            );
+            for (let i = 0; i < numCoils; i++) {
+                const cx1 = coilStart + i * coilStep;
+                const cx2 = cx1 + coilStep * 0.5;
+                const cx3 = cx1 + coilStep;
+                ctx.moveTo(cx1, -coilWidth + 1.2);
+                ctx.lineTo(cx2, coilWidth + 1.2);
+                ctx.lineTo(cx3, -coilWidth + 1.2);
+            }
             ctx.stroke();
+
+            // Muelle metálico coloreado con el acento activo
+            ctx.strokeStyle = this.accent || '#c3f400';
+            ctx.lineWidth = 2.8;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.beginPath();
+            for (let i = 0; i < numCoils; i++) {
+                const cx1 = coilStart + i * coilStep;
+                const cx2 = cx1 + coilStep * 0.5;
+                const cx3 = coilStep * (i + 1) + coilStart;
+                ctx.moveTo(cx1, -coilWidth);
+                ctx.lineTo(cx2, coilWidth);
+                ctx.lineTo(cx3, -coilWidth);
+            }
+            ctx.stroke();
+
+            // Reflejo especular blanco sobre cada espira
+            ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+            ctx.lineWidth = 1.0;
+            ctx.beginPath();
+            for (let i = 0; i < numCoils; i++) {
+                const cx1 = coilStart + i * coilStep;
+                const cx2 = cx1 + coilStep * 0.35;
+                ctx.moveTo(cx1, -coilWidth);
+                ctx.lineTo(cx2, 0);
+            }
+            ctx.stroke();
+
+            // E. Anclajes superiores e inferiores (Top Mount & Hub Pivot)
+            ctx.fillStyle = '#0b0c10';
+            ctx.strokeStyle = '#64748b';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.arc(0, 0, 4.5, 0, Math.PI * 2);
+            ctx.arc(dist, 0, 4.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.restore();
         }
         ctx.restore();
 

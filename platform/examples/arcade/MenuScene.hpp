@@ -32,7 +32,7 @@ namespace platform::arcade
             glm::vec4 Color;
         };
 
-        static constexpr int kEntryCount = 2;
+        static constexpr int kEntryCount = 9;
         std::array<Entry, kEntryCount> m_entries{};
 
         int m_selected{0};
