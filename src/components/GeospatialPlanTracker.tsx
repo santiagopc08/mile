@@ -87,8 +87,16 @@ function LocationLists({ locations, onSelect }: {
   locations: Ubicacion[],
   onSelect: (id: string) => void
 }) {
-  const toVisitList = locations.filter(l => l.status === 'to-visit');
-  const visitedList = locations.filter(l => l.status === 'visited');
+  // ⚡ Bolt Optimization: Replace double filter() on every render with a single-pass memoized loop
+  const { toVisitList, visitedList } = useMemo(() => {
+    const toVisit: Ubicacion[] = [];
+    const visited: Ubicacion[] = [];
+    for (const l of locations) {
+      if (l.status === 'to-visit') toVisit.push(l);
+      else if (l.status === 'visited') visited.push(l);
+    }
+    return { toVisitList: toVisit, visitedList: visited };
+  }, [locations]);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-8">
