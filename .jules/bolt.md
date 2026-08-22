@@ -4,3 +4,7 @@
 ## 2023-10-27 - [Optimize React List Rendering Filtering]
 **Learning:** Double filtering the same array to split items on every render in functional components is a common performance bottleneck that scales poorly as array size grows.
 **Action:** Replace multiple sequential `.filter()` passes inside components with a single O(N) pass wrapped in `useMemo` to group/split items efficiently and reduce intermediate array allocations.
+
+## 2024-05-18 - [Optimizing Array Mutations Safely]
+**Learning:** Replacing `findIndex` + shallow copy with `Array.map` can actually be a de-optimization if the original code leverages the short-circuiting behavior of `findIndex` (e.g., returning early if the item isn't found). `Array.map` unconditionally iterates the entire array and allocates new memory, completely negating the benefit if the target element doesn't exist or is found early.
+**Action:** When optimizing array iterations, avoid replacing early-returning methods (`find`, `findIndex`, `some`) with full-pass mapping functions (`map`, `filter`). Native array spreading (`[...arr]`) after a successful `findIndex` is usually highly optimized in modern JavaScript engines and preferable.

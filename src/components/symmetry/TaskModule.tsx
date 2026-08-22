@@ -301,22 +301,18 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
   const deleteObjective = (id: string) => {
     updateData({ objectives: objectives.filter(o => o.id !== id) as Objective[] });
 
+    // ⚡ Bolt Optimization: Replace O(N) double iteration (match check + array copy mutation) with single O(N) pass
     let hasMatch = false;
-    for (let i = 0; i < tasks.length; i++) {
-      if (tasks[i].objective_id === id) {
+    const updatedTasks = tasks.map(t => {
+      if (t.objective_id === id) {
         hasMatch = true;
-        break;
+        return { ...t, objective_id: undefined };
       }
-    }
+      return t;
+    });
 
     if (hasMatch) {
-      const updatedTasks = [...tasks];
-      for (let i = 0; i < updatedTasks.length; i++) {
-        if (updatedTasks[i].objective_id === id) {
-          updatedTasks[i] = { ...updatedTasks[i], objective_id: undefined } as Task;
-        }
-      }
-      updateData({ tasks: updatedTasks });
+      updateData({ tasks: updatedTasks as Task[] });
     }
   };
 
