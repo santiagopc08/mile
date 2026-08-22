@@ -266,6 +266,19 @@ test.describe('verifyAuth', () => {
         expect(result).toBe(false);
     });
 
+    test('bearer token with user missing email falls back to cookie', async () => {
+        setupMocks(
+            { 'authorization': 'Bearer valid_token' },
+            { 'mile_device_token': 'test_token' },
+            async () => ({ data: { user: {} }, error: null }),
+            async () => ({ data: { id: 'some-id', token: 'test_token' }, error: null })
+        );
+
+        const { verifyAuth } = require('../../../src/lib/auth.ts');
+        const result = await verifyAuth();
+        expect(result).toBe(true);
+    });
+
     test('empty cookie value returns false', async () => {
         setupMocks(
             {},
