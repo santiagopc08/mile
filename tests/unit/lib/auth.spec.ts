@@ -229,4 +229,69 @@ test.describe('verifyAuth', () => {
 
         expect(result).toBe(false);
     });
+
+    test('non-bearer authorization header falls back to cookie', async () => {
+        setupMocks(
+            { 'authorization': 'Basic some_token' },
+            { 'mile_device_token': 'test_token' },
+            async () => { throw new Error('getUser should not be called'); },
+            async () => ({ data: { id: 'some-id', token: 'test_token' }, error: null })
+        );
+
+        const { verifyAuth } = require('../../../src/lib/auth.ts');
+        const result = await verifyAuth();
+        expect(result).toBe(true);
+    });
+
+    test('valid cookie but secureCompare fails (mismatched token) returns false', async () => {
+        setupMocks(
+            {},
+            { 'mile_device_token': 'test_token' },
+            async () => ({}),
+            async () => ({ data: { id: 'some-id', token: 'different_token' }, error: null })
+        );
+
+        const { verifyAuth } = require('../../../src/lib/auth.ts');
+        const result = await verifyAuth();
+        expect(result).toBe(false);
+    });
+
+    test('database returns null token, secureCompare throws and caught by catch block, returns false', async () => {
+        setupMocks(
+            {},
+            { 'mile_device_token': 'test_token' },
+            async () => ({}),
+            async () => ({ data: { id: 'some-id', token: null }, error: null })
+        );
+
+        const { verifyAuth } = require('../../../src/lib/auth.ts');
+        const result = await verifyAuth();
+        expect(result).toBe(false);
+    });
+
+    test('bearer token with user missing email falls back to cookie', async () => {
+        setupMocks(
+            { 'authorization': 'Bearer valid_token' },
+            { 'mile_device_token': 'test_token' },
+            async () => ({ data: { user: {} }, error: null }),
+            async () => ({ data: { id: 'some-id', token: 'test_token' }, error: null })
+        );
+
+        const { verifyAuth } = require('../../../src/lib/auth.ts');
+        const result = await verifyAuth();
+        expect(result).toBe(true);
+    });
+
+    test('empty cookie token returns false', async () => {
+        setupMocks(
+            {},
+            { 'mile_device_token': '' },
+            async () => ({}),
+            async () => ({ data: { id: 'some-id', token: 'test_token' }, error: null })
+        );
+
+        const { verifyAuth } = require('../../../src/lib/auth.ts');
+        const result = await verifyAuth();
+        expect(result).toBe(false);
+    });
 });
