@@ -2,6 +2,7 @@ import { spawn } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { NextResponse } from 'next/server';
+import { verifyAuth } from '@/lib/auth';
 
 export const runtime = 'nodejs';
 
@@ -43,6 +44,10 @@ function getSafeEnv(extra: Record<string, string> = {}) {
 }
 
 export async function POST(request: Request) {
+  if (process.env.NODE_ENV !== 'development' && !(await verifyAuth())) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   let body: { action?: unknown };
 
   try {

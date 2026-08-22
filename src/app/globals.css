@@ -1602,72 +1602,62 @@ textarea {
 }
 
 /* ─────────────────────────────────────────────────────────────
-   COMBO FIRE FRAME — llamas perimetrales según la racha de combo
+   MAHJONG FULLSCREEN MODE FOR MOBILE & DESKTOP (CSS-based)
+   ───────────────────────────────────────────────────────────── */
+body.mahjong-fullscreen-active,
+html.mahjong-fullscreen-active {
+  overflow: hidden !important;
+  touch-action: none;
+}
+
+body.mahjong-fullscreen-active {
+  padding-bottom: 0 !important;
+}
+
+/* Hide app headers, bottom navigation bars and sidebars when Mahjong full-viewport mode is active */
+body.mahjong-fullscreen-active header,
+body.mahjong-fullscreen-active nav,
+body.mahjong-fullscreen-active aside,
+body.mahjong-fullscreen-active .skip-link,
+body.mahjong-fullscreen-active .header-safe-offset,
+body.mahjong-fullscreen-active .nav-safe-offset {
+  display: none !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+/* Elevate main container so nothing in layout can trap it or overlap it */
+body.mahjong-fullscreen-active main {
+  z-index: 99990 !important;
+  position: static !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: visible !important;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   COMBO FIRE FRAME — aura perimetral y sacudida táctil
    ───────────────────────────────────────────────────────────── */
 
-/* Lengüeta de llama individual: ondea, se estira y parpadea */
-@keyframes flame-tongue {
-  0% {
-    transform: scaleY(0.82) scaleX(1) translateY(4%) skewX(0deg);
-    opacity: 0.55;
-  }
-  25% {
-    transform: scaleY(1.18) scaleX(0.92) translateY(-6%) skewX(3deg);
-    opacity: 0.95;
-  }
-  50% {
-    transform: scaleY(0.92) scaleX(1.06) translateY(2%) skewX(-4deg);
-    opacity: 0.8;
-  }
-  75% {
-    transform: scaleY(1.24) scaleX(0.88) translateY(-9%) skewX(2deg);
-    opacity: 1;
-  }
-  100% {
-    transform: scaleY(0.86) scaleX(1.02) translateY(3%) skewX(-2deg);
-    opacity: 0.62;
-  }
-}
-
-/* Brasas que suben flotando hacia el centro de la pantalla */
-@keyframes fire-ember-rise {
-  0% {
-    transform: translateY(0) translateX(0) scale(1);
-    opacity: 0;
-  }
-  12% { opacity: 1; }
-  70% { opacity: 0.9; }
-  100% {
-    transform: translateY(-120px) translateX(var(--ember-drift, 12px)) scale(0.3);
-    opacity: 0;
-  }
-}
-
-/* Pulso del resplandor de borde */
-@keyframes fire-glow-breathe {
-  0%, 100% { opacity: 0.55; }
-  50% { opacity: 0.9; }
-}
-
-/* Sacudida de pantalla para combos altos */
+/* Sacudida de pantalla táctil y nítida para combos altos */
 @keyframes combo-shake {
-  0%, 100% { transform: translate(0, 0) rotate(0deg); }
-  20% { transform: translate(-2px, 1px) rotate(-0.25deg); }
-  40% { transform: translate(2px, -1px) rotate(0.25deg); }
-  60% { transform: translate(-1px, 2px) rotate(-0.15deg); }
-  80% { transform: translate(1px, -2px) rotate(0.15deg); }
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  15% { transform: translate(-3px, 1.5px) rotate(-0.2deg) scale(1.002); }
+  35% { transform: translate(3px, -1.5px) rotate(0.2deg); }
+  55% { transform: translate(-1.5px, 2px) rotate(-0.1deg); }
+  75% { transform: translate(1.5px, -1px) rotate(0.1deg); }
+  90% { transform: translate(-0.5px, 0.5px); }
 }
 
 .animate-combo-shake {
-  animation: combo-shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+  animation: combo-shake 0.22s cubic-bezier(0.25, 0.8, 0.25, 1) both;
 }
 
-/* Aparición impactante del letrero de combo */
-@keyframes combo-sign-in {
-  0% { transform: scale(0.4) rotate(-8deg); opacity: 0; }
-  55% { transform: scale(1.15) rotate(2deg); opacity: 1; }
-  70% { transform: scale(0.96) rotate(-1deg); }
-  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+/* Pulso de rieles de plasma */
+@keyframes laser-rail-pulse {
+  0%, 100% { opacity: 0.7; filter: brightness(1); }
+  50% { opacity: 1; filter: brightness(1.3); }
 }
 
 /* Barrido de luz horizontal para skeletons de carga brutalistas */

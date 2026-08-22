@@ -1,253 +1,233 @@
 'use client';
 
-import { useMemo, useEffect, useState } from 'react';
+import { useMemo, useEffect, useState, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
 /**
  * ComboFireFrame
- * Fuego perimetral unificado estilo fogata (roaring campfire body).
- *
- * Características clave:
- * 1. Manto continuo de fogata: las llamaradas se entrelazan y traslapan para evitar llamas aisladas tipo vela.
- * 2. Cero bordes planos: la base de cada fuego se extiende fuera de la pantalla (-24px a -30px) para que
- *    nazca sin cortes rectos visibles desde los 4 bordes.
- * 3. Rendimiento GPU ultra optimizado a 60-120 FPS (sin filtros SVG en CPU).
+ * 
+ * Aura perimetral de energía, rieles de plasma y partículas de brasa estilo Cyber-Arcade Brutalist.
+ * Diseñado para enmarcar la pantalla con estética de alto impacto sin obstruir las fichas ni el tablero.
  */
-
-type Edge = 'bottom' | 'left' | 'right' | 'top';
-
-interface FlamePlume {
-    left: number;      // 0-100% posición a lo largo del borde
-    width: number;     // px (ancho de pluma para traslape)
-    height: number;    // px
-    delay: number;     // s
-    duration: number;  // s
-    hue: number;       // matiz base
-    scaleX: number;    // variación de ancho
-}
 
 interface ComboFireFrameProps {
     combo: number;
 }
 
-// Genera plumas anchas e interconectadas estilo fogata
-function buildCampfirePlumes(count: number, baseHeight: number, spread: number): FlamePlume[] {
-    return Array.from({ length: count }, (_, i) => {
-        const jitter = Math.sin(i * 18.9898) * 43758.5453;
-        const r = jitter - Math.floor(jitter);
-        const r2 = (Math.sin(i * 92.233) * 12543.123) % 1;
-        const rr2 = r2 < 0 ? -r2 : r2;
-
-        return {
-            left: (i / count) * 100 - 5 + (r - 0.5) * 8, // traslape continuo entre plumas
-            width: 75 + r * 70,                           // llamaradas anchas estilo fogata
-            height: baseHeight * (0.75 + r * 0.7),
-            delay: -rr2 * 1.6,
-            duration: 0.7 + r * 0.7,
-            hue: 14 + r * spread,
-            scaleX: 0.9 + rr2 * 0.4
-        };
-    });
+interface Particle {
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    size: number;
+    alpha: number;
+    maxLife: number;
+    life: number;
+    hue: number;
+    swaySpeed: number;
+    swayOffset: number;
 }
 
-// Núcleo incandescente estilo fogata (blanco-dorado -> naranja candente -> carmesí)
-const campfireFlameBody = (hue: number) =>
-    `radial-gradient(ellipse at 50% 100%,
-        rgba(255, 255, 245, 1) 0%,
-        hsla(${hue + 38}, 100%, 75%, 0.96) 24%,
-        hsla(${hue + 18}, 100%, 58%, 0.85) 50%,
-        hsla(${hue + 2}, 100%, 46%, 0.50) 75%,
-        transparent 92%)`;
-
-const campfireFlameCore = (hue: number) =>
-    `radial-gradient(ellipse at 50% 100%,
-        rgba(255, 255, 255, 1) 0%,
-        hsla(${hue + 45}, 100%, 86%, 0.95) 35%,
-        hsla(${hue + 25}, 100%, 65%, 0.65) 65%,
-        transparent 88%)`;
-
-function CampfireEdge({ edge, list, baseHeight }: { edge: Edge; list: FlamePlume[]; baseHeight: number }) {
-    const isVertical = edge === 'left' || edge === 'right';
-
-    // Anclaje y sangrado de bordes planos fuera de pantalla (-24px)
-    const edgeContainerStyle: React.CSSProperties =
-        edge === 'bottom'
-            ? { bottom: '-26px', left: '-5%', right: '-5%', height: `${baseHeight}px` }
-            : edge === 'top'
-            ? { top: '-26px', left: '-5%', right: '-5%', height: `${baseHeight}px`, transform: 'rotate(180deg)', transformOrigin: 'center center' }
-            : edge === 'left'
-            ? { left: '-26px', top: '-5%', bottom: '-5%', width: `${baseHeight}px`, transform: 'rotate(90deg)', transformOrigin: 'left center' }
-            : { right: '-26px', top: '-5%', bottom: '-5%', width: `${baseHeight}px`, transform: 'rotate(-90deg)', transformOrigin: 'right center' };
-
-    return (
-        <div className="absolute overflow-visible pointer-events-none" style={edgeContainerStyle}>
-            {/* Manto Base Continuo de Fogata (Unifica las llamas sin grietas ni aislamiento) */}
-            <div
-                className="absolute inset-x-0 bottom-0 h-3/5 pointer-events-none"
-                style={{
-                    background: `linear-gradient(to top,
-                        rgba(255, 245, 200, 0.95) 0%,
-                        rgba(255, 150, 0, 0.80) 40%,
-                        rgba(220, 50, 0, 0.40) 75%,
-                        transparent 100%)`,
-                    mixBlendMode: 'screen',
-                    filter: 'blur(3px)',
-                }}
-            />
-
-            {/* Plumas de llamarada interconectadas */}
-            {list.map((t, i) => {
-                const posStyle: React.CSSProperties = isVertical
-                    ? {
-                          top: `${t.left}%`,
-                          left: 0,
-                          width: `${t.height}px`,
-                          height: `${t.width}px`,
-                      }
-                    : {
-                          left: `${t.left}%`,
-                          bottom: 0,
-                          width: `${t.width}px`,
-                          height: `${t.height}px`,
-                      };
-
-                return (
-                    <div key={`${edge}-${i}`} className="absolute" style={posStyle}>
-                        {/* Cuerpo principal de llamarada ancha */}
-                        <div
-                            className="absolute inset-0"
-                            style={{
-                                background: campfireFlameBody(t.hue),
-                                borderRadius: '50% 50% 35% 35% / 75% 75% 25% 25%',
-                                transformOrigin: 'bottom center',
-                                transform: `scale3d(${t.scaleX}, 1, 1)`,
-                                animation: `flame-tongue ${t.duration}s ease-in-out ${t.delay}s infinite alternate`,
-                                mixBlendMode: 'screen',
-                                filter: 'blur(1.5px)',
-                                willChange: 'transform',
-                            }}
-                        />
-                        {/* Núcleo Incandescente Blanco de Fogata */}
-                        <div
-                            className="absolute inset-x-[15%] bottom-0 top-[20%]"
-                            style={{
-                                background: campfireFlameCore(t.hue),
-                                borderRadius: '50% 50% 30% 30% / 80% 80% 20% 20%',
-                                transformOrigin: 'bottom center',
-                                animation: `flame-tongue ${t.duration * 0.75}s ease-in-out ${t.delay * 0.5}s infinite alternate`,
-                                mixBlendMode: 'screen',
-                                willChange: 'transform',
-                            }}
-                        />
-                    </div>
-                );
-            })}
-        </div>
-    );
-}
-
-function EdgeGlow({ edge, tier, glowOpacity }: { edge: Edge; tier: number; glowOpacity: number }) {
-    const isVertical = edge === 'left' || edge === 'right';
-    const dir =
-        edge === 'bottom' ? 'to top'
-        : edge === 'top' ? 'to bottom'
-        : edge === 'left' ? 'to right'
-        : 'to left';
-    const size = 130 + tier * 40;
-
-    return (
-        <div style={{
-            position: 'absolute',
-            [edge]: 0,
-            ...(isVertical
-                ? { top: 0, bottom: 0, width: size }
-                : { left: 0, right: 0, height: size }),
-            background: `linear-gradient(${dir},
-                hsla(30, 100%, 60%, ${glowOpacity}) 0%,
-                hsla(38, 100%, 64%, ${glowOpacity * 0.65}) 35%,
-                hsla(16, 100%, 46%, ${glowOpacity * 0.25}) 70%,
-                transparent 100%)`,
-            mixBlendMode: 'screen',
-            animation: `fire-glow-breathe ${1.3 + tier * 0.1}s ease-in-out infinite`,
-            willChange: 'opacity',
-        }} />
-    );
-}
-
-function CampfireEmbers({ tier }: { tier: number }) {
-    if (tier < 2) return null;
-
-    return (
-        <>
-            {Array.from({ length: 8 + tier * 4 }).map((_, i) => {
-                const emberCount = 8 + tier * 4;
-                const r = (Math.sin(i * 91.17) * 4231.7) % 1;
-                const rr = r < 0 ? -r : r;
-                const size = 3 + rr * 6;
-
-                return (
-                    <span
-                        key={`ember-${i}`}
-                        className="absolute bottom-0 rounded-full pointer-events-none"
-                        style={{
-                            left: `${(i / emberCount) * 100}%`,
-                            width: size,
-                            height: size,
-                            background: `hsl(${22 + rr * 28}, 100%, ${70 + rr * 25}%)`,
-                            boxShadow: '0 0 10px hsla(38,100%,70%,0.98)',
-                            // @ts-expect-error custom CSS variable
-                            '--ember-drift': `${(rr - 0.5) * 70}px`,
-                            animation: `fire-ember-rise ${1.1 + rr * 1.4}s ease-out ${rr * 1.6}s infinite`,
-                            willChange: 'transform, opacity',
-                        }}
-                    />
-                );
-            })}
-        </>
-    );
-}
+const TIER_CONFIG = [
+    // 0: Sin combo
+    {
+        name: 'None',
+        border: 'rgba(255,255,255,0)',
+        glow: 'rgba(255,255,255,0)',
+        primary: '#f59e0b',
+        secondary: '#fbbf24',
+        accentHue: 38,
+        emberCount: 0,
+        railOpacity: 0,
+        bracketScale: 1,
+    },
+    // 1: Chispa
+    {
+        name: 'Chispa',
+        border: 'rgba(245, 158, 11, 0.7)',
+        glow: 'rgba(245, 158, 11, 0.35)',
+        primary: '#f59e0b',
+        secondary: '#fbbf24',
+        accentHue: 38,
+        emberCount: 18,
+        railOpacity: 0.5,
+        bracketScale: 1,
+    },
+    // 2: Brasa Candente
+    {
+        name: 'Brasa',
+        border: 'rgba(255, 106, 0, 0.85)',
+        glow: 'rgba(255, 106, 0, 0.5)',
+        primary: '#ff6a00',
+        secondary: '#f97316',
+        accentHue: 24,
+        emberCount: 30,
+        railOpacity: 0.75,
+        bracketScale: 1.08,
+    },
+    // 3: Llama Alta
+    {
+        name: 'Llama',
+        border: 'rgba(255, 59, 0, 0.95)',
+        glow: 'rgba(255, 59, 0, 0.65)',
+        primary: '#ff3b00',
+        secondary: '#ff0055',
+        accentHue: 12,
+        emberCount: 46,
+        railOpacity: 0.9,
+        bracketScale: 1.15,
+    },
+    // 4: Llamarada Solar
+    {
+        name: 'Solar',
+        border: 'rgba(255, 0, 98, 1)',
+        glow: 'rgba(255, 0, 98, 0.75)',
+        primary: '#ff0062',
+        secondary: '#ff5500',
+        accentHue: 340,
+        emberCount: 65,
+        railOpacity: 1,
+        bracketScale: 1.22,
+    },
+    // 5+: Hipernova / Dios del Mahjong
+    {
+        name: 'Hipernova',
+        border: 'rgba(255, 215, 0, 1)',
+        glow: 'rgba(255, 215, 0, 0.85)',
+        primary: '#ffd700',
+        secondary: '#d946ef',
+        accentHue: 48,
+        emberCount: 85,
+        railOpacity: 1,
+        bracketScale: 1.3,
+    },
+];
 
 export function ComboFireFrame({ combo }: ComboFireFrameProps) {
-    const tier = Math.min(5, Math.max(0, combo));
+    const tierIndex = Math.min(5, Math.max(0, combo));
+    const tier = TIER_CONFIG[tierIndex];
 
-    // Estado para animar el pulso/destello térmico al incrementar el combo
     const [comboFlash, setComboFlash] = useState(false);
+    const canvasRef = useRef<HTMLCanvasElement | null>(null);
+    const particlesRef = useRef<Particle[]>([]);
+    const animationFrameRef = useRef<number | null>(null);
 
+    // Trigger visual pulse upon combo level up
     useEffect(() => {
         if (combo > 1) {
             setComboFlash(true);
-            const timer = setTimeout(() => setComboFlash(false), 450);
+            const timer = setTimeout(() => setComboFlash(false), 260);
             return () => clearTimeout(timer);
         }
     }, [combo]);
 
-    // Bordes activos por nivel de combo
-    const edges = useMemo<Edge[]>(() => {
-        if (tier <= 0) return [];
-        if (tier === 1) return ['bottom'];
-        if (tier === 2) return ['bottom'];
-        if (tier === 3) return ['bottom', 'left', 'right'];
-        if (tier === 4) return ['bottom', 'left', 'right'];
-        return ['bottom', 'left', 'right', 'top'];
-    }, [tier]);
+    // Canvas particle engine for ultra-smooth GPU embers
+    useEffect(() => {
+        if (tierIndex === 0) {
+            if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+            particlesRef.current = [];
+            return;
+        }
 
-    const baseHeight = 90 + tier * 36;
-    const glowOpacity = Math.min(0.92, 0.38 + tier * 0.12);
-    const hotShift = tier >= 5 ? 32 : tier >= 4 ? 22 : tier >= 3 ? 14 : 8;
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d', { alpha: true });
+        if (!ctx) return;
 
-    const plumes = useMemo(() => {
-        const perEdgeBottom = 10 + tier * 2;
-        const perEdgeSide = 6 + tier * 2;
-        return {
-            bottom: buildCampfirePlumes(perEdgeBottom, baseHeight, hotShift),
-            top: buildCampfirePlumes(perEdgeBottom - 2, baseHeight * 0.8, hotShift),
-            left: buildCampfirePlumes(perEdgeSide, baseHeight * 0.85, hotShift),
-            right: buildCampfirePlumes(perEdgeSide, baseHeight * 0.85, hotShift),
+        let width = (canvas.width = window.innerWidth);
+        let height = (canvas.height = window.innerHeight);
+
+        const handleResize = () => {
+            if (!canvas) return;
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
         };
-    }, [tier, baseHeight, hotShift]);
 
-    // Only render on client side
+        window.addEventListener('resize', handleResize);
+
+        const maxParticles = tier.emberCount;
+
+        const createParticle = (initY?: number): Particle => {
+            const hue = tier.accentHue + (Math.random() - 0.5) * 26;
+            return {
+                x: Math.random() * width,
+                y: initY !== undefined ? initY : height + Math.random() * 20,
+                vx: (Math.random() - 0.5) * 0.9,
+                vy: -(1.2 + Math.random() * (1.8 + tierIndex * 0.4)),
+                size: 1.2 + Math.random() * (2.8 + tierIndex * 0.5),
+                alpha: 0.2 + Math.random() * 0.8,
+                maxLife: 90 + Math.random() * 80,
+                life: 0,
+                hue,
+                swaySpeed: 0.02 + Math.random() * 0.03,
+                swayOffset: Math.random() * Math.PI * 2,
+            };
+        };
+
+        // Populate initial particles spread vertically for immediate visual feel
+        if (particlesRef.current.length === 0) {
+            for (let i = 0; i < maxParticles; i++) {
+                particlesRef.current.push(createParticle(Math.random() * height));
+            }
+        }
+
+        let lastTime = performance.now();
+
+        const render = (time: number) => {
+            const delta = Math.min((time - lastTime) / 1000, 0.05);
+            lastTime = time;
+
+            ctx.clearRect(0, 0, width, height);
+
+            // Maintain correct particle count
+            while (particlesRef.current.length < maxParticles) {
+                particlesRef.current.push(createParticle());
+            }
+            if (particlesRef.current.length > maxParticles) {
+                particlesRef.current.length = maxParticles;
+            }
+
+            for (let i = 0; i < particlesRef.current.length; i++) {
+                const p = particlesRef.current[i];
+                p.life += 1;
+                p.swayOffset += p.swaySpeed;
+                p.x += p.vx + Math.sin(p.swayOffset) * 0.6;
+                p.y += p.vy;
+
+                const progress = p.life / p.maxLife;
+                const currentAlpha = Math.sin(progress * Math.PI) * p.alpha;
+
+                if (p.life >= p.maxLife || p.y < -20 || p.x < -20 || p.x > width + 20) {
+                    particlesRef.current[i] = createParticle();
+                    continue;
+                }
+
+                // Render glowing particle
+                ctx.save();
+                ctx.globalCompositeOperation = 'screen';
+                ctx.fillStyle = `hsla(${p.hue}, 100%, ${65 + tierIndex * 5}%, ${currentAlpha})`;
+                ctx.shadowColor = `hsla(${p.hue}, 100%, 60%, ${currentAlpha * 0.8})`;
+                ctx.shadowBlur = p.size * 3;
+
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+
+            animationFrameRef.current = requestAnimationFrame(render);
+        };
+
+        animationFrameRef.current = requestAnimationFrame(render);
+
+        return () => {
+            window.removeEventListener('resize', handleResize);
+            if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+        };
+    }, [tierIndex, tier.emberCount, tier.accentHue]);
+
+    // Client-only portal rendering
     const [mounted, setMounted] = useState(false);
     useEffect(() => {
         setMounted(true);
@@ -256,58 +236,136 @@ export function ComboFireFrame({ combo }: ComboFireFrameProps) {
 
     return createPortal(
         <AnimatePresence>
-            {tier > 0 && (
+            {tierIndex > 0 && (
                 <motion.div
                     key="combo-fire-frame"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="pointer-events-none fixed inset-0 z-[99990] overflow-hidden"
+                    transition={{ duration: 0.35, ease: 'easeOut' }}
+                    className="pointer-events-none fixed inset-0 z-[99990] overflow-hidden select-none"
                     aria-hidden
                 >
-                    {/* Destello Térmico de Impacto cuando sube el combo */}
+                    {/* 1. Canvas Embers Particle Layer */}
+                    <canvas
+                        ref={canvasRef}
+                        className="absolute inset-0 h-full w-full pointer-events-none"
+                        style={{ mixBlendMode: 'screen' }}
+                    />
+
+                    {/* 2. Precision Neon Laser Rails (Edge perimeter lines) */}
+                    <div className="absolute inset-0 pointer-events-none">
+                        {/* Top Rail */}
+                        <div
+                            className="absolute top-0 inset-x-0 h-[2px] transition-all duration-300"
+                            style={{
+                                background: `linear-gradient(90deg, transparent 0%, ${tier.primary} 15%, ${tier.secondary} 50%, ${tier.primary} 85%, transparent 100%)`,
+                                boxShadow: `0 0 14px 2px ${tier.glow}, 0 0 28px 4px ${tier.glow}`,
+                                opacity: tier.railOpacity,
+                            }}
+                        />
+                        {/* Bottom Rail */}
+                        <div
+                            className="absolute bottom-0 inset-x-0 h-[2.5px] transition-all duration-300"
+                            style={{
+                                background: `linear-gradient(90deg, transparent 0%, ${tier.primary} 15%, ${tier.secondary} 50%, ${tier.primary} 85%, transparent 100%)`,
+                                boxShadow: `0 0 16px 3px ${tier.glow}, 0 0 32px 5px ${tier.glow}`,
+                                opacity: tier.railOpacity,
+                            }}
+                        />
+                        {/* Left Rail */}
+                        <div
+                            className="absolute left-0 inset-y-0 w-[2px] transition-all duration-300"
+                            style={{
+                                background: `linear-gradient(180deg, transparent 0%, ${tier.primary} 15%, ${tier.secondary} 50%, ${tier.primary} 85%, transparent 100%)`,
+                                boxShadow: `0 0 14px 2px ${tier.glow}, 0 0 28px 4px ${tier.glow}`,
+                                opacity: tier.railOpacity,
+                            }}
+                        />
+                        {/* Right Rail */}
+                        <div
+                            className="absolute right-0 inset-y-0 w-[2px] transition-all duration-300"
+                            style={{
+                                background: `linear-gradient(180deg, transparent 0%, ${tier.primary} 15%, ${tier.secondary} 50%, ${tier.primary} 85%, transparent 100%)`,
+                                boxShadow: `0 0 14px 2px ${tier.glow}, 0 0 28px 4px ${tier.glow}`,
+                                opacity: tier.railOpacity,
+                            }}
+                        />
+                    </div>
+
+                    {/* 3. Subtle Edge Aura Glow (Non-obstructive, softly hugging outer 28px) */}
+                    <div
+                        className="absolute inset-0 pointer-events-none transition-all duration-300"
+                        style={{
+                            boxShadow: `inset 0 0 ${20 + tierIndex * 12}px 2px ${tier.glow}`,
+                        }}
+                    />
+
+                    {/* 4. Bottom Organic Plasma Aura (Confined to bottom 40px) */}
+                    <div
+                        className="absolute inset-x-0 bottom-0 h-10 pointer-events-none"
+                        style={{
+                            background: `linear-gradient(to top, ${tier.glow} 0%, transparent 100%)`,
+                            mixBlendMode: 'screen',
+                            opacity: 0.6 + tierIndex * 0.08,
+                        }}
+                    />
+
+                    {/* 5. Cyber-Brutalist Corner Power Brackets */}
+                    <div className="absolute inset-0 pointer-events-none p-2 sm:p-4">
+                        {/* Top-Left Corner */}
+                        <div className="absolute top-2 left-2 sm:top-3 sm:left-3 transition-transform duration-300" style={{ transform: `scale(${tier.bracketScale})` }}>
+                            <div className="w-5 h-5 sm:w-7 sm:h-7 border-t-2 border-l-2" style={{ borderColor: tier.primary, boxShadow: `0 0 12px ${tier.glow}` }} />
+                            <div className="absolute -top-1 -left-1 w-2 h-2 rounded-full" style={{ backgroundColor: tier.secondary, boxShadow: `0 0 8px ${tier.primary}` }} />
+                        </div>
+
+                        {/* Top-Right Corner */}
+                        <div className="absolute top-2 right-2 sm:top-3 sm:right-3 transition-transform duration-300" style={{ transform: `scale(${tier.bracketScale})` }}>
+                            <div className="w-5 h-5 sm:w-7 sm:h-7 border-t-2 border-r-2" style={{ borderColor: tier.primary, boxShadow: `0 0 12px ${tier.glow}` }} />
+                            <div className="absolute -top-1 -right-1 w-2 h-2 rounded-full" style={{ backgroundColor: tier.secondary, boxShadow: `0 0 8px ${tier.primary}` }} />
+                        </div>
+
+                        {/* Bottom-Left Corner */}
+                        <div className="absolute bottom-2 left-2 sm:bottom-3 sm:left-3 transition-transform duration-300" style={{ transform: `scale(${tier.bracketScale})` }}>
+                            <div className="w-5 h-5 sm:w-7 sm:h-7 border-b-2 border-l-2" style={{ borderColor: tier.primary, boxShadow: `0 0 12px ${tier.glow}` }} />
+                            <div className="absolute -bottom-1 -left-1 w-2 h-2 rounded-full" style={{ backgroundColor: tier.secondary, boxShadow: `0 0 8px ${tier.primary}` }} />
+                        </div>
+
+                        {/* Bottom-Right Corner */}
+                        <div className="absolute bottom-2 right-2 sm:bottom-3 sm:right-3 transition-transform duration-300" style={{ transform: `scale(${tier.bracketScale})` }}>
+                            <div className="w-5 h-5 sm:w-7 sm:h-7 border-b-2 border-r-2" style={{ borderColor: tier.primary, boxShadow: `0 0 12px ${tier.glow}` }} />
+                            <div className="absolute -bottom-1 -right-1 w-2 h-2 rounded-full" style={{ backgroundColor: tier.secondary, boxShadow: `0 0 8px ${tier.primary}` }} />
+                        </div>
+                    </div>
+
+                    {/* 6. Dynamic Impact Shockwave Flare upon combo level up */}
                     <AnimatePresence>
                         {comboFlash && (
                             <motion.div
-                                initial={{ opacity: 0, scale: 0.97 }}
-                                animate={{ opacity: 0.85, scale: 1 }}
+                                key={`flash-${combo}`}
+                                initial={{ opacity: 0.9, scale: 0.98 }}
+                                animate={{ opacity: 0, scale: 1 }}
                                 exit={{ opacity: 0 }}
-                                transition={{ duration: 0.35 }}
-                                className="absolute inset-0 bg-gradient-radial from-amber-400/40 via-orange-600/25 to-transparent mix-blend-screen pointer-events-none"
+                                transition={{ duration: 0.26, ease: 'easeOut' }}
+                                className="absolute inset-0 pointer-events-none"
+                                style={{
+                                    boxShadow: `inset 0 0 50px 10px ${tier.primary}, inset 0 0 100px 20px ${tier.glow}`,
+                                    mixBlendMode: 'screen',
+                                }}
                             />
                         )}
                     </AnimatePresence>
 
-                    {/* Tinte de pantalla ardiente para combos altos (tier >= 4) */}
-                    {tier >= 4 && (
+                    {/* 7. Godlike Chromatic Shimmer for Tier 5+ */}
+                    {tierIndex >= 5 && (
                         <div
-                            className="absolute inset-0 pointer-events-none"
+                            className="absolute inset-0 pointer-events-none opacity-40 animate-pulse"
                             style={{
-                                background:
-                                    'radial-gradient(ellipse at 50% 120%, hsla(28,100%,50%,0.24), transparent 65%)',
-                                animation: 'fire-glow-breathe 1.1s ease-in-out infinite',
+                                background: 'radial-gradient(ellipse at 50% 100%, rgba(255,215,0,0.15), rgba(217,70,239,0.08) 50%, transparent 80%)',
+                                mixBlendMode: 'screen',
                             }}
                         />
                     )}
-
-                    {/* Viñeta cálida intensa en todos los bordes activos */}
-                    <div
-                        className="absolute inset-0 transition-all duration-300 pointer-events-none"
-                        style={{
-                            boxShadow: `inset 0 0 ${60 + tier * 35}px ${14 + tier * 10}px hsla(24, 100%, 50%, ${0.15 + tier * 0.04})`,
-                        }}
-                    />
-
-                    {edges.map(edge => (
-                        <div key={edge}>
-                            <EdgeGlow edge={edge} tier={tier} glowOpacity={glowOpacity} />
-                            <CampfireEdge edge={edge} list={plumes[edge]} baseHeight={baseHeight} />
-                        </div>
-                    ))}
-
-                    {/* Brasas ascendentes dinámicas estilo fogata con sway horizontal */}
-                    <CampfireEmbers tier={tier} />
                 </motion.div>
             )}
         </AnimatePresence>,

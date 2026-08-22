@@ -118,6 +118,23 @@ export function Mahjong() {
         setMaxGameCombo(prev => Math.max(prev, hookMaxGameCombo));
     }, [hookMaxGameCombo]);
 
+    // Sincronizar clase de pantalla completa en body/html para ocultar AppNav en móviles
+    useEffect(() => {
+        if (typeof document === 'undefined') return;
+        if (hasStarted) {
+            document.body.classList.add('mahjong-fullscreen-active');
+            document.documentElement.classList.add('mahjong-fullscreen-active');
+        } else {
+            document.body.classList.remove('mahjong-fullscreen-active');
+            document.documentElement.classList.remove('mahjong-fullscreen-active');
+        }
+
+        return () => {
+            document.body.classList.remove('mahjong-fullscreen-active');
+            document.documentElement.classList.remove('mahjong-fullscreen-active');
+        };
+    }, [hasStarted]);
+
     // ─── Hardening Mechanics State ───────────────────────────────────────────
     const [ghostSolidIds, setGhostSolidIds] = useState<Set<string>>(new Set());
     const ghostElapsedRef = useRef(0);
@@ -285,15 +302,21 @@ export function Mahjong() {
             const t = setTimeout(() => setIsMatchPulse(false), 400);
 
             // Spawn 16 wall-breaking fragments (was 10)
-            const newParticles = Array.from({ length: 16 }).map((_, i) => ({
-                id: Date.now() + i + Math.random(),
-                angle: (Math.random() - 0.5) * Math.PI * 0.95,
-                speed: 25 + Math.random() * 55, // Faster speed
-                rotate: Math.random() * 720
-            }));
+            // ⚡ Bolt Optimization: Use a loop instead of Array.from({ length: N }).map() to prevent memory allocation overhead
+            const newParticles: {id: number; angle: number; speed: number; rotate: number}[] = [];
+            for (let i = 0; i < 16; i++) {
+                newParticles.push({
+                    id: Date.now() + i + Math.random(),
+                    angle: (Math.random() - 0.5) * Math.PI * 0.95,
+                    speed: 25 + Math.random() * 55, // Faster speed
+                    rotate: Math.random() * 720
+                });
+            }
             setProgressParticles(prev => [...prev, ...newParticles]);
             const timer = setTimeout(() => {
-                setProgressParticles(prev => prev.filter(p => !newParticles.includes(p)));
+                // ⚡ Bolt Optimization: Use a Set to avoid O(N*M) nested array inclusion checks
+                const idSet = new Set(newParticles.map(p => p.id));
+                setProgressParticles(prev => prev.filter(p => !idSet.has(p.id)));
             }, 700);
 
             return () => {
@@ -1623,7 +1646,7 @@ export function Mahjong() {
             />
 
             <div
-                className={`flex w-full ${hasStarted ? 'fixed inset-0 z-[9999] h-[100dvh] w-[100dvw] bg-[#050505] max-w-none' : 'relative max-w-[880px] h-[720px] max-md:h-[650px]'} ${comboShake ? 'animate-combo-shake' : ''} max-md:max-w-none max-md:w-screen max-md:shrink-0 flex-col justify-center overflow-hidden border border-white/10 max-md:border-x-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.06),transparent_44%),linear-gradient(180deg,rgba(255,255,255,0.035),transparent)] transition-all duration-500`}
+                className={`flex w-full ${hasStarted ? 'fixed inset-0 z-[99999] h-[100dvh] w-[100dvw] bg-[#050505] max-w-none' : 'relative max-w-[880px] h-[720px] max-md:h-[650px]'} ${comboShake ? 'animate-combo-shake' : ''} max-md:max-w-none max-md:w-screen max-md:shrink-0 flex-col justify-center overflow-hidden border border-white/10 max-md:border-x-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.06),transparent_44%),linear-gradient(180deg,rgba(255,255,255,0.035),transparent)] transition-all duration-500`}
                 ref={containerRef}
             >
                 <div className="pointer-events-none absolute inset-0 bg-dot-matrix opacity-70" />

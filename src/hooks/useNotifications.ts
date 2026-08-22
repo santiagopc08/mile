@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { NotificationService } from '@/services/notificationService';
 import { supabase } from '@/lib/supabase';
 
-const urlBase64ToUint8Array = (base64String: string) => {
+export const urlBase64ToUint8Array = (base64String: string) => {
     const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
     const base64 = (base64String + padding)
         .replace(/\-/g, '+')

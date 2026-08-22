@@ -137,7 +137,7 @@ export function MahjongHud({
             </div>
 
             {/* --- 3D BRUTALIST HUD: ACTIONS (BOTTOM CENTER, BELOW PROGRESS BAR) --- */}
-            <div className={`absolute ${hasStarted ? 'bottom-[calc(env(safe-area-inset-bottom,0px)+12px)] md:bottom-[20px]' : 'bottom-[calc(var(--app-nav-height)+env(safe-area-inset-bottom,0px)+8px)] md:bottom-[16px]'} left-1/2 -translate-x-1/2 z-20 flex items-center justify-center gap-2 sm:gap-4`}>
+            <div className={`absolute ${hasStarted ? 'bottom-[calc(env(safe-area-inset-bottom,0px)+16px)] md:bottom-[24px]' : 'bottom-[calc(var(--app-nav-height)+env(safe-area-inset-bottom,0px)+12px)] md:bottom-[16px]'} left-1/2 -translate-x-1/2 z-20 flex items-center justify-center gap-2 sm:gap-4`}>
                 <Brutalist3DButton
                     onClick={handleUndo}
                     disabled={undoStackLength === 0}

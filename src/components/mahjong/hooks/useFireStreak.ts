@@ -41,15 +41,15 @@ export function useFireStreak() {
         if (newCombo === 1) {
             comboText = "¡CHISPA ENCENDIDA!";
         } else if (newCombo === 2) {
-            comboText = "¡BRASA ARDIENTE!";
+            comboText = "¡BRASA CANDENTE!";
         } else if (newCombo === 3) {
             comboText = "¡LLAMA ALTA!";
         } else if (newCombo === 4) {
-            comboText = "¡LLAMARADA TOTAL!";
+            comboText = "¡LLAMARADA SOLAR!";
         } else if (newCombo === 5) {
             comboText = "¡TABLERO EN LLAMAS!";
         } else {
-            comboText = `¡COMBO x${newCombo}!`;
+            comboText = `¡DIOS DEL MAHJONG x${newCombo}!`;
         }
 
         if (comboTimeoutRef.current) {
@@ -58,13 +58,13 @@ export function useFireStreak() {
         setComboSign({ id: Date.now(), text: comboText, combo: newCombo });
         comboTimeoutRef.current = setTimeout(() => {
             setComboSign(null);
-        }, 1600);
+        }, 1400);
 
         if (newCombo >= 3) {
             setComboShake(false);
             if (comboShakeTimeoutRef.current) clearTimeout(comboShakeTimeoutRef.current);
             requestAnimationFrame(() => setComboShake(true));
-            comboShakeTimeoutRef.current = setTimeout(() => setComboShake(false), 420);
+            comboShakeTimeoutRef.current = setTimeout(() => setComboShake(false), 220);
         }
     }, []);
 

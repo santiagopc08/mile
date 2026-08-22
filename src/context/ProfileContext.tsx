@@ -94,8 +94,11 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
                 // 2. Query Supabase Auth for backend session verification
                 const { data: { session } } = await supabase.auth.getSession();
                 const email = session?.user?.email;
-                if (email === 'el@mile.app' || email === 'ella@mile.app') {
-                    const matchedProfile = email === 'el@mile.app' ? 'el' : 'ella';
+                const allowedEmailsStr = process.env.NEXT_PUBLIC_ALLOWED_EMAILS || 'el@mile.app,ella@mile.app';
+                const allowedEmails = allowedEmailsStr.split(',').map(e => e.trim().toLowerCase());
+
+                if (email && allowedEmails.includes(email.toLowerCase())) {
+                    const matchedProfile = email ? (email.split('@')[0] as Profile) : 'el';
                     setProfile(matchedProfile);
                     setIsAuthenticated(true);
 

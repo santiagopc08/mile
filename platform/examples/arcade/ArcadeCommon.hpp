@@ -39,6 +39,14 @@ namespace platform::arcade
         Menu,
         BrickStorm,
         VoidRunner,
+        NeonStriker,
+        CyberViper,
+        TetrisMatrix,
+        BallShooter,
+        TankDefense,
+        TurboRace,
+        CyberFrogger,
+        SupplementShooter,
         Quit,
     };
 
@@ -50,6 +58,14 @@ namespace platform::arcade
 
         int BrickStormHighScore{0};
         int VoidRunnerHighScore{0};
+        int NeonStrikerHighScore{0};
+        int CyberViperHighScore{0};
+        int TetrisMatrixHighScore{0};
+        int BallShooterHighScore{0};
+        int TankDefenseHighScore{0};
+        int TurboRaceHighScore{0};
+        int CyberFroggerHighScore{0};
+        int SupplementShooterHighScore{0};
 
         void Request(ArcadeScreen screen) { Requested = screen; }
     };

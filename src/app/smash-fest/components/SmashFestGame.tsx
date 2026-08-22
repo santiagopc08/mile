@@ -1027,11 +1027,8 @@ const ShootController = memo(function ShootController({
       // Keep the guide up for a hovering mouse, drop it when a finger lifts.
       if (e.pointerType !== "mouse") aim.visible = false;
 
-      // Distance is the only thing that separates a shot from a camera orbit —
-      // deliberately not duration. Holding still *is* the aiming gesture now,
-      // and lining up a shot on a phone easily takes a couple of seconds.
-      // Sliding the finger away is what cancels.
-      if (moved > 10) return;
+      const threshold = e.pointerType === "mouse" ? 18 : 28;
+      if (moved > threshold) return;
 
       const { canShoot: allowed, activeWildcard: wildcard, shotPower: power, onShoot: shoot } = stateRef.current;
       if (!allowed) return;
@@ -1307,9 +1304,10 @@ const GameSession = memo(function GameSession({
   const comboCountRef = useRef(0);
 
   const totalMemoryBlocks = useMemo(() => {
+    // ⚡ Bolt Optimization: Replace array filter allocation with a single O(N) loop
     let count = 0;
-    for (const n of level.nodes) {
-      if (n.isMemoryBlock) count++;
+    for (let i = 0; i < level.nodes.length; i++) {
+      if (level.nodes[i].isMemoryBlock) count++;
     }
     return count;
   }, [level]);

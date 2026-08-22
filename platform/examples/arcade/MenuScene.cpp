@@ -35,6 +35,55 @@ namespace platform::arcade
             ArcadeScreen::VoidRunner,
             Palette::Magenta,
         };
+        m_entries[2] = {
+            "CYBER VIPER",
+            "Speed through the vector grid, consume energy cores and boost your trail.",
+            "W / A / S / D or ARROWS to turn      SPACE to deploy",
+            ArcadeScreen::CyberViper,
+            Palette::Lime,
+        };
+        m_entries[3] = {
+            "TETRIS MATRIX",
+            "Guideline 7-bag block stacking, SRS wall kicks, hold piece and line clears.",
+            "LEFT / RIGHT move      UP / X rotate      SPACE hard drop      C hold",
+            ArcadeScreen::TetrisMatrix,
+            Palette::Amber,
+        };
+        m_entries[4] = {
+            "BALL SHOOTERS",
+            "Aim and fire a stream of balls to smash numbered blocks before they reach the floor.",
+            "A / D or ARROWS aim      SPACE / ENTER fire volley",
+            ArcadeScreen::BallShooter,
+            Palette::Cyan,
+        };
+        m_entries[5] = {
+            "TANKS DEFENSE",
+            "Command a combat tank, blast enemy armor waves, and protect your HQ base.",
+            "W / A / S / D or ARROWS drive      SPACE / J fire cannon",
+            ArcadeScreen::TankDefense,
+            Palette::Lime,
+        };
+        m_entries[6] = {
+            "TURBO HIGHWAY",
+            "High-speed retro highway racer: weave through traffic as speed increases linearly.",
+            "A / D or ARROWS steer      W / S throttle & brake      SPACE nitro",
+            ArcadeScreen::TurboRace,
+            Palette::Magenta,
+        };
+        m_entries[7] = {
+            "CYBER FROGGER",
+            "Time your hops across a lethal neon highway and raging river to reach the home bays.",
+            "W / A / S / D or ARROWS hop      SPACE deploy",
+            ArcadeScreen::CyberFrogger,
+            Palette::Lime,
+        };
+        m_entries[8] = {
+            "SUPPLEMENT SHOOTER",
+            "Shoot block projectiles to fill in gaps in descending shapes and complete solid rectangles.",
+            "A / D move ship      SPACE / J shoot block",
+            ArcadeScreen::SupplementShooter,
+            Palette::Cyan,
+        };
     }
 
     void MenuScene::OnInitialize()
