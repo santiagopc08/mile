@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Trash2 } from 'lucide-react';
+import { useStore } from '@/context/StoreContext';
 import { useProfile } from '@/context/ProfileContext';
 import { useToast } from '@/components/ui/Toast';
 import { TimelineEvent } from './types';
+import type { EventComment } from '@/services/storeService';
 
 interface TimelineCommentsDrawerProps {
     activeEvent: TimelineEvent | null;
@@ -12,6 +14,7 @@ interface TimelineCommentsDrawerProps {
 }
 
 export function TimelineCommentsDrawer({ activeEvent, setActiveEventId }: TimelineCommentsDrawerProps) {
+    const { data, updateData } = useStore();
     const { profile } = useProfile();
     const { error: notifyError, success, confirm } = useToast();
     const [mounted, setMounted] = useState(false);
@@ -29,6 +32,25 @@ export function TimelineCommentsDrawer({ activeEvent, setActiveEventId }: Timeli
         const text = textarea?.value?.trim();
         if (!text) return;
 
+        const optimisticComment: EventComment = {
+            id: `temp-${Date.now()}`,
+            eventId: activeEvent.id,
+            author: profile,
+            text,
+            createdAt: new Date().toISOString(),
+        };
+
+        const currentEvents = data?.events || [];
+        const updatedEvents = currentEvents.map(ev => {
+            if (ev.id === activeEvent.id) {
+                return { ...ev, comments: [...(ev.comments || []), optimisticComment] };
+            }
+            return ev;
+        });
+
+        await updateData({ events: updatedEvents });
+        form.reset();
+
         try {
             await fetch('/api/timeline', {
                 method: 'POST',
@@ -40,7 +62,6 @@ export function TimelineCommentsDrawer({ activeEvent, setActiveEventId }: Timeli
                     text
                 })
             });
-            form.reset();
         } catch (err) {
             notifyError(`No se pudo publicar el comentario: ${err instanceof Error ? err.message : 'error desconocido'}`);
         }
@@ -53,7 +74,16 @@ export function TimelineCommentsDrawer({ activeEvent, setActiveEventId }: Timeli
             confirmLabel: 'Eliminar',
             tone: 'danger',
         });
-        if (!ok) return;
+        if (!ok || !activeEvent) return;
+
+        const currentEvents = data?.events || [];
+        const updatedEvents = currentEvents.map(ev => {
+            if (ev.id === activeEvent.id && ev.comments) {
+                return { ...ev, comments: ev.comments.filter(c => c.id !== commentId) };
+            }
+            return ev;
+        });
+        await updateData({ events: updatedEvents });
 
         try {
             await fetch(`/api/timeline?id=${commentId}&type=comment`, {
