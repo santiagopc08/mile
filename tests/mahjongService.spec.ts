@@ -54,6 +54,10 @@ const createMockSupabase = (mockData: Record<string, unknown> = {}, errorToThrow
 };
 
 test.describe('MahjongService', () => {
+    test.beforeEach(() => {
+        MahjongService.clearMahjongImagesCache();
+    });
+
     const originalConsoleError = console.error;
     const originalFetch = global.fetch;
 

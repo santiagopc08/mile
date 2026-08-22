@@ -69,8 +69,19 @@ export const MahjongService = {
     },
 
 
+    _mahjongImagesPromise: null as Promise<{ url: string, source: 'supabase' | 'local', title?: string, description?: string, date?: string }[]> | null,
+
+    clearMahjongImagesCache() {
+        this._mahjongImagesPromise = null;
+    },
+
     async getMahjongImages(supabase: SupabaseClient = defaultSupabase, signal?: AbortSignal): Promise<{ url: string, source: 'supabase' | 'local', title?: string, description?: string, date?: string }[]> {
-        try {
+        if (this._mahjongImagesPromise) {
+            return this._mahjongImagesPromise;
+        }
+
+        this._mahjongImagesPromise = (async () => {
+            try {
             const query = supabase.from('events').select('image_url, title, description, date').not('image_url', 'is', null);
             if (signal) {
                 query.abortSignal(signal);
@@ -97,10 +108,14 @@ export const MahjongService = {
                 .map(url => ({ url, source: 'local' as const }));
 
             return [...eventImgs, ...localImgs];
-        } catch (e) {
-            console.error('Failed fetching mahjong images:', e);
-            return [];
-        }
+            } catch (e) {
+                console.error('Failed fetching mahjong images:', e);
+                this._mahjongImagesPromise = null; // Clear on error to retry next time
+                return [];
+            }
+        })();
+
+        return this._mahjongImagesPromise;
     },
 
     // --- CO-OP GAME OPERATIONS ---
