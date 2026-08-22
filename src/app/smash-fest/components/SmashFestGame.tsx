@@ -1303,7 +1303,14 @@ const GameSession = memo(function GameSession({
   const lastFallTimeRef = useRef(0);
   const comboCountRef = useRef(0);
 
-  const totalMemoryBlocks = useMemo(() => level.nodes.filter((n) => n.isMemoryBlock).length, [level]);
+  // ⚡ Bolt Optimization: Single O(N) pass to avoid intermediate array allocation
+  const totalMemoryBlocks = useMemo(() => {
+    let count = 0;
+    for (const n of level.nodes) {
+      if (n.isMemoryBlock) count++;
+    }
+    return count;
+  }, [level]);
 
   useEffect(() => {
     onWildcardAmmoUpdate?.(wildcardAmmo);
