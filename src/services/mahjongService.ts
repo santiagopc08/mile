@@ -81,7 +81,6 @@ export const MahjongService = {
     },
 
 
-
     async getMahjongImages(supabase: SupabaseClient = defaultSupabase, signal?: AbortSignal): Promise<MahjongImage[]> {
         const now = Date.now();
         if (cachedMahjongImages && (now - mahjongImagesCacheTime < CACHE_TTL_MS)) {
