@@ -42,7 +42,7 @@ export async function POST(request: Request) {
                  if (process.env.NODE_ENV === 'development') {
                      console.error('Failed to store device token:', insertError);
                  }
-                 // We might still want to proceed, but ideally this shouldn't fail
+                 return NextResponse.json({ error: 'Failed to securely complete login process' }, { status: 500 });
              }
 
              // Enforce limit of 5 tokens per user

@@ -22,6 +22,30 @@ describe('haptics', () => {
   });
 
   describe('Initialization and State', () => {
+
+    it('sets enabled to false if localStorage has false', () => {
+      const HapticEngine = (haptics as any).constructor;
+      localStorage.setItem('mile_haptic_enabled', 'false');
+      const engine = new HapticEngine();
+      expect(engine.isEnabled()).toBe(false);
+    });
+
+    it('sets enabled to true if window is undefined', () => {
+      vi.stubGlobal('window', undefined);
+      const HapticEngine = (haptics as any).constructor;
+      const engine = new HapticEngine();
+      expect(engine.isEnabled()).toBe(true);
+      vi.unstubAllGlobals();
+    });
+
+    it('does not touch localStorage if window is undefined on setEnabled', () => {
+      vi.stubGlobal('window', undefined);
+      const setItemSpy = vi.spyOn(localStorage, 'setItem');
+      haptics.setEnabled(true);
+      expect(setItemSpy).not.toHaveBeenCalled();
+      vi.unstubAllGlobals();
+    });
+
     it('initializes as enabled by default if localStorage is empty', () => {
       // Create a fresh instance for initialization tests to bypass the exported singleton
       const HapticEngine = (haptics as any).constructor;
@@ -51,6 +75,25 @@ describe('haptics', () => {
     });
   });
 
+
+  describe('Edge cases (window / navigator missing)', () => {
+    afterEach(() => {
+      vi.unstubAllGlobals();
+    });
+
+    it('does not vibrate if window is undefined', () => {
+      vi.stubGlobal('window', undefined);
+      haptics.vibrate(10);
+    });
+
+    it('does not vibrate if vibrate is not in navigator', () => {
+      const mockNavigator = { ...navigator };
+      delete (mockNavigator as any).vibrate;
+      vi.stubGlobal('navigator', mockNavigator);
+      haptics.vibrate(10);
+    });
+  });
+
   describe('vibrate()', () => {
     it('does nothing if disabled', () => {
       haptics.setEnabled(false);
@@ -77,6 +120,21 @@ describe('haptics', () => {
       expect(console.warn).toHaveBeenCalledWith('Vibration API blocked or failed:', expect.any(Error));
 
       (process.env as any).NODE_ENV = originalNodeEnv;
+    });
+
+
+    it('handles navigator.vibrate throwing exceptions silently when process is undefined', () => {
+      haptics.setEnabled(true);
+      navigator.vibrate = vi.fn().mockImplementation(() => {
+        throw new Error('vibrate error 2');
+      });
+
+      vi.stubGlobal('process', { env: { } });
+
+      expect(() => haptics.vibrate(10)).not.toThrow();
+      expect(console.warn).not.toHaveBeenCalled();
+
+      vi.unstubAllGlobals();
     });
 
     it('does not warn in production on error', () => {

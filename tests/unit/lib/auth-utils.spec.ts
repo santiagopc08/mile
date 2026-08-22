@@ -128,4 +128,37 @@ test.describe('verifyServerSession', () => {
         const { verifyServerSession } = require('../../../src/lib/auth-utils.ts');
         await expect(verifyServerSession()).rejects.toThrow('Cookies error');
     });
+
+    test('token mismatch in database returns false', async () => {
+        setupMocks(
+            { 'mile_device_token': '123e4567-e89b-12d3-a456-426614174000' },
+            async () => ({ data: { id: 'some-id', token: '123e4567-e89b-12d3-a456-426614174001' }, error: null })
+        );
+
+        const { verifyServerSession } = require('../../../src/lib/auth-utils.ts');
+        const result = await verifyServerSession();
+        expect(result).toBe(false);
+    });
+
+    test('uppercase valid UUID token matched in database returns true', async () => {
+        setupMocks(
+            { 'mile_device_token': '123E4567-E89B-12D3-A456-426614174000' },
+            async () => ({ data: { id: 'some-id', token: '123E4567-E89B-12D3-A456-426614174000' }, error: null })
+        );
+
+        const { verifyServerSession } = require('../../../src/lib/auth-utils.ts');
+        const result = await verifyServerSession();
+        expect(result).toBe(true);
+    });
+
+    test('UUID token with trailing spaces returns false', async () => {
+        setupMocks(
+            { 'mile_device_token': '123e4567-e89b-12d3-a456-426614174000   ' },
+            async () => ({ data: { id: 'some-id', token: '123e4567-e89b-12d3-a456-426614174000' }, error: null })
+        );
+
+        const { verifyServerSession } = require('../../../src/lib/auth-utils.ts');
+        const result = await verifyServerSession();
+        expect(result).toBe(false);
+    });
 });
