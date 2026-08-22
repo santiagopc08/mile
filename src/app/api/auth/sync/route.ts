@@ -35,6 +35,7 @@ export async function POST(request: Request) {
                 if (process.env.NODE_ENV === 'development') {
                     console.error('Failed to store sync device token:', insertError);
                 }
+                return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
             }
 
             // Enforce limit of 5 tokens per user
