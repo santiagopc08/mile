@@ -302,15 +302,21 @@ export function Mahjong() {
             const t = setTimeout(() => setIsMatchPulse(false), 400);
 
             // Spawn 16 wall-breaking fragments (was 10)
-            const newParticles = Array.from({ length: 16 }).map((_, i) => ({
-                id: Date.now() + i + Math.random(),
-                angle: (Math.random() - 0.5) * Math.PI * 0.95,
-                speed: 25 + Math.random() * 55, // Faster speed
-                rotate: Math.random() * 720
-            }));
+            // ⚡ Bolt Optimization: Use a loop instead of Array.from({ length: N }).map() to prevent memory allocation overhead
+            const newParticles: {id: number; angle: number; speed: number; rotate: number}[] = [];
+            for (let i = 0; i < 16; i++) {
+                newParticles.push({
+                    id: Date.now() + i + Math.random(),
+                    angle: (Math.random() - 0.5) * Math.PI * 0.95,
+                    speed: 25 + Math.random() * 55, // Faster speed
+                    rotate: Math.random() * 720
+                });
+            }
             setProgressParticles(prev => [...prev, ...newParticles]);
             const timer = setTimeout(() => {
-                setProgressParticles(prev => prev.filter(p => !newParticles.includes(p)));
+                // ⚡ Bolt Optimization: Use a Set to avoid O(N*M) nested array inclusion checks
+                const idSet = new Set(newParticles.map(p => p.id));
+                setProgressParticles(prev => prev.filter(p => !idSet.has(p.id)));
             }, 700);
 
             return () => {
