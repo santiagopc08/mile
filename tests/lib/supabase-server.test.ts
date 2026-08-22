@@ -14,7 +14,7 @@ describe('createServerClient', () => {
     vi.clearAllMocks();
     vi.resetModules(); // Ensure the module is re-evaluated with the new env vars
     vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'http://mock-url.com');
-    vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY', 'mock-service-role-key');
+    vi.stubEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY', 'mock-service-role-key');
   });
 
   afterEach(() => {

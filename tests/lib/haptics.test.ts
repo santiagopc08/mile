@@ -88,7 +88,7 @@ describe('haptics', () => {
 
     it('does not vibrate if vibrate is not in navigator', () => {
       const mockNavigator = { ...navigator };
-      delete mockNavigator.vibrate;
+      delete (mockNavigator as any).vibrate;
       vi.stubGlobal('navigator', mockNavigator);
       haptics.vibrate(10);
     });

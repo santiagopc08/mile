@@ -6,7 +6,8 @@ import { useProfile } from "@/context/ProfileContext";
 import dynamic from "next/dynamic";
 import { BrutalistSkeleton } from "@/components/ui/BrutalistSkeleton";
 import { AmbientField } from "@/components/AmbientField";
-import { Flame, Layers, Target, Zap, Rocket, Gamepad2, Crosshair, Sparkles, Grid3X3, CircleDot, Shield, Gauge, Waves, Boxes } from "lucide-react";
+import { Flame, Layers, Target, Zap, Rocket, Gamepad2, Crosshair, Sparkles, Grid3X3, CircleDot, Shield, Gauge, Waves, Boxes, Camera } from "lucide-react";
+import { useArcadePhotos } from "@/hooks/useArcadePhotos";
 
 const Mahjong = dynamic(
   () => import("@/components/Mahjong").then((m) => m.Mahjong),
@@ -152,6 +153,7 @@ type GameTab = 'mahjong' | 'hillclimb' | 'smashfest' | 'brickstorm' | 'voidrunne
 
 export default function JuegoPage() {
   const { profile } = useProfile();
+  const { memories } = useArcadePhotos();
   const [activeTab, setActiveTab] = useState<GameTab>('mahjong');
 
   const accentColor = profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)';
@@ -297,9 +299,19 @@ export default function JuegoPage() {
                     >
                       {activeConfig.title}
                     </h1>
-                    <p className="text-[9px] sm:text-xs text-white/60 uppercase tracking-widest mt-1">
-                      {activeConfig.subtitle}
-                    </p>
+                    <div className="flex items-center gap-3 mt-1 flex-wrap">
+                      <p className="text-[9px] sm:text-xs text-white/60 uppercase tracking-widest">
+                        {activeConfig.subtitle}
+                      </p>
+                      {memories.length > 0 && (
+                        <span className="hidden sm:inline-flex items-center gap-1 bg-black/60 border border-white/15 px-2 py-0.5 rounded text-[9px] font-bold text-white/80">
+                          <Camera className="w-3 h-3 text-pink-400" />
+                          <span style={{ color: profile === 'ella' ? '#ff4b89' : '#c3f400' }}>
+                            {memories.length} RECUERDOS SINTONIZADOS
+                          </span>
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
 
