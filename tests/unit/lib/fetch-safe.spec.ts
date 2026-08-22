@@ -103,6 +103,30 @@ test.describe('resolveSafeIP', () => {
         dns.lookup = originalLookup;
     });
 
+
+    test('throws when resolving to a private IP', async () => {
+        const originalResolve4 = dns.resolve4;
+        const originalResolve6 = dns.resolve6;
+
+        dns.resolve4 = (async () => {
+            return ['127.0.0.1'];
+        }) as unknown as typeof dns.resolve4;
+        dns.resolve6 = (async () => {
+            return [];
+        }) as unknown as typeof dns.resolve6;
+
+        const originalLookup = dns.lookup;
+        dns.lookup = (async () => {
+            return [{ address: '127.0.0.1', family: 4 }];
+        }) as unknown as typeof dns.lookup;
+
+        await expect(resolveSafeIP('example.com')).rejects.toThrow('Private or local addresses are not allowed');
+
+        dns.resolve4 = originalResolve4;
+        dns.resolve6 = originalResolve6;
+        dns.lookup = originalLookup;
+    });
+
     test('throws when DNS resolution fails to prevent bypasses', async () => {
         const originalResolve4 = dns.resolve4;
         const originalResolve6 = dns.resolve6;
