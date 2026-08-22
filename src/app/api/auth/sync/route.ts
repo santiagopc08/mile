@@ -13,9 +13,10 @@ export async function POST(request: Request) {
         const adminSupabase = createServerClient();
         const { data: { user }, error } = await adminSupabase.auth.getUser(token);
 
-        const allowedEmails = (process.env.ALLOWED_EMAILS || 'el@mile.app,ella@mile.app').split(',');
+        const allowedEmailsStr = process.env.ALLOWED_EMAILS || 'el@mile.app,ella@mile.app';
+        const allowedEmails = allowedEmailsStr.split(',').map(e => e.trim().toLowerCase());
 
-        if (error || !user || !user.email || !allowedEmails.includes(user.email)) {
+        if (error || !user || !user.email || !allowedEmails.includes(user.email.toLowerCase())) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
@@ -67,9 +68,7 @@ export async function POST(request: Request) {
             path: '/'
         });
 
-        // Determine profile from email prefix for backwards compatibility, or just use full email prefix
         const profile = user.email.split('@')[0];
-
         return NextResponse.json({ success: true, profile });
     } catch (e) {
         if (process.env.NODE_ENV === 'development') {
