@@ -11,7 +11,9 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Missing profile or password' }, { status: 400 });
         }
 
-        const email = profile === 'el' ? 'el@mile.app' : 'ella@mile.app';
+        const allowedEmailsStr = process.env.ALLOWED_EMAILS || 'el@mile.app,ella@mile.app';
+        const allowedEmails = allowedEmailsStr.split(',').map(e => e.trim().toLowerCase());
+        const email = allowedEmails.find(e => e.startsWith(profile + '@')) || (profile + '@mile.app');
         const adminSupabase = createServerClient();
 
         // Sign in using Supabase Client with password directly

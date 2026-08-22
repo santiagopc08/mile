@@ -13,7 +13,10 @@ export async function POST(request: Request) {
         const adminSupabase = createServerClient();
         const { data: { user }, error } = await adminSupabase.auth.getUser(token);
 
-        if (error || !user || (user.email !== 'el@mile.app' && user.email !== 'ella@mile.app')) {
+        const allowedEmailsStr = process.env.ALLOWED_EMAILS || 'el@mile.app,ella@mile.app';
+        const allowedEmails = allowedEmailsStr.split(',').map(e => e.trim().toLowerCase());
+
+        if (error || !user || !user.email || !allowedEmails.includes(user.email.toLowerCase())) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
@@ -64,7 +67,8 @@ export async function POST(request: Request) {
             path: '/'
         });
 
-        return NextResponse.json({ success: true, profile: user.email === 'el@mile.app' ? 'el' : 'ella' });
+        const profileStr = user.email ? user.email.split('@')[0] : 'unknown';
+        return NextResponse.json({ success: true, profile: profileStr });
     } catch (e) {
         if (process.env.NODE_ENV === 'development') {
             console.error('Error syncing auth session:', e);
