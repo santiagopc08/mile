@@ -57,18 +57,20 @@ async function resolveHostAsync(hostname: string): Promise<{address: string}[]> 
 export async function resolveSafeIP(hostname: string): Promise<string> {
     try {
         const addrs = await resolveHostAsync(hostname);
+        let safeAddress: string | undefined;
+
         // If ANY resolved address is private, we must reject the hostname entirely
         // to prevent DNS rebinding or multi-A-record attacks.
         for (const addr of addrs) {
             if (isLocalOrPrivateIP(addr.address)) {
                 throw new Error('Private or local addresses are not allowed');
+            } else if (!safeAddress) {
+                safeAddress = addr.address;
             }
         }
 
-        for (const addr of addrs) {
-            if (!isLocalOrPrivateIP(addr.address)) {
-                return addr.address;
-            }
+        if (safeAddress) {
+            return safeAddress;
         }
     } catch (e: unknown) {
         if (e instanceof Error && e.message === 'Private or local addresses are not allowed') {

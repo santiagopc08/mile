@@ -137,6 +137,25 @@ test.describe('HapticEngine', () => {
         expect((warnArgs[1] as Error).message).toBe('Test error');
     });
 
+
+    test('should not throw if process is undefined on vibrate error', () => {
+        Object.defineProperty(global, 'window', { value: {}, writable: true, configurable: true });
+        Object.defineProperty(global, 'navigator', {
+            value: { vibrate: () => { throw new Error('Test error'); } },
+            writable: true,
+            configurable: true
+        });
+
+        const originalProcess = global.process;
+        Object.defineProperty(global, 'process', { value: { env: {} }, writable: true, configurable: true });
+
+        haptics.vibrate(10);
+
+        expect(consoleWarnMock.length).toBe(0);
+
+        Object.defineProperty(global, 'process', { value: originalProcess, writable: true, configurable: true });
+    });
+
     test('should catch but not warn on vibrate error in production', () => {
         Object.defineProperty(global, 'window', { value: {}, writable: true, configurable: true });
         Object.defineProperty(global, 'navigator', {

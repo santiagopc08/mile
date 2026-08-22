@@ -13,7 +13,9 @@ export async function POST(request: Request) {
         const adminSupabase = createServerClient();
         const { data: { user }, error } = await adminSupabase.auth.getUser(token);
 
-        if (error || !user || (user.email !== 'el@mile.app' && user.email !== 'ella@mile.app')) {
+        const allowedEmails = (process.env.ALLOWED_EMAILS || 'el@mile.app,ella@mile.app').split(',');
+
+        if (error || !user || !user.email || !allowedEmails.includes(user.email)) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
@@ -35,6 +37,7 @@ export async function POST(request: Request) {
                 if (process.env.NODE_ENV === 'development') {
                     console.error('Failed to store sync device token:', insertError);
                 }
+                return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
             }
 
             // Enforce limit of 5 tokens per user
@@ -64,7 +67,10 @@ export async function POST(request: Request) {
             path: '/'
         });
 
-        return NextResponse.json({ success: true, profile: user.email === 'el@mile.app' ? 'el' : 'ella' });
+        // Determine profile from email prefix for backwards compatibility, or just use full email prefix
+        const profile = user.email.split('@')[0];
+
+        return NextResponse.json({ success: true, profile });
     } catch (e) {
         if (process.env.NODE_ENV === 'development') {
             console.error('Error syncing auth session:', e);

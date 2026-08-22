@@ -159,7 +159,6 @@ describe('arcadeAudio', () => {
             const { initArcadeAudio } = await import('../../src/lib/arcadeAudio');
 
             expect(() => initArcadeAudio()).not.toThrow();
-
             global.window = originalWindow;
         });
 
