@@ -1391,7 +1391,11 @@ export function generateLevel(seed: number, difficulty: Difficulty = 3): LevelSc
   ensureMemories(rng, nodes, stages, memoryTarget);
   addObstacles(rng, nodes, stages, difficulty);
 
-  const memories = nodes.filter((n) => n.isMemoryBlock).length;
+  // ⚡ Bolt Optimization: Replace array filter allocation with a single O(N) loop
+  let memories = 0;
+  for (let i = 0; i < nodes.length; i++) {
+    if (nodes[i].isMemoryBlock) memories++;
+  }
   // Every memory block has to go over the edge of its pedestal, which takes
   // aimed shots rather than one lucky collapse, so the budget is per block and
   // barely touched by how many blocks the scenery is made of.

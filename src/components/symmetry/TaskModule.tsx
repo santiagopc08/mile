@@ -301,21 +301,17 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
   const deleteObjective = (id: string) => {
     updateData({ objectives: objectives.filter(o => o.id !== id) as Objective[] });
 
+    // ⚡ Bolt Optimization: Single-pass map avoids double iteration loop+mutation
     let hasMatch = false;
-    for (let i = 0; i < tasks.length; i++) {
-      if (tasks[i].objective_id === id) {
+    const updatedTasks = tasks.map(t => {
+      if (t.objective_id === id) {
         hasMatch = true;
-        break;
+        return { ...t, objective_id: undefined } as Task;
       }
-    }
+      return t;
+    });
 
     if (hasMatch) {
-      const updatedTasks = [...tasks];
-      for (let i = 0; i < updatedTasks.length; i++) {
-        if (updatedTasks[i].objective_id === id) {
-          updatedTasks[i] = { ...updatedTasks[i], objective_id: undefined } as Task;
-        }
-      }
       updateData({ tasks: updatedTasks });
     }
   };
@@ -339,14 +335,20 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
       haptics.triggerError();
       return;
     }
-    const objIndex = objectives.findIndex(o => o.id === id);
-    if (objIndex === -1) return;
+    // ⚡ Bolt Optimization: Single-pass Array.map() replaces double iteration (findIndex + array copy)
+    let nextComplete = false;
+    let objTitle = '';
+    const updatedObjectives = objectives.map(o => {
+      if (o.id === id) {
+        nextComplete = !o.is_complete;
+        objTitle = o.title;
+        return { ...o, is_complete: nextComplete };
+      }
+      return o;
+    });
 
-    const obj = objectives[objIndex];
-    const nextComplete = !obj.is_complete;
+    if (objTitle === '') return;
 
-    const updatedObjectives = [...objectives];
-    updatedObjectives[objIndex] = { ...obj, is_complete: nextComplete };
     updateData({ objectives: updatedObjectives });
 
     if (nextComplete) {
@@ -354,7 +356,7 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
       haptics.triggerSuccess();
       const partner = profile === 'ella' ? 'el' : 'ella';
       const authorName = profile === 'el' ? 'Santiago' : 'Milena';
-      NotificationService.addNotification(partner, 'objective', `¡${authorName} completó el objetivo: "${obj.title}"! 🎯`).catch(err => console.error(err));
+      NotificationService.addNotification(partner, 'objective', `¡${authorName} completó el objetivo: "${objTitle}"! 🎯`).catch(err => console.error(err));
     } else {
       sound.playTick();
       haptics.triggerTick();

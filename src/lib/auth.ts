@@ -17,7 +17,10 @@ export async function verifyAuth() {
             const token = authHeader.substring(7);
             const supabase = createServerClient();
             const { data: { user }, error } = await supabase.auth.getUser(token);
-            if (!error && user && (user.email === 'el@mile.app' || user.email === 'ella@mile.app')) {
+            const allowedEmailsStr = process.env.ALLOWED_EMAILS || 'el@mile.app,ella@mile.app';
+            const allowedEmails = allowedEmailsStr.split(',').map(e => e.trim().toLowerCase());
+
+            if (!error && user && user.email && allowedEmails.includes(user.email.toLowerCase())) {
                 return true;
             }
         }

@@ -11,7 +11,9 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Missing profile or password' }, { status: 400 });
         }
 
-        const email = profile === 'el' ? 'el@mile.app' : 'ella@mile.app';
+        const allowedEmailsStr = process.env.ALLOWED_EMAILS || 'el@mile.app,ella@mile.app';
+        const allowedEmails = allowedEmailsStr.split(',').map(e => e.trim().toLowerCase());
+        const email = allowedEmails.find(e => e.startsWith(profile + '@')) || (profile + '@mile.app');
         const adminSupabase = createServerClient();
 
         // Sign in using Supabase Client with password directly
@@ -40,7 +42,7 @@ export async function POST(request: Request) {
                  if (process.env.NODE_ENV === 'development') {
                      console.error('Failed to store device token:', insertError);
                  }
-                 // We might still want to proceed, but ideally this shouldn't fail
+                 return NextResponse.json({ error: 'Failed to securely complete login process' }, { status: 500 });
              }
 
              // Enforce limit of 5 tokens per user

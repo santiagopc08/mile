@@ -1303,11 +1303,11 @@ const GameSession = memo(function GameSession({
   const lastFallTimeRef = useRef(0);
   const comboCountRef = useRef(0);
 
-  // ⚡ Bolt Optimization: Single O(N) pass to avoid intermediate array allocation
   const totalMemoryBlocks = useMemo(() => {
+    // ⚡ Bolt Optimization: Replace array filter allocation with a single O(N) loop
     let count = 0;
-    for (const n of level.nodes) {
-      if (n.isMemoryBlock) count++;
+    for (let i = 0; i < level.nodes.length; i++) {
+      if (level.nodes[i].isMemoryBlock) count++;
     }
     return count;
   }, [level]);
