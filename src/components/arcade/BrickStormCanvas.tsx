@@ -2,7 +2,9 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { BrickAudio, initArcadeAudio, loadMutedPreference, setMuted, isMuted } from '@/lib/arcadeAudio';
-import { Volume2, VolumeX, RotateCcw, Play, Trophy, Shield, Zap, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Volume2, VolumeX, RotateCcw, Play, Trophy, Shield, Zap, Sparkles, ChevronLeft, ChevronRight, Heart, ArrowRight } from 'lucide-react';
+import { useArcadePhotos, StylizedMemory } from '@/hooks/useArcadePhotos';
+import { BrutalistCorners } from '@/components/ui/BrutalistPanel';
 
 interface BrickStormProps {
     accentColor?: string;
@@ -76,12 +78,16 @@ export function BrickStormCanvas({ accentColor = '#00e5ff' }: BrickStormProps) {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const containerRef = useRef<HTMLDivElement | null>(null);
 
+    const { stylizedMemories, accentColor: profileAccent } = useArcadePhotos(780, 420);
+
     const [score, setScore] = useState(0);
     const [highScore, setHighScore] = useState(0);
     const [lives, setLives] = useState(3);
     const [level, setLevel] = useState(1);
     const [combo, setCombo] = useState(0);
+    const [revealPercent, setRevealPercent] = useState(0);
     const [gameState, setGameState] = useState<'menu' | 'playing' | 'gameover' | 'cleared'>('menu');
+    const [clearedMemory, setClearedMemory] = useState<StylizedMemory | null>(null);
     const [mutedState, setMutedState] = useState(false);
     const [activePowerups, setActivePowerups] = useState<string[]>([]);
 
@@ -92,9 +98,11 @@ export function BrickStormCanvas({ accentColor = '#00e5ff' }: BrickStormProps) {
         paddleWidth: BASE_PADDLE_WIDTH,
         balls: [] as Ball[],
         bricks: [] as Brick[],
+        totalLevelBricks: 1,
         drops: [] as Drop[],
         lasers: [] as Laser[],
         particles: [] as Particle[],
+        currentMemory: null as StylizedMemory | null,
         score: 0,
         highScore: 0,
         lives: 3,
@@ -119,8 +127,10 @@ export function BrickStormCanvas({ accentColor = '#00e5ff' }: BrickStormProps) {
         const saved = localStorage.getItem('brickstorm_highscore');
         if (saved) {
             const val = parseInt(saved, 10);
-            setHighScore(val);
-            stateRef.current.highScore = val;
+            if (!isNaN(val)) {
+                setHighScore(val);
+                stateRef.current.highScore = val;
+            }
         }
     }, []);
 
@@ -131,7 +141,7 @@ export function BrickStormCanvas({ accentColor = '#00e5ff' }: BrickStormProps) {
     }, [mutedState]);
 
     const buildLevel = useCallback((lvl: number) => {
-        const rows = Math.min(8, 4 + Math.floor((lvl - 1) / 2));
+        const rows = Math.min(7, 4 + Math.floor((lvl - 1) / 2));
         const boardWidth = BRICK_COLS * BRICK_WIDTH + (BRICK_COLS - 1) * BRICK_GAP;
         const startX = (V_WIDTH - boardWidth) / 2 + BRICK_WIDTH / 2;
 
@@ -150,8 +160,8 @@ export function BrickStormCanvas({ accentColor = '#00e5ff' }: BrickStormProps) {
         for (let r = 0; r < rows; r++) {
             const rowColor = colors[r % colors.length];
             for (let c = 0; c < BRICK_COLS; c++) {
-                // Random gaps in top rows for ball infiltration
-                if (Math.random() < 0.08 + r * 0.01) continue;
+                // Occasional gaps for infiltration
+                if (Math.random() < 0.06 + r * 0.01) continue;
 
                 const isGolden = Math.random() < 0.08;
                 const hits = isGolden ? 2 : 1 + Math.min(2, Math.floor((rows - 1 - r) / 2) + Math.floor((lvl - 1) / 3));
@@ -171,6 +181,7 @@ export function BrickStormCanvas({ accentColor = '#00e5ff' }: BrickStormProps) {
         }
 
         stateRef.current.bricks = bricks;
+        stateRef.current.totalLevelBricks = Math.max(1, bricks.length);
         stateRef.current.drops = [];
         stateRef.current.lasers = [];
         stateRef.current.balls = [
@@ -183,7 +194,19 @@ export function BrickStormCanvas({ accentColor = '#00e5ff' }: BrickStormProps) {
                 stuckToPaddle: true,
             },
         ];
-    }, []);
+
+        if (stylizedMemories.length > 0) {
+            stateRef.current.currentMemory = stylizedMemories[(lvl - 1) % stylizedMemories.length];
+        }
+        setRevealPercent(0);
+    }, [stylizedMemories]);
+
+    // Keep current memory synced
+    useEffect(() => {
+        if (stylizedMemories.length > 0 && !stateRef.current.currentMemory) {
+            stateRef.current.currentMemory = stylizedMemories[(level - 1) % stylizedMemories.length];
+        }
+    }, [stylizedMemories, level]);
 
     const spawnParticles = (x: number, y: number, color: string, count = 12, speed = 180) => {
         for (let i = 0; i < count; i++) {
@@ -228,10 +251,21 @@ export function BrickStormCanvas({ accentColor = '#00e5ff' }: BrickStormProps) {
         setLevel(1);
         setCombo(0);
         setGameState('playing');
+        setClearedMemory(null);
         setActivePowerups([]);
 
         buildLevel(1);
     }, [buildLevel]);
+
+    const handleNextLevel = useCallback(() => {
+        const nextLvl = level + 1;
+        setLevel(nextLvl);
+        stateRef.current.level = nextLvl;
+        stateRef.current.gameState = 'playing';
+        setGameState('playing');
+        setClearedMemory(null);
+        buildLevel(nextLvl);
+    }, [level, buildLevel]);
 
     const launchBall = () => {
         const s = stateRef.current;
@@ -259,7 +293,7 @@ export function BrickStormCanvas({ accentColor = '#00e5ff' }: BrickStormProps) {
         BrickAudio.laserFire();
     };
 
-    // Main Game Loop
+    // ── MAIN 60 FPS ENGINE LOOP ─────────────────────────────────────────────
     useEffect(() => {
         let animId: number;
         let lastTime = performance.now();
@@ -270,17 +304,17 @@ export function BrickStormCanvas({ accentColor = '#00e5ff' }: BrickStormProps) {
         if (!ctx) return;
 
         const loop = (time: number) => {
-            const dt = Math.min((time - lastTime) / 1000, 0.05);
+            const dt = Math.min((time - lastTime) / 1000, 0.04);
             lastTime = time;
 
             const s = stateRef.current;
 
             // Handle Screen Shake
             if (s.shake > 0) {
-                s.shake = Math.max(0, s.shake - dt * 28);
+                s.shake = Math.max(0, s.shake - dt * 25);
                 s.shakeOffset = {
-                    x: (Math.random() - 0.5) * s.shake,
-                    y: (Math.random() - 0.5) * s.shake,
+                    x: (Math.random() - 0.5) * s.shake * 2,
+                    y: (Math.random() - 0.5) * s.shake * 2,
                 };
             } else {
                 s.shakeOffset = { x: 0, y: 0 };
@@ -308,31 +342,32 @@ export function BrickStormCanvas({ accentColor = '#00e5ff' }: BrickStormProps) {
 
                 if (s.laserTimer > 0) {
                     s.laserTimer -= dt;
-                    if (s.keys.fire) fireLaser();
                 }
 
-                // Sync active powerup badges
-                const powers: string[] = [];
-                if (s.wideTimer > 0) powers.push(`AMPLIO ${Math.ceil(s.wideTimer)}s`);
-                if (s.slowTimer > 0) powers.push(`LENTO ${Math.ceil(s.slowTimer)}s`);
-                if (s.laserTimer > 0) powers.push(`LÁSER ${Math.ceil(s.laserTimer)}s`);
-                setActivePowerups(powers);
+                // Update Active Powerups UI indicator
+                const currentPows: string[] = [];
+                if (s.wideTimer > 0) currentPows.push('PALETA ANCHA');
+                if (s.slowTimer > 0) currentPows.push('RALENTIZADOR');
+                if (s.laserTimer > 0) currentPows.push('CAÑÓN LÁSER');
+                setActivePowerups(currentPows);
 
-                // Paddle Movement
-                const paddleSpeed = 850;
-                if (s.keys.left) s.paddleTargetX -= paddleSpeed * dt;
-                if (s.keys.right) s.paddleTargetX += paddleSpeed * dt;
+                // Paddle Steering Physics
+                const steerSpeed = 820 * dt;
+                if (s.keys.left) s.paddleTargetX -= steerSpeed;
+                if (s.keys.right) s.paddleTargetX += steerSpeed;
                 if (s.touchX !== null) s.paddleTargetX = s.touchX;
 
-                s.paddleTargetX = Math.max(s.paddleWidth / 2 + 16, Math.min(V_WIDTH - s.paddleWidth / 2 - 16, s.paddleTargetX));
-                s.paddleX += (s.paddleTargetX - s.paddleX) * Math.min(1, dt * 25);
+                // Clamp Paddle
+                const halfW = s.paddleWidth / 2;
+                s.paddleTargetX = Math.max(16 + halfW, Math.min(V_WIDTH - 16 - halfW, s.paddleTargetX));
+                s.paddleX += (s.paddleTargetX - s.paddleX) * Math.min(1, dt * 28);
 
                 // Update Lasers
                 for (let i = s.lasers.length - 1; i >= 0; i--) {
                     const l = s.lasers[i];
                     l.y += l.vy * dt;
 
-                    let hit = false;
+                    // Laser hits brick
                     for (let j = s.bricks.length - 1; j >= 0; j--) {
                         const b = s.bricks[j];
                         if (
@@ -341,15 +376,16 @@ export function BrickStormCanvas({ accentColor = '#00e5ff' }: BrickStormProps) {
                             l.y >= b.y - b.h / 2 &&
                             l.y <= b.y + b.h / 2
                         ) {
-                            hit = true;
                             b.hits -= 1;
-                            spawnParticles(l.x, l.y, '#ff0055', 6, 120);
+                            s.lasers.splice(i, 1);
+                            s.score += 50 * s.level;
+                            setScore(s.score);
+                            spawnParticles(l.x, l.y, '#ff0055', 8, 120);
 
                             if (b.hits <= 0) {
-                                s.score += b.golden ? 500 : 100;
-                                s.bricks.splice(j, 1);
+                                spawnParticles(b.x, b.y, b.color, 16, 200);
                                 BrickAudio.brickDestroy(1);
-                                addShake(3);
+                                s.bricks.splice(j, 1);
                             } else {
                                 BrickAudio.brickHit(1);
                             }
@@ -357,7 +393,7 @@ export function BrickStormCanvas({ accentColor = '#00e5ff' }: BrickStormProps) {
                         }
                     }
 
-                    if (hit || l.y < 0) {
+                    if (l.y < 0) {
                         s.lasers.splice(i, 1);
                     }
                 }
@@ -367,40 +403,49 @@ export function BrickStormCanvas({ accentColor = '#00e5ff' }: BrickStormProps) {
                     const d = s.drops[i];
                     d.y += d.vy * dt;
 
-                    // Collect drop with paddle
+                    // Collect Powerup
                     if (
-                        d.y >= PADDLE_Y - PADDLE_HEIGHT / 2 &&
-                        d.y <= PADDLE_Y + PADDLE_HEIGHT / 2 + 10 &&
-                        d.x >= s.paddleX - s.paddleWidth / 2 - 12 &&
-                        d.x <= s.paddleX + s.paddleWidth / 2 + 12
+                        d.y >= PADDLE_Y - PADDLE_HEIGHT / 2 - 12 &&
+                        d.y <= PADDLE_Y + PADDLE_HEIGHT / 2 + 12 &&
+                        Math.abs(d.x - s.paddleX) <= s.paddleWidth / 2 + 12
                     ) {
+                        s.drops.splice(i, 1);
                         BrickAudio.powerupCollect();
-                        spawnParticles(d.x, d.y, '#ffffff', 18, 200);
+                        spawnParticles(d.x, d.y, '#00e5ff', 18, 160);
 
-                        if (d.kind === 'wide') s.wideTimer = 12;
-                        else if (d.kind === 'slow') s.slowTimer = 10;
-                        else if (d.kind === 'laser') s.laserTimer = 10;
-                        else if (d.kind === 'life') {
+                        if (d.kind === 'wide') {
+                            s.wideTimer = 10;
+                        } else if (d.kind === 'slow') {
+                            s.slowTimer = 8;
+                        } else if (d.kind === 'laser') {
+                            s.laserTimer = 8;
+                        } else if (d.kind === 'life') {
                             s.lives = Math.min(5, s.lives + 1);
                             setLives(s.lives);
                         } else if (d.kind === 'multi') {
-                            const newBalls: Ball[] = [];
-                            s.balls.forEach((b) => {
-                                newBalls.push({
-                                    ...b,
-                                    vx: b.vx * Math.cos(0.4) - b.vy * Math.sin(0.4),
-                                    vy: b.vx * Math.sin(0.4) + b.vy * Math.cos(0.4),
-                                });
-                                newBalls.push({
-                                    ...b,
-                                    vx: b.vx * Math.cos(-0.4) - b.vy * Math.sin(-0.4),
-                                    vy: b.vx * Math.sin(-0.4) + b.vy * Math.cos(-0.4),
-                                });
-                            });
-                            s.balls.push(...newBalls.slice(0, 4));
+                            // Spawn 2 extra balls
+                            if (s.balls.length > 0) {
+                                const baseB = s.balls[0];
+                                s.balls.push(
+                                    {
+                                        x: baseB.x,
+                                        y: baseB.y,
+                                        vx: baseB.vx - 180,
+                                        vy: baseB.vy,
+                                        speed: baseB.speed,
+                                        stuckToPaddle: false,
+                                    },
+                                    {
+                                        x: baseB.x,
+                                        y: baseB.y,
+                                        vx: baseB.vx + 180,
+                                        vy: baseB.vy,
+                                        speed: baseB.speed,
+                                        stuckToPaddle: false,
+                                    }
+                                );
+                            }
                         }
-
-                        s.drops.splice(i, 1);
                         continue;
                     }
 
@@ -410,80 +455,60 @@ export function BrickStormCanvas({ accentColor = '#00e5ff' }: BrickStormProps) {
                 }
 
                 // Update Balls
+                const speedMult = s.slowTimer > 0 ? 0.65 : 1.0;
                 for (let i = s.balls.length - 1; i >= 0; i--) {
                     const b = s.balls[i];
 
                     if (b.stuckToPaddle) {
                         b.x = s.paddleX;
-                        b.y = PADDLE_Y - PADDLE_HEIGHT / 2 - BALL_RADIUS - 2;
+                        b.y = PADDLE_Y - BALL_RADIUS - 2;
                         continue;
                     }
 
-                    const speedMult = s.slowTimer > 0 ? 0.65 : 1.0;
                     b.x += b.vx * speedMult * dt;
                     b.y += b.vy * speedMult * dt;
 
-                    // Ball trail
-                    if (Math.random() < 0.4) {
-                        s.particles.push({
-                            x: b.x,
-                            y: b.y,
-                            vx: -b.vx * 0.15,
-                            vy: -b.vy * 0.15,
-                            color: '#00e5ff',
-                            life: 0,
-                            maxLife: 0.22,
-                            size: 3,
-                        });
-                    }
-
-                    // Left/Right Wall Bounce
-                    if (b.x < BALL_RADIUS + 16) {
-                        b.x = BALL_RADIUS + 16;
+                    // Wall Collisions
+                    if (b.x - BALL_RADIUS <= 16) {
+                        b.x = 16 + BALL_RADIUS;
                         b.vx = Math.abs(b.vx);
                         BrickAudio.wallBounce();
-                        addShake(1.5);
-                    } else if (b.x > V_WIDTH - BALL_RADIUS - 16) {
-                        b.x = V_WIDTH - BALL_RADIUS - 16;
+                        spawnParticles(b.x, b.y, '#00e5ff', 4, 80);
+                    } else if (b.x + BALL_RADIUS >= V_WIDTH - 16) {
+                        b.x = V_WIDTH - 16 - BALL_RADIUS;
                         b.vx = -Math.abs(b.vx);
                         BrickAudio.wallBounce();
-                        addShake(1.5);
+                        spawnParticles(b.x, b.y, '#00e5ff', 4, 80);
                     }
 
-                    // Top Wall Bounce
-                    if (b.y < BALL_RADIUS + 16) {
-                        b.y = BALL_RADIUS + 16;
+                    if (b.y - BALL_RADIUS <= 16) {
+                        b.y = 16 + BALL_RADIUS;
                         b.vy = Math.abs(b.vy);
                         BrickAudio.wallBounce();
-                        addShake(2);
+                        spawnParticles(b.x, b.y, '#00e5ff', 4, 80);
                     }
 
                     // Paddle Collision
-                    const paddleTop = PADDLE_Y - PADDLE_HEIGHT / 2;
-                    const paddleBottom = PADDLE_Y + PADDLE_HEIGHT / 2;
-                    const paddleLeft = s.paddleX - s.paddleWidth / 2;
-                    const paddleRight = s.paddleX + s.paddleWidth / 2;
-
                     if (
-                        b.y + BALL_RADIUS >= paddleTop &&
-                        b.y - BALL_RADIUS <= paddleBottom &&
-                        b.x >= paddleLeft &&
-                        b.x <= paddleRight &&
+                        b.y + BALL_RADIUS >= PADDLE_Y - PADDLE_HEIGHT / 2 &&
+                        b.y - BALL_RADIUS <= PADDLE_Y + PADDLE_HEIGHT / 2 &&
                         b.vy > 0
                     ) {
-                        b.y = paddleTop - BALL_RADIUS;
-                        const hitOffset = (b.x - s.paddleX) / (s.paddleWidth / 2); // -1 to +1
-                        const maxAngle = (70 * Math.PI) / 180;
-                        const bounceAngle = hitOffset * maxAngle;
+                        const hitOffset = (b.x - s.paddleX) / (s.paddleWidth / 2);
+                        if (Math.abs(hitOffset) <= 1.1) {
+                            b.y = PADDLE_Y - PADDLE_HEIGHT / 2 - BALL_RADIUS;
 
-                        const curSpeed = Math.min(820, b.speed + 12);
-                        b.speed = curSpeed;
-                        b.vx = Math.sin(bounceAngle) * curSpeed;
-                        b.vy = -Math.cos(bounceAngle) * curSpeed;
+                            // Angle calculation based on hit location
+                            const maxAngle = (70 * Math.PI) / 180;
+                            const bounceAngle = hitOffset * maxAngle;
+                            const spd = b.speed;
+                            b.vx = spd * Math.sin(bounceAngle);
+                            b.vy = -spd * Math.cos(bounceAngle);
 
-                        BrickAudio.paddleHit();
-                        spawnParticles(b.x, paddleTop, '#00e5ff', 8, 140);
-                        addShake(2.5);
+                            BrickAudio.paddleHit();
+                            spawnParticles(b.x, b.y, '#00e5ff', 8, 120);
+                            addShake(2);
+                        }
                     }
 
                     // Brick Collisions
@@ -491,37 +516,35 @@ export function BrickStormCanvas({ accentColor = '#00e5ff' }: BrickStormProps) {
                         const brick = s.bricks[j];
                         const bx = brick.x;
                         const by = brick.y;
-                        const hw = brick.w / 2;
-                        const hh = brick.h / 2;
+                        const bw = brick.w;
+                        const bh = brick.h;
 
-                        if (
-                            b.x + BALL_RADIUS >= bx - hw &&
-                            b.x - BALL_RADIUS <= bx + hw &&
-                            b.y + BALL_RADIUS >= by - hh &&
-                            b.y - BALL_RADIUS <= by + hh
-                        ) {
-                            // Find collision normal
-                            const overlapLeft = b.x + BALL_RADIUS - (bx - hw);
-                            const overlapRight = bx + hw - (b.x - BALL_RADIUS);
-                            const overlapTop = b.y + BALL_RADIUS - (by - hh);
-                            const overlapBottom = by + hh - (b.y - BALL_RADIUS);
+                        // AABB vs Circle
+                        const closestX = Math.max(bx - bw / 2, Math.min(b.x, bx + bw / 2));
+                        const closestY = Math.max(by - bh / 2, Math.min(b.y, by + bh / 2));
+                        const dx = b.x - closestX;
+                        const dy = b.y - closestY;
+                        const distSq = dx * dx + dy * dy;
 
-                            const minOverlapX = Math.min(overlapLeft, overlapRight);
-                            const minOverlapY = Math.min(overlapTop, overlapBottom);
+                        if (distSq <= BALL_RADIUS * BALL_RADIUS) {
+                            // Determine collision normal
+                            const overlapX = bw / 2 - Math.abs(b.x - bx) + BALL_RADIUS;
+                            const overlapY = bh / 2 - Math.abs(b.y - by) + BALL_RADIUS;
 
-                            if (minOverlapX < minOverlapY) {
-                                b.vx = overlapLeft < overlapRight ? -Math.abs(b.vx) : Math.abs(b.vx);
+                            if (overlapX < overlapY) {
+                                b.vx = (b.x > bx ? 1 : -1) * Math.abs(b.vx);
                             } else {
-                                b.vy = overlapTop < overlapBottom ? -Math.abs(b.vy) : Math.abs(b.vy);
+                                b.vy = (b.y > by ? 1 : -1) * Math.abs(b.vy);
                             }
 
                             brick.hits -= 1;
+
                             s.combo += 1;
-                            s.comboTimer = 1.4;
+                            s.comboTimer = 2.0;
                             setCombo(s.combo);
 
-                            const points = (brick.golden ? 350 : 100) * s.combo;
-                            s.score += points;
+                            const pts = (brick.golden ? 300 : 100) * s.combo * s.level;
+                            s.score += pts;
                             setScore(s.score);
 
                             if (s.score > s.highScore) {
@@ -550,6 +573,11 @@ export function BrickStormCanvas({ accentColor = '#00e5ff' }: BrickStormProps) {
                                 }
 
                                 s.bricks.splice(j, 1);
+
+                                // Calculate reveal percentage
+                                const clearedCount = s.totalLevelBricks - s.bricks.length;
+                                const pct = Math.round((clearedCount / s.totalLevelBricks) * 100);
+                                setRevealPercent(pct);
                             } else {
                                 spawnParticles(b.x, b.y, brick.color, 6, 100);
                                 if (brick.golden) BrickAudio.goldenHit();
@@ -591,14 +619,17 @@ export function BrickStormCanvas({ accentColor = '#00e5ff' }: BrickStormProps) {
                     }
                 }
 
-                // Check If Level Cleared
+                // Check If Level Cleared (Memory Fully Unlocked!)
                 if (s.bricks.length === 0) {
-                    s.level += 1;
-                    setLevel(s.level);
-                    s.score += 2000;
+                    s.gameState = 'cleared';
+                    setGameState('cleared');
+                    s.score += 2500;
                     setScore(s.score);
+                    setRevealPercent(100);
+                    if (s.currentMemory) {
+                        setClearedMemory(s.currentMemory);
+                    }
                     BrickAudio.levelCleared();
-                    buildLevel(s.level);
                 }
             }
 
@@ -641,7 +672,34 @@ export function BrickStormCanvas({ accentColor = '#00e5ff' }: BrickStormProps) {
                 ctx.stroke();
             }
 
-            // 2. Playfield Side Walls
+            // 2. Render Stylized Memory Photo Behind Bricks (Scratch & Reveal)
+            const boardWidth = BRICK_COLS * BRICK_WIDTH + (BRICK_COLS - 1) * BRICK_GAP;
+            const boardStartX = (V_WIDTH - boardWidth) / 2;
+            const boardHeight = 7 * (BRICK_HEIGHT + BRICK_GAP);
+
+            if (s.currentMemory && s.currentMemory.holoCanvas) {
+                ctx.save();
+                // Subtle holographic back glow
+                ctx.shadowColor = profileAccent;
+                ctx.shadowBlur = 14;
+                ctx.strokeStyle = profileAccent + '40';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(boardStartX - 4, BRICK_TOP - 4, boardWidth + 8, boardHeight + 8);
+                ctx.shadowBlur = 0;
+
+                // Draw processed memory canvas
+                ctx.globalAlpha = 0.85;
+                ctx.drawImage(
+                    s.currentMemory.holoCanvas,
+                    boardStartX,
+                    BRICK_TOP,
+                    boardWidth,
+                    boardHeight
+                );
+                ctx.restore();
+            }
+
+            // 3. Playfield Side Walls
             ctx.strokeStyle = '#00e5ff';
             ctx.lineWidth = 3;
             ctx.shadowColor = '#00e5ff';
@@ -654,7 +712,7 @@ export function BrickStormCanvas({ accentColor = '#00e5ff' }: BrickStormProps) {
             ctx.stroke();
             ctx.shadowBlur = 0;
 
-            // 3. Render Bricks
+            // 4. Render Bricks
             s.bricks.forEach((b) => {
                 ctx.fillStyle = b.color;
                 ctx.shadowColor = b.color;
@@ -683,7 +741,7 @@ export function BrickStormCanvas({ accentColor = '#00e5ff' }: BrickStormProps) {
             });
             ctx.shadowBlur = 0;
 
-            // 4. Render Drops
+            // 5. Render Drops
             s.drops.forEach((d) => {
                 const dropColors: Record<DropKind, string> = {
                     wide: '#00e5ff',
@@ -716,7 +774,7 @@ export function BrickStormCanvas({ accentColor = '#00e5ff' }: BrickStormProps) {
             });
             ctx.shadowBlur = 0;
 
-            // 5. Render Lasers
+            // 6. Render Lasers
             ctx.fillStyle = '#ff0055';
             ctx.shadowColor = '#ff0055';
             ctx.shadowBlur = 8;
@@ -725,7 +783,7 @@ export function BrickStormCanvas({ accentColor = '#00e5ff' }: BrickStormProps) {
             });
             ctx.shadowBlur = 0;
 
-            // 6. Render Particles
+            // 7. Render Particles
             s.particles.forEach((p) => {
                 const alpha = 1 - p.life / p.maxLife;
                 ctx.fillStyle = p.color;
@@ -734,7 +792,7 @@ export function BrickStormCanvas({ accentColor = '#00e5ff' }: BrickStormProps) {
             });
             ctx.globalAlpha = 1.0;
 
-            // 7. Render Paddle
+            // 8. Render Paddle
             ctx.fillStyle = s.laserTimer > 0 ? '#ff0055' : s.wideTimer > 0 ? '#ffb700' : '#00e5ff';
             ctx.shadowColor = ctx.fillStyle;
             ctx.shadowBlur = 16;
@@ -753,7 +811,7 @@ export function BrickStormCanvas({ accentColor = '#00e5ff' }: BrickStormProps) {
             }
             ctx.shadowBlur = 0;
 
-            // 8. Render Balls
+            // 9. Render Balls
             s.balls.forEach((b) => {
                 ctx.fillStyle = '#ffffff';
                 ctx.shadowColor = '#00e5ff';
@@ -771,7 +829,7 @@ export function BrickStormCanvas({ accentColor = '#00e5ff' }: BrickStormProps) {
 
         animId = requestAnimationFrame(loop);
         return () => cancelAnimationFrame(animId);
-    }, []);
+    }, [profileAccent]);
 
     // Pointer and Keyboard Listeners
     useEffect(() => {
@@ -817,7 +875,7 @@ export function BrickStormCanvas({ accentColor = '#00e5ff' }: BrickStormProps) {
             ref={containerRef}
             onPointerMove={handlePointerMove}
             onPointerDown={handlePointerDown}
-            className="relative h-[65vh] max-h-[680px] min-h-[420px] w-full overflow-hidden rounded-3xl border border-white/15 bg-black shadow-[0_24px_70px_rgba(0,0,0,0.8)] select-none touch-none"
+            className="relative h-[65vh] max-h-[700px] min-h-[460px] w-full overflow-hidden rounded-3xl border border-white/15 bg-black shadow-[0_24px_70px_rgba(0,0,0,0.8)] select-none touch-none"
         >
             <canvas
                 ref={canvasRef}
@@ -838,6 +896,14 @@ export function BrickStormCanvas({ accentColor = '#00e5ff' }: BrickStormProps) {
                     {combo > 1 && (
                         <div className="bg-amber-500/20 border border-amber-400 px-3 py-1.5 rounded-lg animate-bounce shadow-[0_0_15px_rgba(255,183,0,0.5)]">
                             <span className="text-amber-300 font-black text-sm">COMBO x{combo}!</span>
+                        </div>
+                    )}
+
+                    {/* Reveal Percentage Progress */}
+                    {revealPercent > 0 && gameState === 'playing' && (
+                        <div className="hidden md:flex items-center gap-1.5 bg-black/70 border border-pink-500/40 px-2.5 py-1 rounded-lg">
+                            <Sparkles className="w-3.5 h-3.5 text-pink-400" />
+                            <span className="text-[10px] text-pink-300 font-bold uppercase">RECUERDO: {revealPercent}%</span>
                         </div>
                     )}
                 </div>
@@ -895,8 +961,59 @@ export function BrickStormCanvas({ accentColor = '#00e5ff' }: BrickStormProps) {
                 </button>
             </div>
 
+            {/* LEVEL CLEARED - Cyber-Polaroid Memory Unlocked Modal */}
+            {gameState === 'cleared' && (
+                <div className="absolute inset-0 z-40 flex flex-col items-center justify-center bg-black/85 backdrop-blur-md p-4 sm:p-6 text-center font-mono">
+                    <div className="max-w-md w-full border border-pink-500/60 bg-[#090b17] p-6 sm:p-8 rounded-3xl shadow-[0_0_50px_rgba(255,75,137,0.4)] relative">
+                        <BrutalistCorners color="#ff4b89" size={16} />
+
+                        <div className="mb-2 flex items-center justify-center gap-2 text-xs font-black uppercase tracking-[0.24em] text-pink-400">
+                            <Sparkles className="h-4 w-4 animate-spin text-pink-400" />
+                            <span>Recuerdo Revelado · Nivel {level} Superado</span>
+                        </div>
+
+                        {/* Unlocked Photo Container */}
+                        <div className="relative mx-auto mb-4 aspect-video max-h-56 overflow-hidden rounded-xl border-2 border-pink-400/50 bg-black p-1 shadow-[0_0_20px_rgba(255,75,137,0.3)]">
+                            {clearedMemory?.rawImage ? (
+                                <img
+                                    src={clearedMemory.memory.imageUrl}
+                                    alt={clearedMemory.memory.title}
+                                    className="h-full w-full object-cover rounded-lg"
+                                />
+                            ) : (
+                                <div className="h-full w-full flex items-center justify-center bg-pink-950/40 text-pink-300">
+                                    <Heart className="w-12 h-12 text-pink-500 animate-pulse" />
+                                </div>
+                            )}
+                        </div>
+
+                        <h3 className="mb-1 text-xl sm:text-2xl font-black uppercase tracking-tight text-white">
+                            {clearedMemory?.memory.title || 'Momento Inolvidable'}
+                        </h3>
+
+                        {clearedMemory?.memory.description && (
+                            <p className="text-xs text-white/70 mb-4 italic">
+                                &ldquo;{clearedMemory.memory.description}&rdquo;
+                            </p>
+                        )}
+
+                        <div className="text-xs font-bold text-cyan-300 mb-6 bg-cyan-950/40 border border-cyan-500/30 py-1.5 px-3 rounded-lg inline-block">
+                            +2,500 PUNTOS DE SINERGIA ✨
+                        </div>
+
+                        <button
+                            onClick={handleNextLevel}
+                            className="w-full py-4 bg-gradient-to-r from-pink-500 to-amber-400 text-black font-black uppercase text-sm sm:text-base tracking-widest rounded-xl hover:scale-105 active:scale-95 transition-all shadow-[0_0_25px_rgba(255,75,137,0.6)] flex items-center justify-center gap-2"
+                        >
+                            <span>SIGUIENTE NIVEL</span>
+                            <ArrowRight className="w-5 h-5" />
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {/* Start / Game Over Overlay */}
-            {gameState !== 'playing' && (
+            {gameState !== 'playing' && gameState !== 'cleared' && (
                 <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/85 backdrop-blur-md p-6 text-center font-mono">
                     <div className="max-w-md w-full border border-cyan-500/40 bg-slate-950/90 p-6 sm:p-8 rounded-3xl shadow-[0_0_40px_rgba(0,229,255,0.4)]">
                         <div className="text-cyan-400 text-xs font-bold uppercase tracking-[0.3em] mb-1">C++ Cyber Arcade</div>
@@ -907,7 +1024,7 @@ export function BrickStormCanvas({ accentColor = '#00e5ff' }: BrickStormProps) {
                         <p className="text-xs text-white/70 mb-6 leading-relaxed">
                             {gameState === 'gameover'
                                 ? `Has alcanzado el Nivel ${level} con ${score} puntos.`
-                                : 'Destruye todos los bloques cibernéticos, atrapa powerups (Multibola, Láser, Paleta Ancha) y mantén el combo en llamas.'}
+                                : 'Destruye los bloques cibernéticos para revelar las fotos secretas de sus recuerdos en el fondo. Atrapa powerups y mantén el combo en llamas.'}
                         </p>
 
                         <div className="flex items-center justify-center gap-6 mb-6 text-xs text-white/80">
