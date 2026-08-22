@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { MahjongService } from '../src/services/mahjongService';
+import { MahjongService, clearMahjongImagesCache } from '../src/services/mahjongService';
 
 const createMockSupabase = (mockData: Record<string, unknown> = {}, errorToThrow?: Error) => {
     const chainable = {
@@ -53,11 +53,11 @@ const createMockSupabase = (mockData: Record<string, unknown> = {}, errorToThrow
     } as unknown as import('@supabase/supabase-js').SupabaseClient;
 };
 
-test.describe('MahjongService', () => {
-    test.beforeEach(() => {
-        MahjongService.clearMahjongImagesCache();
-    });
 
+test.describe('MahjongService', () => {
+    test.afterEach(() => {
+        clearMahjongImagesCache();
+    });
     const originalConsoleError = console.error;
     const originalFetch = global.fetch;
 

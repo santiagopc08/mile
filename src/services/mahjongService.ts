@@ -1,6 +1,18 @@
 import { supabase as defaultSupabase } from '@/lib/supabase';
 import { SupabaseClient } from '@supabase/supabase-js';
 
+
+type MahjongImage = { url: string, source: 'supabase' | 'local', title?: string, description?: string, date?: string };
+let cachedMahjongImages: MahjongImage[] | null = null;
+let mahjongImagesCacheTime = 0;
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+// For testing purposes
+export const clearMahjongImagesCache = () => {
+    cachedMahjongImages = null;
+    mahjongImagesCacheTime = 0;
+};
+
 export const MahjongService = {
 
 
@@ -69,19 +81,13 @@ export const MahjongService = {
     },
 
 
-    _mahjongImagesPromise: null as Promise<{ url: string, source: 'supabase' | 'local', title?: string, description?: string, date?: string }[]> | null,
-
-    clearMahjongImagesCache() {
-        this._mahjongImagesPromise = null;
-    },
-
-    async getMahjongImages(supabase: SupabaseClient = defaultSupabase, signal?: AbortSignal): Promise<{ url: string, source: 'supabase' | 'local', title?: string, description?: string, date?: string }[]> {
-        if (this._mahjongImagesPromise) {
-            return this._mahjongImagesPromise;
+    async getMahjongImages(supabase: SupabaseClient = defaultSupabase, signal?: AbortSignal): Promise<MahjongImage[]> {
+        const now = Date.now();
+        if (cachedMahjongImages && (now - mahjongImagesCacheTime < CACHE_TTL_MS)) {
+            return [...cachedMahjongImages];
         }
 
-        this._mahjongImagesPromise = (async () => {
-            try {
+        try {
             const query = supabase.from('events').select('image_url, title, description, date').not('image_url', 'is', null);
             if (signal) {
                 query.abortSignal(signal);
@@ -107,16 +113,16 @@ export const MahjongService = {
                 .filter(url => url && typeof url === 'string' && url.trim() !== '')
                 .map(url => ({ url, source: 'local' as const }));
 
-            return [...eventImgs, ...localImgs];
-            } catch (e) {
-                console.error('Failed fetching mahjong images:', e);
-                this._mahjongImagesPromise = null; // Clear on error to retry next time
-                return [];
-            }
-        })();
-
-        return this._mahjongImagesPromise;
+            const results = [...eventImgs, ...localImgs];
+            cachedMahjongImages = results;
+            mahjongImagesCacheTime = Date.now();
+            return results;
+        } catch (e) {
+            console.error('Failed fetching mahjong images:', e);
+            return [];
+        }
     },
+
 
     // --- CO-OP GAME OPERATIONS ---
 
