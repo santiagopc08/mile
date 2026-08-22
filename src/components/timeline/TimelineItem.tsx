@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Calendar, Image as ImageIcon, Pencil, MessageSquare } from 'lucide-react';
@@ -17,7 +17,7 @@ interface TimelineItemProps {
     setActiveEventId: (id: string) => void;
 }
 
-export function TimelineItem({ event, events, isLeft, setActiveEventId }: TimelineItemProps) {
+export const TimelineItem = memo(function TimelineItem({ event, events, isLeft, setActiveEventId }: TimelineItemProps) {
     const { updateData } = useStore();
     const { profile } = useProfile();
     const { error: notifyError } = useToast();
@@ -302,4 +302,4 @@ export function TimelineItem({ event, events, isLeft, setActiveEventId }: Timeli
             </div>
         </motion.div>
     );
-}
+});

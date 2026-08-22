@@ -118,11 +118,14 @@ test.describe('SoundEngine', () => {
 
     (globalThis.window as unknown as Record<string, unknown>).AudioContext = MockAudioContext;
 
-    sound.playTick();
+    expect(() => {
+      sound.playTick();
+      sound.playSuccess();
+      sound.playSave();
+      sound.playError();
+    }).not.toThrow();
 
     expect(warnings.length).toBe(0);
-    // Removed warning check
-    // Removed warning check
   });
 
   test('should not play if sound is disabled', () => {
