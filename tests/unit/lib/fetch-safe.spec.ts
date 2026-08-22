@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { isLocalOrPrivateIP, resolveSafeIP, validateHostname } from '../../../src/lib/fetch-safe';
+import { isLocalOrPrivateIP, resolveSafeIP, validateHostname, fetchSafe } from '../../../src/lib/fetch-safe';
 import dns from 'dns/promises';
 
 test.describe('isLocalOrPrivateIP', () => {
@@ -225,6 +225,63 @@ test.describe('validateHostname', () => {
         const result2 = await validateHostname('error-test.com');
         expect(result2).toBe(false);
         expect(lookupCount).toBe(1);
+
+        dns.resolve4 = originalResolve4;
+        dns.resolve6 = originalResolve6;
+    });
+});
+
+test.describe('fetchSafe', () => {
+    let originalLookup: typeof dns.lookup;
+
+    test.beforeEach(() => {
+        originalLookup = dns.lookup;
+    });
+
+    test.afterEach(() => {
+        dns.lookup = originalLookup;
+    });
+
+    test('throws error when maxRedirects is negative', async () => {
+        await expect(fetchSafe('http://example.com', {}, -1)).rejects.toThrow('Too many redirects');
+    });
+
+    test('throws error for invalid URL schemes', async () => {
+        await expect(fetchSafe('file:///etc/passwd')).rejects.toThrow('Invalid URL scheme');
+        await expect(fetchSafe('ftp://example.com')).rejects.toThrow('Invalid URL scheme');
+        await expect(fetchSafe('gopher://example.com')).rejects.toThrow('Invalid URL scheme');
+    });
+
+    test('throws error when hostname validates to private/local IP', async () => {
+        // Mock DNS lookup to return a private IP
+        dns.lookup = (async () => {
+            return [{ address: '127.0.0.1', family: 4 }];
+        }) as unknown as typeof dns.lookup;
+
+        await expect(fetchSafe('http://malicious.local-test.com')).rejects.toThrow('Private or local addresses are not allowed');
+    });
+
+    test('throws error when URL parsing fails', async () => {
+        await expect(fetchSafe('not-a-url')).rejects.toThrow(TypeError);
+    });
+
+    test('throws error when DNS resolution fails in fetchSafe', async () => {
+        // Mock DNS lookup to throw an error
+        dns.lookup = (async () => {
+            throw new Error('Simulated DNS failure during fetch');
+        }) as unknown as typeof dns.lookup;
+
+        const originalResolve4 = dns.resolve4;
+        const originalResolve6 = dns.resolve6;
+
+        dns.resolve4 = (async () => {
+            throw new Error('Simulated DNS resolve4 failure');
+        }) as unknown as typeof dns.resolve4;
+        dns.resolve6 = (async () => {
+            throw new Error('Simulated DNS resolve6 failure');
+        }) as unknown as typeof dns.resolve6;
+
+        await expect(fetchSafe('http://dns-failure-test.com')).rejects.toThrow('Private or local addresses are not allowed');
 
         dns.resolve4 = originalResolve4;
         dns.resolve6 = originalResolve6;
