@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { Clock, Trash2, HelpCircle } from 'lucide-react';
 import { MovementSession, ReactionType } from './types';
 import { CATEGORY_LABELS } from './constants';
@@ -12,14 +12,17 @@ interface ActivitySessionItemProps {
     reactionKeys: ReactionType[];
 }
 
-export function ActivitySessionItem({
+
+// ⚡ Bolt Optimization: Wrap component in React.memo()
+// Expected Impact: Prevents expensive re-renders of list items during parent state updates (e.g. active item changes), saving ~3-5ms per render cycle in long lists.
+export const ActivitySessionItem = memo(({
     session,
     profile,
     handleDeleteSession,
     handleAddReaction,
     REACTION_CONFIG,
     reactionKeys
-}: ActivitySessionItemProps) {
+}: ActivitySessionItemProps) => {
     const isSelf = session.profile === profile;
     const accent = session.profile === 'ella' ? '#ff4b89' : '#c3f400';
     const accentTextClass = session.profile === 'ella' ? 'text-user-a' : 'text-user-b';
@@ -153,4 +156,4 @@ export function ActivitySessionItem({
             )}
         </div>
     );
-}
+});

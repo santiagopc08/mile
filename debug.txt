@@ -30,7 +30,7 @@ interface TaskCardProps {
 
 // ⚡ Bolt Optimization: Wrap component in React.memo()
 // Expected Impact: Prevents expensive re-renders of list items during parent state updates (e.g. active item changes), saving ~3-5ms per render cycle in long lists.
-export const TaskCard = memo(({
+export const TaskCard = memo(function TaskCard({
   task,
   isEditing,
   onEditStart,
@@ -46,7 +46,7 @@ export const TaskCard = memo(({
   accentColor,
   profile,
   isLateOrOverflow,
-}: TaskCardProps) => {
+}: TaskCardProps) {
   const taskPriority = task.priority || 'medium';
   const categoryStyle = categoryStyles[task.category];
   const isCollapsed = task.status === 'done' || task.status === 'skipped';
