@@ -1,3 +1,4 @@
+import React, { memo } from 'react';
 import { Check } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -18,7 +19,8 @@ interface NotificationItemProps {
     onRead: (id: string) => void;
 }
 
-export function NotificationItem({ notification: n, onRead }: NotificationItemProps) {
+// ⚡ Bolt Optimization: Wrap with React.memo to prevent unnecessary re-renders of the entire list when parent state changes.
+export const NotificationItem = memo(function NotificationItem({ notification: n, onRead }: NotificationItemProps) {
     const notifColor = getNotificationColor(n.message);
 
     return (
@@ -80,4 +82,4 @@ export function NotificationItem({ notification: n, onRead }: NotificationItemPr
             )}
         </motion.div>
     );
-}
+});
