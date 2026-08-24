@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState, memo } from 'react';
 import { Task } from '@/services/storeService';
 import { CheckCircle2, Trash2, Pencil, X, Check } from 'lucide-react';
 import { FuturisticProgressBar } from '../ui/FuturisticProgressBar';
@@ -11,7 +11,8 @@ interface TaskItemProps {
     onSave: (id: string, newText: string, newPriority: 'low' | 'medium' | 'high') => void;
 }
 
-export function TaskItem({ task, accentColor, onToggle, onDelete, onSave }: TaskItemProps) {
+// ⚡ Bolt Optimization: Wrap with React.memo to prevent unnecessary re-renders of list items when parent state changes.
+export const TaskItem = memo(function TaskItem({ task, accentColor, onToggle, onDelete, onSave }: TaskItemProps) {
     const [isEditing, setIsEditing] = useState(false);
     const [editTitle, setEditTitle] = useState(task.text);
     const [editPriority, setEditPriority] = useState<'low' | 'medium' | 'high'>(task.priority || 'medium');
@@ -117,4 +118,4 @@ export function TaskItem({ task, accentColor, onToggle, onDelete, onSave }: Task
             </div>
         </div>
     );
-}
+});
