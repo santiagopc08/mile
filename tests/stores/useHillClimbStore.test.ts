@@ -97,6 +97,21 @@ describe('useHillClimbStore', () => {
             expect(state.highScore).toBe(0);
             expect(state.bestCoins).toBe(0);
         });
+        it('handles localStorage errors gracefully', () => {
+            const originalGetItem = window.localStorage.getItem;
+            window.localStorage.getItem = vi.fn().mockImplementation(() => {
+                throw new Error('Access denied');
+            });
+
+            useHillClimbStore.getState().loadRecords();
+
+            const state = useHillClimbStore.getState();
+            expect(state.highScore).toBe(0);
+            expect(state.bestCoins).toBe(0);
+
+            window.localStorage.getItem = originalGetItem;
+        });
+
     });
 
     describe('setGameState', () => {
@@ -245,6 +260,36 @@ describe('useHillClimbStore', () => {
 
             expect(global.window.localStorage.getItem('hill_climb_high_score')).toBe('150');
             expect(global.window.localStorage.getItem('hill_climb_best_coins')).toBe('15');
+        });
+
+        it('handles localStorage errors gracefully during writeNumber', () => {
+            // Mock setItem to throw an error
+            const originalSetItem = window.localStorage.setItem;
+            window.localStorage.setItem = vi.fn(() => {
+                throw new Error('QuotaExceededError');
+            });
+
+            useHillClimbStore.setState({
+                distance: 150,
+                coins: 15,
+                highScore: 100,
+                bestCoins: 10
+            });
+
+            // This should not throw an error despite the mock throwing one
+            expect(() => {
+                useHillClimbStore.getState().setGameOver('Crashed');
+            }).not.toThrow();
+
+            const state = useHillClimbStore.getState();
+            expect(state.gameState).toBe('GAMEOVER');
+            expect(state.deathReason).toBe('Crashed');
+            expect(state.isNewRecord).toBe(true);
+            expect(state.highScore).toBe(150);
+            expect(state.bestCoins).toBe(15);
+
+            // Restore original setItem
+            window.localStorage.setItem = originalSetItem;
         });
     });
 

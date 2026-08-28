@@ -54,7 +54,7 @@ export function MahjongCanvas({ tiles, freeTilesMap, dockIds, onTilePointerDown,
         <div className="relative h-full w-full select-none" style={{ minHeight: isMobile ? '400px' : '520px' }}>
             <Canvas
                 frameloop={frozen ? 'never' : 'always'}
-                shadows={{ type: THREE.PCFSoftShadowMap }}
+                shadows={{ type: THREE.PCFShadowMap }}
                 camera={{ fov: 50, position: [0, -0.6, 6.2], near: 0.1, far: 50 }}
                 gl={{ antialias: true, alpha: true }}
                 style={{ background: 'transparent' }}

@@ -2,7 +2,9 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { RaceAudio, initArcadeAudio, loadMutedPreference, setMuted } from '@/lib/arcadeAudio';
-import { Volume2, VolumeX, Zap, Shield, RotateCcw, Tv, Trophy, Flame, ArrowLeft, ArrowRight, Gauge } from 'lucide-react';
+import { Volume2, VolumeX, Zap, Shield, RotateCcw, Tv, Trophy, Flame, ArrowLeft, ArrowRight, Gauge, Crown } from 'lucide-react';
+import { useArcadeProgression } from '@/hooks/useArcadeProgression';
+import { useProfile } from '@/context/ProfileContext';
 
 interface TurboRaceProps {
     accentColor?: string;
@@ -20,7 +22,7 @@ type VehicleType = 'sedan' | 'truck' | 'supercar';
 type PickupType = 'coin' | 'nitro' | 'fuel' | 'shield';
 
 interface TrafficCar {
-    id: number;
+    id: string;
     x: number;
     y: number;
     w: number;
@@ -34,7 +36,7 @@ interface TrafficCar {
 }
 
 interface Pickup {
-    id: number;
+    id: string;
     x: number;
     y: number;
     type: PickupType;
@@ -64,6 +66,12 @@ export function TurboRaceCanvas({ accentColor = '#00f0ff' }: TurboRaceProps) {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const containerRef = useRef<HTMLDivElement | null>(null);
 
+    const { profile } = useProfile();
+    const { recordScore, scores } = useArcadeProgression();
+
+    const elBest = scores['turborace']?.el || 0;
+    const ellaBest = scores['turborace']?.ella || 0;
+
     const [score, setScore] = useState(0);
     const [highScore, setHighScore] = useState(0);
     const [speedKmh, setSpeedKmh] = useState(140);
@@ -72,6 +80,7 @@ export function TurboRaceCanvas({ accentColor = '#00f0ff' }: TurboRaceProps) {
     const [gameState, setGameState] = useState<'ready' | 'racing' | 'gameover'>('ready');
     const [mutedState, setMutedState] = useState(false);
     const [crtEnabled, setCrtEnabled] = useState(true);
+    const [lastRecordResult, setLastRecordResult] = useState<{ isNewPersonalBest: boolean; isNewCoupleRecord: boolean; coinsEarned: number } | null>(null);
 
     const stateRef = useRef({
         playerX: V_WIDTH / 2,
@@ -102,13 +111,10 @@ export function TurboRaceCanvas({ accentColor = '#00f0ff' }: TurboRaceProps) {
 
     useEffect(() => {
         setMutedState(loadMutedPreference());
-        const saved = localStorage.getItem('turbo_race_highscore');
-        if (saved) {
-            const val = parseInt(saved, 10);
-            setHighScore(val);
-            stateRef.current.highScore = val;
-        }
-    }, []);
+        const activePb = profile === 'ella' ? ellaBest : elBest;
+        setHighScore(activePb);
+        stateRef.current.highScore = activePb;
+    }, [profile, elBest, ellaBest]);
 
     const toggleMute = useCallback(() => {
         const next = !mutedState;
@@ -125,6 +131,18 @@ export function TurboRaceCanvas({ accentColor = '#00f0ff' }: TurboRaceProps) {
     const addFloatingText = (x: number, y: number, text: string, color = '#facc15') => {
         stateRef.current.floatingTexts.push({ x, y, text, color, life: 0.8 });
     };
+
+    const handleGameOver = useCallback(() => {
+        const s = stateRef.current;
+        s.gameState = 'gameover';
+        setGameState('gameover');
+        RaceAudio.crash();
+        spawnParticles(s.playerX, s.playerY, '#ef4444', 50, 300);
+        addShake(20, 0.6);
+
+        const res = recordScore('turborace', s.score);
+        setLastRecordResult(res);
+    }, [recordScore]);
 
     const spawnParticles = (x: number, y: number, color: string, count = 16, speed = 180) => {
         for (let i = 0; i < count; i++) {
@@ -206,7 +224,7 @@ export function TurboRaceCanvas({ accentColor = '#00f0ff' }: TurboRaceProps) {
         }
 
         s.traffic.push({
-            id: Math.random(),
+            id: crypto.randomUUID(),
             x: laneCenterX,
             y: -120,
             w,
@@ -232,7 +250,7 @@ export function TurboRaceCanvas({ accentColor = '#00f0ff' }: TurboRaceProps) {
         else if (roll > 0.35) type = 'shield';
 
         s.pickups.push({
-            id: Math.random(),
+            id: crypto.randomUUID(),
             x: laneCenterX,
             y: -60,
             type,
@@ -398,11 +416,7 @@ export function TurboRaceCanvas({ accentColor = '#00f0ff' }: TurboRaceProps) {
                             if (s.shieldTimer > 0) s.shieldTimer = 0;
                         } else {
                             // Crash game over
-                            s.gameState = 'gameover';
-                            setGameState('gameover');
-                            RaceAudio.crash();
-                            spawnParticles(s.playerX, s.playerY, '#ef4444', 50, 300);
-                            addShake(20, 0.6);
+                            handleGameOver();
                         }
                     }
                 }

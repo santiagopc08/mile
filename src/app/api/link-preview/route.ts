@@ -136,7 +136,12 @@ export async function GET(request: Request) {
                             },
                             body: JSON.stringify({ textQuery: query })
                         });
-                        const placesData = await placesRes.json();
+                        let placesData;
+                        try {
+                            placesData = await placesRes.json();
+                        } catch (err) {
+                            return NextResponse.json({ error: 'Failed to parse map API response' }, { status: 500 });
+                        }
                         if (placesData.places?.[0]?.location) {
                             coords = {
                                 lat: placesData.places[0].location.latitude,

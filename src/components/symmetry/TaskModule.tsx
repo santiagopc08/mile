@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, X, Check, Filter, Layers, LayoutGrid, ListFilter, Sparkles, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useStore } from '@/context/StoreContext';
@@ -68,7 +68,8 @@ const COLUMNS: ColumnDef[] = [
   },
 ];
 
-export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) => void }) => {
+// ⚡ Bolt Optimization: Wrap component in React.memo()
+export const TaskModule = memo(({ onTasksUpdate }: { onTasksUpdate: (score: number) => void }) => {
   const { profile } = useProfile();
   const accentColor = profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)';
   const accentClass = profile === 'ella' ? 'user-a' : 'user-b';
@@ -170,19 +171,19 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
 
   const toggleChecklistInCard = (taskId: string, listType: 'actions' | 'validations', itemId: string) => {
-    let taskFound = false;
-    // ⚡ Bolt Optimization: Single-pass Array.map() replaces double iteration (findIndex + array copy)
-    const updatedTasks = tasks.map(task => {
-      if (task.id === taskId) {
-        taskFound = true;
-        const list = task[listType] || [];
-        const newList = list.map(i => (i.id === itemId ? { ...i, checked: !i.checked } : i));
-        return { ...task, [listType]: newList } as Task;
-      }
-      return task;
-    });
+    const taskIndex = tasks.findIndex(t => t.id === taskId);
+    if (taskIndex === -1) return;
 
-    if (!taskFound) return;
+    const task = tasks[taskIndex];
+    const list = task[listType] || [];
+    const itemIndex = list.findIndex(i => i.id === itemId);
+    if (itemIndex === -1) return;
+
+    const newList = [...list];
+    newList[itemIndex] = { ...newList[itemIndex], checked: !newList[itemIndex].checked };
+
+    const updatedTasks = [...tasks];
+    updatedTasks[taskIndex] = { ...task, [listType]: newList } as Task;
 
     updateData({ tasks: updatedTasks });
 
@@ -258,27 +259,22 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
   };
 
   const updateTaskStatus = (id: string, status: Task['status']) => {
-    let playedStatus = status;
-    let taskFound = false;
+    const taskIndex = tasks.findIndex(t => t.id === id);
+    if (taskIndex === -1) return;
 
-    // ⚡ Bolt Optimization: Single-pass Array.map() replaces double iteration (findIndex + array copy)
-    const updatedTasks = tasks.map(task => {
-      if (task.id === id) {
-        taskFound = true;
-        let finalStatus = status;
-        if (status === 'done' && task.validations && task.validations.length > 0) {
-          const hasChecked = task.validations.some(v => v.checked);
-          if (!hasChecked) {
-            finalStatus = 'skipped';
-          }
-        }
-        playedStatus = finalStatus;
-        return { ...task, status: finalStatus, updated_at: new Date().toISOString() } as Task;
+    const task = tasks[taskIndex];
+    let finalStatus = status;
+
+    if (status === 'done' && task.validations && task.validations.length > 0) {
+      const hasChecked = task.validations.some(v => v.checked);
+      if (!hasChecked) {
+        finalStatus = 'skipped';
       }
-      return task;
-    });
+    }
+    const playedStatus = finalStatus;
 
-    if (!taskFound) return;
+    const updatedTasks = [...tasks];
+    updatedTasks[taskIndex] = { ...task, status: finalStatus, updated_at: new Date().toISOString() } as Task;
 
     updateData({ tasks: updatedTasks });
 
@@ -301,29 +297,22 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
   const deleteObjective = (id: string) => {
     updateData({ objectives: objectives.filter(o => o.id !== id) as Objective[] });
 
-    // ⚡ Bolt Optimization: Single-pass map avoids double iteration loop+mutation
-    let hasMatch = false;
-    const updatedTasks = tasks.map(t => {
-      if (t.objective_id === id) {
-        hasMatch = true;
-        return { ...t, objective_id: undefined } as Task;
-      }
-      return t;
-    });
-
+    const hasMatch = tasks.some(t => t.objective_id === id);
     if (hasMatch) {
+      const updatedTasks = tasks.map(t =>
+        t.objective_id === id ? { ...t, objective_id: undefined } as Task : t
+      );
       updateData({ tasks: updatedTasks });
     }
   };
 
   const handleEditSave = (updatedTask: Task) => {
-    // ⚡ Bolt Optimization: Single-pass Array.map() replaces double iteration (findIndex + array copy)
-    const updatedTasks = tasks.map(t =>
-      t.id === editingTaskId
-        ? { ...updatedTask, updated_at: new Date().toISOString() } as Task
-        : t
-    );
-    updateData({ tasks: updatedTasks });
+    const taskIndex = tasks.findIndex(t => t.id === editingTaskId);
+    if (taskIndex !== -1) {
+      const updatedTasks = [...tasks];
+      updatedTasks[taskIndex] = { ...updatedTask, updated_at: new Date().toISOString() } as Task;
+      updateData({ tasks: updatedTasks });
+    }
     setEditingTaskId(null);
   };
 
@@ -335,19 +324,16 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
       haptics.triggerError();
       return;
     }
-    // ⚡ Bolt Optimization: Single-pass Array.map() replaces double iteration (findIndex + array copy)
-    let nextComplete = false;
-    let objTitle = '';
-    const updatedObjectives = objectives.map(o => {
-      if (o.id === id) {
-        nextComplete = !o.is_complete;
-        objTitle = o.title;
-        return { ...o, is_complete: nextComplete };
-      }
-      return o;
-    });
 
-    if (objTitle === '') return;
+    const objIndex = objectives.findIndex(o => o.id === id);
+    if (objIndex === -1) return;
+
+    const obj = objectives[objIndex];
+    const nextComplete = !obj.is_complete;
+    const objTitle = obj.title;
+
+    const updatedObjectives = [...objectives];
+    updatedObjectives[objIndex] = { ...obj, is_complete: nextComplete };
 
     updateData({ objectives: updatedObjectives });
 
@@ -637,4 +623,4 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
       </div>
     </div>
   );
-};
+});

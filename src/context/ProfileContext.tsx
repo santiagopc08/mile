@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/lib/supabase';
 
-type Profile = 'el' | 'ella' | null;
+export type Profile = 'el' | 'ella' | null;
 
 interface ProfileContextType {
     profile: Profile;

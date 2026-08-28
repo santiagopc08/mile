@@ -18,6 +18,16 @@ test.describe('isMapLink function', () => {
         expect(isMapLink('http://goo.gl/maps/dir')).toBe(true);
     });
 
+
+    test('should return true for valid maps.google.com URLs', () => {
+        expect(isMapLink('https://maps.google.com/')).toBe(true);
+        expect(isMapLink('http://maps.google.com/place/Medellin')).toBe(true);
+    });
+
+    test('should return true for valid share.google URLs', () => {
+        expect(isMapLink('https://share.google/some-id')).toBe(true);
+    });
+
     test('should return false for other domains and non-map URLs', () => {
         expect(isMapLink('https://www.google.com')).toBe(false);
         expect(isMapLink('https://google.com/search?q=maps')).toBe(false);

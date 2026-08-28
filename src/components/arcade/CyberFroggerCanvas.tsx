@@ -23,7 +23,7 @@ const HOME_COLS = [1, 4, 7, 10, 13];
 type ObstacleType = 'car' | 'truck' | 'racer' | 'logSmall' | 'logMed' | 'logLarge' | 'turtles';
 
 interface Obstacle {
-    id: number;
+    id: string;
     x: number;
     y: number;
     w: number;
@@ -157,7 +157,7 @@ export function CyberFroggerCanvas({ accentColor = '#00f0ff' }: CyberFroggerProp
         // Row 11: Sedans (Right ->)
         for (let i = 0; i < 3; i++) {
             s.obstacles.push({
-                id: Math.random(),
+                id: crypto.randomUUID(),
                 x: BOARD_X + i * 220,
                 y: BOARD_Y + 11 * CELL_SIZE + 5,
                 w: 52,
@@ -172,7 +172,7 @@ export function CyberFroggerCanvas({ accentColor = '#00f0ff' }: CyberFroggerProp
         // Row 10: Fast Racers (Left <-)
         for (let i = 0; i < 3; i++) {
             s.obstacles.push({
-                id: Math.random(),
+                id: crypto.randomUUID(),
                 x: BOARD_X + i * 240,
                 y: BOARD_Y + 10 * CELL_SIZE + 5,
                 w: 48,
@@ -187,7 +187,7 @@ export function CyberFroggerCanvas({ accentColor = '#00f0ff' }: CyberFroggerProp
         // Row 9: Bulldozers (Right ->)
         for (let i = 0; i < 3; i++) {
             s.obstacles.push({
-                id: Math.random(),
+                id: crypto.randomUUID(),
                 x: BOARD_X + i * 210,
                 y: BOARD_Y + 9 * CELL_SIZE + 5,
                 w: 56,
@@ -202,7 +202,7 @@ export function CyberFroggerCanvas({ accentColor = '#00f0ff' }: CyberFroggerProp
         // Row 8: Speedy Racers (Left <-)
         for (let i = 0; i < 2; i++) {
             s.obstacles.push({
-                id: Math.random(),
+                id: crypto.randomUUID(),
                 x: BOARD_X + i * 320,
                 y: BOARD_Y + 8 * CELL_SIZE + 5,
                 w: 50,
@@ -217,7 +217,7 @@ export function CyberFroggerCanvas({ accentColor = '#00f0ff' }: CyberFroggerProp
         // Row 7: Freight Trucks (Right ->)
         for (let i = 0; i < 2; i++) {
             s.obstacles.push({
-                id: Math.random(),
+                id: crypto.randomUUID(),
                 x: BOARD_X + i * 340,
                 y: BOARD_Y + 7 * CELL_SIZE + 5,
                 w: 94,
@@ -234,7 +234,7 @@ export function CyberFroggerCanvas({ accentColor = '#00f0ff' }: CyberFroggerProp
         // Row 5: Medium Logs (Right ->)
         for (let i = 0; i < 3; i++) {
             s.obstacles.push({
-                id: Math.random(),
+                id: crypto.randomUUID(),
                 x: BOARD_X + i * 240,
                 y: BOARD_Y + 5 * CELL_SIZE + 4,
                 w: 110,
@@ -249,7 +249,7 @@ export function CyberFroggerCanvas({ accentColor = '#00f0ff' }: CyberFroggerProp
         // Row 4: Turtles (Left <-)
         for (let i = 0; i < 4; i++) {
             s.obstacles.push({
-                id: Math.random(),
+                id: crypto.randomUUID(),
                 x: BOARD_X + i * 190,
                 y: BOARD_Y + 4 * CELL_SIZE + 4,
                 w: 80,
@@ -264,7 +264,7 @@ export function CyberFroggerCanvas({ accentColor = '#00f0ff' }: CyberFroggerProp
         // Row 3: Large Logs (Right ->)
         for (let i = 0; i < 2; i++) {
             s.obstacles.push({
-                id: Math.random(),
+                id: crypto.randomUUID(),
                 x: BOARD_X + i * 360,
                 y: BOARD_Y + 3 * CELL_SIZE + 4,
                 w: 170,
@@ -279,7 +279,7 @@ export function CyberFroggerCanvas({ accentColor = '#00f0ff' }: CyberFroggerProp
         // Row 2: Small Logs (Right ->)
         for (let i = 0; i < 3; i++) {
             s.obstacles.push({
-                id: Math.random(),
+                id: crypto.randomUUID(),
                 x: BOARD_X + i * 220,
                 y: BOARD_Y + 2 * CELL_SIZE + 4,
                 w: 85,
@@ -294,7 +294,7 @@ export function CyberFroggerCanvas({ accentColor = '#00f0ff' }: CyberFroggerProp
         // Row 1: Turtles (Left <-)
         for (let i = 0; i < 3; i++) {
             s.obstacles.push({
-                id: Math.random(),
+                id: crypto.randomUUID(),
                 x: BOARD_X + i * 230,
                 y: BOARD_Y + 1 * CELL_SIZE + 4,
                 w: 95,

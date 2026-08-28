@@ -1,66 +1,121 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { TimelineCommentsDrawer } from '../../../src/components/timeline/TimelineCommentsDrawer';
 import React from 'react';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll } from 'vitest';
+import { TimelineCommentsDrawer } from '@/components/timeline/TimelineCommentsDrawer';
+import * as StoreContext from '@/context/StoreContext';
+import * as ProfileContext from '@/context/ProfileContext';
+import * as ToastContext from '@/components/ui/Toast';
+import { TimelineEvent } from '@/components/timeline/types';
 
-import { useStore } from '../../../src/context/StoreContext';
-import { useProfile } from '../../../src/context/ProfileContext';
-import { useToast } from '../../../src/components/ui/Toast';
+// Mock matchMedia to fix framer-motion errors in jsdom
+beforeAll(() => {
+    Object.defineProperty(window, 'matchMedia', {
+        writable: true,
+        value: vi.fn().mockImplementation(query => ({
+            matches: false,
+            media: query,
+            onchange: null,
+            addListener: vi.fn(),
+            removeListener: vi.fn(),
+            addEventListener: vi.fn(),
+            removeEventListener: vi.fn(),
+            dispatchEvent: vi.fn(),
+        })),
+    });
+});
 
-vi.mock('../../../src/context/StoreContext', () => ({
-    useStore: vi.fn()
-}));
+describe('TimelineCommentsDrawer', () => {
+    const mockUpdateData = vi.fn();
+    const mockNotifyError = vi.fn();
+    const mockSuccess = vi.fn();
+    const mockConfirm = vi.fn().mockResolvedValue(true);
 
-vi.mock('../../../src/context/ProfileContext', () => ({
-    useProfile: vi.fn()
-}));
-
-vi.mock('../../../src/components/ui/Toast', () => ({
-    useToast: vi.fn()
-}));
-
-describe('TimelineCommentsDrawer Component', () => {
-    let originalFetch: typeof global.fetch;
+    const activeEvent: TimelineEvent = {
+        id: 'event-1',
+        title: 'Test Event',
+        date: '2023-01-01',
+        description: 'Test Description',
+        comments: [
+            { id: 'comment1', text: 'Test comment', author: 'el', createdAt: new Date().toISOString() }
+        ]
+    };
 
     beforeEach(() => {
-        originalFetch = global.fetch;
+        vi.clearAllMocks();
+
+        // Mock contexts
+        vi.spyOn(StoreContext, 'useStore').mockReturnValue({
+            data: { events: [activeEvent] } as any,
+            updateData: mockUpdateData,
+            isLoading: false,
+            refreshData: vi.fn()
+        });
+
+        vi.spyOn(ProfileContext, 'useProfile').mockReturnValue({
+            profile: 'el',
+            isAuthenticated: true,
+            login: vi.fn(),
+            logout: vi.fn(),
+            isLoading: false,
+            partner: 'ella',
+            canEdit: true
+        });
+
+        vi.spyOn(ToastContext, 'useToast').mockReturnValue({
+            error: mockNotifyError,
+            success: mockSuccess,
+            confirm: mockConfirm,
+            info: vi.fn(),
+            warning: vi.fn()
+        });
+
+        // Mock fetch
+        global.fetch = vi.fn();
     });
 
     afterEach(() => {
-        global.fetch = originalFetch;
-        vi.clearAllMocks();
+        vi.restoreAllMocks();
+    });
+
+    it('should catch error when posting a comment fails and call notifyError', async () => {
+        const mockError = new Error('Simulated network error');
+        (global.fetch as any).mockRejectedValueOnce(mockError);
+
+        render(
+            <TimelineCommentsDrawer
+                activeEvent={activeEvent}
+                setActiveEventId={vi.fn()}
+            />
+        );
+
+        const textarea = screen.getByPlaceholderText(/Escribe algo sobre este momento/i);
+        const submitButton = screen.getByRole('button', { name: /Agregar Comentario/i });
+
+        fireEvent.change(textarea, { target: { value: 'This is a test comment' } });
+        fireEvent.submit(submitButton.closest('form')!);
+
+        await waitFor(() => {
+            expect(global.fetch).toHaveBeenCalledWith('/api/timeline', expect.objectContaining({
+                method: 'POST'
+            }));
+        });
+
+        await waitFor(() => {
+            expect(mockNotifyError).toHaveBeenCalledWith(
+                `No se pudo publicar el comentario: ${mockError.message}`
+            );
+        });
     });
 
     it('handleDeleteComment should handle fetch error and show alert', async () => {
-        let alertMessage = '';
-        const mockError = vi.fn((msg) => { alertMessage = msg; });
-        const mockConfirm = vi.fn().mockResolvedValue(true);
-        const mockUpdateData = vi.fn();
+        const mockError = new Error('Delete API failed');
+        (global.fetch as any).mockRejectedValueOnce(mockError);
 
-        (useStore as any).mockReturnValue({
-            data: { events: [] },
-            updateData: mockUpdateData
-        });
-        (useProfile as any).mockReturnValue({ profile: 'el' });
-        (useToast as any).mockReturnValue({
-            error: mockError,
-            success: vi.fn(),
-            confirm: mockConfirm
-        });
-
-        global.fetch = vi.fn().mockRejectedValue(new Error('Delete API failed'));
-
-        const mockEvent = {
-            id: 'event1',
-            title: 'Test Event',
-            date: '2024-01-01',
-            comments: [
-                { id: 'comment1', text: 'Test comment', author: 'el', createdAt: new Date().toISOString() }
-            ]
-        };
-
-        const { container } = render(
-            <TimelineCommentsDrawer activeEvent={mockEvent as any} setActiveEventId={vi.fn()} />
+        render(
+            <TimelineCommentsDrawer
+                activeEvent={activeEvent}
+                setActiveEventId={vi.fn()}
+            />
         );
 
         let button: any = null;
@@ -70,18 +125,18 @@ describe('TimelineCommentsDrawer Component', () => {
             expect(button).toBeTruthy();
         });
 
-        if (!button) throw new Error("Delete button not found");
+        if (button) {
+            fireEvent.click(button);
 
-        fireEvent.click(button);
+            await waitFor(() => {
+                expect(mockConfirm).toHaveBeenCalled();
+            });
 
-        await waitFor(() => {
-            expect(mockConfirm).toHaveBeenCalled();
-        });
-
-        await waitFor(() => {
-            expect(mockError).toHaveBeenCalled();
-        });
-
-        expect(mockError.mock.calls[0][0]).toContain('No se pudo eliminar el comentario: Delete API failed');
+            await waitFor(() => {
+                expect(mockNotifyError).toHaveBeenCalledWith(
+                    `No se pudo eliminar el comentario: ${mockError.message}`
+                );
+            });
+        }
     });
 });

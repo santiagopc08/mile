@@ -8,7 +8,7 @@ export async function GET() {
 
     try {
         const directoryPath = path.join(process.cwd(), 'public', 'img');
-        let results: string[] = [];
+        const results: string[] = [];
 
         try {
             // Asynchronously check if the directory exists and is accessible

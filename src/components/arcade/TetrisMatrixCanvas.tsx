@@ -2,7 +2,9 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { TetrisAudio, initArcadeAudio, loadMutedPreference, setMuted } from '@/lib/arcadeAudio';
-import { Volume2, VolumeX, RotateCw, ArrowDown, ArrowUp, ArrowLeft, ArrowRight, Shield, Tv, Sparkles, Trophy } from 'lucide-react';
+import { Volume2, VolumeX, RotateCw, ArrowDown, ArrowUp, ArrowLeft, ArrowRight, Shield, Tv, Sparkles, Trophy, Crown } from 'lucide-react';
+import { useArcadeProgression } from '@/hooks/useArcadeProgression';
+import { useProfile } from '@/context/ProfileContext';
 
 interface TetrisMatrixProps {
     accentColor?: string;
@@ -93,6 +95,12 @@ export function TetrisMatrixCanvas({ accentColor = '#00f0ff' }: TetrisMatrixProp
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const containerRef = useRef<HTMLDivElement | null>(null);
 
+    const { profile } = useProfile();
+    const { recordScore, scores } = useArcadeProgression();
+
+    const elBest = scores['tetrismatrix']?.el || 0;
+    const ellaBest = scores['tetrismatrix']?.ella || 0;
+
     const [score, setScore] = useState(0);
     const [highScore, setHighScore] = useState(0);
     const [lines, setLines] = useState(0);
@@ -102,6 +110,7 @@ export function TetrisMatrixCanvas({ accentColor = '#00f0ff' }: TetrisMatrixProp
     const [gameState, setGameState] = useState<'menu' | 'playing' | 'gameover'>('menu');
     const [mutedState, setMutedState] = useState(false);
     const [crtEnabled, setCrtEnabled] = useState(true);
+    const [lastRecordResult, setLastRecordResult] = useState<{ isNewPersonalBest: boolean; isNewCoupleRecord: boolean; coinsEarned: number } | null>(null);
 
     const stateRef = useRef({
         grid: Array.from({ length: ROWS }, () => Array(COLS).fill(null as TetrominoType | null)),
@@ -125,6 +134,23 @@ export function TetrisMatrixCanvas({ accentColor = '#00f0ff' }: TetrisMatrixProp
         gameState: 'menu' as 'menu' | 'playing' | 'gameover',
         touchStart: null as { x: number; y: number } | null,
     });
+
+    const handleGameOver = useCallback(() => {
+        const s = stateRef.current;
+        s.gameState = 'gameover';
+        setGameState('gameover');
+        TetrisAudio.gameOver();
+
+        const res = recordScore('tetrismatrix', s.score);
+        setLastRecordResult(res);
+    }, [recordScore]);
+
+    useEffect(() => {
+        setMutedState(loadMutedPreference());
+        const activePb = profile === 'ella' ? ellaBest : elBest;
+        setHighScore(activePb);
+        stateRef.current.highScore = activePb;
+    }, [profile, elBest, ellaBest]);
 
     const fillBag = useCallback(() => {
         const types: TetrominoType[] = ['I', 'J', 'L', 'O', 'S', 'T', 'Z'];
@@ -158,13 +184,11 @@ export function TetrisMatrixCanvas({ accentColor = '#00f0ff' }: TetrisMatrixProp
         const offsets = getPieceOffsets(s.current.type, s.current.rot);
         for (const [ox, oy] of offsets) {
             if (s.grid[s.current.y + oy]?.[s.current.x + ox] !== null) {
-                s.gameState = 'gameover';
-                setGameState('gameover');
-                TetrisAudio.gameOver();
+                handleGameOver();
                 break;
             }
         }
-    }, [fillBag]);
+    }, [fillBag, handleGameOver]);
 
     useEffect(() => {
         setMutedState(loadMutedPreference());

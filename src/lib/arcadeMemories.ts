@@ -73,7 +73,7 @@ export async function fetchArcadeMemories(): Promise<ArcadeMemory[]> {
             eventsData.forEach(e => {
                 if (e.image_url && typeof e.image_url === 'string' && e.image_url.trim() !== '') {
                     dbMemories.push({
-                        id: e.id ? e.id.toString() : Math.random().toString(),
+                        id: e.id ? e.id.toString() : crypto.randomUUID(),
                         imageUrl: e.image_url,
                         title: e.title || 'Momento Inolvidable',
                         description: e.description || undefined,

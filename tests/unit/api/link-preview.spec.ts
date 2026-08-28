@@ -156,4 +156,50 @@ test.describe('Link Preview API SSRF Protections', () => {
         const data = await res.json();
         expect(data.error).toBe('Invalid URL format');
     });
+
+    test('should handle map API parsing errors', async () => {
+        const originalFetch = global.fetch;
+        const originalApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+
+        try {
+            global.fetch = async (url, options) => {
+                if (url === 'https://places.googleapis.com/v1/places:searchText') {
+                    // Create a realistic mock Response object that throws when json() is called
+                    const mockResponse = new Response('not a json', { status: 200 });
+                    mockResponse.json = async () => {
+                        throw new Error('Unexpected token < in JSON at position 0');
+                    };
+                    return mockResponse;
+                }
+                return originalFetch(url, options);
+            };
+
+            process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY = 'dummy-key';
+
+            require.cache[fetchSafeModulePath] = {
+                exports: {
+                    fetchSafe: async () => {
+                        const html = `<html><head><title>Some Place</title></head><body></body></html>`;
+                        return new Response(html, {
+                            status: 200,
+                            headers: { 'Content-Type': 'text/html' }
+                        });
+                    }
+                }
+            };
+
+            delete require.cache[require.resolve('../../../src/app/api/link-preview/route')];
+            const { GET: mockGET } = require('../../../src/app/api/link-preview/route');
+
+            const req = createRequest('https://google.com/maps?q=something');
+            const res = await mockGET(req);
+
+            expect(res.status).toBe(500);
+            const data = await res.json();
+            expect(data.error).toBe('Failed to parse map API response');
+        } finally {
+            global.fetch = originalFetch;
+            process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY = originalApiKey;
+        }
+    });
 });
