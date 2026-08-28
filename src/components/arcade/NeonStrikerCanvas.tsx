@@ -26,7 +26,7 @@ interface Bullet {
 }
 
 interface Enemy {
-    id: number;
+    id: string;
     type: 'scout' | 'gunship' | 'interceptor' | 'cruiser' | 'boss';
     x: number;
     y: number;
@@ -294,7 +294,7 @@ export function NeonStrikerCanvas({ accentColor = '#00f0ff' }: NeonStrikerProps)
             s.bossMaxHp = 2500 + waveNum * 600;
             s.bossHp = s.bossMaxHp;
             s.enemies.push({
-                id: Math.random(),
+                id: crypto.randomUUID(),
                 type: 'boss',
                 x: V_WIDTH / 2,
                 y: -90,
@@ -329,7 +329,7 @@ export function NeonStrikerCanvas({ accentColor = '#00f0ff' }: NeonStrikerProps)
             const scoreVal = isHeavy ? 500 : isInterceptor ? 300 : 150;
 
             s.enemies.push({
-                id: Math.random(),
+                id: crypto.randomUUID(),
                 type,
                 x: 60 + (i % 6) * ((V_WIDTH - 120) / 5),
                 y: -50 - Math.floor(i / 6) * 90 - (i % 2) * 30,

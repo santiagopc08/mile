@@ -22,7 +22,7 @@ const FLOOR_Y = BOARD_Y + BOARD_H;
 type ItemType = 'brick' | 'addBall' | 'laserRow' | 'laserCol' | 'bomb';
 
 interface GridItem {
-    id: number;
+    id: string;
     col: number;
     row: number;
     type: ItemType;
@@ -174,7 +174,7 @@ export function BallShooterCanvas({ accentColor = '#00f0ff' }: BallShooterProps)
             if (roll > 0.45) {
                 const hp = s.wave * (Math.floor(Math.random() * 2) + 1);
                 s.items.push({
-                    id: Math.random(),
+                    id: crypto.randomUUID(),
                     col: c,
                     row: 1,
                     type: 'brick',
@@ -184,7 +184,7 @@ export function BallShooterCanvas({ accentColor = '#00f0ff' }: BallShooterProps)
                 });
             } else if (roll > 0.34) {
                 s.items.push({
-                    id: Math.random(),
+                    id: crypto.randomUUID(),
                     col: c,
                     row: 1,
                     type: 'addBall',
@@ -194,7 +194,7 @@ export function BallShooterCanvas({ accentColor = '#00f0ff' }: BallShooterProps)
                 });
             } else if (roll > 0.26) {
                 s.items.push({
-                    id: Math.random(),
+                    id: crypto.randomUUID(),
                     col: c,
                     row: 1,
                     type: 'laserRow',
@@ -204,7 +204,7 @@ export function BallShooterCanvas({ accentColor = '#00f0ff' }: BallShooterProps)
                 });
             } else if (roll > 0.20) {
                 s.items.push({
-                    id: Math.random(),
+                    id: crypto.randomUUID(),
                     col: c,
                     row: 1,
                     type: 'bomb',
