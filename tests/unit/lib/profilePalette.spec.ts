@@ -22,4 +22,8 @@ test.describe('getProfilePalette', () => {
         const customFallback = {} as ProfilePalette;
         expect(getProfilePalette(null, customFallback)).toBe(customFallback);
     });
+
+    test('should return default fallback (NEUTRAL_PALETTE) when profile is an invalid string', () => {
+        expect(getProfilePalette('invalid' as any)).toEqual(NEUTRAL_PALETTE);
+    });
 });
