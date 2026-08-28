@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Trash2 } from 'lucide-react';
@@ -13,7 +13,7 @@ interface TimelineCommentsDrawerProps {
     setActiveEventId: (id: string | null) => void;
 }
 
-export function TimelineCommentsDrawer({ activeEvent, setActiveEventId }: TimelineCommentsDrawerProps) {
+export const TimelineCommentsDrawer = memo(function TimelineCommentsDrawer({ activeEvent, setActiveEventId }: TimelineCommentsDrawerProps) {
     const { data, updateData } = useStore();
     const { profile } = useProfile();
     const { error: notifyError, success, confirm } = useToast();
@@ -183,4 +183,4 @@ export function TimelineCommentsDrawer({ activeEvent, setActiveEventId }: Timeli
         </AnimatePresence>,
         document.body
     );
-}
+});

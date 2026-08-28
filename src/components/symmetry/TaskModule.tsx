@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, X, Check, Filter, Layers, LayoutGrid, ListFilter, Sparkles, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useStore } from '@/context/StoreContext';
@@ -68,7 +68,8 @@ const COLUMNS: ColumnDef[] = [
   },
 ];
 
-export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) => void }) => {
+// ⚡ Bolt Optimization: Wrap component in React.memo()
+export const TaskModule = memo(({ onTasksUpdate }: { onTasksUpdate: (score: number) => void }) => {
   const { profile } = useProfile();
   const accentColor = profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)';
   const accentClass = profile === 'ella' ? 'user-a' : 'user-b';
@@ -622,4 +623,4 @@ export const TaskModule = ({ onTasksUpdate }: { onTasksUpdate: (score: number) =
       </div>
     </div>
   );
-};
+});
