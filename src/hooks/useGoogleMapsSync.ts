@@ -155,18 +155,18 @@ export function useGoogleMapsSync(items: WishlistItem[]) {
 
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     const toInsert = fetchResults.filter(Boolean) as any[];
-                    if (toInsert.length > 0) {
-                        const { error: insertError } = await supabase.from('ubicaciones').insert(toInsert);
-                        if (!insertError) {
+                    const allToUpsert = [...toInsert, ...itemsToUpdate];
+
+                    if (allToUpsert.length > 0) {
+                        const { error: upsertError } = await supabase.from('ubicaciones').upsert(allToUpsert, { onConflict: 'nombre, created_by' });
+                        if (!upsertError) {
                             mutated = true;
                         } else {
-                            console.error("Error inserting batch locations details:", insertError);
+                            console.error("Error upserting batch locations details:", upsertError);
                         }
                     }
-                }
-
-                if (itemsToUpdate.length > 0) {
-                    const { error: updateError } = await supabase.from('ubicaciones').upsert(itemsToUpdate);
+                } else if (itemsToUpdate.length > 0) {
+                    const { error: updateError } = await supabase.from('ubicaciones').upsert(itemsToUpdate, { onConflict: 'nombre, created_by' });
                     if (!updateError) {
                         mutated = true;
                     } else {
