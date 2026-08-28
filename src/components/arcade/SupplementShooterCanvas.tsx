@@ -2,8 +2,10 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { SupplementAudio, initArcadeAudio, loadMutedPreference, setMuted } from '@/lib/arcadeAudio';
-import { Volume2, VolumeX, Tv, Zap, ArrowLeft, ArrowRight, Bomb, Sparkles, Trophy, RotateCcw, ShieldAlert } from 'lucide-react';
+import { Volume2, VolumeX, Tv, Zap, ArrowLeft, ArrowRight, Bomb, Sparkles, Trophy, RotateCcw, ShieldAlert, Crown } from 'lucide-react';
 import { useArcadePhotos, StylizedMemory } from '@/hooks/useArcadePhotos';
+import { useArcadeProgression } from '@/hooks/useArcadeProgression';
+import { useProfile } from '@/context/ProfileContext';
 
 interface SupplementShooterProps {
     accentColor?: string;
@@ -177,7 +179,12 @@ export function SupplementShooterCanvas({ accentColor = '#00f0ff' }: SupplementS
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const containerRef = useRef<HTMLDivElement | null>(null);
 
+    const { profile } = useProfile();
+    const { recordScore, scores } = useArcadeProgression();
     const { stylizedMemories, accentColor: profileAccent } = useArcadePhotos(BOARD_W, BOARD_H);
+
+    const elBest = scores['supplementshooter']?.el || 0;
+    const ellaBest = scores['supplementshooter']?.ella || 0;
 
     const [score, setScore] = useState(0);
     const [highScore, setHighScore] = useState(0);
@@ -188,6 +195,7 @@ export function SupplementShooterCanvas({ accentColor = '#00f0ff' }: SupplementS
     const [gameState, setGameState] = useState<'ready' | 'playing' | 'gameover'>('ready');
     const [mutedState, setMutedState] = useState(false);
     const [crtEnabled, setCrtEnabled] = useState(true);
+    const [lastRecordResult, setLastRecordResult] = useState<{ isNewPersonalBest: boolean; isNewCoupleRecord: boolean; coinsEarned: number } | null>(null);
 
     const stateRef = useRef({
         grid: Array.from({ length: ROWS }, () => Array(COLS).fill(0)),
@@ -220,15 +228,10 @@ export function SupplementShooterCanvas({ accentColor = '#00f0ff' }: SupplementS
 
     useEffect(() => {
         setMutedState(loadMutedPreference());
-        const saved = localStorage.getItem('supplement_shooter_highscore');
-        if (saved) {
-            const val = parseInt(saved, 10);
-            if (!isNaN(val)) {
-                setHighScore(val);
-                stateRef.current.highScore = val;
-            }
-        }
-    }, []);
+        const activePb = profile === 'ella' ? ellaBest : elBest;
+        setHighScore(activePb);
+        stateRef.current.highScore = activePb;
+    }, [profile, elBest, ellaBest]);
 
     const toggleMute = useCallback(() => {
         const next = !mutedState;
@@ -245,6 +248,17 @@ export function SupplementShooterCanvas({ accentColor = '#00f0ff' }: SupplementS
     const addFloatingText = (x: number, y: number, text: string, color = '#facc15') => {
         stateRef.current.floatingTexts.push({ x, y, text, color, life: 0.9 });
     };
+
+    const handleGameOver = useCallback(() => {
+        const s = stateRef.current;
+        s.gameState = 'gameover';
+        setGameState('gameover');
+        SupplementAudio.gameOver();
+        addShake(20, 0.6);
+
+        const res = recordScore('supplementshooter', s.score);
+        setLastRecordResult(res);
+    }, [recordScore]);
 
     const spawnParticles = (x: number, y: number, color: string, count = 16, speed = 160) => {
         for (let i = 0; i < count; i++) {
@@ -673,10 +687,7 @@ export function SupplementShooterCanvas({ accentColor = '#00f0ff' }: SupplementS
                     // Danger line breach check
                     for (let c = 0; c < COLS; c++) {
                         if (s.grid[DANGER_ROW - 1][c] !== 0) {
-                            s.gameState = 'gameover';
-                            setGameState('gameover');
-                            SupplementAudio.gameOver();
-                            addShake(20, 0.6);
+                            handleGameOver();
                             break;
                         }
                     }
@@ -747,10 +758,7 @@ export function SupplementShooterCanvas({ accentColor = '#00f0ff' }: SupplementS
                             if (targetSnapRow >= DANGER_ROW - 1) {
                                 for (let c = 0; c < COLS; c++) {
                                     if (s.grid[DANGER_ROW - 1][c] !== 0) {
-                                        s.gameState = 'gameover';
-                                        setGameState('gameover');
-                                        SupplementAudio.gameOver();
-                                        addShake(18, 0.5);
+                                        handleGameOver();
                                         break;
                                     }
                                 }

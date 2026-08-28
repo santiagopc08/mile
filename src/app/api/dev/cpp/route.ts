@@ -6,7 +6,7 @@ import { verifyAuth } from '@/lib/auth';
 
 export const runtime = 'nodejs';
 
-const platformRoot = path.join(process.cwd(), 'platform');
+const platformRoot = path.join(/*turbopackIgnore: true*/ process.cwd(), 'platform');
 const debugBin = path.join(platformRoot, 'build', 'debug', 'bin');
 
 const commands = {

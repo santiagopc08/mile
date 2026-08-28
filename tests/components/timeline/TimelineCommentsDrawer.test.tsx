@@ -15,8 +15,8 @@ beforeAll(() => {
             matches: false,
             media: query,
             onchange: null,
-            addListener: vi.fn(), // Deprecated
-            removeListener: vi.fn(), // Deprecated
+            addListener: vi.fn(),
+            removeListener: vi.fn(),
             addEventListener: vi.fn(),
             removeEventListener: vi.fn(),
             dispatchEvent: vi.fn(),
@@ -28,14 +28,16 @@ describe('TimelineCommentsDrawer', () => {
     const mockUpdateData = vi.fn();
     const mockNotifyError = vi.fn();
     const mockSuccess = vi.fn();
-    const mockConfirm = vi.fn();
+    const mockConfirm = vi.fn().mockResolvedValue(true);
 
     const activeEvent: TimelineEvent = {
         id: 'event-1',
         title: 'Test Event',
         date: '2023-01-01',
         description: 'Test Description',
-        comments: []
+        comments: [
+            { id: 'comment1', text: 'Test comment', author: 'el', createdAt: new Date().toISOString() }
+        ]
     };
 
     beforeEach(() => {
@@ -76,7 +78,6 @@ describe('TimelineCommentsDrawer', () => {
     });
 
     it('should catch error when posting a comment fails and call notifyError', async () => {
-        // Arrange
         const mockError = new Error('Simulated network error');
         (global.fetch as any).mockRejectedValueOnce(mockError);
 
@@ -87,15 +88,12 @@ describe('TimelineCommentsDrawer', () => {
             />
         );
 
-        // Wait for the drawer to mount (since it has a mounted state)
         const textarea = screen.getByPlaceholderText(/Escribe algo sobre este momento/i);
         const submitButton = screen.getByRole('button', { name: /Agregar Comentario/i });
 
-        // Act
         fireEvent.change(textarea, { target: { value: 'This is a test comment' } });
         fireEvent.submit(submitButton.closest('form')!);
 
-        // Assert
         await waitFor(() => {
             expect(global.fetch).toHaveBeenCalledWith('/api/timeline', expect.objectContaining({
                 method: 'POST'
@@ -107,5 +105,38 @@ describe('TimelineCommentsDrawer', () => {
                 `No se pudo publicar el comentario: ${mockError.message}`
             );
         });
+    });
+
+    it('handleDeleteComment should handle fetch error and show alert', async () => {
+        const mockError = new Error('Delete API failed');
+        (global.fetch as any).mockRejectedValueOnce(mockError);
+
+        render(
+            <TimelineCommentsDrawer
+                activeEvent={activeEvent}
+                setActiveEventId={vi.fn()}
+            />
+        );
+
+        let button: any = null;
+        await waitFor(() => {
+            const buttons = Array.from(document.body.querySelectorAll('button'));
+            button = buttons.find(b => b.className.includes('right-3') || b.className.includes('text-[#594137]'));
+            expect(button).toBeTruthy();
+        });
+
+        if (button) {
+            fireEvent.click(button);
+
+            await waitFor(() => {
+                expect(mockConfirm).toHaveBeenCalled();
+            });
+
+            await waitFor(() => {
+                expect(mockNotifyError).toHaveBeenCalledWith(
+                    `No se pudo eliminar el comentario: ${mockError.message}`
+                );
+            });
+        }
     });
 });

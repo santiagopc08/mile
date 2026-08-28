@@ -4,6 +4,8 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { BrickAudio, initArcadeAudio, loadMutedPreference, setMuted, isMuted } from '@/lib/arcadeAudio';
 import { Volume2, VolumeX, RotateCcw, Play, Trophy, Shield, Zap, Sparkles, ChevronLeft, ChevronRight, Heart, ArrowRight } from 'lucide-react';
 import { useArcadePhotos, StylizedMemory } from '@/hooks/useArcadePhotos';
+import { useArcadeProgression } from '@/hooks/useArcadeProgression';
+import { useProfile } from '@/context/ProfileContext';
 import { BrutalistCorners } from '@/components/ui/BrutalistPanel';
 
 interface BrickStormProps {
@@ -78,7 +80,12 @@ export function BrickStormCanvas({ accentColor = '#00e5ff' }: BrickStormProps) {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const containerRef = useRef<HTMLDivElement | null>(null);
 
+    const { profile } = useProfile();
+    const { recordScore, scores } = useArcadeProgression();
     const { stylizedMemories, accentColor: profileAccent } = useArcadePhotos(780, 420);
+
+    const elBest = scores['brickstorm']?.el || 0;
+    const ellaBest = scores['brickstorm']?.ella || 0;
 
     const [score, setScore] = useState(0);
     const [highScore, setHighScore] = useState(0);
@@ -90,6 +97,7 @@ export function BrickStormCanvas({ accentColor = '#00e5ff' }: BrickStormProps) {
     const [clearedMemory, setClearedMemory] = useState<StylizedMemory | null>(null);
     const [mutedState, setMutedState] = useState(false);
     const [activePowerups, setActivePowerups] = useState<string[]>([]);
+    const [lastRecordResult, setLastRecordResult] = useState<{ isNewPersonalBest: boolean; isNewCoupleRecord: boolean; coinsEarned: number } | null>(null);
 
     // Mutable game state held in refs for 60fps loop
     const stateRef = useRef({
@@ -124,15 +132,10 @@ export function BrickStormCanvas({ accentColor = '#00e5ff' }: BrickStormProps) {
     // Load High Score
     useEffect(() => {
         setMutedState(loadMutedPreference());
-        const saved = localStorage.getItem('brickstorm_highscore');
-        if (saved) {
-            const val = parseInt(saved, 10);
-            if (!isNaN(val)) {
-                setHighScore(val);
-                stateRef.current.highScore = val;
-            }
-        }
-    }, []);
+        const activePb = profile === 'ella' ? ellaBest : elBest;
+        setHighScore(activePb);
+        stateRef.current.highScore = activePb;
+    }, [profile, elBest, ellaBest]);
 
     const toggleMute = useCallback(() => {
         const next = !mutedState;
@@ -605,6 +608,8 @@ export function BrickStormCanvas({ accentColor = '#00e5ff' }: BrickStormProps) {
                         s.gameState = 'gameover';
                         setGameState('gameover');
                         BrickAudio.gameOver();
+                        const res = recordScore('brickstorm', s.score);
+                        setLastRecordResult(res);
                     } else {
                         s.balls = [
                             {
@@ -630,6 +635,8 @@ export function BrickStormCanvas({ accentColor = '#00e5ff' }: BrickStormProps) {
                         setClearedMemory(s.currentMemory);
                     }
                     BrickAudio.levelCleared();
+                    const res = recordScore('brickstorm', s.score);
+                    setLastRecordResult(res);
                 }
             }
 

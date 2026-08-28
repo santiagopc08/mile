@@ -17,6 +17,9 @@ import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 import { supabase } from "@/lib/supabaseClient";
 import { EffectsRig, useEffects, type EffectsApi } from "./GameEffects";
+import { SmashWorldEnvironment } from "./SmashWorldEnvironment";
+import { Cannon3D, type Cannon3DHandle } from "./Cannon3D";
+import { CandyCylinderMesh } from "./CandyCylinderMesh";
 import { DEFAULT_LEVELS, normalizeLevel, type LevelNode, type LevelSchema } from "../lib/levels";
 import { getRandomMemory, type MemoryItem } from "../lib/memories";
 
@@ -516,27 +519,29 @@ const BoxNode = memo(function BoxNode({ node }: { node: LevelNode }) {
 const CylinderNode = memo(function CylinderNode({ node }: { node: LevelNode }) {
   const registry = useRegistry();
   const effects = useEffects();
-  const args: [number, number, number, number] = [node.dimensions[0], node.dimensions[1], node.dimensions[2], 16];
-  const [ref, api] = useCylinder<THREE.Mesh>(() => ({ ...bodyProps(node, effects), args }));
-  useNodeRegistration(registry, node, ref, api);
+  const radius = node.dimensions[0];
+  const height = node.dimensions[2];
+  const args: [number, number, number, number] = [radius, radius, height, 16];
+  const [ref, api] = useCylinder<THREE.Group>(() => ({ ...bodyProps(node, effects), args }));
+  useNodeRegistration(registry, node, ref as any, api);
 
-  const color = node.isMemoryBlock ? "#c3f400" : node.material === "metal" ? "#7d8ea8" : "#8a6a55";
+  const color = node.isMemoryBlock
+    ? "#ff4b89"
+    : node.material === "metal"
+    ? "#f59e0b"
+    : node.material === "stone"
+    ? "#a855f7"
+    : "#e11d48";
 
   return (
-    <mesh ref={ref} castShadow receiveShadow>
-      {/* Same segment count as the collider so what you see is what you hit */}
-      <cylinderGeometry args={[node.dimensions[0], node.dimensions[1], node.dimensions[2], 16]} />
-      <meshStandardMaterial
+    <group ref={ref}>
+      <CandyCylinderMesh
+        radius={radius}
+        height={height}
         color={color}
-        emissive={node.isMemoryBlock ? "#c3f400" : "#000000"}
-        emissiveIntensity={node.isMemoryBlock ? 0.9 : 0}
-        // There is no environment map in this scene, so a near-1 metalness
-        // surface has nothing to reflect and renders as a black hole. Keeping
-        // metal semi-rough lets its diffuse colour actually show.
-        metalness={node.isMemoryBlock ? 0.5 : node.material === "metal" ? 0.45 : 0.2}
-        roughness={node.isMemoryBlock ? 0.25 : node.material === "metal" ? 0.4 : 0.6}
+        isMemory={!!node.isMemoryBlock}
       />
-    </mesh>
+    </group>
   );
 });
 
@@ -1126,7 +1131,7 @@ const LevelScene = memo(function LevelScene({
 }) {
   return (
     <>
-      <Ground color={level.palette.ground} />
+      <SmashWorldEnvironment />
 
       <group ref={targetsRef}>
         {level.nodes.map((node) =>
@@ -1294,6 +1299,7 @@ const GameSession = memo(function GameSession({
 
   const registry = useRef<Map<string, BodyEntry>>(new Map());
   const targetsRef = useRef<THREE.Group | null>(null);
+  const cannonRef = useRef<Cannon3DHandle>(null);
   // Shared between the shoot controller (writer) and the aim guide (reader).
   const aim = useMemo(() => createAimSource(), []);
   const projCounterRef = useRef(0);
@@ -1392,6 +1398,7 @@ const GameSession = memo(function GameSession({
 
       // A volley is one shot, however many balls it puts in the air.
       setStarted(true);
+      cannonRef.current?.fire();
       setShotsUsed((n) => n + 1);
       setProjectiles((prev) => {
         const next = [
@@ -1496,6 +1503,8 @@ const GameSession = memo(function GameSession({
         />
       </Physics>
 
+      <Cannon3D ref={cannonRef} aimNdc={aim} />
+
       {canShoot && (
         <AimGuide
           color={trajectoryColor}
@@ -1585,7 +1594,7 @@ export default function SmashFestGame({
         gl={{ antialias: true, powerPreference: "high-performance" }}
         camera={{ position: [0, 6, 14], fov: 50, near: 0.1, far: 120 }}
       >
-        <color attach="background" args={[level.palette.background]} />
+        <color attach="background" args={["#38bdf8"]} />
         <ambientLight intensity={0.7} />
         <directionalLight
           position={[12, 18, 10]}
