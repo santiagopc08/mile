@@ -97,6 +97,21 @@ describe('useHillClimbStore', () => {
             expect(state.highScore).toBe(0);
             expect(state.bestCoins).toBe(0);
         });
+        it('handles localStorage errors gracefully', () => {
+            const originalGetItem = window.localStorage.getItem;
+            window.localStorage.getItem = vi.fn().mockImplementation(() => {
+                throw new Error('Access denied');
+            });
+
+            useHillClimbStore.getState().loadRecords();
+
+            const state = useHillClimbStore.getState();
+            expect(state.highScore).toBe(0);
+            expect(state.bestCoins).toBe(0);
+
+            window.localStorage.getItem = originalGetItem;
+        });
+
     });
 
     describe('setGameState', () => {
