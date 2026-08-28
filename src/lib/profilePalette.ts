@@ -74,5 +74,5 @@ export function getProfilePalette(
     profile: ProfileKey | null | undefined,
     fallback: ProfilePalette = NEUTRAL_PALETTE
 ): ProfilePalette {
-    return profile ? PROFILE_PALETTE[profile] : fallback;
+    return (profile && profile in PROFILE_PALETTE) ? PROFILE_PALETTE[profile as ProfileKey] : fallback;
 }
