@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { NotificationActionBar } from './NotificationsFeed/NotificationActionBar';
 import { NotificationItem } from './NotificationsFeed/NotificationItem';
 import { NotificationEmptyState } from './NotificationsFeed/NotificationEmptyState';
@@ -67,14 +67,14 @@ export function NotificationsFeed() {
         };
     }, [profile]);
 
-    const handleRead = async (id: string) => {
+    const handleRead = useCallback(async (id: string) => {
         try {
             await NotificationService.markNotificationRead(id);
             setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
         } catch (err) {
             console.error('Failed to mark read:', err);
         }
-    };
+    }, []);
 
     const handleMarkAllRead = async () => {
         if (!profile) return;
