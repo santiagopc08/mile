@@ -8,7 +8,7 @@ const setupSupabaseMock = () => {
     filename: supabasePath,
     loaded: true,
     exports: { createServerClient: () => ({}) }
-  } as any;
+  } as unknown;
 };
 
 const cleanupSupabaseMock = () => {
@@ -21,7 +21,7 @@ test.describe('AI Suggest API', () => {
   test.beforeEach(() => { setupSupabaseMock(); });
   test.afterEach(() => { cleanupSupabaseMock(); });
 
-  const createMockRequest = (body: any) => {
+  const createMockRequest = (body: Record<string, unknown>) => {
     return new Request('http://localhost:3000/api/ai-suggest', {
       method: 'POST',
       body: JSON.stringify(body),
@@ -39,69 +39,90 @@ test.describe('AI Suggest API', () => {
     expect(data).toEqual({ error: 'Falta texto de tarea' });
   });
 
-  test('should return suggestions for "comprar" keyword', async () => {
-    const req = createMockRequest({ taskText: 'comprar leche', field: 'actions' });
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { POST } = require('../../src/app/api/ai-suggest/route');
-    const response = await POST(req);
+  // Buying category
+  for (const keyword of ['comprar', 'buy', 'pagar']) {
+    test(`should return suggestions for "${keyword}" keyword`, async () => {
+      const taskText = `${keyword} leche`;
+      const req = createMockRequest({ taskText, field: 'actions' });
 
-    expect(response.status).toBe(200);
-    const data = await response.json();
-    expect(data.suggestions).toEqual([
-      'Verificar presupuesto o fondos disponibles',
-      'Comparar opciones o proveedores',
-      'Realizar transacción para: comprar leche',
-      'Guardar recibo o comprobante'
-    ]);
-  });
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { POST } = require('../../src/app/api/ai-suggest/route');
+      const response = await POST(req);
 
-  test('should return suggestions for "estudiar" keyword', async () => {
-    const req = createMockRequest({ taskText: 'estudiar matemáticas', field: 'actions' });
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { POST } = require('../../src/app/api/ai-suggest/route');
-    const response = await POST(req);
+      expect(response.status).toBe(200);
+      const data = await response.json();
+      expect(data.suggestions).toEqual([
+        'Verificar presupuesto o fondos disponibles',
+        'Comparar opciones o proveedores',
+        `Realizar transacción para: ${taskText}`,
+        'Guardar recibo o comprobante'
+      ]);
+    });
+  }
 
-    expect(response.status).toBe(200);
-    const data = await response.json();
-    expect(data.suggestions).toEqual([
-      'Reunir material de estudio',
-      'Configurar ambiente sin distracciones',
-      'Completar lectura/estudio de: estudiar matemáticas',
-      'Tomar notas o resumir puntos clave'
-    ]);
-  });
+  // Studying category
+  for (const keyword of ['leer', 'estudiar', 'aprender']) {
+    test(`should return suggestions for "${keyword}" keyword`, async () => {
+      const taskText = `${keyword} matemáticas`;
+      const req = createMockRequest({ taskText, field: 'actions' });
 
-  test('should return suggestions for "bug" keyword', async () => {
-    const req = createMockRequest({ taskText: 'fix bug in login', field: 'actions' });
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { POST } = require('../../src/app/api/ai-suggest/route');
-    const response = await POST(req);
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { POST } = require('../../src/app/api/ai-suggest/route');
+      const response = await POST(req);
 
-    expect(response.status).toBe(200);
-    const data = await response.json();
-    expect(data.suggestions).toEqual([
-      'Reproducir el problema o analizar requerimientos',
-      'Escribir pruebas unitarias iniciales',
-      'Implementar solución para: fix bug in login',
-      'Solicitar Code Review'
-    ]);
-  });
+      expect(response.status).toBe(200);
+      const data = await response.json();
+      expect(data.suggestions).toEqual([
+        'Reunir material de estudio',
+        'Configurar ambiente sin distracciones',
+        `Completar lectura/estudio de: ${taskText}`,
+        'Tomar notas o resumir puntos clave'
+      ]);
+    });
+  }
 
-  test('should return suggestions for "email" keyword', async () => {
-    const req = createMockRequest({ taskText: 'enviar email a cliente', field: 'actions' });
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { POST } = require('../../src/app/api/ai-suggest/route');
-    const response = await POST(req);
+  // Coding category
+  for (const keyword of ['código', 'bug', 'fix', 'dev']) {
+    test(`should return suggestions for "${keyword}" keyword`, async () => {
+      const taskText = `fix ${keyword} in login`;
+      const req = createMockRequest({ taskText, field: 'actions' });
 
-    expect(response.status).toBe(200);
-    const data = await response.json();
-    expect(data.suggestions).toEqual([
-      'Definir objetivo de la comunicación',
-      'Redactar borrador de: enviar email a cliente',
-      'Revisar tono y ortografía',
-      'Enviar y programar recordatorio de seguimiento'
-    ]);
-  });
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { POST } = require('../../src/app/api/ai-suggest/route');
+      const response = await POST(req);
+
+      expect(response.status).toBe(200);
+      const data = await response.json();
+      expect(data.suggestions).toEqual([
+        'Reproducir el problema o analizar requerimientos',
+        'Escribir pruebas unitarias iniciales',
+        `Implementar solución para: ${taskText}`,
+        'Solicitar Code Review'
+      ]);
+    });
+  }
+
+  // Contacting category
+  for (const keyword of ['correo', 'email', 'llamar', 'contactar']) {
+    test(`should return suggestions for "${keyword}" keyword`, async () => {
+      const taskText = `enviar ${keyword} a cliente`;
+      const req = createMockRequest({ taskText, field: 'actions' });
+
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { POST } = require('../../src/app/api/ai-suggest/route');
+      const response = await POST(req);
+
+      expect(response.status).toBe(200);
+      const data = await response.json();
+      expect(data.suggestions).toEqual([
+        'Definir objetivo de la comunicación',
+        `Redactar borrador de: ${taskText}`,
+        'Revisar tono y ortografía',
+        'Enviar y programar recordatorio de seguimiento'
+      ]);
+    });
+  }
+
 
   test('should return fallback suggestions if no keyword matches', async () => {
     const req = createMockRequest({ taskText: 'limpiar la casa', field: 'actions' });

@@ -145,7 +145,7 @@ export function usePomodoroTimer() {
         return () => {
             if (timerRef.current) clearInterval(timerRef.current);
         };
-    }, [isRunning, timeLeft, handleComplete]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [isRunning, timeLeft, handleComplete]);
 
     const prevDurationRef = useRef(currentSessionDuration);
     useEffect(() => {
