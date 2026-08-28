@@ -29,43 +29,42 @@ export function useArcadePhotos(targetWidth = 540, targetHeight = 540) {
                 setMemories(memList);
 
                 // Pre-render stylized canvases for the memories
-                const loadedList: StylizedMemory[] = [];
-                for (let i = 0; i < memList.length; i++) {
-                    const mem = memList[i];
-                    const img = new Image();
-                    img.crossOrigin = 'anonymous';
+                const loadedList = await Promise.all(
+                    memList.map((mem) => {
+                        return new Promise<StylizedMemory | null>((resolve) => {
+                            const img = new Image();
+                            img.crossOrigin = 'anonymous';
 
-                    const isLocal = mem.imageUrl.startsWith('/');
-                    img.src = isLocal
-                        ? mem.imageUrl
-                        : `/api/proxy-image?url=${encodeURIComponent(mem.imageUrl)}`;
+                            const isLocal = mem.imageUrl.startsWith('/');
+                            img.src = isLocal
+                                ? mem.imageUrl
+                                : `/api/proxy-image?url=${encodeURIComponent(mem.imageUrl)}`;
 
-                    await new Promise<void>((resolve) => {
-                        img.onload = () => {
-                            if (!isMounted) {
-                                resolve();
-                                return;
-                            }
-                            const holoCanvas = createHoloDuotoneCanvas(
-                                img,
-                                targetWidth,
-                                targetHeight,
-                                accentColor,
-                                darkBg,
-                                true
-                            );
-                            loadedList.push({
-                                memory: mem,
-                                holoCanvas,
-                                rawImage: img,
-                            });
-                            resolve();
-                        };
-                        img.onerror = () => {
-                            resolve(); // Continue on error
-                        };
-                    });
-                }
+                            img.onload = () => {
+                                if (!isMounted) {
+                                    resolve(null);
+                                    return;
+                                }
+                                const holoCanvas = createHoloDuotoneCanvas(
+                                    img,
+                                    targetWidth,
+                                    targetHeight,
+                                    accentColor,
+                                    darkBg,
+                                    true
+                                );
+                                resolve({
+                                    memory: mem,
+                                    holoCanvas,
+                                    rawImage: img,
+                                });
+                            };
+                            img.onerror = () => {
+                                resolve(null); // Continue on error
+                            };
+                        });
+                    })
+                ).then(results => results.filter((res): res is StylizedMemory => res !== null));
 
                 if (isMounted) {
                     setStylizedMemories(loadedList);
