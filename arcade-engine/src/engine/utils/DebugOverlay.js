@@ -33,20 +33,44 @@ export class DebugOverlay {
       display: none;
     `;
 
-    this.container.innerHTML = `
-      <div style="font-weight: bold; text-transform: uppercase; letter-spacing: 1px; color: #ff0055; margin-bottom: 4px;">Arcade Engine Debug</div>
-      <div>FPS: <span id="dbg-fps" style="color: #fff;">0</span></div>
-      <div>Entities: <span id="dbg-entities" style="color: #fff;">0</span></div>
-      <div>Systems: <span id="dbg-systems" style="color: #fff;">0</span></div>
-      <div id="dbg-custom" style="color: #88aaff; margin-top: 4px;"></div>
-    `;
+    const title = document.createElement('div');
+    title.style.cssText = 'font-weight: bold; text-transform: uppercase; letter-spacing: 1px; color: #ff0055; margin-bottom: 4px;';
+    title.textContent = 'Arcade Engine Debug';
+    this.container.appendChild(title);
+
+    const fpsContainer = document.createElement('div');
+    fpsContainer.textContent = 'FPS: ';
+    this.fpsEl = document.createElement('span');
+    this.fpsEl.id = 'dbg-fps';
+    this.fpsEl.style.color = '#fff';
+    this.fpsEl.textContent = '0';
+    fpsContainer.appendChild(this.fpsEl);
+    this.container.appendChild(fpsContainer);
+
+    const entitiesContainer = document.createElement('div');
+    entitiesContainer.textContent = 'Entities: ';
+    this.entitiesEl = document.createElement('span');
+    this.entitiesEl.id = 'dbg-entities';
+    this.entitiesEl.style.color = '#fff';
+    this.entitiesEl.textContent = '0';
+    entitiesContainer.appendChild(this.entitiesEl);
+    this.container.appendChild(entitiesContainer);
+
+    const systemsContainer = document.createElement('div');
+    systemsContainer.textContent = 'Systems: ';
+    this.systemsEl = document.createElement('span');
+    this.systemsEl.id = 'dbg-systems';
+    this.systemsEl.style.color = '#fff';
+    this.systemsEl.textContent = '0';
+    systemsContainer.appendChild(this.systemsEl);
+    this.container.appendChild(systemsContainer);
+
+    this.customStatsEl = document.createElement('div');
+    this.customStatsEl.id = 'dbg-custom';
+    this.customStatsEl.style.cssText = 'color: #88aaff; margin-top: 4px;';
+    this.container.appendChild(this.customStatsEl);
 
     parentEl.appendChild(this.container);
-
-    this.fpsEl = this.container.querySelector('#dbg-fps');
-    this.entitiesEl = this.container.querySelector('#dbg-entities');
-    this.systemsEl = this.container.querySelector('#dbg-systems');
-    this.customStatsEl = this.container.querySelector('#dbg-custom');
   }
 
   show() {
