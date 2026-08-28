@@ -199,3 +199,96 @@ describe('ProfileContext Validation & Edge Cases', () => {
     expect(screen.getByTestId('auth').textContent).toBe('no');
   });
 });
+
+
+describe('ProfileContext checkSession Error Paths', () => {
+  let originalFetch: typeof global.fetch;
+
+  beforeEach(() => {
+    originalFetch = global.fetch;
+    global.fetch = vi.fn();
+    vi.clearAllMocks();
+    localStorage.clear();
+  });
+
+  afterEach(() => {
+    cleanup();
+    global.fetch = originalFetch;
+  });
+
+  it('keeps profile null when supabase check throws and no local storage exists', async () => {
+    (supabase.auth.getSession as any).mockRejectedValue(new Error('Fatal network error'));
+
+    render(
+      <ProfileProvider>
+        <TestComponent />
+      </ProfileProvider>
+    );
+
+    expect(screen.getByTestId('profile').textContent).toBe('none');
+    expect(screen.getByTestId('auth').textContent).toBe('no');
+
+    await waitFor(() => {
+      expect(supabase.auth.getSession).toHaveBeenCalled();
+    });
+
+    expect(screen.getByTestId('profile').textContent).toBe('none');
+    expect(screen.getByTestId('auth').textContent).toBe('no');
+  });
+
+  it('swallows fetch error during background sync silently', async () => {
+    (supabase.auth.getSession as any).mockResolvedValue({
+      data: {
+        session: {
+          user: { email: 'el@mile.app' },
+          access_token: 'dummy-token'
+        }
+      },
+      error: null
+    });
+
+    (global.fetch as any).mockRejectedValue(new Error('Sync failed'));
+
+    render(
+      <ProfileProvider>
+        <TestComponent />
+      </ProfileProvider>
+    );
+
+    await waitFor(() => {
+      expect(supabase.auth.getSession).toHaveBeenCalled();
+    });
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith('/api/auth/sync', expect.any(Object));
+    });
+
+    expect(screen.getByTestId('profile').textContent).toBe('el');
+    expect(screen.getByTestId('auth').textContent).toBe('yes');
+  });
+
+  it('keeps profile null when session email is not allowed', async () => {
+    (supabase.auth.getSession as any).mockResolvedValue({
+      data: {
+        session: {
+          user: { email: 'hacker@evil.com' },
+          access_token: 'dummy-token'
+        }
+      },
+      error: null
+    });
+
+    render(
+      <ProfileProvider>
+        <TestComponent />
+      </ProfileProvider>
+    );
+
+    await waitFor(() => {
+      expect(supabase.auth.getSession).toHaveBeenCalled();
+    });
+
+    expect(screen.getByTestId('profile').textContent).toBe('none');
+    expect(screen.getByTestId('auth').textContent).toBe('no');
+  });
+});
