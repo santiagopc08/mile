@@ -186,7 +186,7 @@ test.describe('Link Preview API SSRF Protections', () => {
                         });
                     }
                 }
-            };
+            } as any;
 
             delete require.cache[require.resolve('../../../src/app/api/link-preview/route')];
             const { GET: mockGET } = require('../../../src/app/api/link-preview/route');

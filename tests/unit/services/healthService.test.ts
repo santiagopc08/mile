@@ -6,7 +6,7 @@ vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'http://localhost:54321');
 vi.stubEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY', 'dummy');
 
 describe('HealthService', () => {
-    let mockSupabase: unknown;
+    let mockSupabase: any;
 
     let insertMock: ReturnType<typeof vi.fn>;
     let upsertMock: ReturnType<typeof vi.fn>;

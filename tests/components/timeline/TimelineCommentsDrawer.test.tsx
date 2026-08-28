@@ -36,7 +36,7 @@ describe('TimelineCommentsDrawer', () => {
         date: '2023-01-01',
         description: 'Test Description',
         comments: [
-            { id: 'comment1', text: 'Test comment', author: 'el', createdAt: new Date().toISOString() }
+            { id: 'comment1', eventId: 'event-1', text: 'Test comment', author: 'el', createdAt: new Date().toISOString() }
         ]
     };
 
@@ -56,18 +56,19 @@ describe('TimelineCommentsDrawer', () => {
             isAuthenticated: true,
             login: vi.fn(),
             logout: vi.fn(),
-            isLoading: false,
             partner: 'ella',
             canEdit: true
-        });
+        } as any);
 
         vi.spyOn(ToastContext, 'useToast').mockReturnValue({
             error: mockNotifyError,
             success: mockSuccess,
             confirm: mockConfirm,
             info: vi.fn(),
-            warning: vi.fn()
-        });
+            warning: vi.fn(),
+            toast: vi.fn(),
+            dismiss: vi.fn()
+        } as any);
 
         // Mock fetch
         global.fetch = vi.fn();

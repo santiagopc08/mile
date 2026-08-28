@@ -1,5 +1,6 @@
 import 'global-jsdom/register'
 import { expect } from 'vitest'
+// @ts-ignore
 import * as matchers from '@testing-library/jest-dom/matchers'
 
 expect.extend(matchers)

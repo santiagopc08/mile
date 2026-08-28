@@ -8,7 +8,7 @@ const setupSupabaseMock = () => {
     filename: supabasePath,
     loaded: true,
     exports: { createServerClient: () => ({}) }
-  } as unknown;
+  } as any;
 };
 
 const cleanupSupabaseMock = () => {

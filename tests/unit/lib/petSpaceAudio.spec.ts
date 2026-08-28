@@ -10,9 +10,9 @@ test.describe('petSpaceAudio', () => {
   test.describe('playback functions and stopAmbient error handling', () => {
     test('stopAmbient catches errors during node stopping', () => {
       // Create chainable mock objects
-      const createChainable = (obj) => {
+      const createChainable = (obj: any) => {
         const result = { ...obj };
-        result.connect = (dest) => result; // Return self or something to allow chaining
+        result.connect = (_dest: any) => result; // Return self or something to allow chaining
         return result;
       };
 
@@ -68,9 +68,9 @@ test.describe('petSpaceAudio', () => {
         }
       }
 
-      globalThis.window = {
+      (globalThis as any).window = {
         AudioContext: MockAudioContext,
-        localStorage: { setItem: () => {} }
+        localStorage: { setItem: () => {}, getItem: () => null, removeItem: () => {}, clear: () => {}, key: () => null, length: 0 }
       };
 
       // Start ambient to populate the ambient object
@@ -83,8 +83,8 @@ test.describe('petSpaceAudio', () => {
 
     test('playback functions handle missing AudioContext gracefully', () => {
       // Simulate environment without AudioContext
-      globalThis.window = {
-        localStorage: { setItem: () => {} }
+      (globalThis as any).window = {
+        localStorage: { setItem: () => {}, getItem: () => null, removeItem: () => {}, clear: () => {}, key: () => null, length: 0 }
       };
       // Forcing context to be uninitialized or handle the graceful exit
       expect(() => playSelect()).not.toThrow();
