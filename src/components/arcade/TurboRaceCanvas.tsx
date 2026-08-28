@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { RaceAudio, initArcadeAudio, loadMutedPreference, setMuted } from '@/lib/arcadeAudio';
-import { Volume2, VolumeX, Zap, Shield, RotateCcw, Tv, Trophy, Flame, ArrowLeft, ArrowRight, Gauge, Crown } from 'lucide-react';
+import { Volume2, VolumeX, RotateCcw, Tv, Trophy, Flame, ArrowLeft, ArrowRight, Gauge, Sparkles, Shield, Heart } from 'lucide-react';
 import { useArcadeProgression } from '@/hooks/useArcadeProgression';
 import { useProfile } from '@/context/ProfileContext';
 
@@ -10,36 +10,38 @@ interface TurboRaceProps {
     accentColor?: string;
 }
 
-const ROAD_WIDTH = 440;
 const V_WIDTH = 640;
 const V_HEIGHT = 740;
-const ROAD_LEFT = (V_WIDTH - ROAD_WIDTH) / 2; // 100
-const ROAD_RIGHT = ROAD_LEFT + ROAD_WIDTH;   // 540
-const LANE_COUNT = 4;
-const LANE_WIDTH = ROAD_WIDTH / LANE_COUNT;   // 110
+const HORIZON_Y = 235;
 
 type VehicleType = 'sedan' | 'truck' | 'supercar';
 type PickupType = 'coin' | 'nitro' | 'fuel' | 'shield';
 
 interface TrafficCar {
     id: string;
-    x: number;
-    y: number;
-    w: number;
-    h: number;
+    lane: number; // 0 to 3
+    z: number;    // Distance ahead in meters (0 = at player, 600 = at horizon)
     speed: number;
     type: VehicleType;
     color: string;
     grazed: boolean;
-    targetX: number;
+    targetLane: number;
     laneChangeTimer: number;
 }
 
 interface Pickup {
     id: string;
-    x: number;
-    y: number;
+    lane: number;
+    z: number;
     type: PickupType;
+}
+
+interface RoadsideObject {
+    id: string;
+    side: 'left' | 'right';
+    z: number;
+    type: 'palm' | 'streetlight' | 'billboard';
+    billboardText?: string;
 }
 
 interface Particle {
@@ -62,6 +64,17 @@ interface FloatingText {
     life: number;
 }
 
+const BILLBOARD_PHRASES = [
+    'SANTI & MILE ROAD TRIP 🌴',
+    'BOBA & SUNSET CAFE 🧋',
+    'NEXT STOP: MIAMI BEACH 🏖️',
+    'AMOR A 300 KM/H ⚡',
+    'DUELO ÉL VS ELLA 👑',
+    'SINERGIA AL MÁXIMO 💎',
+    'TOGETHER IN HIGHWAY 💖',
+    'SYNTHWAVE LOVERS 🌇',
+];
+
 export function TurboRaceCanvas({ accentColor = '#00f0ff' }: TurboRaceProps) {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const containerRef = useRef<HTMLDivElement | null>(null);
@@ -80,13 +93,14 @@ export function TurboRaceCanvas({ accentColor = '#00f0ff' }: TurboRaceProps) {
     const [gameState, setGameState] = useState<'ready' | 'racing' | 'gameover'>('ready');
     const [mutedState, setMutedState] = useState(false);
     const [crtEnabled, setCrtEnabled] = useState(true);
+    const [currentBiome, setCurrentBiome] = useState<'miami' | 'tokyo' | 'cosmic'>('miami');
     const [lastRecordResult, setLastRecordResult] = useState<{ isNewPersonalBest: boolean; isNewCoupleRecord: boolean; coinsEarned: number } | null>(null);
 
     const stateRef = useRef({
-        playerX: V_WIDTH / 2,
-        playerY: V_HEIGHT - 130,
+        playerLaneX: 0, // -1.0 (far left) to 1.0 (far right)
         playerVx: 0,
-        speed: 140, // Base speed km/h
+        playerTilt: 0, // In radians
+        speed: 140,    // Base speed km/h
         maxSpeed: 420,
         distance: 0,
         fuel: 100,
@@ -95,13 +109,18 @@ export function TurboRaceCanvas({ accentColor = '#00f0ff' }: TurboRaceProps) {
         score: 0,
         highScore: 0,
         overtakes: 0,
-        roadScrollOffset: 0,
+        roadScroll: 0,
+        roadCurve: 0,
+        targetCurve: 0,
+        curveTimer: 3.0,
         traffic: [] as TrafficCar[],
         pickups: [] as Pickup[],
+        roadside: [] as RoadsideObject[],
         particles: [] as Particle[],
         floatingTexts: [] as FloatingText[],
-        trafficSpawnTimer: 1.0,
-        pickupSpawnTimer: 3.5,
+        trafficSpawnTimer: 1.2,
+        pickupSpawnTimer: 3.0,
+        roadsideSpawnTimer: 0.4,
         shakeIntensity: 0,
         shakeTime: 0,
         gameState: 'ready' as 'ready' | 'racing' | 'gameover',
@@ -129,20 +148,8 @@ export function TurboRaceCanvas({ accentColor = '#00f0ff' }: TurboRaceProps) {
     };
 
     const addFloatingText = (x: number, y: number, text: string, color = '#facc15') => {
-        stateRef.current.floatingTexts.push({ x, y, text, color, life: 0.8 });
+        stateRef.current.floatingTexts.push({ x, y, text, color, life: 0.85 });
     };
-
-    const handleGameOver = useCallback(() => {
-        const s = stateRef.current;
-        s.gameState = 'gameover';
-        setGameState('gameover');
-        RaceAudio.crash();
-        spawnParticles(s.playerX, s.playerY, '#ef4444', 50, 300);
-        addShake(20, 0.6);
-
-        const res = recordScore('turborace', s.score);
-        setLastRecordResult(res);
-    }, [recordScore]);
 
     const spawnParticles = (x: number, y: number, color: string, count = 16, speed = 180) => {
         for (let i = 0; i < count; i++) {
@@ -153,7 +160,7 @@ export function TurboRaceCanvas({ accentColor = '#00f0ff' }: TurboRaceProps) {
                 y,
                 vx: Math.cos(angle) * spd,
                 vy: Math.sin(angle) * spd,
-                radius: 2 + Math.random() * 3,
+                radius: 2 + Math.random() * 3.5,
                 color,
                 life: 0.3 + Math.random() * 0.35,
                 maxLife: 0.65,
@@ -162,12 +169,24 @@ export function TurboRaceCanvas({ accentColor = '#00f0ff' }: TurboRaceProps) {
         }
     };
 
+    const handleGameOver = useCallback(() => {
+        const s = stateRef.current;
+        s.gameState = 'gameover';
+        setGameState('gameover');
+        RaceAudio.crash();
+        spawnParticles(V_WIDTH / 2, V_HEIGHT - 120, '#ef4444', 60, 320);
+        addShake(22, 0.65);
+
+        const res = recordScore('turborace', s.score);
+        setLastRecordResult(res);
+    }, [recordScore]);
+
     const startNewGame = useCallback(() => {
         initArcadeAudio();
         const s = stateRef.current;
-        s.playerX = V_WIDTH / 2;
-        s.playerY = V_HEIGHT - 130;
+        s.playerLaneX = 0;
         s.playerVx = 0;
+        s.playerTilt = 0;
         s.speed = 140;
         s.distance = 0;
         s.fuel = 100;
@@ -175,18 +194,25 @@ export function TurboRaceCanvas({ accentColor = '#00f0ff' }: TurboRaceProps) {
         s.shieldTimer = 0;
         s.score = 0;
         s.overtakes = 0;
+        s.roadScroll = 0;
+        s.roadCurve = 0;
+        s.targetCurve = 0;
+        s.curveTimer = 3.0;
         s.traffic = [];
         s.pickups = [];
+        s.roadside = [];
         s.particles = [];
         s.floatingTexts = [];
         s.trafficSpawnTimer = 1.0;
         s.pickupSpawnTimer = 3.0;
+        s.roadsideSpawnTimer = 0.2;
         s.gameState = 'racing';
 
         setScore(0);
         setSpeedKmh(140);
         setDistanceMeters(0);
         setFuel(100);
+        setCurrentBiome('miami');
         setGameState('racing');
 
         RaceAudio.checkpoint();
@@ -194,54 +220,44 @@ export function TurboRaceCanvas({ accentColor = '#00f0ff' }: TurboRaceProps) {
 
     const spawnTraffic = useCallback(() => {
         const s = stateRef.current;
-        const lane = Math.floor(Math.random() * LANE_COUNT);
-        const laneCenterX = ROAD_LEFT + lane * LANE_WIDTH + LANE_WIDTH / 2;
+        const lane = Math.floor(Math.random() * 4); // 0, 1, 2, 3
 
-        // Ensure lane isn't obstructed
+        // Check if lane is blocked at the horizon
         for (const c of s.traffic) {
-            if (Math.abs(c.x - laneCenterX) < 30 && c.y < 120) return;
+            if (c.lane === lane && c.z > 450) return;
         }
 
         const roll = Math.random();
         let type: VehicleType = 'sedan';
-        let w = 36;
-        let h = 68;
         let spd = s.speed * 0.45;
         let color = '#f59e0b'; // Amber
 
         if (roll > 0.70) {
             type = 'truck';
-            w = 42;
-            h = 130;
-            spd = s.speed * 0.35;
-            color = '#3b82f6'; // Blue Truck
+            spd = s.speed * 0.32;
+            color = '#3b82f6'; // Cyber Blue Truck
         } else if (roll > 0.40) {
             type = 'supercar';
-            w = 34;
-            h = 66;
             spd = s.speed * 0.65;
-            color = '#ec4899'; // Magenta Racer
+            color = '#ec4899'; // Hot Magenta
         }
 
         s.traffic.push({
             id: crypto.randomUUID(),
-            x: laneCenterX,
-            y: -120,
-            w,
-            h,
+            lane,
+            z: 560, // Spawn far at horizon
             speed: spd,
             type,
             color,
             grazed: false,
-            targetX: laneCenterX,
+            targetLane: lane,
             laneChangeTimer: 2.0 + Math.random() * 3.0,
         });
     }, []);
 
     const spawnPickup = useCallback(() => {
         const s = stateRef.current;
-        const lane = Math.floor(Math.random() * LANE_COUNT);
-        const laneCenterX = ROAD_LEFT + lane * LANE_WIDTH + LANE_WIDTH / 2;
+        const lane = Math.floor(Math.random() * 4);
 
         const roll = Math.random();
         let type: PickupType = 'coin';
@@ -251,9 +267,25 @@ export function TurboRaceCanvas({ accentColor = '#00f0ff' }: TurboRaceProps) {
 
         s.pickups.push({
             id: crypto.randomUUID(),
-            x: laneCenterX,
-            y: -60,
+            lane,
+            z: 550,
             type,
+        });
+    }, []);
+
+    const spawnRoadside = useCallback(() => {
+        const s = stateRef.current;
+        const side = Math.random() > 0.5 ? 'left' : 'right';
+        const isBillboard = Math.random() > 0.65;
+
+        s.roadside.push({
+            id: crypto.randomUUID(),
+            side,
+            z: 580,
+            type: isBillboard ? 'billboard' : 'palm',
+            billboardText: isBillboard
+                ? BILLBOARD_PHRASES[Math.floor(Math.random() * BILLBOARD_PHRASES.length)]
+                : undefined,
         });
     }, []);
 
@@ -263,12 +295,12 @@ export function TurboRaceCanvas({ accentColor = '#00f0ff' }: TurboRaceProps) {
         if (s.nitroTimer <= 0) {
             s.nitroTimer = 5.0;
             RaceAudio.nitro();
-            addShake(10, 0.4);
-            addFloatingText(s.playerX, s.playerY - 20, '⚡ NITRO OVERDRIVE!', '#00f0ff');
+            addShake(12, 0.45);
+            addFloatingText(V_WIDTH / 2, V_HEIGHT - 170, '⚡ NITRO OVERDRIVE!', '#00f0ff');
         }
     }, []);
 
-    // ── MAIN 60 FPS GAME LOOP ───────────────────────────────────────────────
+    // ── MAIN 60 FPS SYNTHWAVE ROAD TRIP LOOP ────────────────────────────────
     useEffect(() => {
         let animId: number;
         let lastTime = performance.now();
@@ -278,13 +310,25 @@ export function TurboRaceCanvas({ accentColor = '#00f0ff' }: TurboRaceProps) {
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
+        // Generate static starfield
+        const stars: { x: number; y: number; size: number; alpha: number; speed: number }[] = [];
+        for (let i = 0; i < 70; i++) {
+            stars.push({
+                x: Math.random() * V_WIDTH,
+                y: Math.random() * HORIZON_Y,
+                size: Math.random() * 2 + 0.8,
+                alpha: Math.random() * 0.8 + 0.2,
+                speed: Math.random() * 0.4 + 0.2,
+            });
+        }
+
         const loop = (time: number) => {
             const dt = Math.min((time - lastTime) / 1000, 0.05);
             lastTime = time;
 
             const s = stateRef.current;
 
-            // Screen Shake
+            // Screen Shake decay
             if (s.shakeTime > 0) {
                 s.shakeTime -= dt;
                 if (s.shakeTime <= 0) s.shakeIntensity = 0;
@@ -301,24 +345,38 @@ export function TurboRaceCanvas({ accentColor = '#00f0ff' }: TurboRaceProps) {
 
             // Update floating texts
             s.floatingTexts.forEach(ft => {
-                ft.y -= 30 * dt;
+                ft.y -= 34 * dt;
                 ft.life -= dt;
             });
             s.floatingTexts = s.floatingTexts.filter(ft => ft.life > 0);
 
-            // ── Racing Physics ──
+            // ── Dynamic Biome Resolution ──
+            let biome: 'miami' | 'tokyo' | 'cosmic' = 'miami';
+            if (s.distance > 3500) biome = 'cosmic';
+            else if (s.distance > 1500) biome = 'tokyo';
+            setCurrentBiome(biome);
+
+            // ── Racing Physics & Perspective World ──
             if (s.gameState === 'racing') {
-                // Linear Speed scaling based on distance
+                // Speed & Acceleration
                 if (s.nitroTimer > 0) {
                     s.nitroTimer -= dt;
-                    s.speed = Math.min(s.maxSpeed, s.speed + 180 * dt);
+                    s.speed = Math.min(s.maxSpeed, s.speed + 200 * dt);
                 } else {
-                    const targetSpeed = 140 + Math.min(220, s.distance * 0.04);
-                    s.speed = Math.min(targetSpeed, s.speed + 15 * dt);
+                    const targetSpeed = 140 + Math.min(220, s.distance * 0.045);
+                    s.speed = Math.min(targetSpeed, s.speed + 18 * dt);
                 }
 
+                // Road curve evolution
+                s.curveTimer -= dt;
+                if (s.curveTimer <= 0) {
+                    s.curveTimer = 3.5 + Math.random() * 4.0;
+                    s.targetCurve = (Math.random() * 2 - 1) * 0.85;
+                }
+                s.roadCurve += (s.targetCurve - s.roadCurve) * 1.2 * dt;
+
                 // Fuel consumption
-                s.fuel = Math.max(0, s.fuel - (s.speed / 140) * 1.8 * dt);
+                s.fuel = Math.max(0, s.fuel - (s.speed / 140) * 1.7 * dt);
                 setFuel(Math.round(s.fuel));
                 if (s.fuel <= 0) {
                     s.gameState = 'gameover';
@@ -329,14 +387,15 @@ export function TurboRaceCanvas({ accentColor = '#00f0ff' }: TurboRaceProps) {
                 // Shield timer
                 if (s.shieldTimer > 0) s.shieldTimer -= dt;
 
-                s.distance += (s.speed * 0.15) * dt;
-                s.score += Math.floor(s.speed * 0.35 * dt);
+                // Distance & Score
+                s.distance += (s.speed * 0.16) * dt;
+                s.score += Math.floor(s.speed * 0.38 * dt);
                 setDistanceMeters(Math.floor(s.distance));
                 setSpeedKmh(Math.round(s.speed));
                 setScore(s.score);
 
                 // Road scroll
-                s.roadScrollOffset = (s.roadScrollOffset + s.speed * 2.2 * dt) % 80;
+                s.roadScroll = (s.roadScroll + s.speed * 3.5 * dt) % 200;
 
                 // Steering controls
                 let steer = s.touchSteer;
@@ -344,114 +403,125 @@ export function TurboRaceCanvas({ accentColor = '#00f0ff' }: TurboRaceProps) {
                 if (s.keysHeld.has('d') || s.keysHeld.has('ArrowRight')) steer = 1;
 
                 if (steer !== 0) {
-                    s.playerVx = steer * 580;
-                }
-
-                s.playerX += s.playerVx * dt;
-                s.playerX = Math.max(ROAD_LEFT + 25, Math.min(ROAD_RIGHT - 25, s.playerX));
-                s.playerVx *= Math.exp(-7.0 * dt);
-
-                // Exhaust particles
-                if (s.nitroTimer > 0) {
-                    spawnParticles(s.playerX - 10, s.playerY + 36, '#00f0ff', 2, 80);
-                    spawnParticles(s.playerX + 10, s.playerY + 36, '#00f0ff', 2, 80);
+                    s.playerVx = steer * 2.4;
+                    s.playerTilt = THREE_LERP(s.playerTilt, steer * 0.14, dt * 10);
                 } else {
-                    spawnParticles(s.playerX, s.playerY + 36, '#f59e0b', 1, 40);
+                    s.playerVx *= Math.exp(-6.0 * dt);
+                    s.playerTilt = THREE_LERP(s.playerTilt, 0, dt * 8);
                 }
 
-                // Traffic spawn
+                s.playerLaneX += s.playerVx * dt;
+                s.playerLaneX = Math.max(-1.15, Math.min(1.15, s.playerLaneX));
+
+                // Spawn timers
                 s.trafficSpawnTimer -= dt;
                 if (s.trafficSpawnTimer <= 0) {
                     spawnTraffic();
-                    s.trafficSpawnTimer = Math.max(0.55, 2.0 - (s.speed / s.maxSpeed) * 1.2);
+                    s.trafficSpawnTimer = Math.max(0.6, 2.2 - (s.speed / s.maxSpeed) * 1.3);
                 }
 
-                // Pickups spawn
                 s.pickupSpawnTimer -= dt;
                 if (s.pickupSpawnTimer <= 0) {
                     spawnPickup();
-                    s.pickupSpawnTimer = 3.5 + Math.random() * 3.0;
+                    s.pickupSpawnTimer = 3.2 + Math.random() * 3.0;
+                }
+
+                s.roadsideSpawnTimer -= dt;
+                if (s.roadsideSpawnTimer <= 0) {
+                    spawnRoadside();
+                    s.roadsideSpawnTimer = Math.max(0.2, 0.65 - (s.speed / s.maxSpeed) * 0.35);
                 }
 
                 // Update Traffic
                 for (const c of s.traffic) {
-                    const relSpeed = (s.speed - c.speed) * 2.2;
-                    c.y += relSpeed * dt;
+                    const relativeZSpeed = (s.speed - c.speed) * 1.8;
+                    c.z -= relativeZSpeed * dt;
 
-                    // Supercars lane shift
+                    // Supercars lane switch
                     if (c.type === 'supercar') {
                         c.laneChangeTimer -= dt;
                         if (c.laneChangeTimer <= 0) {
-                            c.laneChangeTimer = 2.0 + Math.random() * 3.0;
-                            const targetLane = Math.floor(Math.random() * LANE_COUNT);
-                            c.targetX = ROAD_LEFT + targetLane * LANE_WIDTH + LANE_WIDTH / 2;
+                            c.laneChangeTimer = 2.5 + Math.random() * 3.0;
+                            c.targetLane = Math.floor(Math.random() * 4);
                         }
-                        c.x += (c.targetX - c.x) * 2.5 * dt;
+                        c.lane += (c.targetLane - c.lane) * 2.2 * dt;
                     }
 
-                    // Near-miss Graze check
-                    if (!c.grazed && Math.abs(c.y - s.playerY) < 40) {
-                        const dx = Math.abs(c.x - s.playerX);
-                        if (dx < 52 && dx > 34) {
+                    // Graze Near-Miss (at player proximity z ~ 20)
+                    if (!c.grazed && c.z < 35 && c.z > 0) {
+                        const playerWorldLane = (s.playerLaneX + 1) * 1.5; // Maps -1..1 to 0..3
+                        const dLane = Math.abs(c.lane - playerWorldLane);
+                        if (dLane < 0.65 && dLane > 0.32) {
                             c.grazed = true;
-                            s.score += 250;
+                            s.score += 350;
                             s.overtakes++;
                             RaceAudio.graze();
-                            addFloatingText(s.playerX, s.playerY - 20, '+250 GRAZE! ✨', '#00f0ff');
-                            spawnParticles(s.playerX, s.playerY, '#00f0ff', 12, 140);
+                            addFloatingText(V_WIDTH / 2, V_HEIGHT - 160, '+350 GRAZE! ⚡', '#00f0ff');
+                            spawnParticles(V_WIDTH / 2, V_HEIGHT - 120, '#00f0ff', 18, 160);
                         }
                     }
 
                     // Collision Check
-                    const dx = Math.abs(c.x - s.playerX);
-                    const dy = Math.abs(c.y - s.playerY);
-                    if (dx < (c.w + 36) * 0.42 && dy < (c.h + 72) * 0.42) {
-                        if (s.shieldTimer > 0 || s.nitroTimer > 0) {
-                            // Destroy traffic
-                            c.y = 9999;
-                            s.score += 500;
-                            RaceAudio.crash();
-                            spawnParticles(c.x, c.y, '#ef4444', 30, 240);
-                            addFloatingText(c.x, c.y, '+500 SMASH! 💥', '#ef4444');
-                            if (s.shieldTimer > 0) s.shieldTimer = 0;
-                        } else {
-                            // Crash game over
-                            handleGameOver();
+                    if (c.z < 25 && c.z > -10) {
+                        const playerWorldLane = (s.playerLaneX + 1) * 1.5;
+                        const dLane = Math.abs(c.lane - playerWorldLane);
+                        if (dLane < 0.42) {
+                            if (s.shieldTimer > 0 || s.nitroTimer > 0) {
+                                c.z = -999; // Destroyed
+                                s.score += 600;
+                                RaceAudio.crash();
+                                spawnParticles(V_WIDTH / 2, V_HEIGHT - 120, '#ef4444', 35, 260);
+                                addFloatingText(V_WIDTH / 2, V_HEIGHT - 160, '+600 SMASH! 💥', '#ef4444');
+                                if (s.shieldTimer > 0) s.shieldTimer = 0;
+                            } else {
+                                handleGameOver();
+                            }
                         }
                     }
                 }
 
                 // Update Pickups
                 for (const p of s.pickups) {
-                    p.y += s.speed * 2.2 * dt;
-                    if (Math.hypot(p.x - s.playerX, p.y - s.playerY) < 40) {
-                        p.y = 9999;
-                        RaceAudio.pickup();
-                        if (p.type === 'coin') {
-                            s.score += 500;
-                            addFloatingText(p.x, p.y, '+$500 COIN 💎', '#facc15');
-                            spawnParticles(p.x, p.y, '#facc15', 16, 140);
-                        } else if (p.type === 'nitro') {
-                            s.nitroTimer = 5.0;
-                            RaceAudio.nitro();
-                            addFloatingText(p.x, p.y, '⚡ 5s NITRO!', '#00f0ff');
-                            spawnParticles(p.x, p.y, '#00f0ff', 25, 200);
-                        } else if (p.type === 'fuel') {
-                            s.fuel = Math.min(100, s.fuel + 35);
-                            addFloatingText(p.x, p.y, '+35% FUEL ⛽', '#22c55e');
-                            spawnParticles(p.x, p.y, '#22c55e', 18, 150);
-                        } else if (p.type === 'shield') {
-                            s.shieldTimer = 8.0;
-                            addFloatingText(p.x, p.y, '🛡️ SHIELD ACTIVE!', '#a855f7');
-                            spawnParticles(p.x, p.y, '#a855f7', 20, 160);
+                    p.z -= s.speed * 1.8 * dt;
+
+                    if (p.z < 25 && p.z > -10) {
+                        const playerWorldLane = (s.playerLaneX + 1) * 1.5;
+                        if (Math.abs(p.lane - playerWorldLane) < 0.55) {
+                            p.z = -999; // Collected
+                            RaceAudio.pickup();
+                            if (p.type === 'coin') {
+                                s.score += 500;
+                                addFloatingText(V_WIDTH / 2, V_HEIGHT - 160, '+$500 DIAMANTE 💎', '#facc15');
+                                spawnParticles(V_WIDTH / 2, V_HEIGHT - 120, '#facc15', 20, 150);
+                            } else if (p.type === 'nitro') {
+                                s.nitroTimer = 5.0;
+                                RaceAudio.nitro();
+                                addFloatingText(V_WIDTH / 2, V_HEIGHT - 160, '⚡ 5s NITRO!', '#00f0ff');
+                                spawnParticles(V_WIDTH / 2, V_HEIGHT - 120, '#00f0ff', 28, 220);
+                            } else if (p.type === 'fuel') {
+                                s.fuel = Math.min(100, s.fuel + 35);
+                                addFloatingText(V_WIDTH / 2, V_HEIGHT - 160, '+35% COMBUSTIBLE ⛽', '#22c55e');
+                                spawnParticles(V_WIDTH / 2, V_HEIGHT - 120, '#22c55e', 22, 160);
+                            } else if (p.type === 'shield') {
+                                s.shieldTimer = 8.0;
+                                addFloatingText(V_WIDTH / 2, V_HEIGHT - 160, '🛡️ ESCUDO ACTIVO!', '#a855f7');
+                                spawnParticles(V_WIDTH / 2, V_HEIGHT - 120, '#a855f7', 24, 180);
+                            }
                         }
                     }
                 }
 
-                // Cleanup
-                s.traffic = s.traffic.filter(c => c.y < V_HEIGHT + 150 && c.y > -250);
-                s.pickups = s.pickups.filter(p => p.y < V_HEIGHT + 80);
+                // Update Roadside
+                for (const obj of s.roadside) {
+                    obj.z -= s.speed * 1.8 * dt;
+                }
 
+                // Cleanups
+                s.traffic = s.traffic.filter(c => c.z > -40);
+                s.pickups = s.pickups.filter(p => p.z > -30);
+                s.roadside = s.roadside.filter(o => o.z > -30);
+
+                // High score tracking
                 if (s.score > s.highScore) {
                     s.highScore = s.score;
                     setHighScore(s.score);
@@ -459,7 +529,7 @@ export function TurboRaceCanvas({ accentColor = '#00f0ff' }: TurboRaceProps) {
                 }
             }
 
-            // ── RENDER SCENE ────────────────────────────────────────────────
+            // ── RENDERING PERSPECTIVE SCENE ─────────────────────────────────
             ctx.save();
             ctx.clearRect(0, 0, V_WIDTH, V_HEIGHT);
 
@@ -469,151 +539,468 @@ export function TurboRaceCanvas({ accentColor = '#00f0ff' }: TurboRaceProps) {
                 ctx.translate(ox, oy);
             }
 
-            // Dark Asphalt
-            ctx.fillStyle = '#0a0d18';
-            ctx.fillRect(0, 0, V_WIDTH, V_HEIGHT);
+            // 1. SKY GRADIENT (Based on Biome)
+            const skyGrad = ctx.createLinearGradient(0, 0, 0, HORIZON_Y);
+            if (biome === 'miami') {
+                skyGrad.addColorStop(0, '#0f051d');
+                skyGrad.addColorStop(0.35, '#581c87');
+                skyGrad.addColorStop(0.7, '#c026d3');
+                skyGrad.addColorStop(0.92, '#f59e0b');
+                skyGrad.addColorStop(1, '#fde047');
+            } else if (biome === 'tokyo') {
+                skyGrad.addColorStop(0, '#090417');
+                skyGrad.addColorStop(0.4, '#3b0764');
+                skyGrad.addColorStop(0.75, '#701a75');
+                skyGrad.addColorStop(0.95, '#ec4899');
+                skyGrad.addColorStop(1, '#06b6d4');
+            } else {
+                skyGrad.addColorStop(0, '#020617');
+                skyGrad.addColorStop(0.45, '#1e1b4b');
+                skyGrad.addColorStop(0.8, '#1e3a8a');
+                skyGrad.addColorStop(1, '#10b981');
+            }
+            ctx.fillStyle = skyGrad;
+            ctx.fillRect(0, 0, V_WIDTH, HORIZON_Y);
 
-            // Highway Surface
-            ctx.fillStyle = '#101422';
-            ctx.fillRect(ROAD_LEFT, 0, ROAD_WIDTH, V_HEIGHT);
+            // 2. TWINKLING STARS
+            stars.forEach(st => {
+                ctx.save();
+                const blink = Math.sin(time * 0.003 * st.speed + st.x) * 0.3 + 0.7;
+                ctx.fillStyle = `rgba(255, 255, 255, ${st.alpha * blink})`;
+                ctx.fillRect(st.x, st.y, st.size, st.size);
+                ctx.restore();
+            });
 
-            // Road Edge Curbs (Red / White rumble strips)
-            for (let y = -80 + s.roadScrollOffset; y < V_HEIGHT + 80; y += 40) {
-                const alt = Math.floor((y - s.roadScrollOffset) / 40) % 2 === 0;
-                ctx.fillStyle = alt ? '#ef4444' : '#ffffff';
-                ctx.fillRect(ROAD_LEFT - 12, y, 10, 38);
-                ctx.fillRect(ROAD_RIGHT + 2, y, 10, 38);
+            // 3. SYNTHWAVE STRIPED SUN
+            const sunCenterX = V_WIDTH / 2 + s.roadCurve * 40;
+            const sunCenterY = HORIZON_Y - 55;
+            const sunRadius = 65;
+
+            // Solar Outer Glow
+            const sunGlow = ctx.createRadialGradient(sunCenterX, sunCenterY, 10, sunCenterX, sunCenterY, sunRadius * 1.5);
+            sunGlow.addColorStop(0, 'rgba(253, 224, 71, 0.9)');
+            sunGlow.addColorStop(0.6, 'rgba(244, 63, 94, 0.4)');
+            sunGlow.addColorStop(1, 'rgba(244, 63, 94, 0)');
+            ctx.fillStyle = sunGlow;
+            ctx.beginPath();
+            ctx.arc(sunCenterX, sunCenterY, sunRadius * 1.5, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Sun Body
+            const sunBody = ctx.createLinearGradient(sunCenterX, sunCenterY - sunRadius, sunCenterX, sunCenterY + sunRadius);
+            sunBody.addColorStop(0, '#fef08a');
+            sunBody.addColorStop(0.4, '#f59e0b');
+            sunBody.addColorStop(1, '#e11d48');
+            ctx.fillStyle = sunBody;
+            ctx.beginPath();
+            ctx.arc(sunCenterX, sunCenterY, sunRadius, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Sun Horizontal Scanlines (Black slats)
+            ctx.fillStyle = '#0f051d';
+            const slatCount = 7;
+            for (let i = 0; i < slatCount; i++) {
+                const sy = sunCenterY - 10 + i * 11;
+                const slatH = 2 + i * 1.2;
+                ctx.fillRect(sunCenterX - sunRadius - 5, sy, sunRadius * 2 + 10, slatH);
             }
 
-            // Dashed Lane Markers
-            for (let l = 1; l < LANE_COUNT; l++) {
-                const lx = ROAD_LEFT + l * LANE_WIDTH;
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
-                for (let y = -80 + s.roadScrollOffset; y < V_HEIGHT + 80; y += 50) {
-                    ctx.fillRect(lx - 2, y, 4, 26);
+            // 4. PARALLAX MOUNTAINS / SKYLINES
+            // Distant Mountains
+            ctx.fillStyle = biome === 'tokyo' ? '#180728' : '#230b3b';
+            ctx.beginPath();
+            ctx.moveTo(0, HORIZON_Y);
+            const mtnOffset = s.roadCurve * 60;
+            const mtnPoints = [
+                [0, HORIZON_Y - 25],
+                [80, HORIZON_Y - 50],
+                [160, HORIZON_Y - 28],
+                [260, HORIZON_Y - 65],
+                [360, HORIZON_Y - 35],
+                [480, HORIZON_Y - 70],
+                [560, HORIZON_Y - 40],
+                [640, HORIZON_Y - 25],
+            ];
+            mtnPoints.forEach(([px, py]) => ctx.lineTo(px + mtnOffset * 0.3, py));
+            ctx.lineTo(V_WIDTH, HORIZON_Y);
+            ctx.closePath();
+            ctx.fill();
+
+            // Near Skyline / Hills
+            ctx.fillStyle = biome === 'tokyo' ? '#2e0854' : '#3b1054';
+            ctx.beginPath();
+            ctx.moveTo(0, HORIZON_Y);
+            const nearPoints = [
+                [0, HORIZON_Y - 15],
+                [110, HORIZON_Y - 38],
+                [210, HORIZON_Y - 18],
+                [310, HORIZON_Y - 48],
+                [420, HORIZON_Y - 22],
+                [530, HORIZON_Y - 42],
+                [640, HORIZON_Y - 15],
+            ];
+            nearPoints.forEach(([px, py]) => ctx.lineTo(px + mtnOffset * 0.6, py));
+            ctx.lineTo(V_WIDTH, HORIZON_Y);
+            ctx.closePath();
+            ctx.fill();
+
+            // 5. GROUND / ROAD VERGE CYBER GRID
+            const groundGrad = ctx.createLinearGradient(0, HORIZON_Y, 0, V_HEIGHT);
+            groundGrad.addColorStop(0, '#13091f');
+            groundGrad.addColorStop(1, '#06020c');
+            ctx.fillStyle = groundGrad;
+            ctx.fillRect(0, HORIZON_Y, V_WIDTH, V_HEIGHT - HORIZON_Y);
+
+            // 6. PERSPECTIVE ROAD SCANLINES
+            const totalLines = 110;
+            for (let i = 0; i < totalLines; i++) {
+                const y1 = HORIZON_Y + (i / totalLines) * (V_HEIGHT - HORIZON_Y);
+                const y2 = HORIZON_Y + ((i + 1) / totalLines) * (V_HEIGHT - HORIZON_Y);
+
+                // Perspective depth factors
+                const k1 = Math.pow((y1 - HORIZON_Y) / (V_HEIGHT - HORIZON_Y), 2.2);
+                const k2 = Math.pow((y2 - HORIZON_Y) / (V_HEIGHT - HORIZON_Y), 2.2);
+
+                const w1 = 30 + (540 - 30) * k1;
+                const w2 = 30 + (540 - 30) * k2;
+
+                const cx1 = V_WIDTH / 2 + s.roadCurve * Math.pow(1 - k1, 2) * 160;
+                const cx2 = V_WIDTH / 2 + s.roadCurve * Math.pow(1 - k2, 2) * 160;
+
+                const lx1 = cx1 - w1 / 2;
+                const rx1 = cx1 + w1 / 2;
+                const lx2 = cx2 - w2 / 2;
+                const rx2 = cx2 + w2 / 2;
+
+                // Alternating road segments
+                const seg = Math.floor((y1 * 2 - s.roadScroll) / 32);
+                const alt = seg % 2 === 0;
+
+                // Asphalt trapezoid
+                ctx.fillStyle = alt ? '#181228' : '#120d20';
+                ctx.beginPath();
+                ctx.moveTo(lx1, y1);
+                ctx.lineTo(rx1, y1);
+                ctx.lineTo(rx2, y2);
+                ctx.lineTo(lx2, y2);
+                ctx.closePath();
+                ctx.fill();
+
+                // Rumble Strip Curbs (Left & Right)
+                const curbW1 = Math.max(2, 24 * k1);
+                const curbW2 = Math.max(2, 24 * k2);
+
+                ctx.fillStyle = alt ? '#ff007f' : '#00f0ff';
+                ctx.beginPath();
+                ctx.moveTo(lx1 - curbW1, y1);
+                ctx.lineTo(lx1, y1);
+                ctx.lineTo(lx2, y2);
+                ctx.lineTo(lx2 - curbW2, y2);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.moveTo(rx1, y1);
+                ctx.lineTo(rx1 + curbW1, y1);
+                ctx.lineTo(rx2 + curbW2, y2);
+                ctx.lineTo(rx2, y2);
+                ctx.closePath();
+                ctx.fill();
+
+                // Dashed Lane Dividers
+                if (alt) {
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+                    for (let l = 1; l <= 3; l++) {
+                        const laneOffset1 = -w1 / 2 + l * (w1 / 4);
+                        const laneOffset2 = -w2 / 2 + l * (w2 / 4);
+                        const dw = Math.max(1, 4 * k1);
+
+                        ctx.fillRect(cx1 + laneOffset1 - dw / 2, y1, dw, y2 - y1 + 1);
+                    }
                 }
             }
 
-            // Pickups
-            s.pickups.forEach(p => {
+            // 7. ROADSIDE OBJECTS (Sorted by Z far to near)
+            const sortedRoadside = [...s.roadside].sort((a, b) => b.z - a.z);
+            sortedRoadside.forEach(obj => {
+                if (obj.z <= 0 || obj.z > 600) return;
+                const k = Math.pow(Math.max(0, 1 - obj.z / 600), 2.2);
+                const y = HORIZON_Y + k * (V_HEIGHT - HORIZON_Y);
+                const w = 30 + (540 - 30) * k;
+                const cx = V_WIDTH / 2 + s.roadCurve * Math.pow(1 - k, 2) * 160;
+
+                const objX = obj.side === 'left' ? cx - w / 2 - 35 * k - 10 : cx + w / 2 + 35 * k + 10;
+                const scale = Math.max(0.15, k * 1.5);
+
                 ctx.save();
-                const col = p.type === 'coin' ? '#facc15' : p.type === 'nitro' ? '#00f0ff' : p.type === 'fuel' ? '#22c55e' : '#a855f7';
-                ctx.fillStyle = col;
-                ctx.shadowColor = col;
-                ctx.shadowBlur = 12;
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, 14, 0, Math.PI * 2);
-                ctx.fill();
+                ctx.translate(objX, y);
+                ctx.scale(scale, scale);
 
-                ctx.fillStyle = '#000000';
-                ctx.font = 'bold 12px monospace';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(p.type === 'coin' ? '💎' : p.type === 'nitro' ? '⚡' : p.type === 'fuel' ? '⛽' : '🛡️', p.x, p.y);
-                ctx.restore();
-            });
-
-            // Traffic Cars
-            s.traffic.forEach(c => {
-                ctx.save();
-                ctx.fillStyle = c.color;
-                ctx.shadowColor = c.color;
-                ctx.shadowBlur = 8;
-                ctx.beginPath();
-                ctx.roundRect(c.x - c.w / 2, c.y - c.h / 2, c.w, c.h, 8);
-                ctx.fill();
-
-                // Windshield
-                ctx.fillStyle = 'rgba(0,0,0,0.6)';
-                ctx.fillRect(c.x - c.w * 0.35, c.y - c.h * 0.25, c.w * 0.7, c.h * 0.2);
-
-                // Tail Lights
-                ctx.fillStyle = '#ef4444';
-                ctx.shadowColor = '#ef4444';
-                ctx.shadowBlur = 6;
-                ctx.fillRect(c.x - c.w / 2 + 4, c.y + c.h / 2 - 6, 6, 4);
-                ctx.fillRect(c.x + c.w / 2 - 10, c.y + c.h / 2 - 6, 6, 4);
-                ctx.restore();
-            });
-
-            // Player Race Car
-            if (s.gameState !== 'gameover') {
-                ctx.save();
-                const pw = 36;
-                const ph = 72;
-                ctx.fillStyle = '#00f0ff';
-                ctx.shadowColor = '#00f0ff';
-                ctx.shadowBlur = 12;
-                ctx.beginPath();
-                ctx.roundRect(s.playerX - pw / 2, s.playerY - ph / 2, pw, ph, 8);
-                ctx.fill();
-
-                // Windshield
-                ctx.fillStyle = '#060914';
-                ctx.fillRect(s.playerX - pw * 0.35, s.playerY - ph * 0.25, pw * 0.7, ph * 0.25);
-
-                // Headlights Beam
-                ctx.fillStyle = '#facc15';
-                ctx.shadowColor = '#facc15';
-                ctx.shadowBlur = 10;
-                ctx.fillRect(s.playerX - pw / 2 + 4, s.playerY - ph / 2 + 2, 6, 4);
-                ctx.fillRect(s.playerX + pw / 2 - 10, s.playerY - ph / 2 + 2, 6, 4);
-
-                // Shield Aura
-                if (s.shieldTimer > 0) {
+                if (obj.type === 'palm') {
+                    // Stylized Neon Palm Tree
                     ctx.strokeStyle = '#a855f7';
-                    ctx.lineWidth = 2.5;
-                    ctx.shadowColor = '#a855f7';
-                    ctx.shadowBlur = 14;
+                    ctx.lineWidth = 4;
                     ctx.beginPath();
-                    ctx.arc(s.playerX, s.playerY, 44, 0, Math.PI * 2);
+                    ctx.moveTo(0, 0);
+                    ctx.quadraticCurveTo(obj.side === 'left' ? -15 : 15, -45, 0, -90);
                     ctx.stroke();
-                }
 
-                // Nitro Trail
-                if (s.nitroTimer > 0) {
+                    // Palm Fronds
+                    ctx.fillStyle = '#ec4899';
+                    for (let f = 0; f < 5; f++) {
+                        const fa = (f - 2) * 0.45;
+                        ctx.beginPath();
+                        ctx.ellipse(Math.sin(fa) * 28, -90 - Math.cos(fa) * 15, 26, 8, fa, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                } else if (obj.type === 'billboard' && obj.billboardText) {
+                    // Holographic Memory Billboard
+                    ctx.fillStyle = '#1e1b4b';
                     ctx.strokeStyle = '#00f0ff';
                     ctx.lineWidth = 3;
                     ctx.shadowColor = '#00f0ff';
-                    ctx.shadowBlur = 20;
+                    ctx.shadowBlur = 10;
+
+                    // Stand Pole
+                    ctx.fillRect(-4, -20, 8, 20);
+
+                    // Sign Board
                     ctx.beginPath();
-                    ctx.moveTo(s.playerX - pw / 2, s.playerY + ph / 2);
-                    ctx.lineTo(s.playerX - pw / 2, s.playerY + ph / 2 + 40);
-                    ctx.moveTo(s.playerX + pw / 2, s.playerY + ph / 2);
-                    ctx.lineTo(s.playerX + pw / 2, s.playerY + ph / 2 + 40);
+                    ctx.roundRect(-80, -75, 160, 55, 8);
+                    ctx.fill();
+                    ctx.stroke();
+
+                    // Sign Text
+                    ctx.fillStyle = '#fde047';
+                    ctx.font = 'bold 9px monospace';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(obj.billboardText, 0, -48);
+                }
+                ctx.restore();
+            });
+
+            // 8. PICKUPS (Sorted by Z)
+            const sortedPickups = [...s.pickups].sort((a, b) => b.z - a.z);
+            sortedPickups.forEach(p => {
+                if (p.z <= 0 || p.z > 600) return;
+                const k = Math.pow(Math.max(0, 1 - p.z / 600), 2.2);
+                const y = HORIZON_Y + k * (V_HEIGHT - HORIZON_Y);
+                const w = 30 + (540 - 30) * k;
+                const cx = V_WIDTH / 2 + s.roadCurve * Math.pow(1 - k, 2) * 160;
+
+                const laneX = cx - w / 2 + (p.lane + 0.5) * (w / 4);
+                const scale = Math.max(0.2, k * 1.3);
+
+                ctx.save();
+                ctx.translate(laneX, y - 10 * scale);
+                ctx.scale(scale, scale);
+
+                const col = p.type === 'coin' ? '#facc15' : p.type === 'nitro' ? '#00f0ff' : p.type === 'fuel' ? '#22c55e' : '#a855f7';
+                ctx.fillStyle = col;
+                ctx.shadowColor = col;
+                ctx.shadowBlur = 14;
+
+                // Bobbing animation
+                const bob = Math.sin(time * 0.008 + p.lane) * 6;
+                ctx.beginPath();
+                ctx.arc(0, bob, 16, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = '#000000';
+                ctx.font = 'bold 14px monospace';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(p.type === 'coin' ? '💎' : p.type === 'nitro' ? '⚡' : p.type === 'fuel' ? '⛽' : '🛡️', 0, bob);
+                ctx.restore();
+            });
+
+            // 9. TRAFFIC CARS (Sorted by Z)
+            const sortedTraffic = [...s.traffic].sort((a, b) => b.z - a.z);
+            sortedTraffic.forEach(c => {
+                if (c.z <= 0 || c.z > 600) return;
+                const k = Math.pow(Math.max(0, 1 - c.z / 600), 2.2);
+                const y = HORIZON_Y + k * (V_HEIGHT - HORIZON_Y);
+                const w = 30 + (540 - 30) * k;
+                const cx = V_WIDTH / 2 + s.roadCurve * Math.pow(1 - k, 2) * 160;
+
+                const laneX = cx - w / 2 + (c.lane + 0.5) * (w / 4);
+                const carScale = Math.max(0.2, k * 1.35);
+
+                ctx.save();
+                ctx.translate(laneX, y);
+                ctx.scale(carScale, carScale);
+
+                // Car Body
+                ctx.fillStyle = c.color;
+                ctx.shadowColor = c.color;
+                ctx.shadowBlur = 10;
+                const cw = c.type === 'truck' ? 44 : 36;
+                const ch = c.type === 'truck' ? 70 : 42;
+
+                ctx.beginPath();
+                ctx.roundRect(-cw / 2, -ch, cw, ch, 6);
+                ctx.fill();
+
+                // Rear Windshield
+                ctx.fillStyle = '#0a0d18';
+                ctx.fillRect(-cw * 0.35, -ch + 8, cw * 0.7, ch * 0.35);
+
+                // Taillights
+                ctx.fillStyle = '#ef4444';
+                ctx.shadowColor = '#ef4444';
+                ctx.shadowBlur = 12;
+                ctx.fillRect(-cw / 2 + 4, -8, 8, 6);
+                ctx.fillRect(cw / 2 - 12, -8, 8, 6);
+
+                // Turn Signal for lane changes
+                if (c.type === 'supercar' && Math.abs(c.targetLane - c.lane) > 0.1) {
+                    const isLeft = c.targetLane < c.lane;
+                    if (Math.sin(time * 0.02) > 0) {
+                        ctx.fillStyle = '#fbbf24';
+                        ctx.shadowColor = '#fbbf24';
+                        ctx.fillRect(isLeft ? -cw / 2 + 2 : cw / 2 - 8, -14, 6, 5);
+                    }
+                }
+
+                ctx.restore();
+            });
+
+            // 10. PLAYER SPORTS CAR (DeLorean / Testarossa Outrun Coupe)
+            if (s.gameState !== 'gameover') {
+                const playerScreenX = V_WIDTH / 2 + s.playerLaneX * 180;
+                const playerScreenY = V_HEIGHT - 120;
+
+                ctx.save();
+                ctx.translate(playerScreenX, playerScreenY);
+                ctx.rotate(s.playerTilt);
+
+                const pw = 48;
+                const ph = 52;
+
+                // Car Shadow
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
+                ctx.beginPath();
+                ctx.ellipse(0, 10, pw * 0.75, 12, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Wide Aerodynamic Chassis
+                ctx.fillStyle = '#00f0ff';
+                ctx.shadowColor = '#00f0ff';
+                ctx.shadowBlur = 14;
+                ctx.beginPath();
+                ctx.roundRect(-pw / 2, -ph, pw, ph, 8);
+                ctx.fill();
+
+                // Carbon Fiber Engine Hood / Rear Louvers
+                ctx.fillStyle = '#0a0d18';
+                ctx.fillRect(-pw * 0.38, -ph + 10, pw * 0.76, ph * 0.42);
+
+                // Rear Glass Slat Lines
+                ctx.strokeStyle = '#00f0ff';
+                ctx.lineWidth = 1.5;
+                for (let sl = 0; sl < 3; sl++) {
+                    ctx.beginPath();
+                    ctx.moveTo(-pw * 0.34, -ph + 16 + sl * 6);
+                    ctx.lineTo(pw * 0.34, -ph + 16 + sl * 6);
                     ctx.stroke();
                 }
+
+                // Dual Glowing LED Taillights + Brake Bar
+                ctx.fillStyle = '#ff0055';
+                ctx.shadowColor = '#ff0055';
+                ctx.shadowBlur = 16;
+                ctx.fillRect(-pw / 2 + 4, -12, 12, 8);
+                ctx.fillRect(pw / 2 - 16, -12, 12, 8);
+                ctx.fillRect(-pw * 0.2, -10, pw * 0.4, 4);
+
+                // Chrome Bumper Bar
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(-pw * 0.45, -2, pw * 0.9, 3);
+
+                // Illuminated License Plate: "SANTI & MILE"
+                ctx.fillStyle = '#fde047';
+                ctx.fillRect(-18, -8, 36, 8);
+                ctx.fillStyle = '#000000';
+                ctx.font = 'bold 5px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('SANTI & MILE', 0, -4);
+
+                // Dual Exhaust Tips & Fire Particles
+                ctx.fillStyle = '#475569';
+                ctx.fillRect(-pw / 2 + 6, 0, 5, 4);
+                ctx.fillRect(pw / 2 - 11, 0, 5, 4);
+
+                if (s.nitroTimer > 0) {
+                    // Twin Intense Cyan & Magenta Plasma Jets
+                    const flameLen = 28 + Math.sin(time * 0.05) * 8;
+                    const flameGrad1 = ctx.createLinearGradient(0, 0, 0, flameLen);
+                    flameGrad1.addColorStop(0, '#ffffff');
+                    flameGrad1.addColorStop(0.3, '#00f0ff');
+                    flameGrad1.addColorStop(1, 'rgba(192, 38, 211, 0)');
+
+                    ctx.fillStyle = flameGrad1;
+                    ctx.beginPath();
+                    ctx.moveTo(-pw / 2 + 6, 2);
+                    ctx.lineTo(-pw / 2 + 8.5, flameLen);
+                    ctx.lineTo(-pw / 2 + 11, 2);
+                    ctx.fill();
+
+                    ctx.beginPath();
+                    ctx.moveTo(pw / 2 - 11, 2);
+                    ctx.lineTo(pw / 2 - 8.5, flameLen);
+                    ctx.lineTo(pw / 2 - 6, 2);
+                    ctx.fill();
+                } else {
+                    // Normal subtle amber exhaust pop
+                    const pop = Math.sin(time * 0.03) * 4;
+                    ctx.fillStyle = '#f59e0b';
+                    ctx.fillRect(-pw / 2 + 7.5, 2, 2, 4 + pop);
+                    ctx.fillRect(pw / 2 - 9.5, 2, 2, 4 + pop);
+                }
+
+                // Hexagonal Shield Bubble
+                if (s.shieldTimer > 0) {
+                    ctx.strokeStyle = '#a855f7';
+                    ctx.lineWidth = 3;
+                    ctx.shadowColor = '#a855f7';
+                    ctx.shadowBlur = 18;
+                    ctx.beginPath();
+                    ctx.arc(0, -ph / 2, 46, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
                 ctx.restore();
             }
 
-            // Particles
+            // 11. PARTICLES & FLOATING TEXTS
             s.particles.forEach(pt => {
                 ctx.save();
                 ctx.globalAlpha = pt.alpha;
                 ctx.fillStyle = pt.color;
                 ctx.shadowColor = pt.color;
-                ctx.shadowBlur = 6;
+                ctx.shadowBlur = 8;
                 ctx.beginPath();
                 ctx.arc(pt.x, pt.y, pt.radius, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.restore();
             });
 
-            // Floating Texts
             s.floatingTexts.forEach(ft => {
                 ctx.save();
-                ctx.font = 'bold 13px monospace';
+                ctx.font = 'black 14px monospace';
                 ctx.fillStyle = ft.color;
                 ctx.shadowColor = ft.color;
-                ctx.shadowBlur = 6;
+                ctx.shadowBlur = 8;
                 ctx.textAlign = 'center';
                 ctx.fillText(ft.text, ft.x, ft.y);
                 ctx.restore();
             });
 
-            // CRT Scanlines
+            // 12. CRT SCANLINES OVERLAY
             if (crtEnabled) {
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.16)';
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.14)';
                 for (let y = 0; y < V_HEIGHT; y += 4) {
                     ctx.fillRect(0, y, V_WIDTH, 1.5);
                 }
@@ -625,7 +1012,7 @@ export function TurboRaceCanvas({ accentColor = '#00f0ff' }: TurboRaceProps) {
 
         animId = requestAnimationFrame(loop);
         return () => cancelAnimationFrame(animId);
-    }, [crtEnabled, spawnTraffic, spawnPickup]);
+    }, [crtEnabled, spawnTraffic, spawnPickup, spawnRoadside]);
 
     // Keyboard handlers
     useEffect(() => {
@@ -651,7 +1038,7 @@ export function TurboRaceCanvas({ accentColor = '#00f0ff' }: TurboRaceProps) {
     return (
         <div
             ref={containerRef}
-            className="relative h-[74vh] max-h-[800px] min-h-[520px] w-full overflow-hidden rounded-3xl border border-white/15 bg-black shadow-[0_24px_70px_rgba(0,0,0,0.85)] select-none font-mono"
+            className="relative h-[74vh] max-h-[820px] min-h-[540px] w-full overflow-hidden rounded-3xl border border-white/20 bg-black shadow-[0_24px_70px_rgba(0,0,0,0.85)] select-none font-mono"
         >
             <canvas
                 ref={canvasRef}
@@ -660,31 +1047,42 @@ export function TurboRaceCanvas({ accentColor = '#00f0ff' }: TurboRaceProps) {
                 className="absolute inset-0 h-full w-full block object-contain select-none"
             />
 
-            {/* Top HUD Dashboard */}
-            <div className="absolute top-3 left-4 right-4 z-20 flex items-center justify-between pointer-events-none">
-                <div className="flex items-center gap-3">
-                    <div className="bg-black/85 border border-cyan-500/50 px-3 py-1.5 rounded-lg shadow-[0_0_12px_rgba(0,240,255,0.3)] pointer-events-auto">
+            {/* Top Dashboard HUD: Biome Badge, Distance, Score, Fuel */}
+            <div className="absolute top-3 left-4 right-4 z-20 flex flex-wrap items-center justify-between gap-2 pointer-events-none">
+                <div className="flex items-center gap-2">
+                    {/* Biome Indicator */}
+                    <div className="bg-black/85 border border-pink-500/50 px-3 py-1.5 rounded-xl shadow-[0_0_15px_rgba(236,72,153,0.4)] backdrop-blur-md pointer-events-auto flex items-center gap-1.5">
+                        <span className="text-xs">
+                            {currentBiome === 'miami' ? '🌅' : currentBiome === 'tokyo' ? '🏙️' : '🌌'}
+                        </span>
+                        <span className="text-[10px] font-black uppercase text-pink-300">
+                            {currentBiome === 'miami' ? 'MIAMI SUNSET' : currentBiome === 'tokyo' ? 'TOKYO NEON' : 'COSMIC HIGHWAY'}
+                        </span>
+                    </div>
+
+                    {/* Score */}
+                    <div className="bg-black/85 border border-cyan-500/50 px-3 py-1.5 rounded-xl shadow-[0_0_12px_rgba(0,240,255,0.3)] backdrop-blur-md pointer-events-auto">
                         <div className="text-[8px] uppercase tracking-widest text-cyan-400 font-bold">SCORE</div>
-                        <div className="text-base sm:text-lg font-black text-white tabular-nums">{score}</div>
+                        <div className="text-sm sm:text-base font-black text-white tabular-nums">{score}</div>
                     </div>
-                    <div className="bg-black/85 border border-amber-500/40 px-3 py-1.5 rounded-lg pointer-events-auto">
-                        <div className="text-[8px] uppercase tracking-widest text-amber-400 font-bold">SPEED</div>
-                        <div className="text-base sm:text-lg font-black text-white tabular-nums">{speedKmh} <span className="text-[10px] text-amber-400">KM/H</span></div>
+
+                    {/* Distance */}
+                    <div className="bg-black/85 border border-amber-500/50 px-3 py-1.5 rounded-xl backdrop-blur-md pointer-events-auto">
+                        <div className="text-[8px] uppercase tracking-widest text-amber-400 font-bold">DISTANCIA</div>
+                        <div className="text-sm sm:text-base font-black text-white tabular-nums">{distanceMeters} <span className="text-[9px] text-amber-400">M</span></div>
                     </div>
-                    <div className="bg-black/85 border border-emerald-500/40 px-2.5 py-1.5 rounded-lg pointer-events-auto">
-                        <div className="text-[8px] uppercase tracking-widest text-emerald-400 font-bold">DIST</div>
-                        <div className="text-base sm:text-lg font-black text-white tabular-nums">{distanceMeters} <span className="text-[10px] text-emerald-400">M</span></div>
-                    </div>
-                    <div className="bg-black/85 border border-pink-500/40 px-2.5 py-1.5 rounded-lg pointer-events-auto">
-                        <div className="text-[8px] uppercase tracking-widest text-pink-400 font-bold">FUEL</div>
-                        <div className="text-base sm:text-lg font-black text-white tabular-nums">{fuel}%</div>
+
+                    {/* Fuel Gauge */}
+                    <div className={`bg-black/85 border px-3 py-1.5 rounded-xl backdrop-blur-md pointer-events-auto ${fuel < 25 ? 'border-red-500 animate-pulse' : 'border-emerald-500/50'}`}>
+                        <div className="text-[8px] uppercase tracking-widest text-emerald-400 font-bold">COMBUSTIBLE</div>
+                        <div className={`text-sm sm:text-base font-black tabular-nums ${fuel < 25 ? 'text-red-400' : 'text-emerald-300'}`}>{fuel}%</div>
                     </div>
                 </div>
 
                 <div className="flex items-center gap-2 pointer-events-auto">
                     <button
                         onClick={() => setCrtEnabled(!crtEnabled)}
-                        className={`p-2 border rounded-lg transition-all ${crtEnabled ? 'border-cyan-400 text-cyan-400 bg-cyan-950/60' : 'border-white/20 text-white/40 bg-black/80'}`}
+                        className={`p-2 border rounded-xl transition-all shadow-lg ${crtEnabled ? 'border-cyan-400 text-cyan-400 bg-cyan-950/70' : 'border-white/20 text-white/40 bg-black/80'}`}
                         title="Filtro CRT Scanlines"
                     >
                         <Tv className="w-4 h-4" />
@@ -692,7 +1090,7 @@ export function TurboRaceCanvas({ accentColor = '#00f0ff' }: TurboRaceProps) {
 
                     <button
                         onClick={toggleMute}
-                        className="p-2 bg-black/80 border border-white/20 rounded-lg text-white hover:bg-white/10 transition-all"
+                        className="p-2 bg-black/80 border border-white/20 rounded-xl text-white hover:bg-white/10 transition-all shadow-lg"
                         title={mutedState ? 'Activar sonido' : 'Silenciar'}
                     >
                         {mutedState ? <VolumeX className="w-4 h-4 text-white/50" /> : <Volume2 className="w-4 h-4 text-cyan-400" />}
@@ -700,10 +1098,28 @@ export function TurboRaceCanvas({ accentColor = '#00f0ff' }: TurboRaceProps) {
                 </div>
             </div>
 
+            {/* Bottom Right Retro-Futuristic Speedometer Gauge */}
+            <div className="hidden sm:flex absolute bottom-4 right-4 z-20 flex-col items-center bg-black/85 border border-cyan-500/50 p-3 rounded-2xl shadow-[0_0_20px_rgba(0,240,255,0.4)] backdrop-blur-md pointer-events-none">
+                <div className="flex items-center gap-1.5 text-[9px] uppercase tracking-widest text-cyan-300 font-black mb-1">
+                    <Gauge className="w-3.5 h-3.5 text-cyan-400" />
+                    <span>VELOCIDAD</span>
+                </div>
+                <div className="text-2xl font-black text-white tabular-nums drop-shadow">
+                    {speedKmh} <span className="text-xs text-cyan-400">KM/H</span>
+                </div>
+                {/* Visual LED Arc Bar */}
+                <div className="w-28 h-2 bg-white/15 rounded-full overflow-hidden mt-1.5">
+                    <div
+                        className="h-full bg-gradient-to-r from-cyan-400 via-yellow-400 to-red-500 transition-all"
+                        style={{ width: `${Math.min(100, (speedKmh / 420) * 100)}%` }}
+                    />
+                </div>
+            </div>
+
             {/* Mobile Touch Controls */}
             <div className="sm:hidden absolute bottom-3 left-3 right-3 z-20 flex items-center justify-between pointer-events-none">
                 {/* Steer buttons */}
-                <div className="flex items-center gap-2 bg-black/70 p-2 rounded-2xl border border-white/15 backdrop-blur-md pointer-events-auto">
+                <div className="flex items-center gap-2 bg-black/75 p-2 rounded-2xl border border-white/20 backdrop-blur-md pointer-events-auto">
                     <button
                         onTouchStart={() => { stateRef.current.touchSteer = -1; }}
                         onTouchEnd={() => { stateRef.current.touchSteer = 0; }}
@@ -720,12 +1136,18 @@ export function TurboRaceCanvas({ accentColor = '#00f0ff' }: TurboRaceProps) {
                     </button>
                 </div>
 
+                {/* Speed indicator mobile */}
+                <div className="bg-black/80 border border-cyan-500/50 px-3 py-2 rounded-xl text-center">
+                    <div className="text-[8px] text-cyan-300 font-bold">KM/H</div>
+                    <div className="text-base font-black text-white">{speedKmh}</div>
+                </div>
+
                 {/* Nitro Button */}
                 <button
                     onClick={activateNitro}
-                    className="p-5 bg-gradient-to-tr from-cyan-400 to-blue-600 rounded-2xl text-black font-black text-xs uppercase tracking-wider shadow-[0_0_20px_rgba(0,240,255,0.6)] active:scale-95 transition-all pointer-events-auto flex items-center gap-1.5"
+                    className="p-4 bg-gradient-to-tr from-cyan-400 via-pink-500 to-rose-600 rounded-2xl text-white font-black text-xs uppercase tracking-wider shadow-[0_0_20px_rgba(0,240,255,0.6)] active:scale-95 transition-all pointer-events-auto flex items-center gap-1.5"
                 >
-                    <Flame className="w-6 h-6" />
+                    <Flame className="w-5 h-5" />
                     <span>NITRO</span>
                 </button>
             </div>
@@ -733,21 +1155,30 @@ export function TurboRaceCanvas({ accentColor = '#00f0ff' }: TurboRaceProps) {
             {/* Start / Game Over Modal */}
             {gameState !== 'racing' && (
                 <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/85 backdrop-blur-md p-6 text-center font-mono">
-                    <div className="max-w-md w-full border border-cyan-500/40 bg-slate-950/90 p-6 sm:p-8 rounded-3xl shadow-[0_0_40px_rgba(0,240,255,0.4)]">
-                        <div className="text-cyan-400 text-xs font-bold uppercase tracking-[0.3em] mb-1">C++ Linear Speed Engine</div>
+                    <div className="max-w-md w-full border border-pink-500/50 bg-slate-950/95 p-6 sm:p-8 rounded-3xl shadow-[0_0_50px_rgba(236,72,153,0.5)]">
+                        <div className="text-pink-400 text-xs font-black uppercase tracking-[0.3em] mb-1">
+                            SANTI & MILE • SYNTHWAVE ROAD TRIP 🌴
+                        </div>
                         <h2 className="text-3xl sm:text-4xl font-black text-white uppercase tracking-wider mb-3">
                             {gameState === 'gameover' ? '💥 CRASHED OUT' : 'TURBO HIGHWAY 🏎️'}
                         </h2>
 
                         <p className="text-xs text-white/70 mb-6 leading-relaxed">
                             {gameState === 'gameover'
-                                ? `Has recorrido ${distanceMeters} metros a ${speedKmh} km/h. Puntuación final: ${score}`
-                                : 'Esquiva el tráfico en la autopista. La velocidad aumenta linealmente con la distancia. ¡Pasa rozando para ganar bonos de Graze!'}
+                                ? `Has recorrido ${distanceMeters} metros a ${speedKmh} km/h por la autopista de neón. Puntuación final: ${score}`
+                                : 'Conduce por la autopista al atardecer. Pasa rozando los vehículos para ganar bonos de Graze y recoge las gemas y nitro para acelerar.'}
                         </p>
+
+                        {gameState === 'gameover' && lastRecordResult && (
+                            <div className="mb-6 p-3 bg-pink-950/50 border border-pink-500/40 rounded-xl text-xs text-pink-300">
+                                {lastRecordResult.isNewPersonalBest && <div className="font-bold text-yellow-400 mb-1">🏆 ¡NUEVO RÉCORD PERSONAL!</div>}
+                                <div>Monedas de Sinergia Ganadas: <span className="font-bold text-yellow-400">+{lastRecordResult.coinsEarned} 🪙</span></div>
+                            </div>
+                        )}
 
                         <button
                             onClick={startNewGame}
-                            className="w-full py-4 bg-gradient-to-r from-cyan-400 to-amber-400 text-black font-black uppercase text-base tracking-widest rounded-xl hover:scale-105 active:scale-95 transition-all shadow-[0_0_25px_rgba(0,240,255,0.6)]"
+                            className="w-full py-4 bg-gradient-to-r from-[#ff4b89] via-fuchsia-500 to-cyan-400 text-black font-black uppercase text-base tracking-widest rounded-xl hover:scale-105 active:scale-95 transition-all shadow-[0_0_25px_rgba(255,75,137,0.7)]"
                         >
                             {gameState === 'gameover' ? 'CORRER DE NUEVO 🔄' : 'ACELERAR AL MÁXIMO 🚀'}
                         </button>
@@ -756,4 +1187,8 @@ export function TurboRaceCanvas({ accentColor = '#00f0ff' }: TurboRaceProps) {
             )}
         </div>
     );
+}
+
+function THREE_LERP(current: number, target: number, speed: number): number {
+    return current + (target - current) * Math.min(1, speed);
 }

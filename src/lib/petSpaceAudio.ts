@@ -29,11 +29,12 @@ const MASTER_VOLUME = 0.32;
 
 function ensureContext(): AudioContext | null {
   if (typeof window === 'undefined') return null;
-  if (!ctx) {
-    const AC =
-      window.AudioContext ||
-      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-    if (!AC) return null;
+  const AC =
+    window.AudioContext ||
+    (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+  if (!AC) return null;
+
+  if (!ctx || !(ctx instanceof AC)) {
     ctx = new AC();
     master = ctx.createGain();
     master.gain.value = MASTER_VOLUME;

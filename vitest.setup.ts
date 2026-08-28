@@ -1,6 +1,4 @@
-import 'global-jsdom/register'
-import { expect } from 'vitest'
-// @ts-ignore
-import * as matchers from '@testing-library/jest-dom/matchers'
+import 'global-jsdom/register';
 
-expect.extend(matchers)
+process.env.NEXT_PUBLIC_SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://mock-supabase.supabase.co';
+process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'mock-anon-key';
