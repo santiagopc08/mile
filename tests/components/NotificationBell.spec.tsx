@@ -84,7 +84,7 @@ function findHandlersWithId(element: any, idToFind: string, handlerName: string)
 test.describe('NotificationBell', () => {
     test('handleRead should catch error and log it when NotificationService.markNotificationRead throws', async () => {
         let loggedError: Error | null = null;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 
         const originalConsoleError = console.error;
         console.error = (msg: string, err: unknown) => {
