@@ -20,7 +20,7 @@ type VehicleType = 'sedan' | 'truck' | 'supercar';
 type PickupType = 'coin' | 'nitro' | 'fuel' | 'shield';
 
 interface TrafficCar {
-    id: number;
+    id: string;
     x: number;
     y: number;
     w: number;
@@ -34,7 +34,7 @@ interface TrafficCar {
 }
 
 interface Pickup {
-    id: number;
+    id: string;
     x: number;
     y: number;
     type: PickupType;
@@ -206,7 +206,7 @@ export function TurboRaceCanvas({ accentColor = '#00f0ff' }: TurboRaceProps) {
         }
 
         s.traffic.push({
-            id: Math.random(),
+            id: crypto.randomUUID(),
             x: laneCenterX,
             y: -120,
             w,
@@ -232,7 +232,7 @@ export function TurboRaceCanvas({ accentColor = '#00f0ff' }: TurboRaceProps) {
         else if (roll > 0.35) type = 'shield';
 
         s.pickups.push({
-            id: Math.random(),
+            id: crypto.randomUUID(),
             x: laneCenterX,
             y: -60,
             type,

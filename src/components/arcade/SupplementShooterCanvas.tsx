@@ -22,7 +22,7 @@ const DANGER_ROW = 15;
 const DANGER_Y = BOARD_Y + DANGER_ROW * CELL_SIZE;
 
 interface BlockProjectile {
-    id: number;
+    id: string;
     x: number;
     y: number;
     col: number;
@@ -552,7 +552,7 @@ export function SupplementShooterCanvas({ accentColor = '#00f0ff' }: SupplementS
         };
 
         s.projectiles.push({
-            id: Math.random(),
+            id: crypto.randomUUID(),
             x: spawnPos.x,
             y: spawnPos.y,
             col: targetCol,
