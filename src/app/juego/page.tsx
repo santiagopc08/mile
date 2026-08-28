@@ -6,8 +6,10 @@ import { useProfile } from "@/context/ProfileContext";
 import dynamic from "next/dynamic";
 import { BrutalistSkeleton } from "@/components/ui/BrutalistSkeleton";
 import { AmbientField } from "@/components/AmbientField";
-import { Flame, Layers, Target, Zap, Rocket, Gamepad2, Crosshair, Sparkles, Grid3X3, CircleDot, Shield, Gauge, Waves, Boxes, Camera } from "lucide-react";
 import { useArcadePhotos } from "@/hooks/useArcadePhotos";
+import { useArcadeProgression } from "@/hooks/useArcadeProgression";
+import { ArcadeGameSelector, type GameTab } from "@/components/arcade/ArcadeGameSelector";
+import { ArcadeHubModal } from "@/components/arcade/ArcadeHubModal";
 
 const Mahjong = dynamic(
   () => import("@/components/Mahjong").then((m) => m.Mahjong),
@@ -149,207 +151,34 @@ const NeonStrikerCanvas = dynamic(
   }
 );
 
-type GameTab = 'mahjong' | 'hillclimb' | 'smashfest' | 'brickstorm' | 'voidrunner' | 'cyberviper' | 'tetrismatrix' | 'ballshooter' | 'tankdefense' | 'turborace' | 'cyberfrogger' | 'supplementshooter' | 'pacman' | 'neonstriker';
-
 export default function JuegoPage() {
   const { profile } = useProfile();
   const { memories } = useArcadePhotos();
+  const { coins, pendingQuestsCount, coupons } = useArcadeProgression();
   const [activeTab, setActiveTab] = useState<GameTab>('mahjong');
+  const [isHubOpen, setIsHubOpen] = useState(false);
 
   const accentColor = profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)';
-  const accentClass = profile === 'ella' ? 'user-a' : 'user-b';
-
-  const gamesConfig: Record<GameTab, { title: string; subtitle: string; icon: any; color: string; badge?: string }> = {
-    mahjong: {
-      title: 'MAHJONG · MIEL-JONG',
-      subtitle: 'TABLERO 3D DE ENLACES, MEMORIA Y RACHAS DE FUEGO',
-      icon: Layers,
-      color: 'bg-amber-400',
-    },
-    hillclimb: {
-      title: 'HILL CLIMB · BUGGY MOUNTAIN',
-      subtitle: 'FÍSICAS 2D DE SUSPENSIÓN, GASOLINA Y SUBIDAS EXTREMAS',
-      icon: Flame,
-      color: 'bg-emerald-500',
-    },
-    smashfest: {
-      title: 'SMASH FEST · DEMOLICIÓN 3D',
-      subtitle: 'ARENA DE FÍSICA 3D, BALAS DE CHOQUE Y DESTRUCCIÓN DE ESTRUCTURAS',
-      icon: Target,
-      color: 'bg-[#ff4b89]',
-    },
-    brickstorm: {
-      title: 'BRICK STORM · C++ BREAKOUT',
-      subtitle: 'ARCADE CYBERPUNK: LÁSERES, MULTIBOLAS Y COMBOS',
-      icon: Zap,
-      color: 'bg-cyan-400',
-      badge: 'C++ NATIVO',
-    },
-    voidrunner: {
-      title: 'VOID RUNNER · VECTOR COMBAT',
-      subtitle: 'COMBATE ESPACIAL CON INERCIA REAL Y ASTEROIDES MULTI-TIER',
-      icon: Rocket,
-      color: 'bg-purple-500',
-      badge: 'C++ NATIVO',
-    },
-    cyberviper: {
-      title: 'CYBER VIPER · 2088 NATIVE',
-      subtitle: 'SERPIENTE VECTORIAL CON POWER-UPS, OVERDRIVE Y MATRICES 60 FPS',
-      icon: Sparkles,
-      color: 'bg-emerald-400',
-      badge: 'C++ NATIVO',
-    },
-    tetrismatrix: {
-      title: 'TETRIS MATRIX · GUIDELINE ARCADE',
-      subtitle: 'REGLAS OFICIALES 7-BAG, SRS WALL KICKS, GHOST PIECE Y HOLD',
-      icon: Grid3X3,
-      color: 'bg-cyan-400',
-      badge: 'C++ NATIVO',
-    },
-    ballshooter: {
-      title: 'BALL SHOOTERS · BRICK SMASH',
-      subtitle: 'APUNTA Y DISPARA RÁFAGAS DE BOLAS PARA DESTRUIR BLOQUES NUMERADOS',
-      icon: CircleDot,
-      color: 'bg-rose-500',
-      badge: 'C++ NATIVO',
-    },
-    tankdefense: {
-      title: 'TANKS · BASE DEFENSE 1990',
-      subtitle: 'COMBATE BLINDADO TOP-DOWN: PROTEGE EL HQ Y DESTRUYE OLAS ENEMIGAS',
-      icon: Shield,
-      color: 'bg-lime-500',
-      badge: 'C++ NATIVO',
-    },
-    turborace: {
-      title: 'TURBO HIGHWAY · RETRO RACER',
-      subtitle: 'ESQUIVA EL TRÁFICO A TODA VELOCIDAD CON ACELERACIÓN LINEAL',
-      icon: Gauge,
-      color: 'bg-amber-400',
-      badge: 'C++ NATIVO',
-    },
-    cyberfrogger: {
-      title: 'CYBER FROGGER · RIVER RUN',
-      subtitle: 'CALCULA TUS SALTOS SOBRE LA AUTOPISTA Y EL RÍO HASTA LAS BAHÍAS',
-      icon: Waves,
-      color: 'bg-emerald-400',
-      badge: 'C++ NATIVO',
-    },
-    supplementshooter: {
-      title: 'SUPPLEMENT SHOOTER · QUARTH MATRIX',
-      subtitle: 'RELLENA LOS HUECOS EN LAS FORMAS DESCENDENTES PARA COMPLETAR RECTÁNGULOS SÓLIDOS',
-      icon: Boxes,
-      color: 'bg-cyan-400',
-      badge: 'C++ NATIVO',
-    },
-    pacman: {
-      title: 'PAC-MAN · RETRO ARCADE',
-      subtitle: 'LABERINTO CLÁSICO CON IA DE FANTASMAS Y FILTRO CRT',
-      icon: Gamepad2,
-      color: 'bg-yellow-400',
-      badge: 'ARCADE',
-    },
-    neonstriker: {
-      title: 'NEON STRIKER · BULLET HELL',
-      subtitle: 'GALAXY SHMUP CON HYPER BOMBAS, DRONES Y JEFES MULTI-FASE',
-      icon: Crosshair,
-      color: 'bg-pink-500',
-      badge: 'NUEVO',
-    },
-  };
-
-  const activeConfig = gamesConfig[activeTab];
-
-  const getTabLabel = (key: GameTab) => {
-    switch (key) {
-      case 'mahjong': return 'MAHJONG';
-      case 'hillclimb': return 'HILL CLIMB';
-      case 'smashfest': return 'SMASH FEST';
-      case 'brickstorm': return 'BRICK STORM';
-      case 'voidrunner': return 'VOID RUNNER';
-      case 'cyberviper': return 'CYBER VIPER';
-      case 'tetrismatrix': return 'TETRIS';
-      case 'ballshooter': return 'BALL SHOOTER';
-      case 'tankdefense': return 'TANKS';
-      case 'turborace': return 'TURBO RACE';
-      case 'cyberfrogger': return 'FROGGER';
-      case 'supplementshooter': return 'SUPPLEMENT';
-      case 'pacman': return 'PAC-MAN';
-      case 'neonstriker': return 'NEON STRIKER';
-    }
-  };
 
   return (
     <PrivateRoute>
       <AmbientField preset="juego" profile={profile} />
       <main className="relative z-10 min-h-screen w-full overflow-hidden px-3 sm:px-6 pb-24 pt-4 text-[#e5e2e1] md:px-8 md:pt-6 font-mono">
-        <div className="mx-auto w-full max-w-7xl space-y-5">
-          {/* Header Bar */}
-          <div className="border border-white/12 bg-white/[0.04] backdrop-blur-2xl shadow-[0_12px_36px_rgba(0,0,0,0.5)] rounded-2xl overflow-hidden">
-            <div className="relative p-4 sm:p-6 md:p-8">
-              <div className={`absolute left-0 top-0 h-full w-[5px] bg-${accentClass}`} style={{ backgroundColor: accentColor }} />
-              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 w-full">
-                <div className="flex items-center gap-3">
-                  <span className="font-mono text-xl sm:text-2xl animate-bounce" style={{ color: accentColor }}>▲</span>
-                  <div>
-                    <h1
-                      className="text-xl sm:text-3xl md:text-4xl font-black uppercase tracking-[0.12em] font-mono text-white select-none"
-                      style={{
-                        textShadow: `3px 3px 0px #000, 0 0 10px ${accentColor}80, 0 0 30px ${accentColor}30`
-                      }}
-                    >
-                      {activeConfig.title}
-                    </h1>
-                    <div className="flex items-center gap-3 mt-1 flex-wrap">
-                      <p className="text-[9px] sm:text-xs text-white/60 uppercase tracking-widest">
-                        {activeConfig.subtitle}
-                      </p>
-                      {memories.length > 0 && (
-                        <span className="hidden sm:inline-flex items-center gap-1 bg-black/60 border border-white/15 px-2 py-0.5 rounded text-[9px] font-bold text-white/80">
-                          <Camera className="w-3 h-3 text-pink-400" />
-                          <span style={{ color: profile === 'ella' ? '#ff4b89' : '#c3f400' }}>
-                            {memories.length} RECUERDOS SINTONIZADOS
-                          </span>
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
+        <div className="mx-auto w-full max-w-7xl space-y-6">
+          {/* Arcade Cabinet Game Selector */}
+          <ArcadeGameSelector
+            activeTab={activeTab}
+            onSelectTab={setActiveTab}
+            profile={profile}
+            memoriesCount={memories.length}
+            onOpenHub={() => setIsHubOpen(true)}
+            coins={coins}
+            pendingQuests={pendingQuestsCount}
+            couponsCount={coupons.length}
+          />
 
-                {/* Game Selector Tabs (Horizontally Scrollable on Mobile) */}
-                <div className="flex items-center gap-2 bg-slate-950/90 p-1.5 rounded-xl border border-white/15 shadow-2xl overflow-x-auto max-w-full scrollbar-none">
-                  {(Object.keys(gamesConfig) as GameTab[]).map((tabKey) => {
-                    const cfg = gamesConfig[tabKey];
-                    const Icon = cfg.icon;
-                    const isActive = activeTab === tabKey;
-
-                    return (
-                      <button
-                        key={tabKey}
-                        type="button"
-                        onClick={() => setActiveTab(tabKey)}
-                        className={`flex items-center gap-1.5 sm:gap-2 px-3 py-2 rounded-lg text-[11px] sm:text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap ${
-                          isActive
-                            ? `${cfg.color} text-slate-950 shadow-lg scale-105 font-black`
-                            : 'text-white/70 hover:text-white hover:bg-white/10'
-                        }`}
-                      >
-                        <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                        <span>{getTabLabel(tabKey)}</span>
-                        {cfg.badge && (
-                          <span className={`text-[8px] px-1 py-0.2 rounded font-mono ${isActive ? 'bg-black/20 text-black font-bold' : 'bg-white/10 text-white/60'}`}>
-                            {cfg.badge}
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Active Game Section */}
-          <section className="w-full">
+          {/* Active Game Section / Arcade Display Screen */}
+          <section id={`game-canvas-${activeTab}`} className="w-full relative">
             {activeTab === 'mahjong' ? (
               <div className="p-0 bg-transparent">
                 <Mahjong />
@@ -382,6 +211,13 @@ export default function JuegoPage() {
               <NeonStrikerCanvas accentColor={accentColor} />
             )}
           </section>
+
+          {/* Arcade Hub & Duels Modal */}
+          <ArcadeHubModal
+            isOpen={isHubOpen}
+            onClose={() => setIsHubOpen(false)}
+            onSelectGame={setActiveTab}
+          />
         </div>
       </main>
     </PrivateRoute>
