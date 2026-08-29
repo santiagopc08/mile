@@ -256,7 +256,8 @@ export function drawNikaCroquetaShop(
 }
 
 /**
- * Draws Miel: A golden puppy standing on two legs holding a high-tech Tennis Ball Blaster Gun.
+ * Draws Miel: Slender caramel golden dog standing upright wearing her iconic purple harness
+ * and holding the Tennis Ball Blaster with her natural golden paws.
  */
 export function drawMielShooter(
     ctx: CanvasRenderingContext2D,
@@ -266,140 +267,244 @@ export function drawMielShooter(
     ctx.save();
     const bob = Math.sin(dog.animFrame * 2) * 1.5;
     const isShooting = dog.actionTimer < 0.25; // Recoil animation right after shooting
-    const recoilX = isShooting ? -4 : 0;
+    const recoilX = isShooting ? -3.5 : 0;
     const muzzleFlash = isShooting;
 
     // Drop Shadow
-    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.fillStyle = 'rgba(0,0,0,0.35)';
     ctx.beginPath();
-    ctx.ellipse(0, 22, 24, 6.5, 0, 0, Math.PI * 2);
+    ctx.ellipse(0, 24, 22, 6.5, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // 1. Two Legs & Little Red Sneakers / Paws
-    // Left Leg
+    // Tail (wagging happily behind)
+    ctx.save();
+    ctx.translate(-8, 8 + bob);
+    const tailWag = Math.sin(time * 0.015) * 0.35;
+    ctx.rotate(-0.8 + tailWag);
+    ctx.strokeStyle = '#d97706';
+    ctx.lineWidth = 4;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.quadraticCurveTo(-12, -8, -18, -18);
+    ctx.stroke();
+    ctx.restore();
+
+    // 1. Natural Golden Hind Legs & Paws (Standing upright)
+    // Left Hind Leg & Paw
     ctx.fillStyle = '#d97706';
     ctx.beginPath();
-    ctx.roundRect(-8, 10, 5.5, 12, 3);
+    ctx.roundRect(-8, 8, 6, 14, [3, 3, 4, 4]);
     ctx.fill();
-    // Left Sneaker
-    ctx.fillStyle = '#ef4444';
+    // Left Natural Paw (Golden with toe lines)
+    ctx.fillStyle = '#f59e0b';
     ctx.beginPath();
-    ctx.roundRect(-10, 18, 8, 5, [2, 3, 2, 2]);
+    ctx.ellipse(-5.5, 22, 4.5, 3, 0, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(-10, 21, 8, 2);
+    ctx.strokeStyle = '#b45309';
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.moveTo(-6.5, 20);
+    ctx.lineTo(-6.5, 24);
+    ctx.moveTo(-4.5, 20);
+    ctx.lineTo(-4.5, 24);
+    ctx.stroke();
 
-    // Right Leg
+    // Right Hind Leg & Paw
     ctx.fillStyle = '#d97706';
     ctx.beginPath();
-    ctx.roundRect(3, 10, 5.5, 12, 3);
+    ctx.roundRect(3, 8, 6, 14, [3, 3, 4, 4]);
     ctx.fill();
-    // Right Sneaker
-    ctx.fillStyle = '#ef4444';
+    // Right Natural Paw
+    ctx.fillStyle = '#f59e0b';
     ctx.beginPath();
-    ctx.roundRect(1, 18, 8, 5, [2, 3, 2, 2]);
+    ctx.ellipse(5.5, 22, 4.5, 3, 0, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(1, 21, 8, 2);
+    ctx.beginPath();
+    ctx.moveTo(4.5, 20);
+    ctx.lineTo(4.5, 24);
+    ctx.moveTo(6.5, 20);
+    ctx.lineTo(6.5, 24);
+    ctx.stroke();
 
-    // 2. Golden Body standing upright
+    // 2. Slender Golden Body & Chest with Purple Harness
     ctx.save();
     ctx.translate(recoilX, bob);
 
-    // Fluffy Golden Torso
-    const bodyGrad = ctx.createLinearGradient(-9, -2, 9, 14);
-    bodyGrad.addColorStop(0, '#fbbf24');
+    // Torso (Caramel / Honey Golden gradient)
+    const bodyGrad = ctx.createLinearGradient(-10, -4, 10, 16);
+    bodyGrad.addColorStop(0, '#f59e0b');
     bodyGrad.addColorStop(1, '#d97706');
     ctx.fillStyle = bodyGrad;
     ctx.beginPath();
-    ctx.roundRect(-9, -2, 18, 16, [6, 6, 8, 8]);
+    ctx.roundRect(-9, -4, 18, 18, [7, 7, 8, 8]);
     ctx.fill();
 
-    // Sporty Cyan Vest / Harness
-    ctx.fillStyle = '#06b6d4';
-    ctx.beginPath();
-    ctx.roundRect(-8, 0, 16, 10, 4);
-    ctx.fill();
-    ctx.fillStyle = '#fef08a';
-    ctx.beginPath();
-    ctx.arc(0, 5, 2.5, 0, Math.PI * 2);
-    ctx.fill();
-
-    // 3. Golden Head & Facial Features
-    // Left Floppy Golden Ear
-    ctx.save();
-    ctx.translate(-9, -12);
-    ctx.rotate(-0.2 + (isShooting ? -0.2 : Math.sin(time * 0.008) * 0.08));
-    ctx.fillStyle = '#b45309';
-    ctx.beginPath();
-    ctx.ellipse(0, 6, 4.5, 8.5, -0.15, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-
-    // Right Floppy Golden Ear
-    ctx.save();
-    ctx.translate(9, -12);
-    ctx.rotate(0.2 + (isShooting ? 0.2 : -Math.sin(time * 0.008) * 0.08));
-    ctx.fillStyle = '#b45309';
-    ctx.beginPath();
-    ctx.ellipse(0, 6, 4.5, 8.5, 0.15, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-
-    // Round Honey Head
-    ctx.fillStyle = '#fbbf24';
-    ctx.beginPath();
-    ctx.ellipse(0, -10, 11, 10.5, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Sporty Tennis Visor Cap on forehead (Translucent Cyan Visor)
-    ctx.fillStyle = 'rgba(6, 182, 212, 0.85)';
-    ctx.beginPath();
-    ctx.ellipse(0, -17, 12, 3.5, 0, 0, Math.PI * 2);
-    ctx.fill();
-    // Visor Brim sticking out forward
-    ctx.fillStyle = 'rgba(34, 211, 238, 0.7)';
-    ctx.beginPath();
-    ctx.ellipse(5, -17, 9, 3, 0.2, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Snout & Shiny Button Nose
+    // Creamy White Throat / Chest Patch (like in photos)
     ctx.fillStyle = '#fef3c7';
     ctx.beginPath();
-    ctx.ellipse(2, -7, 5, 4, 0, 0, Math.PI * 2);
+    ctx.moveTo(-4, -4);
+    ctx.quadraticCurveTo(0, 10, 4, -4);
+    ctx.closePath();
     ctx.fill();
 
-    ctx.fillStyle = '#0f172a';
+    // ─────────────────────────────────────────────────────────────────────────
+    // MIEL'S ICONIC PURPLE HARNESS (Exactly like reference photos)
+    // ─────────────────────────────────────────────────────────────────────────
+    // Purple Chest / Shoulder Straps
+    ctx.fillStyle = '#7e22ce'; // Rich Purple
+    ctx.strokeStyle = '#581c87';
+    ctx.lineWidth = 1;
+    // Main Body Vest Strap
     ctx.beginPath();
-    ctx.arc(3, -8, 2, 0, Math.PI * 2);
+    ctx.roundRect(-8.5, 0, 17, 9, 3);
+    ctx.fill();
+    ctx.stroke();
+
+    // Diagonal Shoulder Straps
+    ctx.strokeStyle = '#7e22ce';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(-7, 0);
+    ctx.lineTo(-4, -4);
+    ctx.moveTo(7, 0);
+    ctx.lineTo(4, -4);
+    ctx.stroke();
+
+    // Reflective Silver / Grey Webbing Edges
+    ctx.strokeStyle = '#cbd5e1';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(-8.5, 4);
+    ctx.lineTo(8.5, 4);
+    ctx.stroke();
+
+    // Silver Metal D-Ring on Harness Front
+    ctx.strokeStyle = '#f8fafc';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(0, 5, 2.2, 0, Math.PI);
+    ctx.stroke();
+
+    // 3. Miel's Head & Expressive Facial Features
+    // Slender Golden Neck
+    ctx.fillStyle = '#f59e0b';
+    ctx.beginPath();
+    ctx.ellipse(0, -6, 7, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Left Folded Rose Ear (Caramel brown with soft fold)
+    ctx.save();
+    ctx.translate(-9, -14);
+    ctx.rotate(-0.35 + (isShooting ? -0.25 : Math.sin(time * 0.008) * 0.1));
+    ctx.fillStyle = '#b45309';
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.quadraticCurveTo(-7, 4, -5, 12);
+    ctx.quadraticCurveTo(0, 10, 3, 2);
+    ctx.closePath();
+    ctx.fill();
+    // Inner fold highlight
+    ctx.fillStyle = '#fde68a';
+    ctx.beginPath();
+    ctx.ellipse(-2, 5, 2, 4, -0.3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // Right Folded Rose Ear
+    ctx.save();
+    ctx.translate(9, -14);
+    ctx.rotate(0.35 + (isShooting ? 0.25 : -Math.sin(time * 0.008) * 0.1));
+    ctx.fillStyle = '#b45309';
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.quadraticCurveTo(7, 4, 5, 12);
+    ctx.quadraticCurveTo(0, 10, -3, 2);
+    ctx.closePath();
+    ctx.fill();
+    // Inner fold highlight
+    ctx.fillStyle = '#fde68a';
+    ctx.beginPath();
+    ctx.ellipse(2, 5, 2, 4, 0.3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // Golden Head (Slender, graceful oval matching Miel's profile)
+    ctx.fillStyle = '#f59e0b';
+    ctx.beginPath();
+    ctx.ellipse(0, -11, 10.5, 9.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Elongated Noble Snout
+    ctx.fillStyle = '#fbbf24';
+    ctx.beginPath();
+    ctx.moveTo(-4, -10);
+    ctx.lineTo(-3, -4);
+    ctx.quadraticCurveTo(4, -3, 6, -6);
+    ctx.lineTo(4, -10);
+    ctx.closePath();
+    ctx.fill();
+
+    // Liver / Pinkish-Brown Nose (Miel's unique feature from photos)
+    ctx.fillStyle = '#9f6b53'; // Warm liver-pinkish brown
+    ctx.beginPath();
+    ctx.ellipse(5, -6.5, 2.5, 2, 0.1, 0, Math.PI * 2);
     ctx.fill();
     ctx.fillStyle = '#ffffff';
     ctx.beginPath();
-    ctx.arc(2.3, -8.6, 0.7, 0, Math.PI * 2);
+    ctx.arc(4.4, -7.2, 0.6, 0, Math.PI * 2);
     ctx.fill();
 
-    // Determined, focused shooter eyes
-    [-3, 5].forEach((ex, idx) => {
-        ctx.fillStyle = '#0f172a';
-        ctx.beginPath();
-        ctx.arc(ex, -12, 2.6, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = '#ffffff';
-        ctx.beginPath();
-        ctx.arc(ex - 0.7, -12.7, 0.9, 0, Math.PI * 2);
-        ctx.fill();
-    });
-
-    // Confident smile
-    ctx.strokeStyle = '#78350f';
-    ctx.lineWidth = 1.2;
+    // Beautiful Amber / Hazel Eyes with dark outline
+    // Left Eye
+    ctx.fillStyle = '#451a03';
     ctx.beginPath();
-    ctx.arc(2, -5.5, 2, 0.2, Math.PI - 0.2);
-    ctx.stroke();
+    ctx.arc(-4, -13, 2.8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#92400e'; // Amber iris
+    ctx.beginPath();
+    ctx.arc(-3.8, -13, 2.0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#ffffff'; // Specular gleam
+    ctx.beginPath();
+    ctx.arc(-4.4, -13.7, 0.8, 0, Math.PI * 2);
+    ctx.fill();
 
-    // 4. HIGH-TECH TENNIS BALL BLASTER GUN (Held in both front paws)
+    // Right Eye
+    ctx.fillStyle = '#451a03';
+    ctx.beginPath();
+    ctx.arc(4, -13, 2.8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#92400e'; // Amber iris
+    ctx.beginPath();
+    ctx.arc(4.2, -13, 2.0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#ffffff'; // Specular gleam
+    ctx.beginPath();
+    ctx.arc(3.6, -13.7, 0.8, 0, Math.PI * 2);
+    ctx.arc(4.8, -12.4, 0.4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Sweet Joyful Open Smile showing tiny white teeth & tongue
+    ctx.fillStyle = '#451a03';
+    ctx.beginPath();
+    ctx.ellipse(3, -3.5, 3.5, 2.2, 0.1, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Tiny white front teeth
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(1.5, -4.8, 1.2, 1.2);
+    ctx.fillRect(3.2, -4.8, 1.2, 1.2);
+
+    // Cute pink tongue
+    ctx.fillStyle = '#fb7185';
+    ctx.beginPath();
+    ctx.ellipse(3.2, -2.8, 2.2, 1.8, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 4. HIGH-TECH TENNIS BALL BLASTER GUN (Held in Miel's front paws)
     ctx.save();
-    ctx.translate(4, 3); // Gun anchor position
+    ctx.translate(4, 2); // Gun anchor position
 
     // Gun Barrel Body (Cyan & Silver high tech cannon)
     const gunGrad = ctx.createLinearGradient(0, -6, 22, 6);
@@ -436,7 +541,7 @@ export function drawMielShooter(
     ctx.arc(11.5, -9, 2.5, 0, Math.PI * 2);
     ctx.fill();
 
-    // Two Golden Paws gripping the Blaster
+    // Miel's Natural Golden Front Paws gripping the Blaster
     ctx.fillStyle = '#f59e0b';
     ctx.strokeStyle = 'rgba(0,0,0,0.2)';
     ctx.lineWidth = 0.8;

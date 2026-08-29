@@ -23,7 +23,7 @@ export const DOG_CATALOG: Record<DogId, DogCard> = {
         hp: 350,
         icon: '🎾',
         avatarImg: '/img/pets/Miel.png',
-        description: 'Miel en dos patas con su pistola blaster de alta tecnología dispara pelotas de tenis veloces.',
+        description: 'Miel erguida en dos patas con su arnés morado dispara pelotas de tenis a alta velocidad con su blaster.',
         accentColor: '#fbbf24',
         role: 'shooter',
     },
