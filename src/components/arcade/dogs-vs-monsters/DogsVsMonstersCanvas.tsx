@@ -836,30 +836,146 @@ export function DogsVsMonstersCanvas() {
                 ctx.restore();
             }
 
-            // 3. Render Lawnmowers (Emergency Carts)
+            // 3. Render Lawnmowers (Puppy Ride-On Kids Carts)
+            const CART_THEMES = [
+                { body: '#ef4444', roof: '#facc15', bumper: '#b91c1c', puppy: '🐶', name: 'Kiaro Jr.' },
+                { body: '#ec4899', roof: '#fdf2f8', bumper: '#be185d', puppy: '🍯', name: 'Miel Jr.' },
+                { body: '#0284c7', roof: '#38bdf8', bumper: '#0369a1', puppy: '❄️', name: 'Nika Jr.' },
+                { body: '#8b5cf6', roof: '#facc15', bumper: '#6d28d9', puppy: '🛡️', name: 'Sam Jr.' },
+                { body: '#84cc16', roof: '#fb923c', bumper: '#4d7c0f', puppy: '⭐', name: 'Star Jr.' },
+            ];
+
             s.lawnmowers.forEach(m => {
                 if (m.active) {
                     ctx.save();
-                    ctx.translate(m.x, GRID_START_Y + m.row * CELL_H + CELL_H / 2);
+                    const theme = CART_THEMES[m.row % CART_THEMES.length];
+                    const centerY = GRID_START_Y + m.row * CELL_H + CELL_H / 2;
+                    const idleBounce = m.triggered ? 0 : Math.sin(time * 0.005 + m.row) * 1.8;
+                    const tilt = m.triggered ? 0.08 : 0;
 
-                    ctx.fillStyle = '#ef4444';
-                    ctx.shadowColor = '#ef4444';
-                    ctx.shadowBlur = 10;
+                    ctx.translate(m.x, centerY + idleBounce);
+                    ctx.rotate(tilt);
+
+                    // 1. Headlight beam when rushing down the lane
+                    if (m.triggered) {
+                        const lightGrad = ctx.createRadialGradient(25, 0, 5, 95, 0, 75);
+                        lightGrad.addColorStop(0, 'rgba(253, 224, 71, 0.65)');
+                        lightGrad.addColorStop(1, 'rgba(253, 224, 71, 0)');
+                        ctx.fillStyle = lightGrad;
+                        ctx.beginPath();
+                        ctx.moveTo(25, -12);
+                        ctx.lineTo(140, -38);
+                        ctx.lineTo(140, 38);
+                        ctx.lineTo(25, 12);
+                        ctx.closePath();
+                        ctx.fill();
+                    }
+
+                    // 2. Drop Shadow
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
                     ctx.beginPath();
-                    ctx.roundRect(-18, -14, 36, 28, 6);
+                    ctx.ellipse(0, 18, 28, 8, 0, 0, Math.PI * 2);
                     ctx.fill();
 
-                    ctx.fillStyle = '#fde047';
-                    ctx.font = '16px sans-serif';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText('🦴', 0, 0);
-
+                    // 3. Car Back Wheels
+                    const wheelRot = m.triggered ? (time * 0.035) : 0;
+                    ctx.save();
+                    ctx.translate(-15, 14);
+                    ctx.rotate(wheelRot);
                     ctx.fillStyle = '#0f172a';
                     ctx.beginPath();
-                    ctx.arc(-12, 14, 5, 0, Math.PI * 2);
-                    ctx.arc(12, 14, 5, 0, Math.PI * 2);
+                    ctx.arc(0, 0, 9, 0, Math.PI * 2);
                     ctx.fill();
+                    ctx.fillStyle = '#facc15';
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 4.5, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+
+                    // 4. Ride-On Car Body (Rounded Plastic Pod)
+                    const bodyGrad = ctx.createLinearGradient(-24, -12, 24, 18);
+                    bodyGrad.addColorStop(0, theme.body);
+                    bodyGrad.addColorStop(1, theme.bumper);
+                    ctx.fillStyle = bodyGrad;
+                    ctx.shadowColor = theme.body;
+                    ctx.shadowBlur = m.triggered ? 16 : 6;
+                    ctx.beginPath();
+                    ctx.roundRect(-24, -10, 48, 25, [8, 14, 8, 8]);
+                    ctx.fill();
+
+                    // Front Grille & Bright Headlight
+                    ctx.fillStyle = '#fef08a';
+                    ctx.shadowColor = '#fef08a';
+                    ctx.shadowBlur = 10;
+                    ctx.beginPath();
+                    ctx.arc(22, -2, 5.5, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // 5. Canopy Roof & Safety Pillars
+                    ctx.fillStyle = theme.roof;
+                    ctx.shadowColor = 'transparent';
+                    ctx.beginPath();
+                    ctx.roundRect(-18, -28, 36, 12, [7, 7, 3, 3]);
+                    ctx.fill();
+
+                    ctx.strokeStyle = theme.roof;
+                    ctx.lineWidth = 3.5;
+                    ctx.beginPath();
+                    ctx.moveTo(-13, -16);
+                    ctx.lineTo(-13, -10);
+                    ctx.moveTo(13, -16);
+                    ctx.lineTo(13, -10);
+                    ctx.stroke();
+
+                    // 6. Cute Puppy Driver Inside Cabin
+                    ctx.save();
+                    ctx.translate(0, -15);
+                    ctx.font = '20px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(theme.puppy, 0, 0);
+
+                    // Steering Wheel with Horn
+                    ctx.fillStyle = '#0f172a';
+                    ctx.beginPath();
+                    ctx.roundRect(5, 5, 8, 4, 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#facc15';
+                    ctx.beginPath();
+                    ctx.arc(9, 7, 1.5, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+
+                    // 7. Front Wheel
+                    ctx.save();
+                    ctx.translate(15, 14);
+                    ctx.rotate(wheelRot);
+                    ctx.fillStyle = '#0f172a';
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 9, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#facc15';
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 4.5, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+
+                    // 8. Bouncy Antenna with Racing Ball
+                    ctx.strokeStyle = '#cbd5e1';
+                    ctx.lineWidth = 1.5;
+                    const antBounce = Math.sin(time * 0.008 + m.row) * 3.5;
+                    ctx.beginPath();
+                    ctx.moveTo(-20, -8);
+                    ctx.lineTo(-26, -30 + antBounce);
+                    ctx.stroke();
+
+                    ctx.fillStyle = '#f59e0b';
+                    ctx.shadowColor = '#f59e0b';
+                    ctx.shadowBlur = 6;
+                    ctx.beginPath();
+                    ctx.arc(-26, -30 + antBounce, 3.5, 0, Math.PI * 2);
+                    ctx.fill();
+
                     ctx.restore();
                 }
             });
