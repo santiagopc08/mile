@@ -8,6 +8,7 @@ import { DvmAudio, setDvmMuted, isDvmMuted } from './dvmAudio';
 import { DogId, Enemy, PlacedDog, Projectile, Croqueta, Lawnmower, Particle, FloatingText } from './types';
 import { Volume2, VolumeX, Sparkles, Trophy, Heart, ArrowRight, Play, RotateCcw, Shield, Zap, Flame, Snowflake, Info } from 'lucide-react';
 import { PUPPY_CAR_THEMES, drawPuppyDriver2D } from './puppyRenderer';
+import { drawDogAlly2D } from './dogRenderer2D';
 import { useArcadeProgression } from '@/hooks/useArcadeProgression';
 import { useProfile } from '@/context/ProfileContext';
 
@@ -818,22 +819,38 @@ export function DogsVsMonstersCanvas() {
 
                 ctx.save();
                 if (isOccupied || !canAfford) {
-                    ctx.fillStyle = 'rgba(239, 68, 68, 0.3)';
+                    ctx.fillStyle = 'rgba(239, 68, 68, 0.25)';
                     ctx.strokeStyle = '#ef4444';
                 } else {
-                    ctx.fillStyle = 'rgba(34, 197, 94, 0.35)';
+                    ctx.fillStyle = 'rgba(34, 197, 94, 0.3)';
                     ctx.strokeStyle = '#22c55e';
                 }
                 ctx.lineWidth = 2.5;
                 ctx.fillRect(hx, hy, CELL_W - 2, CELL_H - 2);
                 ctx.strokeRect(hx, hy, CELL_W - 2, CELL_H - 2);
 
-                // Ghost icon preview
-                ctx.globalAlpha = 0.65;
-                ctx.font = '28px sans-serif';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(card.icon, hx + CELL_W / 2, hy + CELL_H / 2);
+                // Ghost 2D vector preview
+                ctx.save();
+                ctx.globalAlpha = 0.6;
+                ctx.translate(hx + CELL_W / 2, hy + CELL_H / 2);
+                drawDogAlly2D(
+                    ctx,
+                    {
+                        id: 'preview',
+                        type: s.selectedCard,
+                        row: s.hoverGrid.row,
+                        col: s.hoverGrid.col,
+                        hp: card.hp,
+                        maxHp: card.hp,
+                        actionTimer: 0,
+                        actionInterval: 1.5,
+                        animFrame: 0,
+                        state: 'idle',
+                    },
+                    time
+                );
+                ctx.restore();
+
                 ctx.restore();
             }
 
@@ -957,26 +974,29 @@ export function DogsVsMonstersCanvas() {
                 }
             });
 
-            // 4. Render Placed Dogs
+            // 4. Render Placed Dogs (2D Vector Illustrated Allies)
             s.dogs.forEach(dog => {
                 const cx = GRID_START_X + dog.col * CELL_W + CELL_W / 2;
                 const cy = GRID_START_Y + dog.row * CELL_H + CELL_H / 2;
-                const bob = Math.sin(dog.animFrame) * 3;
 
                 ctx.save();
-                ctx.translate(cx, cy + bob);
+                ctx.translate(cx, cy);
 
+                // Ultimate Glowing Aura
                 if (dog.state === 'ultimate') {
                     ctx.shadowColor = '#22c55e';
-                    ctx.shadowBlur = 24;
+                    ctx.shadowBlur = 28;
                     ctx.strokeStyle = '#22c55e';
-                    ctx.lineWidth = 3;
+                    ctx.lineWidth = 3.5;
                     ctx.beginPath();
-                    ctx.arc(0, 0, 34, 0, Math.PI * 2);
+                    ctx.arc(0, 0, 36, 0, Math.PI * 2);
                     ctx.stroke();
                 }
 
+                // Armored Diamond Aura
                 if (dog.isArmored) {
+                    ctx.shadowColor = '#fde047';
+                    ctx.shadowBlur = 20;
                     ctx.strokeStyle = '#fde047';
                     ctx.lineWidth = 3;
                     ctx.beginPath();
@@ -984,44 +1004,31 @@ export function DogsVsMonstersCanvas() {
                     ctx.stroke();
                 }
 
-                const catalogItem = DOG_CATALOG[dog.type];
-                ctx.fillStyle = catalogItem.accentColor + '35';
-                ctx.strokeStyle = catalogItem.accentColor;
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.arc(0, 0, 26, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.stroke();
+                // Draw Custom 2D Vector Dog (Nika Shop, Miel Shooter, Sam Tank, Kiaro, etc.)
+                drawDogAlly2D(ctx, dog, time);
 
-                ctx.font = '28px sans-serif';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(catalogItem.icon, 0, 2);
-
-                if (dog.type === 'boneMine' && dog.state === 'armed') {
-                    ctx.fillStyle = '#ef4444';
-                    ctx.beginPath();
-                    ctx.arc(0, -28, 5, 0, Math.PI * 2);
-                    ctx.fill();
-                }
-
+                // Soap Bubble Trap Overlay
                 if (dog.bubbleTrapped) {
                     ctx.fillStyle = 'rgba(6, 182, 212, 0.45)';
+                    ctx.shadowColor = '#67e8f9';
+                    ctx.shadowBlur = 14;
                     ctx.strokeStyle = '#67e8f9';
                     ctx.lineWidth = 3;
                     ctx.beginPath();
                     ctx.arc(0, 0, 32, 0, Math.PI * 2);
                     ctx.fill();
                     ctx.stroke();
+                    ctx.shadowBlur = 0;
                 }
 
+                // Health Bar (if damaged)
                 if (dog.hp < dog.maxHp) {
-                    const barW = 40;
+                    const barW = 42;
                     const hpRatio = Math.max(0, dog.hp / dog.maxHp);
-                    ctx.fillStyle = 'rgba(0,0,0,0.6)';
-                    ctx.fillRect(-barW / 2, 28, barW, 4);
+                    ctx.fillStyle = 'rgba(0,0,0,0.65)';
+                    ctx.fillRect(-barW / 2, 26, barW, 4.5);
                     ctx.fillStyle = '#22c55e';
-                    ctx.fillRect(-barW / 2, 28, barW * hpRatio, 4);
+                    ctx.fillRect(-barW / 2, 26, barW * hpRatio, 4.5);
                 }
 
                 ctx.restore();
