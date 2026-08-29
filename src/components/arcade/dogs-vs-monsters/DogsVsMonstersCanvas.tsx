@@ -6,11 +6,11 @@ import { ENEMY_CATALOG } from './enemyCatalog';
 import { LEVEL_CONFIGS } from './levelConfig';
 import { DvmAudio, setDvmMuted, isDvmMuted } from './dvmAudio';
 import { DogId, Enemy, PlacedDog, Projectile, Croqueta, Lawnmower, Particle, FloatingText } from './types';
-import { Volume2, VolumeX, Sparkles, Trophy, Heart, ArrowRight, Play, RotateCcw, Shield, Zap, Flame, Snowflake } from 'lucide-react';
+import { Volume2, VolumeX, Sparkles, Trophy, Heart, ArrowRight, Play, RotateCcw, Shield, Zap, Flame, Snowflake, Info } from 'lucide-react';
 import { useArcadeProgression } from '@/hooks/useArcadeProgression';
 import { useProfile } from '@/context/ProfileContext';
 
-// Game Dimensions
+// Game Coordinate Space
 const V_WIDTH = 1000;
 const V_HEIGHT = 640;
 
@@ -26,7 +26,7 @@ export function DogsVsMonstersCanvas() {
     const containerRef = useRef<HTMLDivElement | null>(null);
 
     const { profile } = useProfile();
-    const { recordScore, scores } = useArcadeProgression();
+    const { recordScore } = useArcadeProgression();
 
     const [currentLevelIdx, setCurrentLevelIdx] = useState(0);
     const currentLevel = LEVEL_CONFIGS[currentLevelIdx] || LEVEL_CONFIGS[0];
@@ -77,8 +77,9 @@ export function DogsVsMonstersCanvas() {
         isShovelActive: false,
         isPlantFoodActive: false,
         hoverGrid: null as { row: number; col: number } | null,
+        pointerPos: null as { x: number; y: number } | null,
         levelTime: 0,
-        nextNaturalCroquetaTimer: 5.0,
+        nextNaturalCroquetaTimer: 4.5,
         waveIndex: 0,
         totalWaves: currentLevel.waves.length,
         isFinalWaveTriggered: false,
@@ -87,6 +88,45 @@ export function DogsVsMonstersCanvas() {
         score: 0,
         gameState: 'menu' as 'menu' | 'playing' | 'paused' | 'gameover' | 'levelcleared',
     });
+
+    // Helper: Map screen pointer coords accurately to canvas 1000x640 coordinate space (accounting for object-contain letterboxing)
+    const getCanvasCoordinates = useCallback((e: React.PointerEvent | React.MouseEvent | PointerEvent | MouseEvent): { x: number; y: number } | null => {
+        if (!containerRef.current) return null;
+        const rect = containerRef.current.getBoundingClientRect();
+        const containerW = rect.width;
+        const containerH = rect.height;
+        if (containerW <= 0 || containerH <= 0) return null;
+
+        const canvasAspect = V_WIDTH / V_HEIGHT; // 1000 / 640 = 1.5625
+        const containerAspect = containerW / containerH;
+
+        let renderW = containerW;
+        let renderH = containerH;
+        let offsetX = 0;
+        let offsetY = 0;
+
+        if (containerAspect > canvasAspect) {
+            // Container is wider -> Pillarboxing (black bars left/right)
+            renderH = containerH;
+            renderW = containerH * canvasAspect;
+            offsetX = (containerW - renderW) / 2;
+            offsetY = 0;
+        } else {
+            // Container is taller -> Letterboxing (black bars top/bottom)
+            renderW = containerW;
+            renderH = containerW / canvasAspect;
+            offsetX = 0;
+            offsetY = (containerH - renderH) / 2;
+        }
+
+        const mouseX = e.clientX - rect.left - offsetX;
+        const mouseY = e.clientY - rect.top - offsetY;
+
+        const canvasX = (mouseX / renderW) * V_WIDTH;
+        const canvasY = (mouseY / renderH) * V_HEIGHT;
+
+        return { x: canvasX, y: canvasY };
+    }, []);
 
     // Initialize lawnmowers on start
     const initLawnmowers = useCallback(() => {
@@ -115,8 +155,8 @@ export function DogsVsMonstersCanvas() {
             y,
             text,
             color,
-            life: 0.85,
-            maxLife: 0.85,
+            life: 0.9,
+            maxLife: 0.9,
         });
     };
 
@@ -147,6 +187,17 @@ export function DogsVsMonstersCanvas() {
         setMutedState(next);
     }, [mutedState]);
 
+    const selectCardAction = (cardId: DogId | null) => {
+        setSelectedCard(cardId);
+        stateRef.current.selectedCard = cardId;
+        if (cardId) {
+            setIsShovelActive(false);
+            stateRef.current.isShovelActive = false;
+            setIsPlantFoodActive(false);
+            stateRef.current.isPlantFoodActive = false;
+        }
+    };
+
     const startLevel = useCallback((levelIdx: number) => {
         DvmAudio.init();
         const lvl = LEVEL_CONFIGS[levelIdx] || LEVEL_CONFIGS[0];
@@ -166,6 +217,8 @@ export function DogsVsMonstersCanvas() {
         s.selectedCard = null;
         s.isShovelActive = false;
         s.isPlantFoodActive = false;
+        s.hoverGrid = null;
+        s.pointerPos = null;
         s.levelTime = 0;
         s.waveIndex = 0;
         s.totalWaves = lvl.waves.length;
@@ -224,7 +277,7 @@ export function DogsVsMonstersCanvas() {
             vx: (Math.random() - 0.5) * 30,
             vy: 85,
             value,
-            life: 14.0,
+            life: 16.0,
             collected: false,
             isGolden,
             pulse: 0,
@@ -372,7 +425,7 @@ export function DogsVsMonstersCanvas() {
                 // Natural Croqueta Generation from Sky
                 s.nextNaturalCroquetaTimer -= dt;
                 if (s.nextNaturalCroquetaTimer <= 0) {
-                    s.nextNaturalCroquetaTimer = 8.5 + Math.random() * 3.5;
+                    s.nextNaturalCroquetaTimer = 7.5 + Math.random() * 3.5;
                     const spawnX = GRID_START_X + 40 + Math.random() * (GRID_COLS * CELL_W - 80);
                     const targetY = GRID_START_Y + 50 + Math.random() * (GRID_ROWS * CELL_H - 100);
                     spawnCroqueta(spawnX, 0, targetY, 25, false);
@@ -455,10 +508,10 @@ export function DogsVsMonstersCanvas() {
                         }
                     }
 
-                    // Miel Croqueta Production
+                    // Miel Croqueta Production (Produces every 14s)
                     if (dog.type === 'miel' && !dog.bubbleTrapped) {
                         dog.actionTimer += dt;
-                        if (dog.actionTimer >= 18.0) {
+                        if (dog.actionTimer >= 14.0) {
                             dog.actionTimer = 0;
                             const cx = GRID_START_X + dog.col * CELL_W + CELL_W / 2;
                             const cy = GRID_START_Y + dog.row * CELL_H + CELL_H / 2;
@@ -469,7 +522,6 @@ export function DogsVsMonstersCanvas() {
 
                     // Shooters (Kiaro & Nika)
                     if ((dog.type === 'kiaro' || dog.type === 'nika') && !dog.bubbleTrapped && dog.state !== 'ultimate') {
-                        // Check if there is an enemy in front in the same row
                         const hasEnemyAhead = s.enemies.some(
                             e => e.row === dog.row && e.x > GRID_START_X + dog.col * CELL_W && e.x < V_WIDTH
                         );
@@ -528,7 +580,6 @@ export function DogsVsMonstersCanvas() {
                     for (let j = s.enemies.length - 1; j >= 0; j--) {
                         const e = s.enemies[j];
                         if (e.row === pr.row && e.x <= pr.x + 18 && e.x >= pr.x - 30) {
-                            // Vacuum Monster bullet absorption special
                             if (e.type === 'vacuum_monster' && e.hp > 0 && Math.random() < 0.25) {
                                 DvmAudio.punch();
                                 addFloatingText(e.x, GRID_START_Y + e.row * CELL_H, '🌪️ ABSORBIDO!', '#94a3b8');
@@ -536,7 +587,6 @@ export function DogsVsMonstersCanvas() {
                                 break;
                             }
 
-                            // Damage Armor or HP
                             if (e.armorHp && e.armorHp > 0) {
                                 e.armorHp -= pr.damage;
                                 if (e.armorHp <= 0) {
@@ -555,13 +605,11 @@ export function DogsVsMonstersCanvas() {
                                 e.isChilled = true;
                             }
 
-                            // Sonic Bark knockback
                             if (pr.isSonic) {
                                 e.x += 35;
                                 DvmAudio.sonicBark();
                             }
 
-                            // Enemy Defeated
                             if (e.hp <= 0) {
                                 DvmAudio.explosion();
                                 spawnParticles(e.x, GRID_START_Y + e.row * CELL_H + CELL_H / 2, e.color, 24, 200);
@@ -593,7 +641,6 @@ export function DogsVsMonstersCanvas() {
                     const e = s.enemies[i];
                     e.animFrame += dt * 5;
 
-                    // Ice Freeze Slow-down
                     if (e.isFrozen > 0) {
                         e.isFrozen -= dt;
                         e.speed = e.baseSpeed * 0.5;
@@ -602,27 +649,23 @@ export function DogsVsMonstersCanvas() {
                         e.speed = e.baseSpeed;
                     }
 
-                    // Check if touching a dog in the same row
                     const dogInCell = s.dogs.find(d => d.row === e.row && Math.abs(GRID_START_X + d.col * CELL_W + CELL_W / 2 - e.x) < 32);
 
                     if (dogInCell) {
-                        // Ninja Cat Jump Special
                         if (e.type === 'cat_ninja' && !e.hasJumped && dogInCell.type !== 'sam') {
                             e.hasJumped = true;
-                            e.x -= CELL_W * 1.2; // Leap over
+                            e.x -= CELL_W * 1.2;
                             DvmAudio.sonicBark();
                             addFloatingText(e.x, GRID_START_Y + e.row * CELL_H, '🥷 SALTO NINJA!', '#a5b4fc');
                             continue;
                         }
 
-                        // Potato Mine Trigger
                         if (dogInCell.type === 'boneMine' && dogInCell.state === 'armed') {
                             DvmAudio.explosion();
                             addShake(12, 0.4);
                             spawnParticles(e.x, GRID_START_Y + e.row * CELL_H + CELL_H / 2, '#fbbf24', 40, 260, true);
                             e.hp -= 1800;
 
-                            // Remove mine
                             const mineIdx = s.dogs.indexOf(dogInCell);
                             if (mineIdx !== -1) s.dogs.splice(mineIdx, 1);
 
@@ -632,7 +675,6 @@ export function DogsVsMonstersCanvas() {
                             continue;
                         }
 
-                        // Bath Groomer Bubbles
                         if (e.type === 'bath_groomer') {
                             e.specialTimer = (e.specialTimer || 0) + dt;
                             if (e.specialTimer >= 4.0) {
@@ -642,7 +684,6 @@ export function DogsVsMonstersCanvas() {
                             }
                         }
 
-                        // Attack Dog
                         e.state = 'attacking';
                         e.attackTimer += dt;
                         if (e.attackTimer >= e.attackInterval) {
@@ -651,7 +692,6 @@ export function DogsVsMonstersCanvas() {
                             DvmAudio.punch();
                             spawnParticles(e.x, GRID_START_Y + e.row * CELL_H + CELL_H / 2, '#f43f5e', 5, 80);
 
-                            // Dog Defeated
                             if (dogInCell.hp <= 0) {
                                 const idx = s.dogs.indexOf(dogInCell);
                                 if (idx !== -1) s.dogs.splice(idx, 1);
@@ -671,7 +711,6 @@ export function DogsVsMonstersCanvas() {
                             DvmAudio.lawnmower();
                             addShake(10, 0.4);
                         } else if (!mower || !mower.active) {
-                            // Defeat: Zombie reached the house!
                             handleGameOver();
                             return;
                         }
@@ -684,7 +723,6 @@ export function DogsVsMonstersCanvas() {
                         m.x += 620 * dt;
                         spawnParticles(m.x, GRID_START_Y + m.row * CELL_H + CELL_H / 2, '#f59e0b', 8, 140);
 
-                        // Eliminate all enemies in this row
                         s.enemies.forEach(e => {
                             if (e.row === m.row && Math.abs(e.x - m.x) < 45) {
                                 e.hp = 0;
@@ -748,7 +786,7 @@ export function DogsVsMonstersCanvas() {
 
             // 1. Backyard Grass Background
             const bgGrad = ctx.createLinearGradient(0, 0, 0, V_HEIGHT);
-            bgGrad.addColorStop(0, '#14532d'); // Dark green lawn
+            bgGrad.addColorStop(0, '#14532d');
             bgGrad.addColorStop(1, '#052e16');
             ctx.fillStyle = bgGrad;
             ctx.fillRect(0, 0, V_WIDTH, V_HEIGHT);
@@ -769,15 +807,33 @@ export function DogsVsMonstersCanvas() {
                 }
             }
 
-            // Highlight Hover Grid
+            // Highlight Hover Grid with Ghost Preview
             if (s.hoverGrid && s.selectedCard) {
                 const hx = GRID_START_X + s.hoverGrid.col * CELL_W;
                 const hy = GRID_START_Y + s.hoverGrid.row * CELL_H;
-                ctx.fillStyle = 'rgba(250, 204, 21, 0.35)';
+                const card = DOG_CATALOG[s.selectedCard];
+                const isOccupied = s.dogs.some(d => d.row === s.hoverGrid!.row && d.col === s.hoverGrid!.col);
+                const canAfford = s.croquetaBalance >= card.cost && s.cooldowns[s.selectedCard] <= 0;
+
+                ctx.save();
+                if (isOccupied || !canAfford) {
+                    ctx.fillStyle = 'rgba(239, 68, 68, 0.3)';
+                    ctx.strokeStyle = '#ef4444';
+                } else {
+                    ctx.fillStyle = 'rgba(34, 197, 94, 0.35)';
+                    ctx.strokeStyle = '#22c55e';
+                }
+                ctx.lineWidth = 2.5;
                 ctx.fillRect(hx, hy, CELL_W - 2, CELL_H - 2);
-                ctx.strokeStyle = '#facc15';
-                ctx.lineWidth = 2;
                 ctx.strokeRect(hx, hy, CELL_W - 2, CELL_H - 2);
+
+                // Ghost icon preview
+                ctx.globalAlpha = 0.65;
+                ctx.font = '28px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(card.icon, hx + CELL_W / 2, hy + CELL_H / 2);
+                ctx.restore();
             }
 
             // 3. Render Lawnmowers (Emergency Carts)
@@ -786,7 +842,6 @@ export function DogsVsMonstersCanvas() {
                     ctx.save();
                     ctx.translate(m.x, GRID_START_Y + m.row * CELL_H + CELL_H / 2);
 
-                    // Red Cart Body
                     ctx.fillStyle = '#ef4444';
                     ctx.shadowColor = '#ef4444';
                     ctx.shadowBlur = 10;
@@ -794,14 +849,12 @@ export function DogsVsMonstersCanvas() {
                     ctx.roundRect(-18, -14, 36, 28, 6);
                     ctx.fill();
 
-                    // Gold Bone Decal
                     ctx.fillStyle = '#fde047';
                     ctx.font = '16px sans-serif';
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
                     ctx.fillText('🦴', 0, 0);
 
-                    // Wheels
                     ctx.fillStyle = '#0f172a';
                     ctx.beginPath();
                     ctx.arc(-12, 14, 5, 0, Math.PI * 2);
@@ -820,7 +873,6 @@ export function DogsVsMonstersCanvas() {
                 ctx.save();
                 ctx.translate(cx, cy + bob);
 
-                // Ultimate Glowing Aura
                 if (dog.state === 'ultimate') {
                     ctx.shadowColor = '#22c55e';
                     ctx.shadowBlur = 24;
@@ -831,7 +883,6 @@ export function DogsVsMonstersCanvas() {
                     ctx.stroke();
                 }
 
-                // Armored Diamond Aura
                 if (dog.isArmored) {
                     ctx.strokeStyle = '#fde047';
                     ctx.lineWidth = 3;
@@ -840,7 +891,6 @@ export function DogsVsMonstersCanvas() {
                     ctx.stroke();
                 }
 
-                // Dog Body Background Pod
                 const catalogItem = DOG_CATALOG[dog.type];
                 ctx.fillStyle = catalogItem.accentColor + '35';
                 ctx.strokeStyle = catalogItem.accentColor;
@@ -850,13 +900,11 @@ export function DogsVsMonstersCanvas() {
                 ctx.fill();
                 ctx.stroke();
 
-                // Dog Icon / Emoji
                 ctx.font = '28px sans-serif';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillText(catalogItem.icon, 0, 2);
 
-                // Armed Potato Mine Spike
                 if (dog.type === 'boneMine' && dog.state === 'armed') {
                     ctx.fillStyle = '#ef4444';
                     ctx.beginPath();
@@ -864,7 +912,6 @@ export function DogsVsMonstersCanvas() {
                     ctx.fill();
                 }
 
-                // Soap Bubble Trap Overlay
                 if (dog.bubbleTrapped) {
                     ctx.fillStyle = 'rgba(6, 182, 212, 0.45)';
                     ctx.strokeStyle = '#67e8f9';
@@ -875,7 +922,6 @@ export function DogsVsMonstersCanvas() {
                     ctx.stroke();
                 }
 
-                // Health Bar (if damaged)
                 if (dog.hp < dog.maxHp) {
                     const barW = 40;
                     const hpRatio = Math.max(0, dog.hp / dog.maxHp);
@@ -892,7 +938,6 @@ export function DogsVsMonstersCanvas() {
             s.projectiles.forEach(pr => {
                 ctx.save();
 
-                // Render Motion Trail
                 pr.trail.forEach((t, i) => {
                     ctx.fillStyle = pr.isIce
                         ? `rgba(0, 219, 233, ${0.4 * (1 - i / pr.trail.length)})`
@@ -903,7 +948,6 @@ export function DogsVsMonstersCanvas() {
                 });
 
                 if (pr.isIce) {
-                    // Ice Frisbee
                     ctx.fillStyle = '#00dbe9';
                     ctx.shadowColor = '#00dbe9';
                     ctx.shadowBlur = 12;
@@ -911,7 +955,6 @@ export function DogsVsMonstersCanvas() {
                     ctx.arc(pr.x, pr.y, pr.isBig ? 14 : 7, 0, Math.PI * 2);
                     ctx.fill();
                 } else {
-                    // Tennis Ball (Felt Green/Yellow)
                     ctx.fillStyle = pr.isSonic ? '#ff7020' : '#a3e635';
                     ctx.shadowColor = pr.isSonic ? '#ff7020' : '#a3e635';
                     ctx.shadowBlur = 10;
@@ -919,7 +962,6 @@ export function DogsVsMonstersCanvas() {
                     ctx.arc(pr.x, pr.y, pr.isBig ? 16 : 8, 0, Math.PI * 2);
                     ctx.fill();
 
-                    // Seam curve on tennis ball
                     ctx.strokeStyle = '#ffffff';
                     ctx.lineWidth = 1.5;
                     ctx.beginPath();
@@ -937,13 +979,11 @@ export function DogsVsMonstersCanvas() {
                 ctx.save();
                 ctx.translate(e.x, cy + bob);
 
-                // Ice Chill Tint
                 if (e.isChilled) {
                     ctx.shadowColor = '#00dbe9';
                     ctx.shadowBlur = 14;
                 }
 
-                // Enemy Body Pod
                 ctx.fillStyle = e.isChilled ? '#0284c7' : '#1e1b4b';
                 ctx.strokeStyle = e.color;
                 ctx.lineWidth = 2.5;
@@ -952,14 +992,12 @@ export function DogsVsMonstersCanvas() {
                 ctx.fill();
                 ctx.stroke();
 
-                // Enemy Icon
                 const tmpl = ENEMY_CATALOG[e.type];
                 ctx.font = e.type === 'boss_mecha_cat' ? '44px sans-serif' : '26px sans-serif';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillText(tmpl.icon, 0, 2);
 
-                // Cardboard Box Armor Overlay
                 if (e.armorHp && e.armorHp > 0) {
                     ctx.fillStyle = '#b45309';
                     ctx.strokeStyle = '#f59e0b';
@@ -970,14 +1008,12 @@ export function DogsVsMonstersCanvas() {
                     ctx.stroke();
                 }
 
-                // Super Cookie Star Glow
                 if (e.hasSuperCookieDrop) {
                     ctx.fillStyle = '#22c55e';
                     ctx.font = '12px monospace';
                     ctx.fillText('🍪', 0, -32);
                 }
 
-                // Health Bar
                 const barW = 44;
                 const hpRatio = Math.max(0, e.hp / e.maxHp);
                 ctx.fillStyle = 'rgba(0,0,0,0.7)';
@@ -993,25 +1029,25 @@ export function DogsVsMonstersCanvas() {
                 ctx.save();
                 ctx.translate(c.x, c.y);
 
-                const scale = 1.0 + Math.sin(c.pulse) * 0.12;
+                const scale = 1.0 + Math.sin(c.pulse) * 0.14;
                 ctx.scale(scale, scale);
 
                 // Radiant Sun Halo
-                ctx.fillStyle = c.isGolden ? 'rgba(253, 224, 71, 0.35)' : 'rgba(251, 146, 60, 0.35)';
+                ctx.fillStyle = c.isGolden ? 'rgba(253, 224, 71, 0.45)' : 'rgba(251, 146, 60, 0.45)';
                 ctx.beginPath();
-                ctx.arc(0, 0, 22, 0, Math.PI * 2);
+                ctx.arc(0, 0, 26, 0, Math.PI * 2);
                 ctx.fill();
 
                 // Golden Croqueta Bowl
                 ctx.fillStyle = c.isGolden ? '#facc15' : '#fb923c';
                 ctx.shadowColor = c.isGolden ? '#facc15' : '#fb923c';
-                ctx.shadowBlur = 14;
+                ctx.shadowBlur = 16;
                 ctx.beginPath();
-                ctx.arc(0, 0, 16, 0, Math.PI * 2);
+                ctx.arc(0, 0, 18, 0, Math.PI * 2);
                 ctx.fill();
 
                 ctx.fillStyle = '#000000';
-                ctx.font = '15px sans-serif';
+                ctx.font = '18px sans-serif';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillText('🍖', 0, 0);
@@ -1033,10 +1069,10 @@ export function DogsVsMonstersCanvas() {
 
             s.floatingTexts.forEach(ft => {
                 ctx.save();
-                ctx.font = 'bold 13px monospace';
+                ctx.font = 'bold 14px monospace';
                 ctx.fillStyle = ft.color;
                 ctx.shadowColor = ft.color;
-                ctx.shadowBlur = 8;
+                ctx.shadowBlur = 10;
                 ctx.textAlign = 'center';
                 ctx.fillText(ft.text, ft.x, ft.y);
                 ctx.restore();
@@ -1050,31 +1086,62 @@ export function DogsVsMonstersCanvas() {
         return () => cancelAnimationFrame(animId);
     }, [currentLevel, handleLevelVictory, handleGameOver, spawnCroqueta]);
 
-    // Pointer Interaction (Planting, Croqueta Click, Shovel, Plant Food)
-    const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
-        if (!containerRef.current || stateRef.current.gameState !== 'playing') return;
-        const rect = containerRef.current.getBoundingClientRect();
-        const scaleX = V_WIDTH / rect.width;
-        const scaleY = V_HEIGHT / rect.height;
-        const clickX = (e.clientX - rect.left) * scaleX;
-        const clickY = (e.clientY - rect.top) * scaleY;
+    // Pointer Move (Calculates hover cell + Auto-Collect Croquetas on sweep)
+    const handlePointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
+        const coords = getCanvasCoordinates(e);
+        if (!coords || stateRef.current.gameState !== 'playing') return;
+
+        stateRef.current.pointerPos = coords;
+
+        // Auto-collect any croqueta touched by cursor/finger (60px radius)
+        const s = stateRef.current;
+        for (let i = s.croquetas.length - 1; i >= 0; i--) {
+            const c = s.croquetas[i];
+            if (!c.collected && Math.hypot(c.x - coords.x, c.y - coords.y) < 60) {
+                collectCroqueta(c);
+            }
+        }
+
+        // Calculate grid hover
+        const col = Math.floor((coords.x - GRID_START_X) / CELL_W);
+        const row = Math.floor((coords.y - GRID_START_Y) / CELL_H);
+
+        if (col >= 0 && col < GRID_COLS && row >= 0 && row < GRID_ROWS) {
+            stateRef.current.hoverGrid = { row, col };
+        } else {
+            stateRef.current.hoverGrid = null;
+        }
+    };
+
+    // Pointer Down Interaction (Instant click & touch response)
+    const handlePointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
+        const coords = getCanvasCoordinates(e);
+        if (!coords || stateRef.current.gameState !== 'playing') return;
 
         const s = stateRef.current;
 
-        // 1. Check Croqueta Collection Click
+        // 1. Direct Croqueta Click (Generous 65px radius)
         for (let i = s.croquetas.length - 1; i >= 0; i--) {
             const c = s.croquetas[i];
-            if (Math.hypot(c.x - clickX, c.y - clickY) < 36) {
+            if (!c.collected && Math.hypot(c.x - coords.x, c.y - coords.y) < 65) {
                 collectCroqueta(c);
-                return;
+                return; // Consumed by croqueta collection (do not plant behind it)
             }
         }
 
         // Calculate clicked row and col
-        const col = Math.floor((clickX - GRID_START_X) / CELL_W);
-        const row = Math.floor((clickY - GRID_START_Y) / CELL_H);
+        const col = Math.floor((coords.x - GRID_START_X) / CELL_W);
+        const row = Math.floor((coords.y - GRID_START_Y) / CELL_H);
 
-        if (col < 0 || col >= GRID_COLS || row < 0 || row >= GRID_ROWS) return;
+        if (col < 0 || col >= GRID_COLS || row < 0 || row >= GRID_ROWS) {
+            // Clicked outside grid -> cancel selection
+            selectCardAction(null);
+            setIsShovelActive(false);
+            s.isShovelActive = false;
+            setIsPlantFoodActive(false);
+            s.isPlantFoodActive = false;
+            return;
+        }
 
         const existingDog = s.dogs.find(d => d.row === row && d.col === col);
 
@@ -1082,41 +1149,49 @@ export function DogsVsMonstersCanvas() {
         if (existingDog && existingDog.bubbleTrapped) {
             existingDog.bubbleTrapped = false;
             DvmAudio.punch();
-            spawnParticles(clickX, clickY, '#67e8f9', 16, 160);
-            addFloatingText(clickX, clickY, 'POP! 🧼', '#67e8f9');
+            spawnParticles(coords.x, coords.y, '#67e8f9', 16, 160);
+            addFloatingText(coords.x, coords.y, 'POP! 🧼', '#67e8f9');
             return;
         }
 
         // 3. Super-Cookie (Plant Food) on Dog
-        if (isPlantFoodActive && existingDog) {
+        if (s.isPlantFoodActive && existingDog) {
             triggerSuperCookieUltimate(existingDog);
             setIsPlantFoodActive(false);
-            stateRef.current.isPlantFoodActive = false;
+            s.isPlantFoodActive = false;
             return;
         }
 
         // 4. Shovel on Dog
-        if (isShovelActive && existingDog) {
+        if (s.isShovelActive && existingDog) {
             const idx = s.dogs.indexOf(existingDog);
             if (idx !== -1) s.dogs.splice(idx, 1);
             DvmAudio.shovel();
-            spawnParticles(clickX, clickY, '#fbbf24', 12, 120);
+            spawnParticles(coords.x, coords.y, '#fbbf24', 12, 120);
             setIsShovelActive(false);
-            stateRef.current.isShovelActive = false;
+            s.isShovelActive = false;
             return;
         }
 
-        // 5. Plant Dog from Card
-        if (selectedCard && !existingDog) {
-            const card = DOG_CATALOG[selectedCard];
-            if (s.croquetaBalance >= card.cost && s.cooldowns[selectedCard] <= 0) {
+        // 5. Plant Dog from Selected Card
+        const currentCard = s.selectedCard;
+        if (currentCard) {
+            if (existingDog) {
+                // Occupied feedback
+                DvmAudio.buzzer();
+                addFloatingText(coords.x, coords.y, '¡Casilla Ocupada! ❌', '#ef4444');
+                return;
+            }
+
+            const card = DOG_CATALOG[currentCard];
+            if (s.croquetaBalance >= card.cost && s.cooldowns[currentCard] <= 0) {
                 s.croquetaBalance -= card.cost;
                 setCroquetas(s.croquetaBalance);
-                s.cooldowns[selectedCard] = card.cooldown;
+                s.cooldowns[currentCard] = card.cooldown;
 
                 s.dogs.push({
                     id: crypto.randomUUID(),
-                    type: selectedCard,
+                    type: currentCard,
                     row,
                     col,
                     hp: card.hp,
@@ -1124,20 +1199,21 @@ export function DogsVsMonstersCanvas() {
                     actionTimer: 0,
                     actionInterval: 1.5,
                     animFrame: 0,
-                    state: selectedCard === 'boneMine' ? 'arming' : 'idle',
+                    state: currentCard === 'boneMine' ? 'arming' : 'idle',
                 });
 
                 DvmAudio.plantDog();
-                spawnParticles(clickX, clickY, card.accentColor, 18, 160);
+                spawnParticles(coords.x, coords.y, card.accentColor, 18, 160);
+                addFloatingText(coords.x, coords.y - 10, `+${card.name}!`, card.accentColor);
 
                 // Instant Love Bomb Explosion
-                if (selectedCard === 'loveBomb') {
+                if (currentCard === 'loveBomb') {
                     setTimeout(() => {
                         const bombDog = s.dogs.find(d => d.row === row && d.col === col && d.type === 'loveBomb');
                         if (bombDog) {
                             DvmAudio.explosion();
                             addShake(14, 0.4);
-                            spawnParticles(clickX, clickY, '#f43f5e', 45, 280, false, true);
+                            spawnParticles(coords.x, coords.y, '#f43f5e', 45, 280, false, true);
 
                             // 3x3 Damage
                             s.enemies.forEach(e => {
@@ -1153,44 +1229,31 @@ export function DogsVsMonstersCanvas() {
                     }, 800);
                 }
 
-                setSelectedCard(null);
-                stateRef.current.selectedCard = null;
+                // Clear selection after successful plant
+                selectCardAction(null);
             } else {
                 DvmAudio.buzzer();
+                if (s.croquetaBalance < card.cost) {
+                    addFloatingText(coords.x, coords.y, '¡Faltan Croquetas! 🍖', '#f87171');
+                } else {
+                    addFloatingText(coords.x, coords.y, '¡Recargando! ⏳', '#facc15');
+                }
             }
-        }
-    };
-
-    const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
-        if (!containerRef.current) return;
-        const rect = containerRef.current.getBoundingClientRect();
-        const scaleX = V_WIDTH / rect.width;
-        const scaleY = V_HEIGHT / rect.height;
-        const mouseX = (e.clientX - rect.left) * scaleX;
-        const mouseY = (e.clientY - rect.top) * scaleY;
-
-        const col = Math.floor((mouseX - GRID_START_X) / CELL_W);
-        const row = Math.floor((mouseY - GRID_START_Y) / CELL_H);
-
-        if (col >= 0 && col < GRID_COLS && row >= 0 && row < GRID_ROWS) {
-            stateRef.current.hoverGrid = { row, col };
-        } else {
-            stateRef.current.hoverGrid = null;
         }
     };
 
     return (
         <div
             ref={containerRef}
-            className="relative h-[75vh] max-h-[860px] min-h-[560px] w-full overflow-hidden rounded-3xl border border-white/20 bg-slate-950 shadow-[0_24px_70px_rgba(0,0,0,0.85)] select-none font-mono"
+            className="relative h-[75vh] max-h-[860px] min-h-[560px] w-full overflow-hidden rounded-3xl border border-white/20 bg-slate-950 shadow-[0_24px_70px_rgba(0,0,0,0.85)] select-none font-mono touch-none"
         >
             <canvas
                 ref={canvasRef}
                 width={V_WIDTH}
                 height={V_HEIGHT}
-                onClick={handleCanvasClick}
-                onMouseMove={handleMouseMove}
-                className="absolute inset-0 h-full w-full block object-contain select-none cursor-pointer"
+                onPointerDown={handlePointerDown}
+                onPointerMove={handlePointerMove}
+                className="absolute inset-0 h-full w-full block object-contain select-none cursor-pointer touch-none"
             />
 
             {/* Top Deck & Cards Selector HUD */}
@@ -1218,18 +1281,16 @@ export function DogsVsMonstersCanvas() {
                                     key={dogId}
                                     onClick={() => {
                                         if (isReady) {
-                                            setSelectedCard(isSelected ? null : dogId);
-                                            setIsShovelActive(false);
-                                            setIsPlantFoodActive(false);
+                                            selectCardAction(isSelected ? null : dogId);
                                         } else {
                                             DvmAudio.buzzer();
                                         }
                                     }}
                                     className={`relative flex flex-col items-center justify-center w-12 sm:w-14 h-14 rounded-xl border transition-all ${
                                         isSelected
-                                            ? 'border-yellow-400 bg-yellow-950/60 scale-105 shadow-[0_0_12px_rgba(250,204,21,0.6)]'
+                                            ? 'border-yellow-400 bg-yellow-950/60 scale-105 shadow-[0_0_16px_rgba(250,204,21,0.8)] ring-2 ring-yellow-400'
                                             : isReady
-                                            ? 'border-white/30 bg-slate-900/80 hover:bg-slate-800'
+                                            ? 'border-white/30 bg-slate-900/80 hover:bg-slate-800 active:scale-95'
                                             : 'border-white/10 bg-black/60 opacity-50'
                                     }`}
                                     title={`${card.name}: ${card.description}`}
@@ -1253,12 +1314,15 @@ export function DogsVsMonstersCanvas() {
                     {/* Shovel Tool */}
                     <button
                         onClick={() => {
-                            setIsShovelActive(!isShovelActive);
-                            setSelectedCard(null);
+                            const next = !isShovelActive;
+                            setIsShovelActive(next);
+                            stateRef.current.isShovelActive = next;
+                            selectCardAction(null);
                             setIsPlantFoodActive(false);
+                            stateRef.current.isPlantFoodActive = false;
                         }}
                         className={`p-2.5 border rounded-2xl transition-all shadow-lg ${
-                            isShovelActive ? 'border-red-500 bg-red-950/70 text-red-300' : 'border-white/20 bg-black/80 text-white/70'
+                            isShovelActive ? 'border-red-500 bg-red-950/70 text-red-300 ring-2 ring-red-500' : 'border-white/20 bg-black/80 text-white/70'
                         }`}
                         title="Palita de Reubicación (Desenterrar perrito)"
                     >
@@ -1269,14 +1333,17 @@ export function DogsVsMonstersCanvas() {
                     <button
                         onClick={() => {
                             if (plantFoodCount > 0) {
-                                setIsPlantFoodActive(!isPlantFoodActive);
-                                setSelectedCard(null);
+                                const next = !isPlantFoodActive;
+                                setIsPlantFoodActive(next);
+                                stateRef.current.isPlantFoodActive = next;
+                                selectCardAction(null);
                                 setIsShovelActive(false);
+                                stateRef.current.isShovelActive = false;
                             }
                         }}
                         className={`px-3 py-1.5 border rounded-2xl transition-all shadow-lg flex items-center gap-1.5 ${
                             isPlantFoodActive
-                                ? 'border-green-400 bg-green-950/70 text-green-300 animate-pulse'
+                                ? 'border-green-400 bg-green-950/70 text-green-300 ring-2 ring-green-400 animate-pulse'
                                 : plantFoodCount > 0
                                 ? 'border-green-500/50 bg-black/80 text-green-400'
                                 : 'border-white/10 bg-black/40 text-white/30'
