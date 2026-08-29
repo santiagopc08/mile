@@ -7,6 +7,7 @@ import { LEVEL_CONFIGS } from './levelConfig';
 import { DvmAudio, setDvmMuted, isDvmMuted } from './dvmAudio';
 import { DogId, Enemy, PlacedDog, Projectile, Croqueta, Lawnmower, Particle, FloatingText } from './types';
 import { Volume2, VolumeX, Sparkles, Trophy, Heart, ArrowRight, Play, RotateCcw, Shield, Zap, Flame, Snowflake, Info } from 'lucide-react';
+import { PUPPY_CAR_THEMES, drawPuppyDriver2D } from './puppyRenderer';
 import { useArcadeProgression } from '@/hooks/useArcadeProgression';
 import { useProfile } from '@/context/ProfileContext';
 
@@ -836,19 +837,11 @@ export function DogsVsMonstersCanvas() {
                 ctx.restore();
             }
 
-            // 3. Render Lawnmowers (Puppy Ride-On Kids Carts)
-            const CART_THEMES = [
-                { body: '#ef4444', roof: '#facc15', bumper: '#b91c1c', puppy: '🐶', name: 'Kiaro Jr.' },
-                { body: '#ec4899', roof: '#fdf2f8', bumper: '#be185d', puppy: '🍯', name: 'Miel Jr.' },
-                { body: '#0284c7', roof: '#38bdf8', bumper: '#0369a1', puppy: '❄️', name: 'Nika Jr.' },
-                { body: '#8b5cf6', roof: '#facc15', bumper: '#6d28d9', puppy: '🛡️', name: 'Sam Jr.' },
-                { body: '#84cc16', roof: '#fb923c', bumper: '#4d7c0f', puppy: '⭐', name: 'Star Jr.' },
-            ];
-
+            // 3. Render Lawnmowers (Puppy Ride-On Kids Carts with 2D Vector Puppies)
             s.lawnmowers.forEach(m => {
                 if (m.active) {
                     ctx.save();
-                    const theme = CART_THEMES[m.row % CART_THEMES.length];
+                    const theme = PUPPY_CAR_THEMES[m.row % PUPPY_CAR_THEMES.length];
                     const centerY = GRID_START_Y + m.row * CELL_H + CELL_H / 2;
                     const idleBounce = m.triggered ? 0 : Math.sin(time * 0.005 + m.row) * 1.8;
                     const tilt = m.triggered ? 0.08 : 0;
@@ -894,10 +887,10 @@ export function DogsVsMonstersCanvas() {
 
                     // 4. Ride-On Car Body (Rounded Plastic Pod)
                     const bodyGrad = ctx.createLinearGradient(-24, -12, 24, 18);
-                    bodyGrad.addColorStop(0, theme.body);
-                    bodyGrad.addColorStop(1, theme.bumper);
+                    bodyGrad.addColorStop(0, theme.bodyColor);
+                    bodyGrad.addColorStop(1, theme.bumperColor);
                     ctx.fillStyle = bodyGrad;
-                    ctx.shadowColor = theme.body;
+                    ctx.shadowColor = theme.bodyColor;
                     ctx.shadowBlur = m.triggered ? 16 : 6;
                     ctx.beginPath();
                     ctx.roundRect(-24, -10, 48, 25, [8, 14, 8, 8]);
@@ -912,13 +905,13 @@ export function DogsVsMonstersCanvas() {
                     ctx.fill();
 
                     // 5. Canopy Roof & Safety Pillars
-                    ctx.fillStyle = theme.roof;
+                    ctx.fillStyle = theme.roofColor;
                     ctx.shadowColor = 'transparent';
                     ctx.beginPath();
                     ctx.roundRect(-18, -28, 36, 12, [7, 7, 3, 3]);
                     ctx.fill();
 
-                    ctx.strokeStyle = theme.roof;
+                    ctx.strokeStyle = theme.roofColor;
                     ctx.lineWidth = 3.5;
                     ctx.beginPath();
                     ctx.moveTo(-13, -16);
@@ -927,24 +920,8 @@ export function DogsVsMonstersCanvas() {
                     ctx.lineTo(13, -10);
                     ctx.stroke();
 
-                    // 6. Cute Puppy Driver Inside Cabin
-                    ctx.save();
-                    ctx.translate(0, -15);
-                    ctx.font = '20px sans-serif';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText(theme.puppy, 0, 0);
-
-                    // Steering Wheel with Horn
-                    ctx.fillStyle = '#0f172a';
-                    ctx.beginPath();
-                    ctx.roundRect(5, 5, 8, 4, 2);
-                    ctx.fill();
-                    ctx.fillStyle = '#facc15';
-                    ctx.beginPath();
-                    ctx.arc(9, 7, 1.5, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.restore();
+                    // 6. Draw 2D Vector Illustrated Puppy Driver (Dachshund, Poodle, Corgi, Pug, Pomeranian)
+                    drawPuppyDriver2D(ctx, theme.breed, time, m.triggered, m.row);
 
                     // 7. Front Wheel
                     ctx.save();
