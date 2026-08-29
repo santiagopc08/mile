@@ -27,6 +27,7 @@ import {
   SlidersHorizontal,
   Radio,
   Trophy,
+  Dog,
 } from 'lucide-react';
 import { CornerBrackets, DataStrip } from '@/components/deco';
 
@@ -44,7 +45,8 @@ export type GameTab =
   | 'cyberfrogger'
   | 'supplementshooter'
   | 'pacman'
-  | 'neonstriker';
+  | 'neonstriker'
+  | 'dogsvsmonsters';
 
 export interface GameMetadata {
   id: GameTab;
@@ -287,6 +289,22 @@ export const GAMES_METADATA: Record<GameTab, GameMetadata> = {
     engine: 'DANMAKU SHMUP',
     controls: 'TOUCH / DRAG / BOMB',
     specs: 'PATRONES BALÍSTICOS',
+  },
+  dogsvsmonsters: {
+    id: 'dogsvsmonsters',
+    romId: 'ROM-15',
+    title: 'DOGS VS MONSTERS · PATIO DEFENSE',
+    shortTitle: 'DOGS VS MONSTERS',
+    subtitle: 'EDICIÓN PVZ CON MIEL, KIARO, NIKA Y SAM DEFENDIENDO EL PATIO',
+    category: '3d',
+    icon: Dog,
+    color: 'bg-amber-500',
+    accentHex: '#f59e0b',
+    glowHex: 'rgba(245, 158, 11, 0.45)',
+    badge: 'PVZ EDITION',
+    engine: 'CANVAS 2D LANE DEFENSE',
+    controls: 'TOUCH / TAP / CARTAS',
+    specs: 'CROQUETAS · PLANT FOOD',
   },
 };
 
