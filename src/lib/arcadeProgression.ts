@@ -231,7 +231,8 @@ export function loadArcadeProgression(): ArcadeProgressionState {
         if (state.lastQuestDate !== today || !state.dailyQuests || state.dailyQuests.length === 0) {
             state.dailyQuests = generateDailyQuests(today);
             state.lastQuestDate = today;
-            saveArcadeProgression(state);
+            // Silently persist initial daily quests without triggering broadcast during render
+            saveArcadeProgression(state, false);
         }
 
         return state;
@@ -240,11 +241,18 @@ export function loadArcadeProgression(): ArcadeProgressionState {
     }
 }
 
-export function saveArcadeProgression(state: ArcadeProgressionState): void {
+export function saveArcadeProgression(state: ArcadeProgressionState, broadcast: boolean = true): void {
     if (typeof window === 'undefined') return;
     try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-        window.dispatchEvent(new CustomEvent('mile_arcade_progression_changed', { detail: state }));
+        if (broadcast) {
+            // Defer dispatch to avoid synchronous setState calls while other components are rendering
+            queueMicrotask(() => {
+                if (typeof window !== 'undefined') {
+                    window.dispatchEvent(new CustomEvent('mile_arcade_progression_changed', { detail: state }));
+                }
+            });
+        }
     } catch (e) {
         console.error('Error saving arcade progression:', e);
     }
