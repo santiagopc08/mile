@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import type { WishlistItem, WishlistState } from '@/services/storeService';
 import { formatCOP, STATE_CONFIG, REACTION_CONFIG, GOAL_CATEGORIES } from './constants';
 import { ExternalLink, Trash2, Pencil, MapPin, ChevronRight, Heart, Zap, Sparkles } from 'lucide-react';
@@ -18,7 +18,7 @@ interface WishlistCardProps {
 
 import { ChamferedPanel } from '@/components/ui/ChamferedPanel';
 
-export function WishlistCard({ item, profile, onRefresh, onEdit, onDelete }: WishlistCardProps) {
+export const WishlistCard = memo(function WishlistCard({ item, profile, onRefresh, onEdit, onDelete }: WishlistCardProps) {
     const [showContrib, setShowContrib] = useState(false);
     const [contribAmount, setContribAmount] = useState('');
     const [contribNote, setContribNote] = useState('');
@@ -225,4 +225,4 @@ export function WishlistCard({ item, profile, onRefresh, onEdit, onDelete }: Wis
             </ChamferedPanel>
         </motion.div>
     );
-}
+});
