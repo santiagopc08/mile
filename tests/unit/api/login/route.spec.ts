@@ -203,4 +203,25 @@ test.beforeEach(() => {
         expect(cookieSetParams.value).toBe('mocked_device_token');
         expect(cookieSetParams.options.httpOnly).toBe(true);
     });
+    test('should return 500 if an unexpected error occurs during request processing', async () => {
+        setupMocks(null, null, null, null, null);
+
+        const { POST } = require('../../../../src/app/api/login/route.ts');
+        const req = new Request('http://localhost:3000/api/login', {
+            method: 'POST',
+            body: JSON.stringify({ profile: 'ella', password: 'correct' })
+        });
+
+        // Mock request.json() to throw an error
+        (req as any).json = async () => {
+            throw new Error('Unexpected JSON parsing error');
+        };
+
+        const res = await POST(req);
+
+        expect(res.status).toBe(500);
+        const data = await res.json();
+        expect(data).toEqual({ error: 'Unexpected JSON parsing error' });
+    });
+
 });
