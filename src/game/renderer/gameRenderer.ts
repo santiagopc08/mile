@@ -279,7 +279,7 @@ export class GameRenderer {
     // ==================================================================
 
     /**
-     * Dibuja TODOS los chunks activos como un único polígono continuo.
+     * Dibuja todos los chunks activos como un único polígono continuo.
      * Rellenarlos por separado dejaba costuras visibles entre chunk y chunk.
      */
     private drawTerrain(
