@@ -99,14 +99,43 @@ test.describe('MahjongService', () => {
             expect(insertCalled).toBe(true);
         });
 
-        test('should handle and log errors gracefully', async () => {
+        test('should log error when supabase insert returns an error object', async () => {
             let errorLogged = false;
             console.error = () => { errorLogged = true; };
 
-            const mockSupabase = createMockSupabase({}, new Error('Insert failed'));
+            const mockSupabaseWithErrorObj = {
+                from: () => ({
+                    insert: () => Promise.resolve({ error: new Error('Insert failed due to constraints') })
+                })
+            } as unknown as import('@supabase/supabase-js').SupabaseClient;
 
-            // Should not throw
-            await MahjongService.saveMahjongScore('ella', 90, 'turtle', 144, 0, mockSupabase);
+            await MahjongService.saveMahjongScore('ella', 90, 'turtle', 144, 0, mockSupabaseWithErrorObj);
+            expect(errorLogged).toBe(true);
+        });
+
+        test('should log error on promise rejection (network error)', async () => {
+            let errorLogged = false;
+            console.error = () => { errorLogged = true; };
+
+            const mockSupabaseWithThrow = {
+                from: () => ({
+                    insert: () => Promise.reject(new Error('Network error'))
+                })
+            } as unknown as import('@supabase/supabase-js').SupabaseClient;
+
+            await MahjongService.saveMahjongScore('el', 100, 'dragon', 144, 0, mockSupabaseWithThrow);
+            expect(errorLogged).toBe(true);
+        });
+
+        test('should log error on synchronous exception', async () => {
+            let errorLogged = false;
+            console.error = () => { errorLogged = true; };
+
+            const mockSupabaseWithSyncThrow = {
+                from: () => { throw new Error('Synchronous error'); }
+            } as unknown as import('@supabase/supabase-js').SupabaseClient;
+
+            await MahjongService.saveMahjongScore('el', 100, 'dragon', 144, 0, mockSupabaseWithSyncThrow);
             expect(errorLogged).toBe(true);
         });
     });
