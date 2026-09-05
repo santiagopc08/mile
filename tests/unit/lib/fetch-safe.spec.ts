@@ -78,6 +78,19 @@ test.describe('isLocalOrPrivateIP', () => {
         expect(isLocalOrPrivateIP('FE80::1')).toBe(true); // case-insensitive
     });
 
+    test('identifies carrier grade NAT addresses', () => {
+        expect(isLocalOrPrivateIP('100.64.0.1')).toBe(true);
+        expect(isLocalOrPrivateIP('100.127.255.254')).toBe(true);
+    });
+
+    test('identifies reserved addresses', () => {
+        expect(isLocalOrPrivateIP('240.0.0.1')).toBe(true);
+        expect(isLocalOrPrivateIP('192.0.0.1')).toBe(true);
+        expect(isLocalOrPrivateIP('192.0.2.1')).toBe(true);
+        expect(isLocalOrPrivateIP('198.51.100.1')).toBe(true);
+        expect(isLocalOrPrivateIP('203.0.113.1')).toBe(true);
+    });
+
     test('identifies public IPv6 addresses', () => {
         expect(isLocalOrPrivateIP('2001:4860:4860::8888')).toBe(false);
         expect(isLocalOrPrivateIP('2606:4700:4700::1111')).toBe(false);
