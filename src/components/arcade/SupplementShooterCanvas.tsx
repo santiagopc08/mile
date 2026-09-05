@@ -175,6 +175,290 @@ const PATTERN_TEMPLATES: PatternDef[] = [
     },
 ];
 
+
+// Extract type from stateRef to pass into renderScene
+type GameState = ReturnType<typeof getInitialState>;
+
+// Helper to infer the type
+function getInitialState() {
+    return {
+        grid: Array.from({ length: ROWS }, () => Array(COLS).fill(0)),
+        playerCol: 4,
+        playerVisualX: BOARD_X + 4.5 * CELL_SIZE,
+        projectiles: [] as BlockProjectile[],
+        clearingRects: [] as ClearingRect[],
+        particles: [] as Particle[],
+        floatingTexts: [] as FloatingText[],
+        holoFlash: null as HoloFlash | null,
+        descendAccumulator: 0,
+        descendStepTime: 2.4,
+        descendVisualOffset: 0,
+        rowsSinceLastSpawn: 0,
+        shootCooldown: 0,
+        laserBombs: 3,
+        score: 0,
+        highScore: 0,
+        stage: 1,
+        blocksCleared: 0,
+        combo: 0,
+        comboTimer: 0,
+        shakeIntensity: 0,
+        shakeTime: 0,
+        gameState: 'ready' as 'ready' | 'playing' | 'gameover',
+        keysHeld: new Set<string>(),
+        isDragging: false,
+    };
+}
+
+// Extracted Render Function
+const renderScene = (
+    ctx: CanvasRenderingContext2D,
+    s: GameState,
+    time: number,
+    profileAccent: string,
+    crtEnabled: boolean
+) => {
+    // ── RENDER 60 FPS SCENE ──────────────────────────────────────────
+    ctx.save();
+    ctx.clearRect(0, 0, V_WIDTH, V_HEIGHT);
+
+    if (s.shakeIntensity > 0) {
+        const ox = (Math.random() * 2 - 1) * s.shakeIntensity;
+        const oy = (Math.random() * 2 - 1) * s.shakeIntensity;
+        ctx.translate(ox, oy);
+    }
+
+    // Deep Background
+    ctx.fillStyle = '#050711';
+    ctx.fillRect(0, 0, V_WIDTH, V_HEIGHT);
+
+    // Matrix Playfield Background
+    ctx.fillStyle = '#080d20';
+    ctx.fillRect(BOARD_X, BOARD_Y, BOARD_W, BOARD_H);
+
+    // Render Holographic Photo Flash on Combos / Mega Rectangles
+    if (s.holoFlash && s.holoFlash.memory.holoCanvas) {
+        ctx.save();
+        const progress = s.holoFlash.timer / s.holoFlash.maxTimer;
+        ctx.globalAlpha = progress * 0.45;
+        ctx.drawImage(s.holoFlash.memory.holoCanvas, BOARD_X, BOARD_Y, BOARD_W, BOARD_H);
+
+        // Caption badge
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
+        ctx.fillRect(BOARD_X + 10, BOARD_Y + 10, BOARD_W - 20, 24);
+        ctx.strokeStyle = profileAccent;
+        ctx.lineWidth = 1;
+        ctx.strokeRect(BOARD_X + 10, BOARD_Y + 10, BOARD_W - 20, 24);
+
+        ctx.font = 'bold 10px monospace';
+        ctx.fillStyle = profileAccent;
+        ctx.textAlign = 'center';
+        ctx.fillText(`✨ ${s.holoFlash.memory.memory.title.toUpperCase()}`, BOARD_X + BOARD_W / 2, BOARD_Y + 26);
+        ctx.restore();
+    }
+
+    // Playfield Grid Background Grid Lines
+    for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+            const cx = BOARD_X + c * CELL_SIZE;
+            const cy = BOARD_Y + r * CELL_SIZE;
+
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.035)';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(cx, cy, CELL_SIZE, CELL_SIZE);
+        }
+    }
+
+    // Render Solid Blocks with smooth sub-pixel descent
+    const yOffset = s.gameState === 'playing' ? s.descendVisualOffset : 0;
+
+    for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+            const val = s.grid[r][c];
+            if (val !== 0) {
+                const cx = BOARD_X + c * CELL_SIZE;
+                const cy = BOARD_Y + r * CELL_SIZE + yOffset;
+
+                // Only render within board bounds
+                if (cy + CELL_SIZE >= BOARD_Y && cy <= BOARD_Y + BOARD_H) {
+                    const colHex = BLOCK_COLORS[(val - 1 + BLOCK_COLORS.length) % BLOCK_COLORS.length] || '#00f0ff';
+                    ctx.fillStyle = colHex;
+                    ctx.shadowColor = colHex;
+                    ctx.shadowBlur = 8;
+                    ctx.fillRect(cx + 1.5, cy + 1.5, CELL_SIZE - 3, CELL_SIZE - 3);
+
+                    // Top-left highlight bevel
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+                    ctx.fillRect(cx + 3, cy + 3, CELL_SIZE - 6, 3);
+                    ctx.fillRect(cx + 3, cy + 3, 3, CELL_SIZE - 6);
+
+                    // Dark border
+                    ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)';
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(cx + 1.5, cy + 1.5, CELL_SIZE - 3, CELL_SIZE - 3);
+                }
+            }
+        }
+    }
+    ctx.shadowBlur = 0;
+
+    // Targeting Ghost Guide Line & Ghost Landing Slot
+    if (s.gameState === 'playing') {
+        const targetCol = s.playerCol;
+        const tX = BOARD_X + targetCol * CELL_SIZE;
+
+        // Find lowest block in targetCol
+        let targetRow = 0;
+        for (let r = ROWS - 1; r >= 0; r--) {
+            if (s.grid[r][targetCol] !== 0) {
+                targetRow = r + 1;
+                break;
+            }
+        }
+
+        const ghostY = BOARD_Y + targetRow * CELL_SIZE + yOffset;
+
+        // Laser Targeting Beam
+        ctx.strokeStyle = 'rgba(0, 240, 255, 0.35)';
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.moveTo(tX + CELL_SIZE / 2, DANGER_Y + 10);
+        ctx.lineTo(tX + CELL_SIZE / 2, ghostY + CELL_SIZE / 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Ghost block landing slot preview
+        if (targetRow < DANGER_ROW) {
+            ctx.strokeStyle = '#00f0ff';
+            ctx.lineWidth = 2;
+            ctx.shadowColor = '#00f0ff';
+            ctx.shadowBlur = 10;
+            ctx.strokeRect(tX + 3, ghostY + 3, CELL_SIZE - 6, CELL_SIZE - 6);
+            ctx.fillStyle = 'rgba(0, 240, 255, 0.15)';
+            ctx.fillRect(tX + 3, ghostY + 3, CELL_SIZE - 6, CELL_SIZE - 6);
+            ctx.shadowBlur = 0;
+        }
+    }
+
+    // Clearing Rectangles Flash Effect
+    s.clearingRects.forEach(cr => {
+        ctx.save();
+        const progress = cr.timer / cr.maxTimer;
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 3 + (1 - progress) * 4;
+        ctx.shadowColor = cr.color;
+        ctx.shadowBlur = 24;
+        ctx.fillStyle = `rgba(255, 255, 255, ${progress * 0.5})`;
+
+        const rx = BOARD_X + cr.c1 * CELL_SIZE;
+        const ry = BOARD_Y + cr.r1 * CELL_SIZE + yOffset;
+        const rw = (cr.c2 - cr.c1 + 1) * CELL_SIZE;
+        const rh = (cr.r2 - cr.r1 + 1) * CELL_SIZE;
+
+        ctx.fillRect(rx, ry, rw, rh);
+        ctx.strokeRect(rx, ry, rw, rh);
+        ctx.restore();
+    });
+
+    // Danger Zone Warning Background
+    ctx.fillStyle = 'rgba(239, 68, 68, 0.08)';
+    ctx.fillRect(BOARD_X, DANGER_Y, BOARD_W, BOARD_H - (DANGER_Y - BOARD_Y));
+
+    // Red Danger Line with Pulsing Glow
+    const dangerPulse = (Math.sin(time / 200) + 1) * 0.3 + 0.7;
+    ctx.strokeStyle = `rgba(239, 68, 68, ${dangerPulse})`;
+    ctx.lineWidth = 3;
+    ctx.shadowColor = '#ef4444';
+    ctx.shadowBlur = 12;
+    ctx.beginPath();
+    ctx.moveTo(BOARD_X, DANGER_Y);
+    ctx.lineTo(BOARD_X + BOARD_W, DANGER_Y);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // Danger Row Warning Text
+    ctx.font = 'bold 9px monospace';
+    ctx.fillStyle = 'rgba(239, 68, 68, 0.7)';
+    ctx.textAlign = 'left';
+    ctx.fillText('▲ LÍNEA DE PELIGRO ▲', BOARD_X + 8, DANGER_Y - 5);
+
+    // Border Outline
+    ctx.strokeStyle = '#00f0ff';
+    ctx.lineWidth = 2.5;
+    ctx.strokeRect(BOARD_X - 1.5, BOARD_Y - 1.5, BOARD_W + 3, BOARD_H + 3);
+
+    // Player Shooter Ship
+    const px = s.playerVisualX;
+    ctx.save();
+    ctx.fillStyle = '#00f0ff';
+    ctx.shadowColor = '#00f0ff';
+    ctx.shadowBlur = 14;
+
+    // Ship Body
+    ctx.beginPath();
+    ctx.moveTo(px, DANGER_Y + 12);
+    ctx.lineTo(px - 15, DANGER_Y + 34);
+    ctx.lineTo(px - 5, DANGER_Y + 30);
+    ctx.lineTo(px, DANGER_Y + 35);
+    ctx.lineTo(px + 5, DANGER_Y + 30);
+    ctx.lineTo(px + 15, DANGER_Y + 34);
+    ctx.closePath();
+    ctx.fill();
+
+    // Cannon Core Glow
+    ctx.fillStyle = '#facc15';
+    ctx.shadowColor = '#facc15';
+    ctx.shadowBlur = 8;
+    ctx.fillRect(px - 3.5, DANGER_Y + 8, 7, 7);
+    ctx.restore();
+
+    // Block Projectiles in Flight
+    s.projectiles.forEach(p => {
+        ctx.save();
+        ctx.fillStyle = '#00f0ff';
+        ctx.shadowColor = '#00f0ff';
+        ctx.shadowBlur = 12;
+        ctx.fillRect(p.x - 14, p.y - 14, 28, 28);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(p.x - 7, p.y - 7, 14, 14);
+        ctx.restore();
+    });
+
+    // Particles
+    s.particles.forEach(pt => {
+        ctx.save();
+        ctx.globalAlpha = pt.alpha;
+        ctx.fillStyle = pt.color;
+        ctx.shadowColor = pt.color;
+        ctx.shadowBlur = 8;
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, pt.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+    });
+
+    // Floating Texts
+    s.floatingTexts.forEach(ft => {
+        ctx.save();
+        ctx.font = 'bold 13px monospace';
+        ctx.fillStyle = ft.color;
+        ctx.shadowColor = ft.color;
+        ctx.shadowBlur = 8;
+        ctx.textAlign = 'center';
+        ctx.fillText(ft.text, ft.x, ft.y);
+        ctx.restore();
+    });
+
+    // CRT Scanline Filter
+    if (crtEnabled) {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.16)';
+        for (let y = 0; y < V_HEIGHT; y += 4) {
+            ctx.fillRect(0, y, V_WIDTH, 1.5);
+        }
+    }
+
+    ctx.restore();
+};
 export function SupplementShooterCanvas({ accentColor = '#00f0ff' }: SupplementShooterProps) {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const containerRef = useRef<HTMLDivElement | null>(null);
@@ -197,38 +481,17 @@ export function SupplementShooterCanvas({ accentColor = '#00f0ff' }: SupplementS
     const [crtEnabled, setCrtEnabled] = useState(true);
     const [lastRecordResult, setLastRecordResult] = useState<{ isNewPersonalBest: boolean; isNewCoupleRecord: boolean; coinsEarned: number } | null>(null);
 
-    const stateRef = useRef({
-        grid: Array.from({ length: ROWS }, () => Array(COLS).fill(0)),
-        playerCol: 4,
-        playerVisualX: BOARD_X + 4.5 * CELL_SIZE,
-        projectiles: [] as BlockProjectile[],
-        clearingRects: [] as ClearingRect[],
-        particles: [] as Particle[],
-        floatingTexts: [] as FloatingText[],
-        holoFlash: null as HoloFlash | null,
-        // Smooth descent variables
-        descendAccumulator: 0,
-        descendStepTime: 2.4, // Seconds per 1-row descent (decreases with stage)
-        descendVisualOffset: 0, // 0 to CELL_SIZE (smooth sub-pixel scroll)
-        rowsSinceLastSpawn: 0,
-        shootCooldown: 0,
-        laserBombs: 3,
-        score: 0,
-        highScore: 0,
-        stage: 1,
-        blocksCleared: 0,
-        combo: 0,
-        comboTimer: 0,
-        shakeIntensity: 0,
-        shakeTime: 0,
-        gameState: 'ready' as 'ready' | 'playing' | 'gameover',
-        keysHeld: new Set<string>(),
-        isDragging: false,
-    });
+    const stateRef = useRef<GameState>(getInitialState());
 
     useEffect(() => {
+        // Run once on mount to get initial settings
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setMutedState(loadMutedPreference());
+    }, []);
+
+    useEffect(() => {
         const activePb = profile === 'ella' ? ellaBest : elBest;
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setHighScore(activePb);
         stateRef.current.highScore = activePb;
     }, [profile, elBest, ellaBest]);
@@ -768,251 +1031,13 @@ export function SupplementShooterCanvas({ accentColor = '#00f0ff' }: SupplementS
                 }
             }
 
-            // ── RENDER 60 FPS SCENE ──────────────────────────────────────────
-            ctx.save();
-            ctx.clearRect(0, 0, V_WIDTH, V_HEIGHT);
-
-            if (s.shakeIntensity > 0) {
-                const ox = (Math.random() * 2 - 1) * s.shakeIntensity;
-                const oy = (Math.random() * 2 - 1) * s.shakeIntensity;
-                ctx.translate(ox, oy);
-            }
-
-            // Deep Background
-            ctx.fillStyle = '#050711';
-            ctx.fillRect(0, 0, V_WIDTH, V_HEIGHT);
-
-            // Matrix Playfield Background
-            ctx.fillStyle = '#080d20';
-            ctx.fillRect(BOARD_X, BOARD_Y, BOARD_W, BOARD_H);
-
-            // Render Holographic Photo Flash on Combos / Mega Rectangles
-            if (s.holoFlash && s.holoFlash.memory.holoCanvas) {
-                ctx.save();
-                const progress = s.holoFlash.timer / s.holoFlash.maxTimer;
-                ctx.globalAlpha = progress * 0.45;
-                ctx.drawImage(s.holoFlash.memory.holoCanvas, BOARD_X, BOARD_Y, BOARD_W, BOARD_H);
-
-                // Caption badge
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
-                ctx.fillRect(BOARD_X + 10, BOARD_Y + 10, BOARD_W - 20, 24);
-                ctx.strokeStyle = profileAccent;
-                ctx.lineWidth = 1;
-                ctx.strokeRect(BOARD_X + 10, BOARD_Y + 10, BOARD_W - 20, 24);
-
-                ctx.font = 'bold 10px monospace';
-                ctx.fillStyle = profileAccent;
-                ctx.textAlign = 'center';
-                ctx.fillText(`✨ ${s.holoFlash.memory.memory.title.toUpperCase()}`, BOARD_X + BOARD_W / 2, BOARD_Y + 26);
-                ctx.restore();
-            }
-
-            // Playfield Grid Background Grid Lines
-            for (let r = 0; r < ROWS; r++) {
-                for (let c = 0; c < COLS; c++) {
-                    const cx = BOARD_X + c * CELL_SIZE;
-                    const cy = BOARD_Y + r * CELL_SIZE;
-
-                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.035)';
-                    ctx.lineWidth = 1;
-                    ctx.strokeRect(cx, cy, CELL_SIZE, CELL_SIZE);
-                }
-            }
-
-            // Render Solid Blocks with smooth sub-pixel descent
-            const yOffset = s.gameState === 'playing' ? s.descendVisualOffset : 0;
-
-            for (let r = 0; r < ROWS; r++) {
-                for (let c = 0; c < COLS; c++) {
-                    const val = s.grid[r][c];
-                    if (val !== 0) {
-                        const cx = BOARD_X + c * CELL_SIZE;
-                        const cy = BOARD_Y + r * CELL_SIZE + yOffset;
-
-                        // Only render within board bounds
-                        if (cy + CELL_SIZE >= BOARD_Y && cy <= BOARD_Y + BOARD_H) {
-                            const colHex = BLOCK_COLORS[(val - 1 + BLOCK_COLORS.length) % BLOCK_COLORS.length] || '#00f0ff';
-                            ctx.fillStyle = colHex;
-                            ctx.shadowColor = colHex;
-                            ctx.shadowBlur = 8;
-                            ctx.fillRect(cx + 1.5, cy + 1.5, CELL_SIZE - 3, CELL_SIZE - 3);
-
-                            // Top-left highlight bevel
-                            ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
-                            ctx.fillRect(cx + 3, cy + 3, CELL_SIZE - 6, 3);
-                            ctx.fillRect(cx + 3, cy + 3, 3, CELL_SIZE - 6);
-
-                            // Dark border
-                            ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)';
-                            ctx.lineWidth = 1;
-                            ctx.strokeRect(cx + 1.5, cy + 1.5, CELL_SIZE - 3, CELL_SIZE - 3);
-                        }
-                    }
-                }
-            }
-            ctx.shadowBlur = 0;
-
-            // Targeting Ghost Guide Line & Ghost Landing Slot
-            if (s.gameState === 'playing') {
-                const targetCol = s.playerCol;
-                const tX = BOARD_X + targetCol * CELL_SIZE;
-
-                // Find lowest block in targetCol
-                let targetRow = 0;
-                for (let r = ROWS - 1; r >= 0; r--) {
-                    if (s.grid[r][targetCol] !== 0) {
-                        targetRow = r + 1;
-                        break;
-                    }
-                }
-
-                const ghostY = BOARD_Y + targetRow * CELL_SIZE + yOffset;
-
-                // Laser Targeting Beam
-                ctx.strokeStyle = 'rgba(0, 240, 255, 0.35)';
-                ctx.setLineDash([4, 4]);
-                ctx.beginPath();
-                ctx.moveTo(tX + CELL_SIZE / 2, DANGER_Y + 10);
-                ctx.lineTo(tX + CELL_SIZE / 2, ghostY + CELL_SIZE / 2);
-                ctx.stroke();
-                ctx.setLineDash([]);
-
-                // Ghost block landing slot preview
-                if (targetRow < DANGER_ROW) {
-                    ctx.strokeStyle = '#00f0ff';
-                    ctx.lineWidth = 2;
-                    ctx.shadowColor = '#00f0ff';
-                    ctx.shadowBlur = 10;
-                    ctx.strokeRect(tX + 3, ghostY + 3, CELL_SIZE - 6, CELL_SIZE - 6);
-                    ctx.fillStyle = 'rgba(0, 240, 255, 0.15)';
-                    ctx.fillRect(tX + 3, ghostY + 3, CELL_SIZE - 6, CELL_SIZE - 6);
-                    ctx.shadowBlur = 0;
-                }
-            }
-
-            // Clearing Rectangles Flash Effect
-            s.clearingRects.forEach(cr => {
-                ctx.save();
-                const progress = cr.timer / cr.maxTimer;
-                ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = 3 + (1 - progress) * 4;
-                ctx.shadowColor = cr.color;
-                ctx.shadowBlur = 24;
-                ctx.fillStyle = `rgba(255, 255, 255, ${progress * 0.5})`;
-
-                const rx = BOARD_X + cr.c1 * CELL_SIZE;
-                const ry = BOARD_Y + cr.r1 * CELL_SIZE + yOffset;
-                const rw = (cr.c2 - cr.c1 + 1) * CELL_SIZE;
-                const rh = (cr.r2 - cr.r1 + 1) * CELL_SIZE;
-
-                ctx.fillRect(rx, ry, rw, rh);
-                ctx.strokeRect(rx, ry, rw, rh);
-                ctx.restore();
-            });
-
-            // Danger Zone Warning Background
-            ctx.fillStyle = 'rgba(239, 68, 68, 0.08)';
-            ctx.fillRect(BOARD_X, DANGER_Y, BOARD_W, BOARD_H - (DANGER_Y - BOARD_Y));
-
-            // Red Danger Line with Pulsing Glow
-            const dangerPulse = (Math.sin(time / 200) + 1) * 0.3 + 0.7;
-            ctx.strokeStyle = `rgba(239, 68, 68, ${dangerPulse})`;
-            ctx.lineWidth = 3;
-            ctx.shadowColor = '#ef4444';
-            ctx.shadowBlur = 12;
-            ctx.beginPath();
-            ctx.moveTo(BOARD_X, DANGER_Y);
-            ctx.lineTo(BOARD_X + BOARD_W, DANGER_Y);
-            ctx.stroke();
-            ctx.shadowBlur = 0;
-
-            // Danger Row Warning Text
-            ctx.font = 'bold 9px monospace';
-            ctx.fillStyle = 'rgba(239, 68, 68, 0.7)';
-            ctx.textAlign = 'left';
-            ctx.fillText('▲ LÍNEA DE PELIGRO ▲', BOARD_X + 8, DANGER_Y - 5);
-
-            // Border Outline
-            ctx.strokeStyle = '#00f0ff';
-            ctx.lineWidth = 2.5;
-            ctx.strokeRect(BOARD_X - 1.5, BOARD_Y - 1.5, BOARD_W + 3, BOARD_H + 3);
-
-            // Player Shooter Ship
-            const px = s.playerVisualX;
-            ctx.save();
-            ctx.fillStyle = '#00f0ff';
-            ctx.shadowColor = '#00f0ff';
-            ctx.shadowBlur = 14;
-
-            // Ship Body
-            ctx.beginPath();
-            ctx.moveTo(px, DANGER_Y + 12);
-            ctx.lineTo(px - 15, DANGER_Y + 34);
-            ctx.lineTo(px - 5, DANGER_Y + 30);
-            ctx.lineTo(px, DANGER_Y + 35);
-            ctx.lineTo(px + 5, DANGER_Y + 30);
-            ctx.lineTo(px + 15, DANGER_Y + 34);
-            ctx.closePath();
-            ctx.fill();
-
-            // Cannon Core Glow
-            ctx.fillStyle = '#facc15';
-            ctx.shadowColor = '#facc15';
-            ctx.shadowBlur = 8;
-            ctx.fillRect(px - 3.5, DANGER_Y + 8, 7, 7);
-            ctx.restore();
-
-            // Block Projectiles in Flight
-            s.projectiles.forEach(p => {
-                ctx.save();
-                ctx.fillStyle = '#00f0ff';
-                ctx.shadowColor = '#00f0ff';
-                ctx.shadowBlur = 12;
-                ctx.fillRect(p.x - 14, p.y - 14, 28, 28);
-                ctx.fillStyle = '#ffffff';
-                ctx.fillRect(p.x - 7, p.y - 7, 14, 14);
-                ctx.restore();
-            });
-
-            // Particles
-            s.particles.forEach(pt => {
-                ctx.save();
-                ctx.globalAlpha = pt.alpha;
-                ctx.fillStyle = pt.color;
-                ctx.shadowColor = pt.color;
-                ctx.shadowBlur = 8;
-                ctx.beginPath();
-                ctx.arc(pt.x, pt.y, pt.radius, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.restore();
-            });
-
-            // Floating Texts
-            s.floatingTexts.forEach(ft => {
-                ctx.save();
-                ctx.font = 'bold 13px monospace';
-                ctx.fillStyle = ft.color;
-                ctx.shadowColor = ft.color;
-                ctx.shadowBlur = 8;
-                ctx.textAlign = 'center';
-                ctx.fillText(ft.text, ft.x, ft.y);
-                ctx.restore();
-            });
-
-            // CRT Scanline Filter
-            if (crtEnabled) {
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.16)';
-                for (let y = 0; y < V_HEIGHT; y += 4) {
-                    ctx.fillRect(0, y, V_WIDTH, 1.5);
-                }
-            }
-
-            ctx.restore();
+            renderScene(ctx, s, time, profileAccent, crtEnabled);
             animId = requestAnimationFrame(loop);
         };
 
         animId = requestAnimationFrame(loop);
         return () => cancelAnimationFrame(animId);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [crtEnabled, checkQuarthRectangles, spawnPatternAtCeiling, profileAccent]);
 
     // Keyboard handlers
