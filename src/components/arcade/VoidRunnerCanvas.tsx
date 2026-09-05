@@ -64,11 +64,17 @@ export function VoidRunnerCanvas({ accentColor = '#a855f7' }: VoidRunnerProps) {
     const containerRef = useRef<HTMLDivElement | null>(null);
 
     const [score, setScore] = useState(0);
-    const [highScore, setHighScore] = useState(0);
+    const [highScore, setHighScore] = useState(() => {
+        if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem('voidrunner_highscore');
+            if (saved) return parseInt(saved, 10);
+        }
+        return 0;
+    });
     const [lives, setLives] = useState(3);
     const [wave, setWave] = useState(1);
     const [gameState, setGameState] = useState<'menu' | 'playing' | 'gameover'>('menu');
-    const [mutedState, setMutedState] = useState(false);
+    const [mutedState, setMutedState] = useState(() => loadMutedPreference());
 
     // 60FPS Game State Reference
     const stateRef = useRef({
@@ -85,7 +91,7 @@ export function VoidRunnerCanvas({ accentColor = '#a855f7' }: VoidRunnerProps) {
         bullets: [] as Bullet[],
         particles: [] as Particle[],
         score: 0,
-        highScore: 0,
+        highScore: typeof window !== 'undefined' ? parseInt(localStorage.getItem('voidrunner_highscore') || '0', 10) : 0,
         lives: 3,
         wave: 1,
         fireCooldown: 0,
@@ -96,16 +102,6 @@ export function VoidRunnerCanvas({ accentColor = '#a855f7' }: VoidRunnerProps) {
         gameState: 'menu' as 'menu' | 'playing' | 'gameover',
         nextRockId: 1,
     });
-
-    useEffect(() => {
-        setMutedState(loadMutedPreference());
-        const saved = localStorage.getItem('voidrunner_highscore');
-        if (saved) {
-            const val = parseInt(saved, 10);
-            setHighScore(val);
-            stateRef.current.highScore = val;
-        }
-    }, []);
 
     const toggleMute = useCallback(() => {
         const next = !mutedState;
@@ -143,7 +139,7 @@ export function VoidRunnerCanvas({ accentColor = '#a855f7' }: VoidRunnerProps) {
         };
     };
 
-    const spawnWave = (w: number) => {
+    const spawnWave = useCallback((w: number) => {
         const s = stateRef.current;
         s.wave = w;
         s.waveBanner = 2.0;
@@ -172,7 +168,7 @@ export function VoidRunnerCanvas({ accentColor = '#a855f7' }: VoidRunnerProps) {
         }
 
         s.rocks = newRocks;
-    };
+    }, []);
 
     const spawnParticles = (x: number, y: number, color: string, count = 16, speed = 220) => {
         for (let i = 0; i < count; i++) {
@@ -221,9 +217,9 @@ export function VoidRunnerCanvas({ accentColor = '#a855f7' }: VoidRunnerProps) {
         setGameState('playing');
 
         spawnWave(1);
-    }, []);
+    }, [spawnWave]);
 
-    const fireBullet = () => {
+    const fireBullet = useCallback(() => {
         const s = stateRef.current;
         if (s.fireCooldown > 0 || !s.ship.alive) return;
 
@@ -242,7 +238,7 @@ export function VoidRunnerCanvas({ accentColor = '#a855f7' }: VoidRunnerProps) {
 
         VoidAudio.laser();
         addShake(1.2);
-    };
+    }, []);
 
     // Main Game Loop
     useEffect(() => {
@@ -590,7 +586,7 @@ export function VoidRunnerCanvas({ accentColor = '#a855f7' }: VoidRunnerProps) {
 
         animId = requestAnimationFrame(loop);
         return () => cancelAnimationFrame(animId);
-    }, []);
+    }, [spawnWave, fireBullet]);
 
     // Keyboard controls
     useEffect(() => {
@@ -617,7 +613,7 @@ export function VoidRunnerCanvas({ accentColor = '#a855f7' }: VoidRunnerProps) {
             window.removeEventListener('keydown', handleKeyDown);
             window.removeEventListener('keyup', handleKeyUp);
         };
-    }, []);
+    }, [fireBullet]);
 
     return (
         <div
