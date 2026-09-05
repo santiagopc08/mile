@@ -23,11 +23,16 @@ export function useLinkPreview(url: string) {
                 setLoading(true);
                 const cached = localStorage.getItem(cacheKey);
                 if (cached) {
-                    const parsed = JSON.parse(cached);
-                    if (Date.now() - parsed.timestamp < 86400000) {
-                        setData(parsed.data);
-                        setLoading(false);
-                        return;
+                    try {
+                        const parsed = JSON.parse(cached);
+                        if (Date.now() - parsed.timestamp < 86400000) {
+                            setData(parsed.data);
+                            setLoading(false);
+                            return;
+                        }
+                    } catch (e) {
+                        // Invalid cache data, ignore and fetch fresh
+                        localStorage.removeItem(cacheKey);
                     }
                 }
 
