@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Task, TaskStatus } from '@/services/storeService';
 import { useStore } from '@/context/StoreContext';
 import { useProfile } from '@/context/ProfileContext';
@@ -41,24 +41,24 @@ export function PendingTasks() {
         setIsAdding(false);
     };
 
-    const handleSaveTask = async (id: string, newText: string, newPriority: 'low' | 'medium' | 'high') => {
+    const handleSaveTask = useCallback(async (id: string, newText: string, newPriority: 'low' | 'medium' | 'high') => {
         const index = tasks.findIndex(t => t.id === id);
         if (index === -1) return;
         const updated = [...tasks];
         updated[index] = { ...updated[index], text: newText, priority: newPriority };
         await updateData({ tasks: updated });
-    };
+    }, [tasks, updateData]);
 
-    const toggleTask = async (task: Task) => {
+    const toggleTask = useCallback(async (task: Task) => {
         const newStatus: TaskStatus = task.status === 'done' ? 'todo' : 'done';
         const index = tasks.findIndex(t => t.id === task.id);
         if (index === -1) return;
         const updated = [...tasks];
         updated[index] = { ...updated[index], status: newStatus };
         await updateData({ tasks: updated });
-    };
+    }, [tasks, updateData]);
 
-    const deleteTask = async (id: string, e: React.MouseEvent) => {
+    const deleteTask = useCallback(async (id: string, e: React.MouseEvent) => {
         e.stopPropagation();
         const task = tasks.find((t) => t.id === id);
         const ok = await confirm({
@@ -71,7 +71,7 @@ export function PendingTasks() {
 
         const updated = tasks.filter((t) => t.id !== id);
         await updateData({ tasks: updated });
-    };
+    }, [tasks, updateData, confirm]);
 
     return (
         <div className="w-full h-full flex flex-col">

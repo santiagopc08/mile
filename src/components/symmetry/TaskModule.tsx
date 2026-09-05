@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, memo } from 'react';
+import { useState, useEffect, useMemo, memo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, X, Check, Filter, Layers, LayoutGrid, ListFilter, Sparkles, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useStore } from '@/context/StoreContext';
@@ -170,7 +170,7 @@ export const TaskModule = memo(({ onTasksUpdate }: { onTasksUpdate: (score: numb
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
 
-  const toggleChecklistInCard = (taskId: string, listType: 'actions' | 'validations', itemId: string) => {
+  const toggleChecklistInCard = useCallback((taskId: string, listType: 'actions' | 'validations', itemId: string) => {
     const taskIndex = tasks.findIndex(t => t.id === taskId);
     if (taskIndex === -1) return;
 
@@ -189,7 +189,7 @@ export const TaskModule = memo(({ onTasksUpdate }: { onTasksUpdate: (score: numb
 
     sound.playTick();
     haptics.triggerTick();
-  };
+  }, [tasks, updateData, sound, haptics]);
 
   useEffect(() => {
     if (tasks.length > 0) {
@@ -258,7 +258,7 @@ export const TaskModule = memo(({ onTasksUpdate }: { onTasksUpdate: (score: numb
     setNewObjective('');
   };
 
-  const updateTaskStatus = (id: string, status: Task['status']) => {
+  const updateTaskStatus = useCallback((id: string, status: Task['status']) => {
     const taskIndex = tasks.findIndex(t => t.id === id);
     if (taskIndex === -1) return;
 
@@ -288,11 +288,11 @@ export const TaskModule = memo(({ onTasksUpdate }: { onTasksUpdate: (score: numb
       sound.playTick();
       haptics.triggerTick();
     }
-  };
+  }, [tasks, updateData, sound, haptics]);
 
-  const deleteTask = (id: string) => {
+  const deleteTask = useCallback((id: string) => {
     updateData({ tasks: tasks.filter(t => t.id !== id) as Task[] });
-  };
+  }, [tasks, updateData]);
 
   const deleteObjective = (id: string) => {
     updateData({ objectives: objectives.filter(o => o.id !== id) as Objective[] });
@@ -306,7 +306,7 @@ export const TaskModule = memo(({ onTasksUpdate }: { onTasksUpdate: (score: numb
     }
   };
 
-  const handleEditSave = (updatedTask: Task) => {
+  const handleEditSave = useCallback((updatedTask: Task) => {
     const taskIndex = tasks.findIndex(t => t.id === editingTaskId);
     if (taskIndex !== -1) {
       const updatedTasks = [...tasks];
@@ -314,9 +314,9 @@ export const TaskModule = memo(({ onTasksUpdate }: { onTasksUpdate: (score: numb
       updateData({ tasks: updatedTasks });
     }
     setEditingTaskId(null);
-  };
+  }, [tasks, editingTaskId, updateData]);
 
-  const toggleObjectiveComplete = (id: string) => {
+  const toggleObjectiveComplete = useCallback((id: string) => {
     const stats = objectiveStats.get(id);
     const hasPending = stats ? stats.pendingCount > 0 : false;
     if (hasPending) {
@@ -347,11 +347,11 @@ export const TaskModule = memo(({ onTasksUpdate }: { onTasksUpdate: (score: numb
       sound.playTick();
       haptics.triggerTick();
     }
-  };
+  }, [objectiveStats, objectives, updateData]);
 
   const isTaskLate = (task: Task) => task.due_date && new Date() > new Date(task.due_date) && task.status !== 'done' && task.status !== 'skipped';
   const isTaskOverflowed = (task: Task) => task.estimated_time > 0 && task.actual_time > task.estimated_time;
-  const getTaskObjective = (task: Task) => (task.objective_id ? objectiveMap.get(task.objective_id) : undefined);
+  const getTaskObjective = useCallback((task: Task) => (task.objective_id ? objectiveMap.get(task.objective_id) : undefined), [objectiveMap]);
 
   return (
     <div className="space-y-4">
