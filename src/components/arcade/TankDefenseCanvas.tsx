@@ -133,13 +133,23 @@ export function TankDefenseCanvas({ accentColor = '#00f0ff' }: TankDefenseProps)
     });
 
     useEffect(() => {
-        setMutedState(loadMutedPreference());
+        let isMounted = true;
+        const isMuted = loadMutedPreference();
         const saved = localStorage.getItem('tank_defense_highscore');
-        if (saved) {
-            const val = parseInt(saved, 10);
-            setHighScore(val);
-            stateRef.current.highScore = val;
-        }
+        const hsVal = saved ? parseInt(saved, 10) : 0;
+
+        requestAnimationFrame(() => {
+             if (!isMounted) return;
+             setMutedState(isMuted);
+             if (saved) {
+                 setHighScore(hsVal);
+                 stateRef.current.highScore = hsVal;
+             }
+        });
+
+        return () => {
+            isMounted = false;
+        };
     }, []);
 
     const toggleMute = useCallback(() => {
@@ -424,10 +434,7 @@ export function TankDefenseCanvas({ accentColor = '#00f0ff' }: TankDefenseProps)
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
-        const loop = (time: number) => {
-            const dt = Math.min((time - lastTime) / 1000, 0.05);
-            lastTime = time;
-
+        const updateState = (dt: number) => {
             const s = stateRef.current;
 
             // Screen Shake
@@ -667,8 +674,16 @@ export function TankDefenseCanvas({ accentColor = '#00f0ff' }: TankDefenseProps)
                     localStorage.setItem('tank_defense_highscore', s.score.toString());
                 }
             }
+        };
 
-            // ── RENDER SCENE ────────────────────────────────────────────────
+        const loop = (time: number) => {
+            const dt = Math.min((time - lastTime) / 1000, 0.05);
+            lastTime = time;
+
+            updateState(dt);
+
+            const renderScene = (ctx: CanvasRenderingContext2D) => {
+            const s = stateRef.current;
             ctx.save();
             ctx.clearRect(0, 0, V_WIDTH, V_HEIGHT);
 
@@ -858,11 +873,17 @@ export function TankDefenseCanvas({ accentColor = '#00f0ff' }: TankDefenseProps)
             }
 
             ctx.restore();
-            animId = requestAnimationFrame(loop);
+        };
+
+        // ── RENDER SCENE ────────────────────────────────────────────────
+        renderScene(ctx);
+
+        animId = requestAnimationFrame(loop);
         };
 
         animId = requestAnimationFrame(loop);
         return () => cancelAnimationFrame(animId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [crtEnabled, spawnEnemy]);
 
     // Keyboard handlers
