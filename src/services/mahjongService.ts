@@ -25,13 +25,16 @@ export const MahjongService = {
         supabase: SupabaseClient = defaultSupabase
     ): Promise<void> {
         try {
-            await supabase.from('mahjong_scores').insert({
+            const { error } = await supabase.from('mahjong_scores').insert({
                 profile,
                 time_seconds: timeSeconds,
                 layout,
                 tile_count: tileCount,
                 highest_combo: highestCombo
             });
+            if (error) {
+                console.error('Failed to save mahjong score from supabase response:', error);
+            }
         } catch (e) {
             console.error('Failed to save mahjong score:', e);
         }
