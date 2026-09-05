@@ -343,4 +343,53 @@ test.describe('Wishlist API Route', () => {
             // will be restored in afterEach
         }
     });
+
+
+    test('state_transition: should update state and notify if shared (normal transition)', async () => {
+        const itemMock = { id: 'item1', title: 'Test Plan', shared: true, state: 'DISCOVERED' };
+
+        let notificationTarget, notificationType, notificationMsg;
+        let stateUpdatedTo;
+
+        const supabaseMock = {
+            from: (_table: string) => ({
+                select: (_cols: string) => ({
+                    eq: (_field: string, _val: unknown) => ({
+                        single: async () => ({ data: itemMock, error: null })
+                    })
+                })
+            })
+        };
+
+        setupMocks(
+            async () => true, // verifyAuth
+            supabaseMock,
+            async (itemId: string, nextState: string, _profile: string, _sb: unknown) => {
+                stateUpdatedTo = nextState;
+            },
+            null, null,
+            async (target: string, type: string, msg: string, _sb: unknown) => {
+                notificationTarget = target;
+                notificationType = type;
+                notificationMsg = msg;
+            }
+        );
+
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const { POST } = require('../../../../src/app/api/wishlist/route.ts');
+        const req = new Request('http://localhost/api/wishlist', {
+            method: 'POST',
+            body: JSON.stringify({ action: 'state_transition', itemId: 'item1', profile: 'el', nextState: 'SAVING' })
+        });
+
+        const res = await POST(req);
+        expect(res.status).toBe(200);
+        const data = await res.json();
+        expect(data).toEqual({ success: true });
+
+        expect(stateUpdatedTo).toBe('SAVING');
+        expect(notificationTarget).toBe('ella');
+        expect(notificationType).toBe('wishlist');
+        expect(notificationMsg).toContain('actualizó el plan "Test Plan" a estado');
+    });
 });
