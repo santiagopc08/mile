@@ -30,12 +30,11 @@ export async function GET(request: Request) {
             const parsedUrl = new URL(url);
             const parsedAllowedOrigin = new URL(allowedOrigin);
 
-            // Strict prefix check to prevent bypasses via URL parsing quirks
-            if (!url.startsWith(allowedOrigin + '/storage/v1/object/public/')) {
-                return new Response('Forbidden: URL not in allowlist', { status: 403 });
-            }
+            // Construct the canonical base URL
+            const allowedBaseUrl = new URL('/storage/v1/object/public/', parsedAllowedOrigin.origin).href;
 
-            if (parsedUrl.origin !== parsedAllowedOrigin.origin || !parsedUrl.pathname.startsWith('/storage/v1/object/public/')) {
+            // Use the parsed and normalized href for strict prefix validation
+            if (!parsedUrl.href.startsWith(allowedBaseUrl)) {
                 return new Response('Forbidden: URL not in allowlist', { status: 403 });
             }
         } catch (e) {
