@@ -286,4 +286,35 @@ test.describe('Auth Sync API', () => {
         const data = await res.json();
         expect(data).toEqual({ error: 'Internal Server Error' });
     });
+
+    test('should catch exceptions when creating server client and return 500', async () => {
+        setupMocks(undefined, async () => ({}));
+
+        const supabasePath = require.resolve('../../../../../src/lib/supabase-server.ts');
+        require.cache[supabasePath] = {
+            id: supabasePath,
+            filename: supabasePath,
+            loaded: true,
+            exports: {
+                createServerClient: () => {
+                    throw new Error('Supabase client creation failed');
+                }
+            }
+        } as any;
+
+        const { POST } = require('../../../../../src/app/api/auth/sync/route.ts');
+        const req = new Request('http://localhost:3000/api/auth/sync', {
+            method: 'POST',
+            headers: { 'authorization': 'Bearer valid_token' }
+        });
+
+        const originalError = console.error;
+        console.error = () => {};
+        const res = await POST(req);
+        console.error = originalError;
+
+        expect(res.status).toBe(500);
+        const data = await res.json();
+        expect(data).toEqual({ error: 'Internal Server Error' });
+    });
 });
