@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import { Plus, Image as ImageIcon } from 'lucide-react';
 import { useStore } from '@/context/StoreContext';
 import { useProfile } from '@/context/ProfileContext';
@@ -14,7 +14,8 @@ interface TimelineAddFormProps {
     setIsAdding: (adding: boolean) => void;
 }
 
-export function TimelineAddForm({ events, isAdding, setIsAdding }: TimelineAddFormProps) {
+// ⚡ Bolt Optimization: Wrap with React.memo to prevent unnecessary re-renders when parent state changes.
+export const TimelineAddForm = memo(function TimelineAddForm({ events, isAdding, setIsAdding }: TimelineAddFormProps) {
     const { updateData } = useStore();
     const { profile } = useProfile();
     const { error: notifyError } = useToast();
@@ -150,4 +151,4 @@ export function TimelineAddForm({ events, isAdding, setIsAdding }: TimelineAddFo
             </div>
         </form>
     );
-}
+});
