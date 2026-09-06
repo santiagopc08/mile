@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, memo } from 'react';
 import { Activity } from 'lucide-react';
 import {
     LineChart,
@@ -20,7 +20,8 @@ interface Props {
     entries: BloodPressureEntry[];
 }
 
-export const BloodPressureChart = ({ entries }: Props) => {
+// ⚡ Bolt Optimization: Wrap component in React.memo() to prevent unnecessary re-renders
+export const BloodPressureChart = memo(({ entries }: Props) => {
     const chartData = useMemo(() => {
         const data = [];
         for (let i = entries.length - 1; i >= 0; i--) {
@@ -113,4 +114,4 @@ export const BloodPressureChart = ({ entries }: Props) => {
             </div>
         </div>
     );
-};
+});
