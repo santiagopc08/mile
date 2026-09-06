@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   Activity,
@@ -189,9 +189,9 @@ export const DualWallet = ({
   const balanceTone = totalAvailable < 0 ? '#ffb4ab' : '#c3f400';
 
 
-  const deleteMovement = (id: string) => {
+  const deleteMovement = useCallback((id: string) => {
     onAllocationsChange(allocations.filter((movement) => movement.id !== id));
-  };
+  }, [allocations, onAllocationsChange]);
 
 
   return (
