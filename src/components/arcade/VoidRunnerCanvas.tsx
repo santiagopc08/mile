@@ -2,11 +2,7 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { VoidAudio, initArcadeAudio, loadMutedPreference, setMuted } from '@/lib/arcadeAudio';
-import { Volume2, VolumeX, RotateCcw, Play, Trophy, Shield, Zap, Sparkles, ChevronLeft, ChevronRight, Flame, Crosshair } from 'lucide-react';
-
-interface VoidRunnerProps {
-    accentColor?: string;
-}
+import { Volume2, VolumeX, ChevronLeft, ChevronRight, Flame, Crosshair } from 'lucide-react';
 
 const V_WIDTH = 1280;
 const V_HEIGHT = 720;
@@ -59,7 +55,13 @@ interface Particle {
     size: number;
 }
 
+interface VoidRunnerProps {
+    accentColor?: string;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function VoidRunnerCanvas({ accentColor = '#a855f7' }: VoidRunnerProps) {
+    // accentColor is exposed for ArcadeHub compatibility but currently unused in canvas drawing.
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const containerRef = useRef<HTMLDivElement | null>(null);
 
@@ -97,13 +99,20 @@ export function VoidRunnerCanvas({ accentColor = '#a855f7' }: VoidRunnerProps) {
         nextRockId: 1,
     });
 
+    const initializedRef = useRef(false);
+
     useEffect(() => {
-        setMutedState(loadMutedPreference());
-        const saved = localStorage.getItem('voidrunner_highscore');
-        if (saved) {
-            const val = parseInt(saved, 10);
-            setHighScore(val);
-            stateRef.current.highScore = val;
+        if (!initializedRef.current) {
+            initializedRef.current = true;
+            Promise.resolve().then(() => {
+                setMutedState(loadMutedPreference());
+                const saved = localStorage.getItem('voidrunner_highscore');
+                if (saved) {
+                    const val = parseInt(saved, 10);
+                    setHighScore(val);
+                    stateRef.current.highScore = val;
+                }
+            });
         }
     }, []);
 
@@ -143,7 +152,7 @@ export function VoidRunnerCanvas({ accentColor = '#a855f7' }: VoidRunnerProps) {
         };
     };
 
-    const spawnWave = (w: number) => {
+    const spawnWave = useCallback((w: number) => {
         const s = stateRef.current;
         s.wave = w;
         s.waveBanner = 2.0;
@@ -172,7 +181,7 @@ export function VoidRunnerCanvas({ accentColor = '#a855f7' }: VoidRunnerProps) {
         }
 
         s.rocks = newRocks;
-    };
+    }, []);
 
     const spawnParticles = (x: number, y: number, color: string, count = 16, speed = 220) => {
         for (let i = 0; i < count; i++) {
@@ -221,9 +230,9 @@ export function VoidRunnerCanvas({ accentColor = '#a855f7' }: VoidRunnerProps) {
         setGameState('playing');
 
         spawnWave(1);
-    }, []);
+    }, [spawnWave]);
 
-    const fireBullet = () => {
+    const fireBullet = useCallback(() => {
         const s = stateRef.current;
         if (s.fireCooldown > 0 || !s.ship.alive) return;
 
@@ -242,7 +251,7 @@ export function VoidRunnerCanvas({ accentColor = '#a855f7' }: VoidRunnerProps) {
 
         VoidAudio.laser();
         addShake(1.2);
-    };
+    }, []);
 
     // Main Game Loop
     useEffect(() => {
@@ -590,7 +599,7 @@ export function VoidRunnerCanvas({ accentColor = '#a855f7' }: VoidRunnerProps) {
 
         animId = requestAnimationFrame(loop);
         return () => cancelAnimationFrame(animId);
-    }, []);
+    }, [spawnWave, fireBullet]);
 
     // Keyboard controls
     useEffect(() => {
@@ -617,7 +626,7 @@ export function VoidRunnerCanvas({ accentColor = '#a855f7' }: VoidRunnerProps) {
             window.removeEventListener('keydown', handleKeyDown);
             window.removeEventListener('keyup', handleKeyUp);
         };
-    }, []);
+    }, [fireBullet]);
 
     return (
         <div
