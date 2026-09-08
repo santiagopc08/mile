@@ -559,7 +559,7 @@ export function VoidRunnerCanvas({ accentColor = '#a855f7' }: VoidRunnerProps) {
         bullets: [] as Bullet[],
         particles: [] as Particle[],
         score: 0,
-        highScore: 0,
+        highScore: typeof window !== 'undefined' ? parseInt(localStorage.getItem('voidrunner_highscore') || '0', 10) : 0,
         lives: 3,
         wave: 1,
         fireCooldown: 0,
@@ -574,7 +574,6 @@ export function VoidRunnerCanvas({ accentColor = '#a855f7' }: VoidRunnerProps) {
     useEffect(() => {
         stateRef.current.highScore = highScore;
     }, [highScore]);
-
     const toggleMute = useCallback(() => {
         const next = !mutedState;
         setMuted(next);
@@ -668,7 +667,7 @@ export function VoidRunnerCanvas({ accentColor = '#a855f7' }: VoidRunnerProps) {
             window.removeEventListener('keydown', handleKeyDown);
             window.removeEventListener('keyup', handleKeyUp);
         };
-    }, []);
+    }, [fireBullet]);
 
     return (
         <div

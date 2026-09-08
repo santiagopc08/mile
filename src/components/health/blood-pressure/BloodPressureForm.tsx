@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, memo } from 'react';
 import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, Plus } from 'lucide-react';
@@ -16,7 +16,8 @@ interface Props {
     onEntryAdded: () => Promise<void>;
 }
 
-export const BloodPressureForm = ({ selectedAuthor, setSelectedAuthor, entries, onEntryAdded }: Props) => {
+// ⚡ Bolt Optimization: Wrap component in React.memo() to prevent unnecessary re-renders
+export const BloodPressureForm = memo(({ selectedAuthor, setSelectedAuthor, entries, onEntryAdded }: Props) => {
     const authorColor = selectedAuthor === 'ella' ? '#ff4b89' : '#c3f400';
     const authorName = selectedAuthor === 'ella' ? 'MILENA' : 'SANTIAGO';
 
@@ -276,4 +277,4 @@ export const BloodPressureForm = ({ selectedAuthor, setSelectedAuthor, entries, 
             </form>
         </ChamferedPanel>
     );
-};
+});

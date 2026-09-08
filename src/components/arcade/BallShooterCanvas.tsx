@@ -741,9 +741,9 @@ export function BallShooterCanvas({ accentColor = '#00f0ff' }: BallShooterProps)
                 let rx = s.cannonPos.x;
                 let ry = s.cannonPos.y - 12;
                 let rvx = Math.cos(s.aimAngle) * speed;
-                let rvy = Math.sin(s.aimAngle) * speed;
+                const rvy = Math.sin(s.aimAngle) * speed;
 
-                let points: { x: number; y: number }[] = [{ x: rx, y: ry }];
+                const points: { x: number; y: number }[] = [{ x: rx, y: ry }];
 
                 // Calculate primary and reflected ray
                 for (let step = 0; step < 26; step++) {

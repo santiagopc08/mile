@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { useStore } from '@/context/StoreContext';
 import { useProfile } from '@/context/ProfileContext';
 import { Plus, Rss } from 'lucide-react';
@@ -144,7 +144,7 @@ export function WishlistModule() {
         resetForm(); setIsAdding(false); setEditingItem(null);
     };
 
-    const handleDelete = async (id: string) => {
+    const handleDelete = useCallback(async (id: string) => {
         const itemToDelete = items.find(i => i.id === id);
 
         // Borrado irreversible y, si el plan es compartido, también desaparece
@@ -185,7 +185,7 @@ export function WishlistModule() {
             await updateData({ wishlist: items });
         }
         success('Plan eliminado.');
-    };
+    }, [items, confirm, refreshData, notifyError, profile, supabase, updateData, success]);
 
     return (
         <div className="w-full space-y-4">

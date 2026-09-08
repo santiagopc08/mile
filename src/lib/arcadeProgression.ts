@@ -33,6 +33,8 @@ export interface DailyQuest {
     claimed: boolean;
 }
 
+export type ArcadeQuest = DailyQuest;
+
 export interface ArcadeProgressionState {
     coins: number;
     synergyXP: number;
@@ -225,7 +227,7 @@ export function loadArcadeProgression(): ArcadeProgressionState {
 
     try {
         const raw = localStorage.getItem(STORAGE_KEY);
-        let state: ArcadeProgressionState = raw ? JSON.parse(raw) : { ...DEFAULT_STATE };
+        const state: ArcadeProgressionState = raw ? JSON.parse(raw) : { ...DEFAULT_STATE };
 
         const today = getTodayString();
         if (state.lastQuestDate !== today || !state.dailyQuests || state.dailyQuests.length === 0) {

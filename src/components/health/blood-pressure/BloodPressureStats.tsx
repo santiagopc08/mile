@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, memo } from 'react';
 import { Activity, Heart } from 'lucide-react';
 import type { BloodPressureEntry } from './types';
 
@@ -6,7 +6,8 @@ interface Props {
     entries: BloodPressureEntry[];
 }
 
-export const BloodPressureStats = ({ entries }: Props) => {
+// ⚡ Bolt Optimization: Wrap component in React.memo() to prevent unnecessary re-renders
+export const BloodPressureStats = memo(({ entries }: Props) => {
     const stats = useMemo(() => {
         if (entries.length === 0) return null;
 
@@ -123,4 +124,4 @@ export const BloodPressureStats = ({ entries }: Props) => {
             </div>
         </div>
     );
-};
+});

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import { BadgeDollarSign, CalendarDays, FileText, Plus, Repeat2 } from 'lucide-react';
 import { sound } from '@/lib/sound';
 import { haptics } from '@/lib/haptics';
@@ -16,7 +16,7 @@ import {
   t
 } from './DualWalletShared';
 
-export const DualWalletForm = ({
+export const DualWalletForm = memo(({
   onAllocationsChange,
   allocations
 }: {
@@ -236,4 +236,4 @@ export const DualWalletForm = ({
       </div>
     </section>
   );
-};
+});

@@ -1,11 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
 import { useProfile } from '@/context/ProfileContext';
-import { NotificationService } from '@/services/notificationService';
-import { sound } from '@/lib/sound';
-import { haptics } from '@/lib/haptics';
 import { useToast } from '@/components/ui/Toast';
 
 
@@ -17,16 +12,8 @@ import { QuickLogForm } from './movement/QuickLogForm';
 import { ProgressAnalytics } from './movement/ProgressAnalytics';
 import { ActivityHistory } from './movement/ActivityHistory';
 
-import {
-    SessionCategory,
-    DifficultyLevel,
-    EnergyLevel,
-    CompletionStatus,
-    MobilityStatus,
-    MovementSession
-} from './movement/types';
-
-import { CATEGORY_LABELS, PRESETS_EL, PRESETS_ELLA, REACTION_CONFIG } from './movement/constants';
+import { REACTION_CONFIG, PRESETS_EL, PRESETS_ELLA } from './movement/constants';
+import { useMovementLog } from './movement/useMovementLog';
 
 export function MovementTracker() {
     const { profile } = useProfile();
@@ -46,8 +33,6 @@ export function MovementTracker() {
     } = useMovementData(profile);
 
     const {
-        activeElToday,
-        activeEllaToday,
         bothActiveToday,
         syncStreak,
         weeklyStats,
@@ -55,152 +40,14 @@ export function MovementTracker() {
         painAnalytics
     } = useMovementMetrics(sessions);
 
-    
-
-    
-    // Logging Form State
-    const [sessionType, setSessionType] = useState<SessionCategory>(isElla ? 'strength' : 'physical_therapy');
-    const [duration, setDuration] = useState<number | ''>(30);
-    const [difficulty, setDifficulty] = useState<DifficultyLevel>('medium');
-    const [energyLevel, setEnergyLevel] = useState<EnergyLevel>('medium');
-    const [completionStatus, setCompletionStatus] = useState<CompletionStatus>('completed');
-    const [notes, setNotes] = useState('');
-    
-    // Therapy-Specific Form State
-    const [painBefore, setPainBefore] = useState<number | ''>('');
-    const [painAfter, setPainAfter] = useState<number | ''>('');
-    const [fatigueLevel, setFatigueLevel] = useState<number | ''>('');
-    const [mobilityStatus, setMobilityStatus] = useState<MobilityStatus>('normal');
-    const [therapistNotes, setTherapistNotes] = useState('');
-    
-    const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
-    const [showTherapyFields, setShowTherapyFields] = useState(false);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-
-    // Dynamic Category Updates based on profile & selected session type
-    useEffect(() => {
-        const config = CATEGORY_LABELS[sessionType];
-        setShowTherapyFields(config ? config.isTherapy : false);
-    }, [sessionType]);
-
-    // Set default category on user toggle
-    useEffect(() => {
-        setSessionType(isElla ? 'strength' : 'physical_therapy');
-    }, [isElla]);
-
-
-
-
-
-
-    // Secure ID generator
-    const generateId = () => {
-        return crypto.randomUUID();
-    };
-
-    // Sincronización en tiempo real o almacenamiento local al guardar
-    const handleLogSession = async (e?: React.FormEvent) => {
-        if (e) e.preventDefault();
-        if (!duration || duration <= 0) return;
-        if (!profile) return;
-
-        setIsSubmitting(true);
-        const todayStr = new Date().toISOString().split('T')[0];
-
-        const sessionPayload: Omit<MovementSession, 'id' | 'reactions' | 'created_at'> = {
-            profile: profile as 'el' | 'ella',
-            date: todayStr,
-            session_type: sessionType,
-            duration: Number(duration),
-            difficulty,
-            energy_level: energyLevel,
-            notes: notes.trim() || undefined,
-            completion_status: completionStatus,
-            pain_before: showTherapyFields && painBefore !== '' ? Number(painBefore) : undefined,
-            pain_after: showTherapyFields && painAfter !== '' ? Number(painAfter) : undefined,
-            fatigue_level: showTherapyFields && fatigueLevel !== '' ? Number(fatigueLevel) : undefined,
-            mobility_status: showTherapyFields ? mobilityStatus : undefined,
-            therapist_notes: showTherapyFields && therapistNotes.trim() ? therapistNotes.trim() : undefined
-        };
-
-        let message = 'SESSION_LOGGED';
-        if (showTherapyFields) {
-            message = 'RECOVERY_PROGRESS_UPDATED';
-        } else if (completionStatus === 'completed' && Number(duration) >= 30) {
-            message = 'DAILY_TARGET_COMPLETED';
-        }
-
-        try {
-            if (!isUsingLocalStorage) {
-                const { error } = await supabase
-                    .from('movement_sessions')
-                    .insert({
-                        ...sessionPayload,
-                        reactions: []
-                    });
-                if (error) throw error;
-                await fetchSessions();
-            } else {
-                const local = localStorage.getItem('movement_sessions');
-                const existing = local ? JSON.parse(local) : [];
-                const newObj: MovementSession = {
-                    ...sessionPayload,
-                    id: generateId(),
-                    reactions: [],
-                    created_at: new Date().toISOString()
-                };
-                const updated = [newObj, ...existing];
-                localStorage.setItem('movement_sessions', JSON.stringify(updated));
-                setSessions(updated);
-            }
-
-            // Enviar notificación a la pareja
-            const partner = profile === 'el' ? 'ella' : 'el';
-            const whoName = profile === 'el' ? 'Él' : 'Ella';
-            const sessionName = CATEGORY_LABELS[sessionType]?.label || sessionType;
-            let noteMsg = `${whoName} completó una sesión de ${sessionName} (${duration} min)`;
-            if (completionStatus === 'recovery') {
-                noteMsg = `${whoName} registró un día de recuperación activa (${sessionName}, ${duration} min)`;
-            } else if (completionStatus === 'rest_day') {
-                noteMsg = `${whoName} registró un día de descanso operativo`;
-            }
-
-            NotificationService.addNotification(partner, 'movement', noteMsg).catch(err => {
-                console.error('Failed to trigger movement notification', err);
-            });
-
-            // Si la pareja también completó sesión hoy, enviar notificación de Sincronía
-            const hasPartnerLogged = sessions.some(s => s.profile === partner && s.date === todayStr && s.completion_status === 'completed');
-            if (hasPartnerLogged && completionStatus === 'completed') {
-                const syncMsg = `¡Sincronía de Movimiento Completada! Ambos están activos hoy.`;
-                NotificationService.addNotification(partner, 'movement_sync', syncMsg).catch(err => {
-                    console.error('Failed to trigger sync notification', err);
-                });
-            }
-
-            // Success feedback
-            sound.playSave();
-            haptics.triggerSave();
-            setFeedbackMessage(message);
-            setTimeout(() => setFeedbackMessage(null), 3000);
-
-            // Reset inputs
-            setDuration(30);
-            setNotes('');
-            setPainBefore('');
-            setPainAfter('');
-            setFatigueLevel('');
-            setTherapistNotes('');
-            setCompletionStatus('completed');
-        } catch (err) {
-            console.error('Failed to log movement session', err);
-            sound.playError();
-            haptics.triggerError();
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
+    const formProps = useMovementLog({
+        profile,
+        isElla,
+        isUsingLocalStorage,
+        sessions,
+        setSessions,
+        fetchSessions
+    });
 
     const handleDeleteSessionWrapper = async (id: string) => {
         const ok = await confirm({
@@ -215,27 +62,11 @@ export function MovementTracker() {
             success('Sesión eliminada.');
         } catch (err) {
             // Error handled in hook
+            console.error(err);
         }
     };
 
-    // Load Quick Preset
-    const applyPreset = (preset: typeof PRESETS_EL[0]) => {
-        setSessionType(preset.session_type);
-        setDuration(preset.duration);
-        setDifficulty(preset.difficulty);
-        setEnergyLevel(preset.energy_level);
-        setCompletionStatus(preset.completion_status);
-        setNotes(preset.notes || '');
-        if (preset.pain_before !== undefined) setPainBefore(preset.pain_before);
-        if (preset.pain_after !== undefined) setPainAfter(preset.pain_after);
-        if (preset.fatigue_level !== undefined) setFatigueLevel(preset.fatigue_level);
-        if (preset.mobility_status !== undefined) setMobilityStatus(preset.mobility_status);
-        if (preset.therapist_notes !== undefined) setTherapistNotes(preset.therapist_notes);
-    };
-
-
-
-// Helper to render chunked progress bars (Brutalist Chunked Progress)
+    // Helper to render chunked progress bars (Brutalist Chunked Progress)
     const renderChunkedBar = (percentage: number, color: string) => {
         const totalChunks = 10;
         const activeChunks = Math.round((percentage / 100) * totalChunks);
@@ -259,8 +90,6 @@ export function MovementTracker() {
         );
     };
 
-
-
     return (
         <div className="space-y-6 font-mono text-[#e5e2e1]">
             <SharedStatusHeader
@@ -271,7 +100,7 @@ export function MovementTracker() {
                 syncStreak={syncStreak}
                 weeklyStats={weeklyStats}
                 renderChunkedBar={renderChunkedBar}
-                feedbackMessage={feedbackMessage}
+                feedbackMessage={formProps.feedbackMessage}
             />
 
             <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-6 items-start">
@@ -282,32 +111,32 @@ export function MovementTracker() {
                     <QuickLogForm
                         isElla={isElla}
                         accentColor={accentColor}
-                        isSubmitting={isSubmitting}
-                        sessionType={sessionType}
-                        setSessionType={setSessionType}
-                        duration={duration}
-                        setDuration={setDuration}
-                        difficulty={difficulty}
-                        setDifficulty={setDifficulty}
-                        energyLevel={energyLevel}
-                        setEnergyLevel={setEnergyLevel}
-                        completionStatus={completionStatus}
-                        setCompletionStatus={setCompletionStatus}
-                        notes={notes}
-                        setNotes={setNotes}
-                        showTherapyFields={showTherapyFields}
-                        painBefore={painBefore}
-                        setPainBefore={setPainBefore}
-                        painAfter={painAfter}
-                        setPainAfter={setPainAfter}
-                        fatigueLevel={fatigueLevel}
-                        setFatigueLevel={setFatigueLevel}
-                        mobilityStatus={mobilityStatus}
-                        setMobilityStatus={setMobilityStatus}
-                        therapistNotes={therapistNotes}
-                        setTherapistNotes={setTherapistNotes}
-                        handleLogSession={handleLogSession}
-                        applyPreset={applyPreset}
+                        isSubmitting={formProps.isSubmitting}
+                        sessionType={formProps.sessionType}
+                        setSessionType={formProps.setSessionType}
+                        duration={formProps.duration}
+                        setDuration={formProps.setDuration}
+                        difficulty={formProps.difficulty}
+                        setDifficulty={formProps.setDifficulty}
+                        energyLevel={formProps.energyLevel}
+                        setEnergyLevel={formProps.setEnergyLevel}
+                        completionStatus={formProps.completionStatus}
+                        setCompletionStatus={formProps.setCompletionStatus}
+                        notes={formProps.notes}
+                        setNotes={formProps.setNotes}
+                        showTherapyFields={formProps.showTherapyFields}
+                        painBefore={formProps.painBefore}
+                        setPainBefore={formProps.setPainBefore}
+                        painAfter={formProps.painAfter}
+                        setPainAfter={formProps.setPainAfter}
+                        fatigueLevel={formProps.fatigueLevel}
+                        setFatigueLevel={formProps.setFatigueLevel}
+                        mobilityStatus={formProps.mobilityStatus}
+                        setMobilityStatus={formProps.setMobilityStatus}
+                        therapistNotes={formProps.therapistNotes}
+                        setTherapistNotes={formProps.setTherapistNotes}
+                        handleLogSession={formProps.handleLogSession}
+                        applyPreset={formProps.applyPreset}
                         presetsEl={PRESETS_EL}
                         presetsElla={PRESETS_ELLA}
                     />
