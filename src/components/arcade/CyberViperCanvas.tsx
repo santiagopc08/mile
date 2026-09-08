@@ -2,79 +2,17 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { ViperAudio, initArcadeAudio, loadMutedPreference, setMuted } from '@/lib/arcadeAudio';
-import { Volume2, VolumeX, Sparkles, Trophy, RotateCcw, Tv, Zap, Crown } from 'lucide-react';
 import { useArcadeProgression } from '@/hooks/useArcadeProgression';
-import { useArcadePhotos, StylizedMemory } from '@/hooks/useArcadePhotos';
+import { useArcadePhotos } from '@/hooks/useArcadePhotos';
 import { useProfile } from '@/context/ProfileContext';
+
+import { COLS, ROWS, CELL_SIZE, V_WIDTH, V_HEIGHT, COUPLE_SNACKS } from './cyber-viper/constants';
+import { Direction, Segment, Food, Particle, FloatingText, HoloFlash } from './cyber-viper/types';
+import { CyberViperHUD } from './cyber-viper/CyberViperHUD';
+import { CyberViperMenu } from './cyber-viper/CyberViperMenu';
 
 interface CyberViperProps {
     accentColor?: string;
-}
-
-const COLS = 40;
-const ROWS = 24;
-const CELL_SIZE = 26;
-const V_WIDTH = COLS * CELL_SIZE; // 1040
-const V_HEIGHT = ROWS * CELL_SIZE; // 624
-
-type Direction = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';
-type FoodType = 'standard' | 'golden' | 'speed' | 'multiplier';
-
-interface CoupleSnack {
-    name: string;
-    emoji: string;
-    type: FoodType;
-    points: number;
-    color: string;
-}
-
-const COUPLE_SNACKS: CoupleSnack[] = [
-    { name: 'Sushi de Salmón', emoji: '🍣', type: 'standard', points: 100, color: '#ff7043' },
-    { name: 'Matcha Latte', emoji: '🍵', type: 'standard', points: 120, color: '#4caf50' },
-    { name: 'Boba Tea', emoji: '🧋', type: 'multiplier', points: 200, color: '#a855f7' },
-    { name: 'Pizza de Pareja', emoji: '🍕', type: 'golden', points: 300, color: '#facc15' },
-    { name: 'Fresas con Crema', emoji: '🍓', type: 'speed', points: 150, color: '#ec4899' },
-    { name: 'Helado Artesanal', emoji: '🍦', type: 'standard', points: 110, color: '#38bdf8' },
-    { name: 'Hamburguesa Smash', emoji: '🍔', type: 'golden', points: 350, color: '#f59e0b' },
-    { name: 'Cafecito Especial', emoji: '☕', type: 'speed', points: 150, color: '#d97706' },
-];
-
-interface Segment {
-    x: number;
-    y: number;
-}
-
-interface Food {
-    x: number;
-    y: number;
-    snack: CoupleSnack;
-    pulse: number;
-}
-
-interface Particle {
-    x: number;
-    y: number;
-    vx: number;
-    vy: number;
-    radius: number;
-    color: string;
-    life: number;
-    maxLife: number;
-    alpha: number;
-}
-
-interface FloatingText {
-    x: number;
-    y: number;
-    text: string;
-    color: string;
-    life: number;
-}
-
-interface HoloFlash {
-    memory: StylizedMemory;
-    timer: number;
-    maxTimer: number;
 }
 
 export function CyberViperCanvas({ accentColor = '#22c55e' }: CyberViperProps) {
@@ -569,97 +507,23 @@ export function CyberViperCanvas({ accentColor = '#22c55e' }: CyberViperProps) {
                 className="absolute inset-0 h-full w-full block object-contain select-none cursor-pointer touch-none"
             />
 
-            {/* Top HUD */}
-            <div className="absolute top-3 left-3 right-3 z-20 flex items-center justify-between pointer-events-none gap-2">
-                <div className="flex items-center gap-2">
-                    {/* Score */}
-                    <div className="bg-black/85 border border-lime-500/50 px-3 py-1.5 rounded-lg shadow-[0_0_15px_rgba(34,197,94,0.3)] pointer-events-auto">
-                        <div className="text-[8px] uppercase tracking-widest text-lime-400 font-bold">SCORE</div>
-                        <div className="text-base sm:text-xl font-black text-white tabular-nums">{score}</div>
-                    </div>
+            <CyberViperHUD
+                score={score}
+                elBest={elBest}
+                ellaBest={ellaBest}
+                multiplier={multiplier}
+                crtEnabled={crtEnabled}
+                mutedState={mutedState}
+                onToggleCrt={() => setCrtEnabled(!crtEnabled)}
+                onToggleMute={toggleMute}
+            />
 
-                    {/* Head-to-head records badge */}
-                    <div className="hidden sm:flex items-center gap-2 bg-black/85 border border-white/20 px-3 py-1.5 rounded-lg pointer-events-auto text-[10px]">
-                        <div>
-                            <span className="text-lime-400 font-bold">ÉL: {elBest}</span> · <span className="text-pink-400 font-bold">ELLA: {ellaBest}</span>
-                        </div>
-                    </div>
-
-                    {/* Multiplier */}
-                    {multiplier > 1 && (
-                        <div className="bg-purple-500/20 border border-purple-400/60 px-2.5 py-1 rounded-lg animate-pulse pointer-events-auto">
-                            <span className="text-xs font-black text-purple-300">x{multiplier} MULTI 🔥</span>
-                        </div>
-                    )}
-                </div>
-
-                <div className="flex items-center gap-2 pointer-events-auto">
-                    <button
-                        onClick={() => setCrtEnabled(!crtEnabled)}
-                        className={`p-2 border rounded-lg transition-all ${crtEnabled ? 'border-lime-400 text-lime-400 bg-lime-950/60' : 'border-white/20 text-white/40 bg-black/80'}`}
-                        title="Filtro CRT"
-                    >
-                        <Tv className="w-4 h-4" />
-                    </button>
-
-                    <button
-                        onClick={toggleMute}
-                        className="p-2 bg-black/80 border border-white/20 rounded-lg text-white hover:bg-white/10 transition-all"
-                    >
-                        {mutedState ? <VolumeX className="w-4 h-4 text-white/50" /> : <Volume2 className="w-4 h-4 text-lime-400" />}
-                    </button>
-                </div>
-            </div>
-
-            {/* Menu / Game Over Modal */}
-            {gameState !== 'playing' && (
-                <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/85 backdrop-blur-md p-6 text-center font-mono">
-                    <div className="max-w-md w-full border border-lime-500/40 bg-slate-950/90 p-6 sm:p-8 rounded-3xl shadow-[0_0_40px_rgba(34,197,94,0.4)]">
-                        <div className="text-lime-400 text-xs font-bold uppercase tracking-[0.3em] mb-1">C++ Snack Viper 2088</div>
-                        <h2 className="text-3xl sm:text-4xl font-black text-white uppercase tracking-wider mb-3">
-                            {gameState === 'gameover' ? '💀 IMPACTO EN LA MATRIZ' : 'CYBER VIPER 🐍'}
-                        </h2>
-
-                        <p className="text-xs text-white/70 mb-4 leading-relaxed">
-                            {gameState === 'gameover'
-                                ? `Tu puntuación final fue de ${score} puntos.`
-                                : 'Devora los antojitos y comidas favoritas de la pareja (sushi 🍣, matcha 🍵, boba 🧋, pizza 🍕). Desbloquea transmisiones de recuerdos con cada banquete.'}
-                        </p>
-
-                        {/* Record Results Banner */}
-                        {lastRecordResult && (
-                            <div className="mb-4 space-y-1.5 text-xs">
-                                {lastRecordResult.isNewCoupleRecord && (
-                                    <div className="p-2 rounded-xl bg-amber-500/20 border border-amber-400 text-amber-300 font-black flex items-center justify-center gap-1.5 animate-bounce">
-                                        <Crown className="w-4 h-4 text-amber-400" />
-                                        <span>¡NUEVO RÉCORD DE PAREJA! 👑</span>
-                                    </div>
-                                )}
-                                <div className="text-amber-300 font-bold">
-                                    +{lastRecordResult.coinsEarned} Monedas de Sinergia ganadas 🪙
-                                </div>
-                            </div>
-                        )}
-
-                        <button
-                            onClick={startNewGame}
-                            className="w-full py-4 bg-gradient-to-r from-lime-400 to-emerald-500 text-black font-black uppercase text-base tracking-widest rounded-xl hover:scale-105 active:scale-95 transition-all shadow-[0_0_25px_rgba(34,197,94,0.6)] flex items-center justify-center gap-2"
-                        >
-                            {gameState === 'gameover' ? (
-                                <>
-                                    <RotateCcw className="w-5 h-5" />
-                                    <span>JUGAR DE NUEVO 🔄</span>
-                                </>
-                            ) : (
-                                <>
-                                    <Sparkles className="w-5 h-5" />
-                                    <span>INICIAR BANQUETE 🕹️</span>
-                                </>
-                            )}
-                        </button>
-                    </div>
-                </div>
-            )}
+            <CyberViperMenu
+                gameState={gameState}
+                score={score}
+                lastRecordResult={lastRecordResult}
+                onStartGame={startNewGame}
+            />
         </div>
     );
 }

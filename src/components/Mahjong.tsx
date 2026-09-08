@@ -54,6 +54,8 @@ import { HardeningBadges } from "./mahjong/HardeningBadges";
 
 import { useToast } from '@/components/ui/Toast';
 import { useFireStreak } from './mahjong/hooks/useFireStreak';
+import { useMahjongActions } from './mahjong/hooks/useMahjongActions';
+
 import { ComboSign } from './mahjong/ComboSign';
 
 
@@ -117,6 +119,7 @@ export function Mahjong() {
     useEffect(() => {
         setMaxGameCombo(prev => Math.max(prev, hookMaxGameCombo));
     }, [hookMaxGameCombo]);
+
 
     // Sincronizar clase de pantalla completa en body/html para ocultar AppNav en móviles
     useEffect(() => {
@@ -1115,6 +1118,38 @@ export function Mahjong() {
         return { freeTilesMap: freeMap, tilesById: idMap, dockTilesByValue };
     }, [tiles, dockIds]);
 
+    const { handleRestart, handleUndo, handleHint } = useMahjongActions({
+        dockIds,
+        setDockIds,
+        tiles,
+        setTiles,
+        undoStack,
+        setUndoStack,
+        setMatchedCount,
+        setTimerActive,
+        setGameLost,
+        setLostReason,
+        freeTilesMap,
+        tilesById,
+        timerRef: timerRef as React.RefObject<{ resetTime: () => void } | null>,
+        resetFireStreak,
+        initialDeal,
+        ghostElapsedRef,
+        setGhostSolidIds,
+        matchCountSinceSmokeRef: matchCountSinceSmoke,
+        bombTickRef,
+        ghostTickRef,
+        smokeTimerRef,
+        setMaxGameCombo,
+        setIsReturningFlipped,
+        setScoreSaved,
+        setIsNewRecord,
+        gameMode,
+        activeCoopGame,
+        coopTurn,
+        MahjongService
+    });
+
 
     const handleTilePointerDown = useCallback((id: string) => {
         if (isProcessingRef.current || gameLost || isReturningFlipped) return;
@@ -1339,103 +1374,6 @@ export function Mahjong() {
             }
         }
     }, [tilesById, gameLost, dockIds, tiles, freeTilesMap, timerActive, matchedCount, eventDetailsMap, gameMode, activeCoopGame, coopTurn, profile, pendingReceivedBottle, isReturningFlipped, resetFireStreak]);
-
-    const handleRestart = () => {
-        if (initialDeal) {
-            setTiles([...initialDeal]);
-            setMatchedCount(0);
-            setUndoStack([]);
-            setDockIds([]);
-            resetFireStreak();
-            
-            // Reset hardening timers
-            ghostElapsedRef.current = 0;
-            setGhostSolidIds(new Set());
-            matchCountSinceSmoke.current = 0;
-            if (bombTickRef.current) clearInterval(bombTickRef.current);
-            if (ghostTickRef.current) clearInterval(ghostTickRef.current);
-            if (smokeTimerRef.current) clearTimeout(smokeTimerRef.current);
-
-            setMaxGameCombo(0);
-            setGameLost(false);
-            setLostReason(null);
-            setIsReturningFlipped(false);
-            setTimerActive(false);
-            timerRef.current?.resetTime();
-            setScoreSaved(false);
-            setIsNewRecord(false);
-
-            if (gameMode === 'coop' && activeCoopGame) {
-                MahjongService.updateCoopGame(activeCoopGame.id, initialDeal, [], coopTurn);
-            }
-        }
-    };
-
-    const handleUndo = () => {
-        if (undoStack.length === 0) return;
-        const lastMove = undoStack[undoStack.length - 1];
-        setUndoStack(prev => prev.slice(0, prev.length - 1));
-        let updatedTiles = tiles;
-        let updatedDock = dockIds;
-        if (lastMove.length === 2) {
-            const [id1, id2] = lastMove;
-            updatedTiles = tiles.map(t =>
-                (t.id === id1 || t.id === id2) ? { ...t, isMatched: false, isSelected: false } : t
-            );
-            setTiles(updatedTiles);
-            setMatchedCount(mc => mc - 2);
-        } else {
-            const [id] = lastMove;
-            updatedDock = dockIds.filter(did => did !== id);
-            setDockIds(updatedDock);
-            setGameLost(false);
-        }
-
-        if (gameMode === 'coop' && activeCoopGame) {
-            MahjongService.updateCoopGame(activeCoopGame.id, updatedTiles, updatedDock, coopTurn);
-        }
-    };
-
-    const handleHint = useCallback(() => {
-        // ⚡ Bolt Optimization: Use O(1) Set lookup instead of O(M) Array.includes inside an O(N) filter to prevent O(N*M) complexity
-        const dockIdsSet = new Set(dockIds);
-        const freeOnBoard = tiles.filter(t => !t.isMatched && !dockIdsSet.has(t.id) && freeTilesMap.get(t.id));
-        const seenValues = new Map<string, string>();
-        for (const tile of freeOnBoard) {
-            const value = tile.content.value;
-            if (seenValues.has(value)) {
-                const id1 = seenValues.get(value)!;
-                const id2 = tile.id;
-                setTiles(prev => prev.map(t => (t.id === id1 || t.id === id2) ? { ...t, isHinted: true } : t));
-                setTimeout(() => {
-                    setTiles(prev => prev.map(t => (t.id === id1 || t.id === id2) ? { ...t, isHinted: false } : t));
-                }, 2000);
-                return;
-            }
-            seenValues.set(value, tile.id);
-        }
-
-        // ⚡ Bolt Optimization: Replace O(N*M) nested loop find with O(N+M) Map lookup for hints
-        const freeTilesByValue = new Map();
-        for (const t of freeOnBoard) {
-            if (!freeTilesByValue.has(t.content.value)) {
-                freeTilesByValue.set(t.content.value, t);
-            }
-        }
-
-        for (const dId of dockIds) {
-            const dockTile = tilesById.get(dId);
-            if (!dockTile) continue;
-            const match = freeTilesByValue.get(dockTile.content.value);
-            if (match) {
-                setTiles(prev => prev.map(t => t.id === match.id ? { ...t, isHinted: true } : t));
-                setTimeout(() => {
-                    setTiles(prev => prev.map(t => t.id === match.id ? { ...t, isHinted: false } : t));
-                }, 2000);
-                return;
-            }
-        }
-    }, [tiles, dockIds, freeTilesMap, tilesById]);
 
     const getBestForProfile = (p: 'el' | 'ella') => {
         const scores = leaderboard[p];

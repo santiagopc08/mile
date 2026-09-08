@@ -290,4 +290,53 @@ test.describe('verifyAuth', () => {
         const result = await verifyAuth();
         expect(result).toBe(false);
     });
+
+    test('valid bearer token with custom ALLOWED_EMAILS env var returns true', async () => {
+        const originalEnv = process.env.ALLOWED_EMAILS;
+        process.env.ALLOWED_EMAILS = 'custom@test.com';
+
+        setupMocks(
+            { 'authorization': 'Bearer valid_token' },
+            {},
+            async (token) => {
+                expect(token).toBe('valid_token');
+                return { data: { user: { email: 'custom@test.com' } }, error: null };
+            },
+            async () => ({ data: null, error: new Error('not found') })
+        );
+
+        const { verifyAuth } = require('../../../src/lib/auth.ts');
+        const result = await verifyAuth();
+        expect(result).toBe(true);
+
+        process.env.ALLOWED_EMAILS = originalEnv;
+    });
+
+    test('valid bearer token with uppercase email returns true (case-insensitive)', async () => {
+        setupMocks(
+            { 'authorization': 'Bearer valid_token' },
+            {},
+            async (token) => {
+                expect(token).toBe('valid_token');
+                return { data: { user: { email: 'EL@MILE.APP' } }, error: null };
+            },
+            async () => ({ data: null, error: new Error('not found') })
+        );
+
+        const { verifyAuth } = require('../../../src/lib/auth.ts');
+        const result = await verifyAuth();
+        expect(result).toBe(true);
+    });
+
+    test('secureCompare throws exception for different length tokens and returns false', async () => {
+        setupMocks(
+            {},
+            { 'mile_device_token': 'short_token' },
+            async () => ({}),
+            async () => ({ data: { id: 'some-id', token: 'a_much_longer_token_that_causes_length_mismatch' }, error: null })
+        );
+        const { verifyAuth } = require('../../../src/lib/auth.ts');
+        const result = await verifyAuth();
+        expect(result).toBe(false);
+    });
 });

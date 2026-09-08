@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getPressureCategory } from './utils';
 import { POSITION_LABELS } from './types';
@@ -10,7 +11,8 @@ interface Props {
     entries: BloodPressureEntry[];
 }
 
-export const BloodPressureHistory = ({ entries }: Props) => {
+// ⚡ Bolt Optimization: Wrap component in React.memo() to prevent unnecessary re-renders
+export const BloodPressureHistory = memo(({ entries }: Props) => {
     return (
         <div className="space-y-1.5 max-h-[380px] overflow-y-auto custom-scrollbar pr-1">
             <div className="flex items-center justify-between pb-1.5 border-b border-white/10 mb-1.5">
@@ -107,4 +109,4 @@ export const BloodPressureHistory = ({ entries }: Props) => {
             </AnimatePresence>
         </div>
     );
-};
+});

@@ -1,0 +1,11 @@
+1. Use the `run_in_bash_session` tool to create `src/components/arcade/tank-defense/types.ts` and populate it with the TypeScript interfaces (`Tank`, `Bullet`, `PowerUp`, `Particle`, `FloatingText`, `TileType`, `Direction`, `EnemyType`, `PowerUpType`, and `TankGameState`).
+2. Use the `run_in_bash_session` tool with `cat` to verify the creation and content of `src/components/arcade/tank-defense/types.ts`.
+3. Use the `run_in_bash_session` tool to create `src/components/arcade/tank-defense/constants.ts` and populate it with the constants (`MAP_COLS`, `MAP_ROWS`, `TILE_SIZE`, `V_WIDTH`, `V_HEIGHT`, `BOARD_X`, `BOARD_Y`, `DIR_VECTORS`).
+4. Use the `run_in_bash_session` tool with `cat` to verify the creation and content of `src/components/arcade/tank-defense/constants.ts`.
+5. Use the `run_in_bash_session` tool to create `src/components/arcade/tank-defense/renderer.ts` and populate it with the pure rendering function `renderGameScene(ctx, s, crtEnabled)`.
+6. Use the `run_in_bash_session` tool with `cat` to verify the creation and content of `src/components/arcade/tank-defense/renderer.ts`.
+7. Use the `run_in_bash_session` tool to modify `src/components/arcade/TankDefenseCanvas.tsx`. This includes updating imports to bring in types, constants, and the `renderGameScene` function, removing the old constant/type declarations, and replacing the rendering logic inside the game loop with a call to `renderGameScene`.
+8. Use the `run_in_bash_session` tool with `cat` to verify the modifications to `src/components/arcade/TankDefenseCanvas.tsx`.
+9. Use the `run_in_bash_session` tool to run lint checks (`npm run lint`), type checks (`npm run typecheck`), and the test suite (`npx playwright test && npx vitest run tests/`) to ensure no functionality is broken.
+10. Complete pre-commit steps to ensure proper testing, verification, review, and reflection are done.
+11. Call the `plan_step_complete` tool to submit the changes, formatting the PR message as requested by the Code Health agent guidelines.
