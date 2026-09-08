@@ -25,8 +25,13 @@ export function useArcadeProgression() {
     useEffect(() => {
         refresh();
 
-        const handleUpdate = () => {
-            refresh();
+        const handleUpdate = (e: Event) => {
+            const custom = e as CustomEvent<ArcadeProgressionState>;
+            if (custom.detail) {
+                setProgression(custom.detail);
+            } else {
+                refresh();
+            }
         };
 
         window.addEventListener('mile_arcade_progression_changed', handleUpdate);

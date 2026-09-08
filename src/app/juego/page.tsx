@@ -151,6 +151,16 @@ const NeonStrikerCanvas = dynamic(
   }
 );
 
+const DogsVsMonstersCanvas = dynamic(
+  () => import("@/components/arcade/dogs-vs-monsters/DogsVsMonstersCanvas").then((m) => m.DogsVsMonstersCanvas),
+  {
+    loading: () => (
+      <BrutalistSkeleton label="Cargando Dogs vs Monsters (Patio Defense)" className="h-[550px] w-full rounded-3xl" />
+    ),
+    ssr: false,
+  }
+);
+
 export default function JuegoPage() {
   const { profile } = useProfile();
   const { memories } = useArcadePhotos();
@@ -207,8 +217,10 @@ export default function JuegoPage() {
               <SupplementShooterCanvas accentColor={accentColor} />
             ) : activeTab === 'pacman' ? (
               <PacmanCanvas accentColor={accentColor} />
-            ) : (
+            ) : activeTab === 'neonstriker' ? (
               <NeonStrikerCanvas accentColor={accentColor} />
+            ) : (
+              <DogsVsMonstersCanvas />
             )}
           </section>
 
