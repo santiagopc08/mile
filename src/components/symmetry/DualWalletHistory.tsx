@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Trash2 } from 'lucide-react';
 import { FinancialMovement, TYPE_META, normalizeCategory, formatCOP, t } from './DualWalletShared';
 
-export const DualWalletHistory = ({
+export const DualWalletHistory = memo(({
   movements,
   deleteMovement,
 }: {
@@ -72,4 +72,4 @@ export const DualWalletHistory = ({
       </div>
     </section>
   );
-};
+});

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { Wallet } from 'lucide-react';
 import { AnimatedBrutalistCorners } from '@/components/ui/AnimatedBrutalistCorners';
 import { MetricCell, formatCOP } from './DualWalletShared';
@@ -13,7 +13,7 @@ interface DualWalletMetricsProps {
   accentHex: string;
 }
 
-export const DualWalletMetrics = ({
+export const DualWalletMetrics = memo(({
   totalAvailable,
   incomeThisMonth,
   expensesThisMonth,
@@ -51,4 +51,4 @@ export const DualWalletMetrics = ({
       </div>
     </section>
   );
-};
+});

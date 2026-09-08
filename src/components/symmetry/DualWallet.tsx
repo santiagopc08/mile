@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { useProfile } from '@/context/ProfileContext';
 import { FinancialMovement, BudgetCategory, DEFAULT_BUDGETS, BUDGET_CATEGORIES, normalizeCategory, inferType, signedAmount, isThisMonth, isWithinDays } from './DualWalletShared';
 import { DualWalletForm } from './DualWalletForm';
@@ -180,9 +180,9 @@ export const DualWallet = ({
   const balanceTone = totalAvailable < 0 ? '#ffb4ab' : '#c3f400';
 
 
-  const deleteMovement = (id: string) => {
+  const deleteMovement = useCallback((id: string) => {
     onAllocationsChange(allocations.filter((movement) => movement.id !== id));
-  };
+  }, [allocations, onAllocationsChange]);
 
 
   return (
