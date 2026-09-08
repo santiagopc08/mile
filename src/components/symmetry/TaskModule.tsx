@@ -317,7 +317,7 @@ export const TaskModule = memo(({ onTasksUpdate }: { onTasksUpdate: (score: numb
     setEditingTaskId(null);
   }, [tasks, editingTaskId, updateData]);
 
-  const toggleObjectiveComplete = (id: string) => {
+  const toggleObjectiveComplete = useCallback((id: string) => {
     const stats = objectiveStats.get(id);
     const hasPending = stats ? stats.pendingCount > 0 : false;
     if (hasPending) {
@@ -348,7 +348,7 @@ export const TaskModule = memo(({ onTasksUpdate }: { onTasksUpdate: (score: numb
       sound.playTick();
       haptics.triggerTick();
     }
-  };
+  }, [objectiveStats, objectives, updateData]);
 
   const isTaskLate = (task: Task) => task.due_date && new Date() > new Date(task.due_date) && task.status !== 'done' && task.status !== 'skipped';
   const isTaskOverflowed = (task: Task) => task.estimated_time > 0 && task.actual_time > task.estimated_time;
