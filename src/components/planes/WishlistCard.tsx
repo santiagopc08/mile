@@ -18,6 +18,7 @@ interface WishlistCardProps {
 
 import { ChamferedPanel } from '@/components/ui/ChamferedPanel';
 
+// ⚡ Bolt Optimization: Wrap with React.memo to prevent unnecessary re-renders of the list items when parent state changes.
 export const WishlistCard = memo(function WishlistCard({ item, profile, onRefresh, onEdit, onDelete }: WishlistCardProps) {
     const [showContrib, setShowContrib] = useState(false);
     const [contribAmount, setContribAmount] = useState('');
