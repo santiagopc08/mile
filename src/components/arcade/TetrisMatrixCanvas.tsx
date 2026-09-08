@@ -20,6 +20,7 @@ export function TetrisMatrixCanvas({ accentColor = '#00f0ff' }: TetrisMatrixProp
     const {
         stateRef,
         score,
+        setScore,
         highScore,
         lines,
         level,

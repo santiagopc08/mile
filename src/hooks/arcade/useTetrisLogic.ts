@@ -24,8 +24,7 @@ export function useTetrisLogic() {
     const [gameState, setGameState] = useState<'menu' | 'playing' | 'gameover'>('menu');
     const [mutedState, setMutedState] = useState(false);
     const [crtEnabled, setCrtEnabled] = useState(true);
-    const [lastRecordResult,
-        setLastRecordResult, setLastRecordResult] = useState<{ isNewPersonalBest: boolean; isNewCoupleRecord: boolean; coinsEarned: number } | null>(null);
+    const [lastRecordResult, setLastRecordResult] = useState<{ isNewPersonalBest: boolean; isNewCoupleRecord: boolean; coinsEarned: number } | null>(null);
 
     const stateRef = useRef({
         grid: Array.from({ length: ROWS }, () => Array(COLS).fill(null as TetrominoType | null)),
@@ -371,6 +370,7 @@ export function useTetrisLogic() {
         setLastRecordResult,
         stateRef,
         score,
+        setScore,
         highScore,
         lines,
         level,
