@@ -13,7 +13,11 @@
 ## 2025-02-28 - [Memoize List Item Rendering]
 **Learning:** In functional components rendering long lists (like `Timeline` and `NotificationsFeed`), components mapped over arrays re-render completely every time a parent state changes (e.g. `isAdding` or `activeEventId`). In this specific codebase, missing `React.memo` on list item components that perform expensive tag iterations and rendering causes measurable UI blocking.
 **Action:** Always wrap complex list item components (`export const ComponentName = memo(function ComponentName(...)`) when extracting them to ensure they only re-render when their specific props change.
-
 ## 2024-11-20 - [Stabilize useCallback for memoized React list components]
 **Learning:** Even if `React.memo` is used on list items (like `TaskItem` and `TaskCard`), it won't prevent unnecessary re-renders if the callback props passed to it from the parent component are redefined on every render. Functions like `onDelete`, `onSave`, and `toggleTask` were not wrapped in `useCallback` in parent components, causing child memoization to break because the function references changed each render.
 **Action:** Always wrap event handler callbacks in `useCallback` when passing them down to components wrapped in `React.memo()`. This ensures that referential equality is maintained across renders, making the memoization effective.
+
+## 2023-11-20 - [Performance] O(N) loops vs array method chains
+**Learning:** When replacing `.map().join('str')` with a manual loop and string concatenation (`+= 'str'`), the loop inherently adds a trailing delimiter to the final string, whereas `.join()` only places delimiters between elements. While this trailing delimiter often doesn't matter for hash/state-dependency variables, it alters the exact string format.
+**Action:** Be mindful of trailing delimiters when converting `.map().join()` chains to loops, and explicitly check if strict string equality or exact format is required by downstream consumers.
+

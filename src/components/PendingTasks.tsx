@@ -41,6 +41,7 @@ export function PendingTasks() {
         setIsAdding(false);
     };
 
+    // ⚡ Bolt Optimization: Memoize callback to prevent React.memo bypass on TaskItem when parent renders
     const handleSaveTask = useCallback(async (id: string, newText: string, newPriority: 'low' | 'medium' | 'high') => {
         const index = tasks.findIndex(t => t.id === id);
         if (index === -1) return;
@@ -49,6 +50,7 @@ export function PendingTasks() {
         await updateData({ tasks: updated });
     }, [tasks, updateData]);
 
+    // ⚡ Bolt Optimization: Memoize callback to prevent React.memo bypass on TaskItem when parent renders
     const toggleTask = useCallback(async (task: Task) => {
         const newStatus: TaskStatus = task.status === 'done' ? 'todo' : 'done';
         const index = tasks.findIndex(t => t.id === task.id);
@@ -58,6 +60,7 @@ export function PendingTasks() {
         await updateData({ tasks: updated });
     }, [tasks, updateData]);
 
+    // ⚡ Bolt Optimization: Memoize callback to prevent React.memo bypass on TaskItem when parent renders
     const deleteTask = useCallback(async (id: string, e: React.MouseEvent) => {
         e.stopPropagation();
         const task = tasks.find((t) => t.id === id);
@@ -71,7 +74,7 @@ export function PendingTasks() {
 
         const updated = tasks.filter((t) => t.id !== id);
         await updateData({ tasks: updated });
-    }, [tasks, updateData, confirm]);
+    }, [tasks, confirm, updateData]);
 
     return (
         <div className="w-full h-full flex flex-col">

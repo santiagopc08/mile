@@ -170,6 +170,7 @@ export const TaskModule = memo(({ onTasksUpdate }: { onTasksUpdate: (score: numb
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
 
+  // ⚡ Bolt Optimization: Stabilize callbacks passed to memoized TaskCard to prevent unnecessary list re-renders
   const toggleChecklistInCard = useCallback((taskId: string, listType: 'actions' | 'validations', itemId: string) => {
     const taskIndex = tasks.findIndex(t => t.id === taskId);
     if (taskIndex === -1) return;
@@ -189,7 +190,7 @@ export const TaskModule = memo(({ onTasksUpdate }: { onTasksUpdate: (score: numb
 
     sound.playTick();
     haptics.triggerTick();
-  }, [tasks, updateData, sound, haptics]);
+  }, [tasks, updateData]);
 
   useEffect(() => {
     if (tasks.length > 0) {
@@ -288,7 +289,7 @@ export const TaskModule = memo(({ onTasksUpdate }: { onTasksUpdate: (score: numb
       sound.playTick();
       haptics.triggerTick();
     }
-  }, [tasks, updateData, sound, haptics]);
+  }, [tasks, updateData]);
 
   const deleteTask = useCallback((id: string) => {
     updateData({ tasks: tasks.filter(t => t.id !== id) as Task[] });
