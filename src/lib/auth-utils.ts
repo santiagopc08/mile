@@ -17,7 +17,7 @@ export async function verifyServerSession() {
     }
 
     // Quick validation format if UUID is expected
-    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(token.value)) {
+    if (!/^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|[0-9a-f]{64})$/i.test(token.value)) {
         return false;
     }
 

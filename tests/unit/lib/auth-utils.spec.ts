@@ -161,4 +161,38 @@ test.describe('verifyServerSession', () => {
         const result = await verifyServerSession();
         expect(result).toBe(false);
     });
+
+    test('valid 64-character hex token matched in database returns true', async () => {
+        setupMocks(
+            { 'mile_device_token': 'a'.repeat(64) },
+            async () => ({ data: { id: 'some-id', token: 'a'.repeat(64) }, error: null })
+        );
+
+        const { verifyServerSession } = require('../../../src/lib/auth-utils.ts');
+        const result = await verifyServerSession();
+        expect(result).toBe(true);
+    });
+
+    test('invalid hex token returns false', async () => {
+        setupMocks(
+            { 'mile_device_token': 'a'.repeat(63) + 'g' },
+            async () => ({ data: { id: 'some-id', token: 'a'.repeat(64) }, error: null })
+        );
+
+        const { verifyServerSession } = require('../../../src/lib/auth-utils.ts');
+        const result = await verifyServerSession();
+        expect(result).toBe(false);
+    });
+
+    test('uppercase valid 64-character hex token matched in database returns true', async () => {
+        setupMocks(
+            { 'mile_device_token': 'A'.repeat(64) },
+            async () => ({ data: { id: 'some-id', token: 'A'.repeat(64) }, error: null })
+        );
+
+        const { verifyServerSession } = require('../../../src/lib/auth-utils.ts');
+        const result = await verifyServerSession();
+        expect(result).toBe(true);
+    });
+
 });
