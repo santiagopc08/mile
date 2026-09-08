@@ -176,49 +176,128 @@ const PATTERN_TEMPLATES: PatternDef[] = [
 ];
 
 
-// Extract type from stateRef to pass into renderScene
-type GameState = ReturnType<typeof getInitialState>;
-
-// Helper to infer the type
-function getInitialState() {
-    return {
-        grid: Array.from({ length: ROWS }, () => Array(COLS).fill(0)),
-        playerCol: 4,
-        playerVisualX: BOARD_X + 4.5 * CELL_SIZE,
-        projectiles: [] as BlockProjectile[],
-        clearingRects: [] as ClearingRect[],
-        particles: [] as Particle[],
-        floatingTexts: [] as FloatingText[],
-        holoFlash: null as HoloFlash | null,
-        descendAccumulator: 0,
-        descendStepTime: 2.4,
-        descendVisualOffset: 0,
-        rowsSinceLastSpawn: 0,
-        shootCooldown: 0,
-        laserBombs: 3,
-        score: 0,
-        highScore: 0,
-        stage: 1,
-        blocksCleared: 0,
-        combo: 0,
-        comboTimer: 0,
-        shakeIntensity: 0,
-        shakeTime: 0,
-        gameState: 'ready' as 'ready' | 'playing' | 'gameover',
-        keysHeld: new Set<string>(),
-        isDragging: false,
-    };
+export interface SupplementShooterState {
+    grid: number[][];
+    playerCol: number;
+    playerVisualX: number;
+    projectiles: BlockProjectile[];
+    clearingRects: ClearingRect[];
+    particles: Particle[];
+    floatingTexts: FloatingText[];
+    holoFlash: HoloFlash | null;
+    descendAccumulator: number;
+    descendStepTime: number;
+    descendVisualOffset: number;
+    rowsSinceLastSpawn: number;
+    shootCooldown: number;
+    laserBombs: number;
+    score: number;
+    highScore: number;
+    stage: number;
+    blocksCleared: number;
+    combo: number;
+    comboTimer: number;
+    shakeIntensity: number;
+    shakeTime: number;
+    gameState: 'ready' | 'playing' | 'gameover';
+    keysHeld: Set<string>;
+    isDragging: boolean;
 }
 
-// Extracted Render Function
-const renderScene = (
+
+function findBestQuarthRectangle(grid: number[][], ROWS: number, COLS: number): { r1: number; c1: number; r2: number; c2: number; area: number; colorId: number } | null {
+    let bestRect: { r1: number; c1: number; r2: number; c2: number; area: number; colorId: number } | null = null;
+    // Search all possible bounding boxes from largest area down to 2x2
+    for (let h = 7; h >= 2; h--) {
+        for (let w = 7; w >= 2; w--) {
+            for (let r1 = 0; r1 <= ROWS - h; r1++) {
+                const r2 = r1 + h - 1;
+                for (let c1 = 0; c1 <= COLS - w; c1++) {
+                    const c2 = c1 + w - 1;
+
+                    // 1. Check if all cells inside the rectangle are solid (non-zero)
+                    let isSolid = true;
+                    let firstColor = 0;
+                    for (let r = r1; r <= r2; r++) {
+                        for (let c = c1; c <= c2; c++) {
+                            const val = grid[r][c];
+                            if (val === 0) {
+                                isSolid = false;
+                                break;
+                            }
+                            if (firstColor === 0) firstColor = val;
+                        }
+                        if (!isSolid) break;
+                    }
+
+                    if (!isSolid) continue;
+
+                    // 2. Check Boundary Isolation: Ensure NO connected blocks stick out
+                    // Top edge: row above must be empty
+                    let isolated = true;
+                    if (r1 > 0) {
+                        for (let c = c1; c <= c2; c++) {
+                            if (grid[r1 - 1][c] !== 0) {
+                                isolated = false;
+                                break;
+                            }
+                        }
+                    }
+                    if (!isolated) continue;
+
+                    // Bottom edge: row below must be empty
+                    if (r2 < ROWS - 1) {
+                        for (let c = c1; c <= c2; c++) {
+                            if (grid[r2 + 1][c] !== 0) {
+                                isolated = false;
+                                break;
+                            }
+                        }
+                    }
+                    if (!isolated) continue;
+
+                    // Left edge: column to the left must be empty
+                    if (c1 > 0) {
+                        for (let r = r1; r <= r2; r++) {
+                            if (grid[r][c1 - 1] !== 0) {
+                                isolated = false;
+                                break;
+                            }
+                        }
+                    }
+                    if (!isolated) continue;
+
+                    // Right edge: column to the right must be empty
+                    if (c2 < COLS - 1) {
+                        for (let r = r1; r <= r2; r++) {
+                            if (grid[r][c2 + 1] !== 0) {
+                                isolated = false;
+                                break;
+                            }
+                        }
+                    }
+                    if (!isolated) continue;
+
+                    // If solid and perfectly isolated, this is a completed Quarth rectangle!
+                    const area = w * h;
+                    if (!bestRect || area > bestRect.area) {
+                        bestRect = { r1, c1, r2, c2, area, colorId: firstColor };
+                    }
+                }
+            }
+        }
+    }
+    return bestRect;
+}
+
+
+function renderScene(
     ctx: CanvasRenderingContext2D,
-    s: GameState,
-    time: number,
-    profileAccent: string,
-    crtEnabled: boolean
-) => {
-    // ── RENDER 60 FPS SCENE ──────────────────────────────────────────
+    s: SupplementShooterState,
+    options: { time: number; profileAccent: string; crtEnabled: boolean }
+) {
+    const { time, profileAccent, crtEnabled } = options;
+
     ctx.save();
     ctx.clearRect(0, 0, V_WIDTH, V_HEIGHT);
 
@@ -458,7 +537,8 @@ const renderScene = (
     }
 
     ctx.restore();
-};
+}
+
 export function SupplementShooterCanvas({ accentColor = '#00f0ff' }: SupplementShooterProps) {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const containerRef = useRef<HTMLDivElement | null>(null);
@@ -481,17 +561,38 @@ export function SupplementShooterCanvas({ accentColor = '#00f0ff' }: SupplementS
     const [crtEnabled, setCrtEnabled] = useState(true);
     const [lastRecordResult, setLastRecordResult] = useState<{ isNewPersonalBest: boolean; isNewCoupleRecord: boolean; coinsEarned: number } | null>(null);
 
-    const stateRef = useRef<GameState>(getInitialState());
+    const stateRef = useRef<SupplementShooterState>({
+        grid: Array.from({ length: ROWS }, () => Array(COLS).fill(0)),
+        playerCol: 4,
+        playerVisualX: BOARD_X + 4.5 * CELL_SIZE,
+        projectiles: [] as BlockProjectile[],
+        clearingRects: [] as ClearingRect[],
+        particles: [] as Particle[],
+        floatingTexts: [] as FloatingText[],
+        holoFlash: null as HoloFlash | null,
+        // Smooth descent variables
+        descendAccumulator: 0,
+        descendStepTime: 2.4, // Seconds per 1-row descent (decreases with stage)
+        descendVisualOffset: 0, // 0 to CELL_SIZE (smooth sub-pixel scroll)
+        rowsSinceLastSpawn: 0,
+        shootCooldown: 0,
+        laserBombs: 3,
+        score: 0,
+        highScore: 0,
+        stage: 1,
+        blocksCleared: 0,
+        combo: 0,
+        comboTimer: 0,
+        shakeIntensity: 0,
+        shakeTime: 0,
+        gameState: 'ready' as 'ready' | 'playing' | 'gameover',
+        keysHeld: new Set<string>(),
+        isDragging: false,
+    });
 
     useEffect(() => {
-        // Run once on mount to get initial settings
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         setMutedState(loadMutedPreference());
-    }, []);
-
-    useEffect(() => {
         const activePb = profile === 'ella' ? ellaBest : elBest;
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         setHighScore(activePb);
         stateRef.current.highScore = activePb;
     }, [profile, elBest, ellaBest]);
@@ -580,88 +681,7 @@ export function SupplementShooterCanvas({ accentColor = '#00f0ff' }: SupplementS
         let anyCleared = false;
 
         while (true) {
-            let bestRect: { r1: number; c1: number; r2: number; c2: number; area: number; colorId: number } | null = null;
-
-            // Search all possible bounding boxes from largest area down to 2x2
-            for (let h = 7; h >= 2; h--) {
-                for (let w = 7; w >= 2; w--) {
-                    for (let r1 = 0; r1 <= ROWS - h; r1++) {
-                        const r2 = r1 + h - 1;
-                        for (let c1 = 0; c1 <= COLS - w; c1++) {
-                            const c2 = c1 + w - 1;
-
-                            // 1. Check if all cells inside the rectangle are solid (non-zero)
-                            let isSolid = true;
-                            let firstColor = 0;
-                            for (let r = r1; r <= r2; r++) {
-                                for (let c = c1; c <= c2; c++) {
-                                    const val = s.grid[r][c];
-                                    if (val === 0) {
-                                        isSolid = false;
-                                        break;
-                                    }
-                                    if (firstColor === 0) firstColor = val;
-                                }
-                                if (!isSolid) break;
-                            }
-
-                            if (!isSolid) continue;
-
-                            // 2. Check Boundary Isolation: Ensure NO connected blocks stick out
-                            // Top edge: row above must be empty
-                            let isolated = true;
-                            if (r1 > 0) {
-                                for (let c = c1; c <= c2; c++) {
-                                    if (s.grid[r1 - 1][c] !== 0) {
-                                        isolated = false;
-                                        break;
-                                    }
-                                }
-                            }
-                            if (!isolated) continue;
-
-                            // Bottom edge: row below must be empty
-                            if (r2 < ROWS - 1) {
-                                for (let c = c1; c <= c2; c++) {
-                                    if (s.grid[r2 + 1][c] !== 0) {
-                                        isolated = false;
-                                        break;
-                                    }
-                                }
-                            }
-                            if (!isolated) continue;
-
-                            // Left edge: column to the left must be empty
-                            if (c1 > 0) {
-                                for (let r = r1; r <= r2; r++) {
-                                    if (s.grid[r][c1 - 1] !== 0) {
-                                        isolated = false;
-                                        break;
-                                    }
-                                }
-                            }
-                            if (!isolated) continue;
-
-                            // Right edge: column to the right must be empty
-                            if (c2 < COLS - 1) {
-                                for (let r = r1; r <= r2; r++) {
-                                    if (s.grid[r][c2 + 1] !== 0) {
-                                        isolated = false;
-                                        break;
-                                    }
-                                }
-                            }
-                            if (!isolated) continue;
-
-                            // If solid and perfectly isolated, this is a completed Quarth rectangle!
-                            const area = w * h;
-                            if (!bestRect || area > bestRect.area) {
-                                bestRect = { r1, c1, r2, c2, area, colorId: firstColor };
-                            }
-                        }
-                    }
-                }
-            }
+            let bestRect = findBestQuarthRectangle(s.grid, ROWS, COLS);
 
             if (!bestRect) break;
 
@@ -1031,13 +1051,13 @@ export function SupplementShooterCanvas({ accentColor = '#00f0ff' }: SupplementS
                 }
             }
 
-            renderScene(ctx, s, time, profileAccent, crtEnabled);
+            // ── RENDER 60 FPS SCENE ──────────────────────────────────────────
+            renderScene(ctx, s, { time, profileAccent, crtEnabled });
             animId = requestAnimationFrame(loop);
         };
 
         animId = requestAnimationFrame(loop);
         return () => cancelAnimationFrame(animId);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [crtEnabled, checkQuarthRectangles, spawnPatternAtCeiling, profileAccent]);
 
     // Keyboard handlers
