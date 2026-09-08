@@ -20,9 +20,10 @@ const BOARD_Y = 65;
 
 const HOME_COLS = [1, 4, 7, 10, 13];
 
-type ObstacleType = 'car' | 'truck' | 'racer' | 'logSmall' | 'logMed' | 'logLarge' | 'turtles';
 
-interface Obstacle {
+export type ObstacleType = 'car' | 'truck' | 'racer' | 'logSmall' | 'logMed' | 'logLarge' | 'turtles';
+
+export interface Obstacle {
     id: string;
     x: number;
     y: number;
@@ -35,7 +36,7 @@ interface Obstacle {
     isWaterRide: boolean;
 }
 
-interface Particle {
+export interface Particle {
     x: number;
     y: number;
     vx: number;
@@ -47,13 +48,362 @@ interface Particle {
     alpha: number;
 }
 
-interface FloatingText {
+export interface FloatingText {
     x: number;
     y: number;
     text: string;
     color: string;
     life: number;
 }
+
+export interface GameState {
+    playerCol: number;
+    playerRow: number;
+    playerVisualX: number;
+    playerVisualY: number;
+    hopProgress: number;
+    score: number;
+    highScore: number;
+    stage: number;
+    lives: number;
+    timeRemaining: number;
+    homesFilled: boolean[];
+    flyBayIndex: number;
+    flyTimer: number;
+    obstacles: Obstacle[];
+    particles: Particle[];
+    floatingTexts: FloatingText[];
+    shakeIntensity: number;
+    shakeTime: number;
+    gameState: 'ready' | 'playing' | 'gameover';
+    touchStart: { x: number; y: number } | null;
+}
+
+export function createObstaclesForStage(stageNum: number, BOARD_X: number, BOARD_Y: number, CELL_SIZE: number): Obstacle[] {
+    const obstacles: Obstacle[] = [];
+    const spdMult = 1.0 + (stageNum - 1) * 0.15;
+
+    for (let i = 0; i < 3; i++) {
+        obstacles.push({ id: crypto.randomUUID(), x: BOARD_X + i * 220, y: BOARD_Y + 11 * CELL_SIZE + 5, w: 52, h: 32, speed: 70 * spdMult, row: 11, type: 'car', color: '#f59e0b', isWaterRide: false });
+    }
+    for (let i = 0; i < 3; i++) {
+        obstacles.push({ id: crypto.randomUUID(), x: BOARD_X + i * 240, y: BOARD_Y + 10 * CELL_SIZE + 5, w: 48, h: 32, speed: -130 * spdMult, row: 10, type: 'racer', color: '#ec4899', isWaterRide: false });
+    }
+    for (let i = 0; i < 3; i++) {
+        obstacles.push({ id: crypto.randomUUID(), x: BOARD_X + i * 210, y: BOARD_Y + 9 * CELL_SIZE + 5, w: 56, h: 32, speed: 85 * spdMult, row: 9, type: 'car', color: '#22c55e', isWaterRide: false });
+    }
+    for (let i = 0; i < 2; i++) {
+        obstacles.push({ id: crypto.randomUUID(), x: BOARD_X + i * 320, y: BOARD_Y + 8 * CELL_SIZE + 5, w: 50, h: 32, speed: -160 * spdMult, row: 8, type: 'racer', color: '#00f0ff', isWaterRide: false });
+    }
+    for (let i = 0; i < 2; i++) {
+        obstacles.push({ id: crypto.randomUUID(), x: BOARD_X + i * 340, y: BOARD_Y + 7 * CELL_SIZE + 5, w: 94, h: 32, speed: 65 * spdMult, row: 7, type: 'truck', color: '#60a5fa', isWaterRide: false });
+    }
+    for (let i = 0; i < 3; i++) {
+        obstacles.push({ id: crypto.randomUUID(), x: BOARD_X + i * 240, y: BOARD_Y + 5 * CELL_SIZE + 4, w: 110, h: 34, speed: 80 * spdMult, row: 5, type: 'logMed', color: '#92400e', isWaterRide: true });
+    }
+    for (let i = 0; i < 4; i++) {
+        obstacles.push({ id: crypto.randomUUID(), x: BOARD_X + i * 190, y: BOARD_Y + 4 * CELL_SIZE + 4, w: 80, h: 34, speed: -90 * spdMult, row: 4, type: 'turtles', color: '#10b981', isWaterRide: true });
+    }
+    for (let i = 0; i < 2; i++) {
+        obstacles.push({ id: crypto.randomUUID(), x: BOARD_X + i * 360, y: BOARD_Y + 3 * CELL_SIZE + 4, w: 170, h: 34, speed: 110 * spdMult, row: 3, type: 'logLarge', color: '#92400e', isWaterRide: true });
+    }
+    for (let i = 0; i < 3; i++) {
+        obstacles.push({ id: crypto.randomUUID(), x: BOARD_X + i * 220, y: BOARD_Y + 2 * CELL_SIZE + 4, w: 85, h: 34, speed: 65 * spdMult, row: 2, type: 'logSmall', color: '#92400e', isWaterRide: true });
+    }
+    for (let i = 0; i < 3; i++) {
+        obstacles.push({ id: crypto.randomUUID(), x: BOARD_X + i * 230, y: BOARD_Y + 1 * CELL_SIZE + 4, w: 95, h: 34, speed: -100 * spdMult, row: 1, type: 'turtles', color: '#10b981', isWaterRide: true });
+    }
+
+    return obstacles;
+}
+
+export function updateGame(
+    s: GameState,
+    dt: number,
+    callbacks: { setTimeRemaining: (v: number) => void; killPlayer: (r: 'water' | 'car' | 'timeout' | 'miss') => void; setHighScore: (v: number) => void; },
+    BOARD_X: number,
+    BOARD_W: number,
+    CELL_SIZE: number
+) {
+    const { setTimeRemaining, killPlayer, setHighScore } = callbacks;
+
+    if (s.shakeTime > 0) {
+        s.shakeTime -= dt;
+        if (s.shakeTime <= 0) s.shakeIntensity = 0;
+    }
+
+    s.particles.forEach(pt => {
+        pt.x += pt.vx * dt;
+        pt.y += pt.vy * dt;
+        pt.life -= dt;
+        pt.alpha = Math.max(0, pt.life / pt.maxLife);
+    });
+    s.particles = s.particles.filter(pt => pt.life > 0);
+
+    s.floatingTexts.forEach(ft => {
+        ft.y -= 30 * dt;
+        ft.life -= dt;
+    });
+    s.floatingTexts = s.floatingTexts.filter(ft => ft.life > 0);
+
+    if (s.gameState === 'playing') {
+        s.timeRemaining -= dt;
+        setTimeRemaining(Math.max(0, Math.ceil(s.timeRemaining)));
+        if (s.timeRemaining <= 0) {
+            killPlayer('timeout');
+        }
+
+        s.flyTimer -= dt;
+        if (s.flyTimer <= 0) {
+            s.flyTimer = 6.0 + Math.random() * 6.0;
+            s.flyBayIndex = Math.floor(Math.random() * 5);
+            if (s.homesFilled[s.flyBayIndex]) s.flyBayIndex = -1;
+        }
+
+        const wrapLeft = BOARD_X - 180;
+        const wrapRight = BOARD_X + BOARD_W + 180;
+
+        for (const obs of s.obstacles) {
+            obs.x += obs.speed * dt;
+            if (obs.speed > 0 && obs.x > wrapRight) {
+                obs.x = wrapLeft - obs.w;
+            } else if (obs.speed < 0 && obs.x < wrapLeft - obs.w) {
+                obs.x = wrapRight;
+            }
+        }
+
+        const frogX = s.playerVisualX;
+
+        if (s.playerRow >= 7 && s.playerRow <= 11) {
+            for (const obs of s.obstacles) {
+                if (obs.row === s.playerRow) {
+                    if (frogX >= obs.x - 12 && frogX <= obs.x + obs.w + 12) {
+                        killPlayer('car');
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (s.playerRow >= 1 && s.playerRow <= 5) {
+            let onRide = false;
+            let rideSpeed = 0;
+
+            for (const obs of s.obstacles) {
+                if (obs.row === s.playerRow && obs.isWaterRide) {
+                    if (frogX >= obs.x - 8 && frogX <= obs.x + obs.w + 8) {
+                        onRide = true;
+                        rideSpeed = obs.speed;
+                        break;
+                    }
+                }
+            }
+
+            if (onRide) {
+                s.playerVisualX += rideSpeed * dt;
+                s.playerCol = Math.round((s.playerVisualX - BOARD_X) / CELL_SIZE - 0.5);
+                if (s.playerVisualX < BOARD_X - 12 || s.playerVisualX > BOARD_X + BOARD_W + 12) {
+                    killPlayer('water');
+                }
+            } else {
+                killPlayer('water');
+            }
+        }
+
+        if (s.score > s.highScore) {
+            s.highScore = s.score;
+            setHighScore(s.score);
+            localStorage.setItem('cyber_frogger_highscore', s.score.toString());
+        }
+    }
+}
+
+export function renderScene(
+    ctx: CanvasRenderingContext2D,
+    s: GameState,
+    crtEnabled: boolean,
+    BOARD_X: number,
+    BOARD_Y: number,
+    BOARD_W: number,
+    BOARD_H: number,
+    CELL_SIZE: number,
+    V_WIDTH: number,
+    V_HEIGHT: number,
+    HOME_COLS: number[]
+) {
+    ctx.save();
+    ctx.clearRect(0, 0, V_WIDTH, V_HEIGHT);
+
+    if (s.shakeIntensity > 0) {
+        const ox = (Math.random() * 2 - 1) * s.shakeIntensity;
+        const oy = (Math.random() * 2 - 1) * s.shakeIntensity;
+        ctx.translate(ox, oy);
+    }
+
+    ctx.fillStyle = '#060814';
+    ctx.fillRect(0, 0, V_WIDTH, V_HEIGHT);
+
+    const waterGrad = ctx.createLinearGradient(0, BOARD_Y, 0, BOARD_Y + 6 * CELL_SIZE);
+    waterGrad.addColorStop(0, '#0c2340');
+    waterGrad.addColorStop(1, '#0284c7');
+    ctx.fillStyle = waterGrad;
+    ctx.fillRect(BOARD_X, BOARD_Y, BOARD_W, 6 * CELL_SIZE);
+
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+    ctx.lineWidth = 1;
+    for (let r = 1; r <= 5; r++) {
+        const ry = BOARD_Y + r * CELL_SIZE;
+        ctx.beginPath();
+        ctx.moveTo(BOARD_X, ry);
+        ctx.lineTo(BOARD_X + BOARD_W, ry);
+        ctx.stroke();
+    }
+
+    ctx.fillStyle = '#14532d';
+    ctx.fillRect(BOARD_X, BOARD_Y + 6 * CELL_SIZE, BOARD_W, CELL_SIZE);
+
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(BOARD_X, BOARD_Y + 7 * CELL_SIZE, BOARD_W, 5 * CELL_SIZE);
+
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+    ctx.setLineDash([12, 12]);
+    for (let r = 8; r <= 11; r++) {
+        const ry = BOARD_Y + r * CELL_SIZE;
+        ctx.beginPath();
+        ctx.moveTo(BOARD_X, ry);
+        ctx.lineTo(BOARD_X + BOARD_W, ry);
+        ctx.stroke();
+    }
+    ctx.setLineDash([]);
+
+    ctx.fillStyle = '#14532d';
+    ctx.fillRect(BOARD_X, BOARD_Y + 12 * CELL_SIZE, BOARD_W, CELL_SIZE);
+
+    ctx.strokeStyle = '#00f0ff';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(BOARD_X - 1, BOARD_Y - 1, BOARD_W + 2, BOARD_H + 2);
+
+    for (let i = 0; i < HOME_COLS.length; i++) {
+        const bx = BOARD_X + HOME_COLS[i] * CELL_SIZE;
+        const by = BOARD_Y;
+
+        if (s.homesFilled[i]) {
+            ctx.fillStyle = '#22c55e';
+            ctx.shadowColor = '#22c55e';
+            ctx.shadowBlur = 10;
+            ctx.fillRect(bx + 4, by + 4, CELL_SIZE - 8, CELL_SIZE - 8);
+            ctx.fillStyle = '#000000';
+            ctx.font = 'bold 16px monospace';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('🐸', bx + CELL_SIZE / 2, by + CELL_SIZE / 2);
+            ctx.shadowBlur = 0;
+        } else {
+            ctx.fillStyle = '#064e3b';
+            ctx.fillRect(bx + 4, by + 4, CELL_SIZE - 8, CELL_SIZE - 8);
+            if (s.flyBayIndex === i) {
+                ctx.fillStyle = '#facc15';
+                ctx.shadowColor = '#facc15';
+                ctx.shadowBlur = 8;
+                ctx.font = 'bold 14px monospace';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('🪰', bx + CELL_SIZE / 2, by + CELL_SIZE / 2);
+                ctx.shadowBlur = 0;
+            }
+        }
+    }
+
+    s.obstacles.forEach(obs => {
+        ctx.save();
+        if (obs.isWaterRide) {
+            if (obs.type === 'turtles') {
+                ctx.fillStyle = '#059669';
+                ctx.shadowColor = '#10b981';
+                ctx.shadowBlur = 6;
+                ctx.beginPath();
+                ctx.roundRect(obs.x, obs.y, obs.w, obs.h, 10);
+                ctx.fill();
+
+                ctx.fillStyle = '#34d399';
+                ctx.fillRect(obs.x + 6, obs.y + 6, obs.w - 12, obs.h - 12);
+            } else {
+                ctx.fillStyle = '#78350f';
+                ctx.shadowColor = '#92400e';
+                ctx.shadowBlur = 6;
+                ctx.beginPath();
+                ctx.roundRect(obs.x, obs.y, obs.w, obs.h, 8);
+                ctx.fill();
+
+                ctx.fillStyle = '#b45309';
+                ctx.fillRect(obs.x + 4, obs.y + 4, obs.w - 8, 4);
+            }
+        } else {
+            ctx.fillStyle = obs.color;
+            ctx.shadowColor = obs.color;
+            ctx.shadowBlur = 8;
+            ctx.beginPath();
+            ctx.roundRect(obs.x, obs.y, obs.w, obs.h, 6);
+            ctx.fill();
+
+            ctx.fillStyle = 'rgba(0,0,0,0.6)';
+            ctx.fillRect(obs.x + obs.w * 0.25, obs.y + 4, obs.w * 0.5, obs.h - 8);
+        }
+        ctx.restore();
+    });
+
+    if (s.gameState !== 'gameover') {
+        ctx.save();
+        const fx = s.playerVisualX;
+        const fy = s.playerVisualY;
+        ctx.fillStyle = '#22c55e';
+        ctx.shadowColor = '#22c55e';
+        ctx.shadowBlur = 12;
+        ctx.beginPath();
+        ctx.arc(fx, fy, 13, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#000000';
+        ctx.beginPath();
+        ctx.arc(fx - 6, fy - 6, 3, 0, Math.PI * 2);
+        ctx.arc(fx + 6, fy - 6, 3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+    }
+
+    s.particles.forEach(pt => {
+        ctx.save();
+        ctx.globalAlpha = pt.alpha;
+        ctx.fillStyle = pt.color;
+        ctx.shadowColor = pt.color;
+        ctx.shadowBlur = 6;
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, pt.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+    });
+
+    s.floatingTexts.forEach(ft => {
+        ctx.save();
+        ctx.font = 'bold 13px monospace';
+        ctx.fillStyle = ft.color;
+        ctx.shadowColor = ft.color;
+        ctx.shadowBlur = 6;
+        ctx.textAlign = 'center';
+        ctx.fillText(ft.text, ft.x, ft.y);
+        ctx.restore();
+    });
+
+    if (crtEnabled) {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.16)';
+        for (let y = 0; y < V_HEIGHT; y += 4) {
+            ctx.fillRect(0, y, V_WIDTH, 1.5);
+        }
+    }
+
+    ctx.restore();
+}
+
 
 export function CyberFroggerCanvas({ accentColor = '#00f0ff' }: CyberFroggerProps) {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -143,7 +493,6 @@ export function CyberFroggerCanvas({ accentColor = '#00f0ff' }: CyberFroggerProp
         s.playerVisualX = BOARD_X + 7.5 * CELL_SIZE;
         s.playerVisualY = BOARD_Y + 12.5 * CELL_SIZE;
         s.timeRemaining = 45;
-        s.obstacles = [];
         s.particles = [];
         s.flyBayIndex = -1;
         s.flyTimer = 6.0;
@@ -151,161 +500,7 @@ export function CyberFroggerCanvas({ accentColor = '#00f0ff' }: CyberFroggerProp
         setTimeRemaining(45);
         setStage(stageNum);
 
-        const spdMult = 1.0 + (stageNum - 1) * 0.15;
-
-        // ── Road Obstacles (Rows 7 - 11) ────────────────────────────────────
-        // Row 11: Sedans (Right ->)
-        for (let i = 0; i < 3; i++) {
-            s.obstacles.push({
-                id: crypto.randomUUID(),
-                x: BOARD_X + i * 220,
-                y: BOARD_Y + 11 * CELL_SIZE + 5,
-                w: 52,
-                h: 32,
-                speed: 70 * spdMult,
-                row: 11,
-                type: 'car',
-                color: '#f59e0b',
-                isWaterRide: false,
-            });
-        }
-        // Row 10: Fast Racers (Left <-)
-        for (let i = 0; i < 3; i++) {
-            s.obstacles.push({
-                id: crypto.randomUUID(),
-                x: BOARD_X + i * 240,
-                y: BOARD_Y + 10 * CELL_SIZE + 5,
-                w: 48,
-                h: 32,
-                speed: -130 * spdMult,
-                row: 10,
-                type: 'racer',
-                color: '#ec4899',
-                isWaterRide: false,
-            });
-        }
-        // Row 9: Bulldozers (Right ->)
-        for (let i = 0; i < 3; i++) {
-            s.obstacles.push({
-                id: crypto.randomUUID(),
-                x: BOARD_X + i * 210,
-                y: BOARD_Y + 9 * CELL_SIZE + 5,
-                w: 56,
-                h: 32,
-                speed: 85 * spdMult,
-                row: 9,
-                type: 'car',
-                color: '#22c55e',
-                isWaterRide: false,
-            });
-        }
-        // Row 8: Speedy Racers (Left <-)
-        for (let i = 0; i < 2; i++) {
-            s.obstacles.push({
-                id: crypto.randomUUID(),
-                x: BOARD_X + i * 320,
-                y: BOARD_Y + 8 * CELL_SIZE + 5,
-                w: 50,
-                h: 32,
-                speed: -160 * spdMult,
-                row: 8,
-                type: 'racer',
-                color: '#00f0ff',
-                isWaterRide: false,
-            });
-        }
-        // Row 7: Freight Trucks (Right ->)
-        for (let i = 0; i < 2; i++) {
-            s.obstacles.push({
-                id: crypto.randomUUID(),
-                x: BOARD_X + i * 340,
-                y: BOARD_Y + 7 * CELL_SIZE + 5,
-                w: 94,
-                h: 32,
-                speed: 65 * spdMult,
-                row: 7,
-                type: 'truck',
-                color: '#60a5fa',
-                isWaterRide: false,
-            });
-        }
-
-        // ── River Logs & Turtles (Rows 1 - 5) ───────────────────────────────
-        // Row 5: Medium Logs (Right ->)
-        for (let i = 0; i < 3; i++) {
-            s.obstacles.push({
-                id: crypto.randomUUID(),
-                x: BOARD_X + i * 240,
-                y: BOARD_Y + 5 * CELL_SIZE + 4,
-                w: 110,
-                h: 34,
-                speed: 80 * spdMult,
-                row: 5,
-                type: 'logMed',
-                color: '#92400e',
-                isWaterRide: true,
-            });
-        }
-        // Row 4: Turtles (Left <-)
-        for (let i = 0; i < 4; i++) {
-            s.obstacles.push({
-                id: crypto.randomUUID(),
-                x: BOARD_X + i * 190,
-                y: BOARD_Y + 4 * CELL_SIZE + 4,
-                w: 80,
-                h: 34,
-                speed: -90 * spdMult,
-                row: 4,
-                type: 'turtles',
-                color: '#10b981',
-                isWaterRide: true,
-            });
-        }
-        // Row 3: Large Logs (Right ->)
-        for (let i = 0; i < 2; i++) {
-            s.obstacles.push({
-                id: crypto.randomUUID(),
-                x: BOARD_X + i * 360,
-                y: BOARD_Y + 3 * CELL_SIZE + 4,
-                w: 170,
-                h: 34,
-                speed: 110 * spdMult,
-                row: 3,
-                type: 'logLarge',
-                color: '#92400e',
-                isWaterRide: true,
-            });
-        }
-        // Row 2: Small Logs (Right ->)
-        for (let i = 0; i < 3; i++) {
-            s.obstacles.push({
-                id: crypto.randomUUID(),
-                x: BOARD_X + i * 220,
-                y: BOARD_Y + 2 * CELL_SIZE + 4,
-                w: 85,
-                h: 34,
-                speed: 65 * spdMult,
-                row: 2,
-                type: 'logSmall',
-                color: '#92400e',
-                isWaterRide: true,
-            });
-        }
-        // Row 1: Turtles (Left <-)
-        for (let i = 0; i < 3; i++) {
-            s.obstacles.push({
-                id: crypto.randomUUID(),
-                x: BOARD_X + i * 230,
-                y: BOARD_Y + 1 * CELL_SIZE + 4,
-                w: 95,
-                h: 34,
-                speed: -100 * spdMult,
-                row: 1,
-                type: 'turtles',
-                color: '#10b981',
-                isWaterRide: true,
-            });
-        }
+        s.obstacles = createObstaclesForStage(stageNum, BOARD_X, BOARD_Y, CELL_SIZE);
     }, []);
 
     const startNewGame = useCallback(() => {
@@ -446,297 +641,9 @@ export function CyberFroggerCanvas({ accentColor = '#00f0ff' }: CyberFroggerProp
 
             const s = stateRef.current;
 
-            // Screen shake
-            if (s.shakeTime > 0) {
-                s.shakeTime -= dt;
-                if (s.shakeTime <= 0) s.shakeIntensity = 0;
-            }
+            updateGame(s as GameState, dt, { setTimeRemaining, killPlayer, setHighScore }, BOARD_X, BOARD_W, CELL_SIZE);
+            renderScene(ctx, s as GameState, crtEnabled, BOARD_X, BOARD_Y, BOARD_W, BOARD_H, CELL_SIZE, V_WIDTH, V_HEIGHT, HOME_COLS);
 
-            // Update particles
-            s.particles.forEach(pt => {
-                pt.x += pt.vx * dt;
-                pt.y += pt.vy * dt;
-                pt.life -= dt;
-                pt.alpha = Math.max(0, pt.life / pt.maxLife);
-            });
-            s.particles = s.particles.filter(pt => pt.life > 0);
-
-            // Update floating texts
-            s.floatingTexts.forEach(ft => {
-                ft.y -= 30 * dt;
-                ft.life -= dt;
-            });
-            s.floatingTexts = s.floatingTexts.filter(ft => ft.life > 0);
-
-            if (s.gameState === 'playing') {
-                // Countdown timer
-                s.timeRemaining -= dt;
-                setTimeRemaining(Math.max(0, Math.ceil(s.timeRemaining)));
-                if (s.timeRemaining <= 0) {
-                    killPlayer('timeout');
-                }
-
-                // Fly timer
-                s.flyTimer -= dt;
-                if (s.flyTimer <= 0) {
-                    s.flyTimer = 6.0 + Math.random() * 6.0;
-                    s.flyBayIndex = Math.floor(Math.random() * 5);
-                    if (s.homesFilled[s.flyBayIndex]) s.flyBayIndex = -1;
-                }
-
-                // Update Obstacles position
-                const wrapLeft = BOARD_X - 180;
-                const wrapRight = BOARD_X + BOARD_W + 180;
-
-                for (const obs of s.obstacles) {
-                    obs.x += obs.speed * dt;
-                    if (obs.speed > 0 && obs.x > wrapRight) {
-                        obs.x = wrapLeft - obs.w;
-                    } else if (obs.speed < 0 && obs.x < wrapLeft - obs.w) {
-                        obs.x = wrapRight;
-                    }
-                }
-
-                // ── Collision Checks ──
-                const frogX = s.playerVisualX;
-
-                // 1. Road Vehicles (Rows 7 to 11)
-                if (s.playerRow >= 7 && s.playerRow <= 11) {
-                    for (const obs of s.obstacles) {
-                        if (obs.row === s.playerRow) {
-                            if (frogX >= obs.x - 12 && frogX <= obs.x + obs.w + 12) {
-                                killPlayer('car');
-                                break;
-                            }
-                        }
-                    }
-                }
-
-                // 2. River Logs / Turtles (Rows 1 to 5)
-                if (s.playerRow >= 1 && s.playerRow <= 5) {
-                    let onRide = false;
-                    let rideSpeed = 0;
-
-                    for (const obs of s.obstacles) {
-                        if (obs.row === s.playerRow && obs.isWaterRide) {
-                            if (frogX >= obs.x - 8 && frogX <= obs.x + obs.w + 8) {
-                                onRide = true;
-                                rideSpeed = obs.speed;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (onRide) {
-                        s.playerVisualX += rideSpeed * dt;
-                        s.playerCol = Math.round((s.playerVisualX - BOARD_X) / CELL_SIZE - 0.5);
-
-                        // Carried off screen
-                        if (s.playerVisualX < BOARD_X - 12 || s.playerVisualX > BOARD_X + BOARD_W + 12) {
-                            killPlayer('water');
-                        }
-                    } else {
-                        killPlayer('water');
-                    }
-                }
-
-                if (s.score > s.highScore) {
-                    s.highScore = s.score;
-                    setHighScore(s.score);
-                    localStorage.setItem('cyber_frogger_highscore', s.score.toString());
-                }
-            }
-
-            // ── RENDER SCENE ────────────────────────────────────────────────
-            ctx.save();
-            ctx.clearRect(0, 0, V_WIDTH, V_HEIGHT);
-
-            if (s.shakeIntensity > 0) {
-                const ox = (Math.random() * 2 - 1) * s.shakeIntensity;
-                const oy = (Math.random() * 2 - 1) * s.shakeIntensity;
-                ctx.translate(ox, oy);
-            }
-
-            // Dark Backdrop
-            ctx.fillStyle = '#060814';
-            ctx.fillRect(0, 0, V_WIDTH, V_HEIGHT);
-
-            // River Water Area (Rows 0 to 5)
-            const waterGrad = ctx.createLinearGradient(0, BOARD_Y, 0, BOARD_Y + 6 * CELL_SIZE);
-            waterGrad.addColorStop(0, '#0c2340');
-            waterGrad.addColorStop(1, '#0284c7');
-            ctx.fillStyle = waterGrad;
-            ctx.fillRect(BOARD_X, BOARD_Y, BOARD_W, 6 * CELL_SIZE);
-
-            // Water Ripple Lines
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-            ctx.lineWidth = 1;
-            for (let r = 1; r <= 5; r++) {
-                const ry = BOARD_Y + r * CELL_SIZE;
-                ctx.beginPath();
-                ctx.moveTo(BOARD_X, ry);
-                ctx.lineTo(BOARD_X + BOARD_W, ry);
-                ctx.stroke();
-            }
-
-            // Median Island (Row 6)
-            ctx.fillStyle = '#14532d';
-            ctx.fillRect(BOARD_X, BOARD_Y + 6 * CELL_SIZE, BOARD_W, CELL_SIZE);
-
-            // Highway Area (Rows 7 to 11)
-            ctx.fillStyle = '#0f172a';
-            ctx.fillRect(BOARD_X, BOARD_Y + 7 * CELL_SIZE, BOARD_W, 5 * CELL_SIZE);
-
-            // Road Lane Dashes
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
-            ctx.setLineDash([12, 12]);
-            for (let r = 8; r <= 11; r++) {
-                const ry = BOARD_Y + r * CELL_SIZE;
-                ctx.beginPath();
-                ctx.moveTo(BOARD_X, ry);
-                ctx.lineTo(BOARD_X + BOARD_W, ry);
-                ctx.stroke();
-            }
-            ctx.setLineDash([]);
-
-            // Starting Sidewalk (Row 12)
-            ctx.fillStyle = '#14532d';
-            ctx.fillRect(BOARD_X, BOARD_Y + 12 * CELL_SIZE, BOARD_W, CELL_SIZE);
-
-            // Board Outline
-            ctx.strokeStyle = '#00f0ff';
-            ctx.lineWidth = 2;
-            ctx.strokeRect(BOARD_X - 1, BOARD_Y - 1, BOARD_W + 2, BOARD_H + 2);
-
-            // Destination Bays (Row 0)
-            for (let i = 0; i < HOME_COLS.length; i++) {
-                const bx = BOARD_X + HOME_COLS[i] * CELL_SIZE;
-                const by = BOARD_Y;
-
-                if (s.homesFilled[i]) {
-                    ctx.fillStyle = '#22c55e';
-                    ctx.shadowColor = '#22c55e';
-                    ctx.shadowBlur = 10;
-                    ctx.fillRect(bx + 4, by + 4, CELL_SIZE - 8, CELL_SIZE - 8);
-                    ctx.fillStyle = '#000000';
-                    ctx.font = 'bold 16px monospace';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText('🐸', bx + CELL_SIZE / 2, by + CELL_SIZE / 2);
-                    ctx.shadowBlur = 0;
-                } else {
-                    ctx.fillStyle = '#064e3b';
-                    ctx.fillRect(bx + 4, by + 4, CELL_SIZE - 8, CELL_SIZE - 8);
-                    if (s.flyBayIndex === i) {
-                        ctx.fillStyle = '#facc15';
-                        ctx.shadowColor = '#facc15';
-                        ctx.shadowBlur = 8;
-                        ctx.font = 'bold 14px monospace';
-                        ctx.textAlign = 'center';
-                        ctx.textBaseline = 'middle';
-                        ctx.fillText('🪰', bx + CELL_SIZE / 2, by + CELL_SIZE / 2);
-                        ctx.shadowBlur = 0;
-                    }
-                }
-            }
-
-            // Render Obstacles (Cars, Trucks, Logs, Turtles)
-            s.obstacles.forEach(obs => {
-                ctx.save();
-                if (obs.isWaterRide) {
-                    if (obs.type === 'turtles') {
-                        ctx.fillStyle = '#059669';
-                        ctx.shadowColor = '#10b981';
-                        ctx.shadowBlur = 6;
-                        ctx.beginPath();
-                        ctx.roundRect(obs.x, obs.y, obs.w, obs.h, 10);
-                        ctx.fill();
-
-                        ctx.fillStyle = '#34d399';
-                        ctx.fillRect(obs.x + 6, obs.y + 6, obs.w - 12, obs.h - 12);
-                    } else {
-                        // Floating Logs
-                        ctx.fillStyle = '#78350f';
-                        ctx.shadowColor = '#92400e';
-                        ctx.shadowBlur = 6;
-                        ctx.beginPath();
-                        ctx.roundRect(obs.x, obs.y, obs.w, obs.h, 8);
-                        ctx.fill();
-
-                        ctx.fillStyle = '#b45309';
-                        ctx.fillRect(obs.x + 4, obs.y + 4, obs.w - 8, 4);
-                    }
-                } else {
-                    // Traffic Vehicles
-                    ctx.fillStyle = obs.color;
-                    ctx.shadowColor = obs.color;
-                    ctx.shadowBlur = 8;
-                    ctx.beginPath();
-                    ctx.roundRect(obs.x, obs.y, obs.w, obs.h, 6);
-                    ctx.fill();
-
-                    // Windshield
-                    ctx.fillStyle = 'rgba(0,0,0,0.6)';
-                    ctx.fillRect(obs.x + obs.w * 0.25, obs.y + 4, obs.w * 0.5, obs.h - 8);
-                }
-                ctx.restore();
-            });
-
-            // Render Player Cyber Frog
-            if (s.gameState !== 'gameover') {
-                ctx.save();
-                const fx = s.playerVisualX;
-                const fy = s.playerVisualY;
-                ctx.fillStyle = '#22c55e';
-                ctx.shadowColor = '#22c55e';
-                ctx.shadowBlur = 12;
-                ctx.beginPath();
-                ctx.arc(fx, fy, 13, 0, Math.PI * 2);
-                ctx.fill();
-
-                // Eyes
-                ctx.fillStyle = '#000000';
-                ctx.beginPath();
-                ctx.arc(fx - 6, fy - 6, 3, 0, Math.PI * 2);
-                ctx.arc(fx + 6, fy - 6, 3, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.restore();
-            }
-
-            // Particles
-            s.particles.forEach(pt => {
-                ctx.save();
-                ctx.globalAlpha = pt.alpha;
-                ctx.fillStyle = pt.color;
-                ctx.shadowColor = pt.color;
-                ctx.shadowBlur = 6;
-                ctx.beginPath();
-                ctx.arc(pt.x, pt.y, pt.radius, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.restore();
-            });
-
-            // Floating Texts
-            s.floatingTexts.forEach(ft => {
-                ctx.save();
-                ctx.font = 'bold 13px monospace';
-                ctx.fillStyle = ft.color;
-                ctx.shadowColor = ft.color;
-                ctx.shadowBlur = 6;
-                ctx.textAlign = 'center';
-                ctx.fillText(ft.text, ft.x, ft.y);
-                ctx.restore();
-            });
-
-            // CRT Scanlines
-            if (crtEnabled) {
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.16)';
-                for (let y = 0; y < V_HEIGHT; y += 4) {
-                    ctx.fillRect(0, y, V_WIDTH, 1.5);
-                }
-            }
-
-            ctx.restore();
             animId = requestAnimationFrame(loop);
         };
 

@@ -202,4 +202,24 @@ test.describe('Link Preview API SSRF Protections', () => {
             process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY = originalApiKey;
         }
     });
+
+    test('should return 500 when fetchSafe throws an unexpected error', async () => {
+        require.cache[fetchSafeModulePath] = {
+            exports: {
+                fetchSafe: async () => {
+                    throw new Error('Some unexpected network failure');
+                }
+            }
+        } as any;
+
+        delete require.cache[require.resolve('../../../src/app/api/link-preview/route')];
+        const { GET: mockGET } = require('../../../src/app/api/link-preview/route');
+
+        const req = createRequest('https://example.com/error-path');
+        const res = await mockGET(req);
+
+        expect(res.status).toBe(500);
+        const data = await res.json();
+        expect(data.error).toBe('Failed to fetch link preview');
+    });
 });

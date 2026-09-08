@@ -251,162 +251,248 @@ export function HabitatModule({
       </div>
 
       {isEditing ? (
-        <div className="mb-5 space-y-3 border border-white/10 bg-black/40 p-4 font-mono" style={{ clipPath: chamfer }}>
-          <div className="mb-1 text-[8px] font-black uppercase tracking-widest" style={{ color: pet.accent }}>EDITAR REGISTRO DE {pet.name}</div>
-
-          <div className="flex flex-col gap-1">
-            <label className="text-[6px] uppercase tracking-widest text-stone-500">Rol / Designación</label>
-            <input
-              value={editRole}
-              onChange={(e) => setEditRole(e.target.value)}
-              placeholder="Guardián Principal"
-              className="w-full border border-white/10 bg-black px-2 py-1 text-[10px] uppercase text-white outline-none focus:border-[color:var(--pet-accent)]"
-              style={{ ['--pet-accent' as string]: pet.accent }}
-            />
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <label className="text-[6px] uppercase tracking-widest text-stone-500">Perfil</label>
-            <textarea
-              value={editDesc}
-              onChange={(e) => setEditDesc(e.target.value)}
-              placeholder="Descripción de su personalidad..."
-              className="min-h-[48px] w-full resize-none border border-white/10 bg-black px-2 py-1 text-[10px] leading-normal text-white outline-none focus:border-[color:var(--pet-accent)]"
-              style={{ ['--pet-accent' as string]: pet.accent }}
-            />
-          </div>
-
-          <div className="grid grid-cols-3 gap-2">
-            <div className="col-span-2 flex flex-col gap-1">
-              <label className="text-[6px] uppercase tracking-widest text-stone-500">Origen</label>
-              <input
-                value={editBirthDate}
-                onChange={(e) => setEditBirthDate(e.target.value)}
-                placeholder="15 MAR 2019"
-                className="w-full border border-white/10 bg-black px-2 py-1 text-[10px] uppercase text-white outline-none focus:border-[color:var(--pet-accent)]"
-                style={{ ['--pet-accent' as string]: pet.accent }}
-              />
-            </div>
-            <div className="flex flex-col gap-1">
-              <label className="text-[6px] uppercase tracking-widest text-stone-500">Identidad</label>
-              <select
-                value={editDesignation}
-                onChange={(e) => setEditDesignation(e.target.value)}
-                className="h-[26px] border border-white/10 bg-black px-1 text-[9px] text-white outline-none"
-              >
-                <option value="MACHO">MACHO</option>
-                <option value="HEMBRA">HEMBRA</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-2 pt-1">
-            <button onClick={() => setIsEditing(false)} className="!min-h-0 border border-white/10 px-3 py-1 text-[8px] uppercase hover:text-white">Cancelar</button>
-            <button onClick={handleSave} className="!min-h-0 border px-3 py-1 text-[8px] uppercase text-white hover:text-black" style={{ borderColor: pet.accent, backgroundColor: `${pet.accent}25` }}>Guardar</button>
-          </div>
-        </div>
+        <HabitatEditForm
+          pet={pet}
+          editRole={editRole}
+          setEditRole={setEditRole}
+          editDesc={editDesc}
+          setEditDesc={setEditDesc}
+          editBirthDate={editBirthDate}
+          setEditBirthDate={setEditBirthDate}
+          editDesignation={editDesignation}
+          setEditDesignation={setEditDesignation}
+          setIsEditing={setIsEditing}
+          handleSave={handleSave}
+          chamfer={chamfer}
+        />
       ) : (
-        <>
-          {/* Perfil psicológico */}
-          <div className="mb-4 border border-white/5 bg-black/20 p-3 font-mono" style={{ clipPath: chamfer }}>
-            <div className="flex items-center justify-between text-[8px] font-bold uppercase tracking-[0.18em]" style={{ color: pet.accent }}>
-              <span>Rol: {pet.role}</span>
-              <button onClick={handleStartEdit} className="text-[#a88a7e] transition-colors hover:text-white">
-                <Edit2 size={10} className="stroke-[1.5]" />
-              </button>
-            </div>
-            <p className="mt-1.5 font-sans text-[10px] leading-normal text-[#e5e2e1]">{pet.description}</p>
-          </div>
-
-          {/* Telemetría de soporte vital */}
-          <div className="mb-5 grid grid-cols-2 gap-4">
-            {/* Moral */}
-            <div className="relative border border-white/10 bg-black/40 p-3 font-mono" style={{ clipPath: chamfer }}>
-              <div className="flex items-center gap-1.5">
-                <Heart size={9} style={{ color: pet.accent }} className="fill-current" />
-                <span className="text-[8px] font-bold uppercase tracking-[0.16em] text-[#a88a7e]">Moral</span>
-              </div>
-              <div className="mt-1 flex items-baseline justify-between">
-                <div className="flex items-baseline gap-0.5">
-                  <span className="text-2xl font-black text-white">{Math.round(joy)}</span>
-                  <span className="text-xs" style={{ color: pet.accent }}>%</span>
-                </div>
-                <button
-                  onClick={onGiveCuddles}
-                  className="!min-h-0 border px-1.5 py-0.5 text-[7px] font-bold uppercase tracking-wider transition-colors hover:text-black"
-                  style={{ borderColor: `${pet.accent}66`, color: pet.accent, backgroundColor: `${pet.accent}12` }}
-                >
-                  Mimar
-                </button>
-              </div>
-              {/* Barra segmentada */}
-              <div className="mt-2 flex gap-[2px]">
-                {Array.from({ length: SEGMENTS }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="h-2 flex-1"
-                    style={{
-                      backgroundColor: i < joyFilled ? pet.accent : 'rgba(255,255,255,0.06)',
-                      boxShadow: i < joyFilled ? `0 0 6px ${pet.accent}66` : 'none',
-                    }}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* Soporte vital (calor) */}
-            <div className="relative border border-white/10 bg-black/40 p-3 font-mono" style={{ clipPath: chamfer }}>
-              <div className="flex items-center gap-1.5">
-                <Flame size={9} style={{ color: pet.accent }} className="fill-current" />
-                <span className="text-[8px] font-bold uppercase tracking-[0.16em] text-[#a88a7e]">Soporte Vital</span>
-              </div>
-              <div className="mt-1 flex items-baseline justify-between">
-                <div className="flex items-baseline gap-0.5">
-                  <span className="text-2xl font-black text-white">{warmth}</span>
-                  <span className="text-xs" style={{ color: pet.accent }}>°C</span>
-                </div>
-                <button
-                  onClick={onGiveWarmth}
-                  className="!min-h-0 border px-1.5 py-0.5 text-[7px] font-bold uppercase tracking-wider transition-colors hover:text-black"
-                  style={{ borderColor: `${pet.accent}66`, color: pet.accent, backgroundColor: `${pet.accent}12` }}
-                >
-                  Cobijar
-                </button>
-              </div>
-              <div className="mt-2 flex gap-[2px]">
-                {Array.from({ length: SEGMENTS }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="h-2 flex-1"
-                    style={{
-                      backgroundColor: i < warmthFilled ? pet.accent : 'rgba(255,255,255,0.06)',
-                      boxShadow: i < warmthFilled ? `0 0 6px ${pet.accent}66` : 'none',
-                    }}
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Bio-datos */}
-          <div className="mt-auto flex items-center gap-4 border-t border-white/10 pt-4">
-            <div className="flex flex-1 items-center gap-2 border border-white/10 px-3 py-2 font-mono">
-              <Calendar size={12} className="stroke-[1.5] text-[#a88a7e]" />
-              <div>
-                <span className="block text-[7px] uppercase tracking-[0.2em] text-[#594137]">Origen</span>
-                <span className="text-[10px] font-bold text-white">{pet.birthDate}</span>
-              </div>
-            </div>
-            <div className="flex flex-1 items-center gap-2 border border-white/10 px-3 py-2 font-mono">
-              <span className="text-sm">{pet.gender}</span>
-              <div>
-                <span className="block text-[7px] uppercase tracking-[0.2em] text-[#594137]">Identidad</span>
-                <span className="text-[10px] font-bold text-white">{pet.designation}</span>
-              </div>
-            </div>
-          </div>
-        </>
+        <HabitatTelemetry
+          pet={pet}
+          joy={joy}
+          warmth={warmth}
+          joyFilled={joyFilled}
+          warmthFilled={warmthFilled}
+          SEGMENTS={SEGMENTS}
+          onGiveCuddles={onGiveCuddles}
+          onGiveWarmth={onGiveWarmth}
+          handleStartEdit={handleStartEdit}
+          chamfer={chamfer}
+        />
       )}
     </div>
+  );
+}
+
+
+function HabitatEditForm({
+  pet,
+  editRole,
+  setEditRole,
+  editDesc,
+  setEditDesc,
+  editBirthDate,
+  setEditBirthDate,
+  editDesignation,
+  setEditDesignation,
+  setIsEditing,
+  handleSave,
+  chamfer,
+}: {
+  pet: Pet;
+  editRole: string;
+  setEditRole: (val: string) => void;
+  editDesc: string;
+  setEditDesc: (val: string) => void;
+  editBirthDate: string;
+  setEditBirthDate: (val: string) => void;
+  editDesignation: string;
+  setEditDesignation: (val: string) => void;
+  setIsEditing: (val: boolean) => void;
+  handleSave: () => void;
+  chamfer: string;
+}) {
+  return (
+    <div className="mb-5 space-y-3 border border-white/10 bg-black/40 p-4 font-mono" style={{ clipPath: chamfer }}>
+      <div className="mb-1 text-[8px] font-black uppercase tracking-widest" style={{ color: pet.accent }}>EDITAR REGISTRO DE {pet.name}</div>
+
+      <div className="flex flex-col gap-1">
+        <label className="text-[6px] uppercase tracking-widest text-stone-500">Rol / Designación</label>
+        <input
+          value={editRole}
+          onChange={(e) => setEditRole(e.target.value)}
+          placeholder="Guardián Principal"
+          className="w-full border border-white/10 bg-black px-2 py-1 text-[10px] uppercase text-white outline-none focus:border-[color:var(--pet-accent)]"
+          style={{ ['--pet-accent' as string]: pet.accent }}
+        />
+      </div>
+
+      <div className="flex flex-col gap-1">
+        <label className="text-[6px] uppercase tracking-widest text-stone-500">Perfil</label>
+        <textarea
+          value={editDesc}
+          onChange={(e) => setEditDesc(e.target.value)}
+          placeholder="Descripción de su personalidad..."
+          className="min-h-[48px] w-full resize-none border border-white/10 bg-black px-2 py-1 text-[10px] leading-normal text-white outline-none focus:border-[color:var(--pet-accent)]"
+          style={{ ['--pet-accent' as string]: pet.accent }}
+        />
+      </div>
+
+      <div className="grid grid-cols-3 gap-2">
+        <div className="col-span-2 flex flex-col gap-1">
+          <label className="text-[6px] uppercase tracking-widest text-stone-500">Origen</label>
+          <input
+            value={editBirthDate}
+            onChange={(e) => setEditBirthDate(e.target.value)}
+            placeholder="15 MAR 2019"
+            className="w-full border border-white/10 bg-black px-2 py-1 text-[10px] uppercase text-white outline-none focus:border-[color:var(--pet-accent)]"
+            style={{ ['--pet-accent' as string]: pet.accent }}
+          />
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-[6px] uppercase tracking-widest text-stone-500">Identidad</label>
+          <select
+            value={editDesignation}
+            onChange={(e) => setEditDesignation(e.target.value)}
+            className="h-[26px] border border-white/10 bg-black px-1 text-[9px] text-white outline-none"
+          >
+            <option value="MACHO">MACHO</option>
+            <option value="HEMBRA">HEMBRA</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="flex justify-end gap-2 pt-1">
+        <button onClick={() => setIsEditing(false)} className="!min-h-0 border border-white/10 px-3 py-1 text-[8px] uppercase hover:text-white">Cancelar</button>
+        <button onClick={handleSave} className="!min-h-0 border px-3 py-1 text-[8px] uppercase text-white hover:text-black" style={{ borderColor: pet.accent, backgroundColor: `${pet.accent}25` }}>Guardar</button>
+      </div>
+    </div>
+  );
+}
+
+
+function HabitatTelemetry({
+  pet,
+  joy,
+  warmth,
+  joyFilled,
+  warmthFilled,
+  SEGMENTS,
+  onGiveCuddles,
+  onGiveWarmth,
+  handleStartEdit,
+  chamfer,
+}: {
+  pet: Pet;
+  joy: number;
+  warmth: number;
+  joyFilled: number;
+  warmthFilled: number;
+  SEGMENTS: number;
+  onGiveCuddles: () => void;
+  onGiveWarmth: () => void;
+  handleStartEdit: () => void;
+  chamfer: string;
+}) {
+  return (
+    <>
+      {/* Perfil psicológico */}
+      <div className="mb-4 border border-white/5 bg-black/20 p-3 font-mono" style={{ clipPath: chamfer }}>
+        <div className="flex items-center justify-between text-[8px] font-bold uppercase tracking-[0.18em]" style={{ color: pet.accent }}>
+          <span>Rol: {pet.role}</span>
+          <button onClick={handleStartEdit} className="text-[#a88a7e] transition-colors hover:text-white">
+            <Edit2 size={10} className="stroke-[1.5]" />
+          </button>
+        </div>
+        <p className="mt-1.5 font-sans text-[10px] leading-normal text-[#e5e2e1]">{pet.description}</p>
+      </div>
+
+      {/* Telemetría de soporte vital */}
+      <div className="mb-5 grid grid-cols-2 gap-4">
+        {/* Moral */}
+        <div className="relative border border-white/10 bg-black/40 p-3 font-mono" style={{ clipPath: chamfer }}>
+          <div className="flex items-center gap-1.5">
+            <Heart size={9} style={{ color: pet.accent }} className="fill-current" />
+            <span className="text-[8px] font-bold uppercase tracking-[0.16em] text-[#a88a7e]">Moral</span>
+          </div>
+          <div className="mt-1 flex items-baseline justify-between">
+            <div className="flex items-baseline gap-0.5">
+              <span className="text-2xl font-black text-white">{Math.round(joy)}</span>
+              <span className="text-xs" style={{ color: pet.accent }}>%</span>
+            </div>
+            <button
+              onClick={onGiveCuddles}
+              className="!min-h-0 border px-1.5 py-0.5 text-[7px] font-bold uppercase tracking-wider transition-colors hover:text-black"
+              style={{ borderColor: `${pet.accent}66`, color: pet.accent, backgroundColor: `${pet.accent}12` }}
+            >
+              Mimar
+            </button>
+          </div>
+          {/* Barra segmentada */}
+          <div className="mt-2 flex gap-[2px]">
+            {Array.from({ length: SEGMENTS }).map((_, i) => (
+              <div
+                key={i}
+                className="h-2 flex-1"
+                style={{
+                  backgroundColor: i < joyFilled ? pet.accent : 'rgba(255,255,255,0.06)',
+                  boxShadow: i < joyFilled ? `0 0 6px ${pet.accent}66` : 'none',
+                }}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Soporte vital (calor) */}
+        <div className="relative border border-white/10 bg-black/40 p-3 font-mono" style={{ clipPath: chamfer }}>
+          <div className="flex items-center gap-1.5">
+            <Flame size={9} style={{ color: pet.accent }} className="fill-current" />
+            <span className="text-[8px] font-bold uppercase tracking-[0.16em] text-[#a88a7e]">Soporte Vital</span>
+          </div>
+          <div className="mt-1 flex items-baseline justify-between">
+            <div className="flex items-baseline gap-0.5">
+              <span className="text-2xl font-black text-white">{warmth}</span>
+              <span className="text-xs" style={{ color: pet.accent }}>°C</span>
+            </div>
+            <button
+              onClick={onGiveWarmth}
+              className="!min-h-0 border px-1.5 py-0.5 text-[7px] font-bold uppercase tracking-wider transition-colors hover:text-black"
+              style={{ borderColor: `${pet.accent}66`, color: pet.accent, backgroundColor: `${pet.accent}12` }}
+            >
+              Cobijar
+            </button>
+          </div>
+          <div className="mt-2 flex gap-[2px]">
+            {Array.from({ length: SEGMENTS }).map((_, i) => (
+              <div
+                key={i}
+                className="h-2 flex-1"
+                style={{
+                  backgroundColor: i < warmthFilled ? pet.accent : 'rgba(255,255,255,0.06)',
+                  boxShadow: i < warmthFilled ? `0 0 6px ${pet.accent}66` : 'none',
+                }}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Bio-datos */}
+      <div className="mt-auto flex items-center gap-4 border-t border-white/10 pt-4">
+        <div className="flex flex-1 items-center gap-2 border border-white/10 px-3 py-2 font-mono">
+          <Calendar size={12} className="stroke-[1.5] text-[#a88a7e]" />
+          <div>
+            <span className="block text-[7px] uppercase tracking-[0.2em] text-[#594137]">Origen</span>
+            <span className="text-[10px] font-bold text-white">{pet.birthDate}</span>
+          </div>
+        </div>
+        <div className="flex flex-1 items-center gap-2 border border-white/10 px-3 py-2 font-mono">
+          <span className="text-sm">{pet.gender}</span>
+          <div>
+            <span className="block text-[7px] uppercase tracking-[0.2em] text-[#594137]">Identidad</span>
+            <span className="text-[10px] font-bold text-white">{pet.designation}</span>
+          </div>
+        </div>
+      </div>
+    </>
   );
 }

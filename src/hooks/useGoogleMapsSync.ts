@@ -55,14 +55,15 @@ export function useGoogleMapsSync(items: WishlistItem[]) {
     // Serialized hash of only items with Google Maps URLs and their current state/url,
     // which isolates map backfill checks from other non-map updates.
     const mapItemsHash = useMemo(() => {
-        return items
-            .filter(item => {
-                const url = item.locationUrl;
-                if (!url) return false;
-                return url.includes('google.com/maps') || url.includes('maps.app.goo.gl') || url.includes('goo.gl/maps');
-            })
-            .map(item => `${item.id}:${item.state}:${item.locationUrl}`)
-            .join('||');
+        // ⚡ Bolt Optimization: Replace filter/map array allocation chain with a single pass O(N) loop
+        let hash = '';
+        for (const item of items) {
+            const url = item.locationUrl;
+            if (url && (url.includes('google.com/maps') || url.includes('maps.app.goo.gl') || url.includes('goo.gl/maps'))) {
+                hash += `${item.id}:${item.state}:${url}||`;
+            }
+        }
+        return hash;
     }, [items]);
 
     // Auto-backfill and sync routine for Google Maps items

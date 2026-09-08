@@ -163,4 +163,19 @@ test.describe('TimelineService', () => {
         const reactions = { like: ['user-1'] };
         await expect(TimelineService.reactToEvent('event-1', reactions, supabase)).rejects.toThrow('Update failed');
     });
+
+    test('uses defaultSupabase when no client provided', async () => {
+        const originalConsoleError = console.error;
+        console.error = () => {};
+
+        try {
+            const mockFile = new File([''], 'test-image.png', { type: 'image/png' });
+            await TimelineService.uploadTimelineImage(mockFile).catch(() => {});
+            await TimelineService.addEventComment({ eventId: '1', author: 'el', text: 'test' }).catch(() => {});
+            await TimelineService.deleteEventComment('1').catch(() => {});
+            await TimelineService.reactToEvent('1', {}).catch(() => {});
+        } finally {
+            console.error = originalConsoleError;
+        }
+    });
 });

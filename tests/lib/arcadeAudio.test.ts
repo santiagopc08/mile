@@ -152,6 +152,60 @@ describe('arcadeAudio', () => {
              expect(() => initArcadeAudio()).not.toThrow();
         });
 
+        it('handles ctx.resume() promise rejection gracefully by attaching a catch block', async () => {
+            const { initArcadeAudio } = await import('../../src/lib/arcadeAudio');
+
+            const catchSpy = vi.fn();
+            const mockResume = vi.fn().mockReturnValue({ catch: catchSpy });
+
+            class MockAudioContextReject {
+                createGain = vi.fn(() => mockGainNode);
+                createBuffer = vi.fn(() => ({
+                    getChannelData: vi.fn(() => new Float32Array(100))
+                }));
+                resume = mockResume;
+                state = 'suspended';
+                sampleRate = 44100;
+                destination = {};
+            }
+
+            (window as any).AudioContext = MockAudioContextReject;
+            (window as any).webkitAudioContext = undefined;
+
+            initArcadeAudio();
+
+            expect(mockResume).toHaveBeenCalled();
+            expect(catchSpy).toHaveBeenCalled();
+
+            // Verify that the empty function in .catch(() => {}) is harmless
+            const catchHandler = catchSpy.mock.calls[0][0];
+            expect(() => catchHandler(new Error('Test error'))).not.toThrow();
+        });
+
+        it('does not call resume if context state is not suspended', async () => {
+            const { initArcadeAudio } = await import('../../src/lib/arcadeAudio');
+
+            const mockResume = vi.fn().mockResolvedValue(undefined);
+
+            class MockAudioContextRunning {
+                createGain = vi.fn(() => mockGainNode);
+                createBuffer = vi.fn(() => ({
+                    getChannelData: vi.fn(() => new Float32Array(100))
+                }));
+                resume = mockResume;
+                state = 'running';
+                sampleRate = 44100;
+                destination = {};
+            }
+
+            (window as any).AudioContext = MockAudioContextRunning;
+            (window as any).webkitAudioContext = undefined;
+
+            initArcadeAudio();
+
+            expect(mockResume).not.toHaveBeenCalled();
+        });
+
         it('returns null and does nothing if window is undefined', async () => {
             const originalWindow = global.window;
             (global as any).window = undefined;
