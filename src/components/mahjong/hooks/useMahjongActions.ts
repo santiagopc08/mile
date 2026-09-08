@@ -28,9 +28,9 @@ interface UseMahjongActionsProps {
     setScoreSaved: React.Dispatch<React.SetStateAction<boolean>>;
     setIsNewRecord: React.Dispatch<React.SetStateAction<boolean>>;
     gameMode: 'solo' | 'coop' | 'daily';
-    activeCoopGame: Record<string, unknown> | null;
+    activeCoopGame: any;
     coopTurn: 'el' | 'ella';
-    MahjongService: Record<string, unknown>;
+    MahjongService: any;
 }
 
 export function useMahjongActions({

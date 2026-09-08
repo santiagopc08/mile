@@ -33,6 +33,8 @@ export interface DailyQuest {
     claimed: boolean;
 }
 
+export type ArcadeQuest = DailyQuest;
+
 export interface ArcadeProgressionState {
     coins: number;
     synergyXP: number;
