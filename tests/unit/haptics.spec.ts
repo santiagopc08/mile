@@ -68,7 +68,7 @@ test.describe('HapticEngine', () => {
         });
 
         haptics.setEnabled(false);
-        haptics.vibrate(10);
+        expect(() => haptics.vibrate(10)).not.toThrow();
 
         expect(vibrateCalled).toBe(false);
     });
@@ -82,7 +82,7 @@ test.describe('HapticEngine', () => {
             configurable: true
         });
 
-        haptics.vibrate(10);
+        expect(() => haptics.vibrate(10)).not.toThrow();
 
         expect(vibrateCalled).toBe(false);
     });
@@ -96,7 +96,7 @@ test.describe('HapticEngine', () => {
             configurable: true
         });
 
-        haptics.vibrate(10);
+        expect(() => haptics.vibrate(10)).not.toThrow();
 
         expect(vibrateCalled).toBe(false);
     });
@@ -127,7 +127,7 @@ test.describe('HapticEngine', () => {
         const originalEnv = process.env.NODE_ENV;
         setNodeEnv('development');
 
-        haptics.vibrate(10);
+        expect(() => haptics.vibrate(10)).not.toThrow();
 
         setNodeEnv(originalEnv);
 
@@ -149,7 +149,7 @@ test.describe('HapticEngine', () => {
         const originalProcess = global.process;
         Object.defineProperty(global, 'process', { value: { env: {} }, writable: true, configurable: true });
 
-        haptics.vibrate(10);
+        expect(() => haptics.vibrate(10)).not.toThrow();
 
         expect(consoleWarnMock.length).toBe(0);
 
@@ -167,7 +167,7 @@ test.describe('HapticEngine', () => {
         const originalEnv = process.env.NODE_ENV;
         setNodeEnv('production');
 
-        haptics.vibrate(10);
+        expect(() => haptics.vibrate(10)).not.toThrow();
 
         setNodeEnv(originalEnv);
 
