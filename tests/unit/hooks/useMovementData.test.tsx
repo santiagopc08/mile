@@ -34,8 +34,30 @@ vi.mock('@/lib/haptics', () => ({
 }));
 
 const mockSessions: MovementSession[] = [
-    { id: '1', date: '2023-10-01', title: 'Run', description: '', created_at: '', reactions: [] },
-    { id: '2', date: '2023-10-02', title: 'Walk', description: '', created_at: '', reactions: [] },
+    {
+        id: '1',
+        profile: 'el',
+        date: '2023-10-01',
+        session_type: 'cardio',
+        duration: 30,
+        difficulty: 'medium',
+        energy_level: 'medium',
+        completion_status: 'completed',
+        created_at: '',
+        reactions: []
+    },
+    {
+        id: '2',
+        profile: 'el',
+        date: '2023-10-02',
+        session_type: 'mobility',
+        duration: 20,
+        difficulty: 'low',
+        energy_level: 'low',
+        completion_status: 'completed',
+        created_at: '',
+        reactions: []
+    },
 ];
 
 describe('useMovementData', () => {
@@ -238,7 +260,7 @@ describe('useMovementData', () => {
         });
 
         await act(async () => {
-            await result.current.handleAddReaction('1', 'fire');
+            await result.current.handleAddReaction('1', 'KEEP_GOING');
         });
 
         expect(supabase.from).toHaveBeenCalledWith('movement_sessions');
@@ -270,11 +292,11 @@ describe('useMovementData', () => {
         });
 
         await act(async () => {
-            await result.current.handleAddReaction('1', 'fire');
+            await result.current.handleAddReaction('1', 'KEEP_GOING');
         });
 
         expect(result.current.sessions[0].reactions).toHaveLength(1);
-        expect(result.current.sessions[0].reactions[0].type).toBe('fire');
+        expect(result.current.sessions[0].reactions[0].type).toBe('KEEP_GOING');
         const stored = JSON.parse(localStorage.getItem('movement_sessions')!);
         expect(stored[0].reactions).toHaveLength(1);
 
@@ -307,7 +329,7 @@ describe('useMovementData', () => {
         });
 
         await act(async () => {
-            await result.current.handleAddReaction('1', 'fire');
+            await result.current.handleAddReaction('1', 'KEEP_GOING');
         });
 
         expect(sound.playError).toHaveBeenCalled();
@@ -318,7 +340,7 @@ describe('useMovementData', () => {
         const { result } = renderHook(() => useMovementData(null));
 
         await act(async () => {
-            await result.current.handleAddReaction('1', 'fire');
+            await result.current.handleAddReaction('1', 'KEEP_GOING');
         });
 
         expect(supabase.from).toHaveBeenCalledTimes(1); // Only for fetch
@@ -345,7 +367,7 @@ describe('useMovementData', () => {
         });
 
         await act(async () => {
-            await result.current.handleAddReaction('nonexistent', 'fire');
+            await result.current.handleAddReaction('nonexistent', 'KEEP_GOING');
         });
 
         expect(sound.playSave).not.toHaveBeenCalled();

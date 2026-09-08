@@ -13,7 +13,7 @@ describe('loadArcadeProgression', () => {
 
         // Mock Date to ensure deterministic quest generation
         vi.useFakeTimers();
-        vi.setSystemTime(new Date('2024-01-01T00:00:00Z'));
+        vi.setSystemTime(new Date(2024, 0, 1, 12, 0, 0));
     });
 
     afterEach(() => {
