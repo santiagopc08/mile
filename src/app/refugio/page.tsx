@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { PrivateRoute } from "@/components/PrivateRoute";
 import { JarOfNotes } from "@/components/JarOfNotes";
@@ -8,6 +8,7 @@ import { PersistentListening } from "@/components/PersistentListening";
 import { PetSpaceHub } from "@/components/PetSpaceHub";
 import { Timeline } from "@/components/Timeline";
 import { useStore } from "@/context/StoreContext";
+import { TimelineEvent } from "@/components/timeline/types";
 import { useProfile } from "@/context/ProfileContext";
 import { MessageCircleHeart, Mic, PawPrint, Clock, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -37,8 +38,13 @@ export default function RefugioPage() {
       }
     }
   }, []);
-  const { data } = useStore();
+  const { data, updateData } = useStore();
   const { profile } = useProfile();
+
+  // ⚡ Bolt Optimization: Stabilize the onUpdateEvents callback using useCallback to prevent unnecessary re-renders of React.memo wrapped Timeline items.
+  const handleUpdateEvents = useCallback(async (updated: TimelineEvent[]) => {
+    await updateData({ events: updated });
+  }, [updateData]);
   const accentColor = profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)';
   const accentClass = profile === 'ella' ? 'user-a' : 'user-b';
   const secondaryColor = profile === 'ella' ? 'var(--color-user-b)' : 'var(--color-user-a)';
@@ -247,7 +253,7 @@ export default function RefugioPage() {
                 {activeTab === 'notas' && <JarOfNotes />}
                 {activeTab === 'escucha' && <PersistentListening />}
                 {activeTab === 'bebes' && <PetSpaceHub />}
-                {activeTab === 'historia' && <Timeline events={events} />}
+                {activeTab === 'historia' && <Timeline events={events} onUpdateEvents={handleUpdateEvents} />}
               </motion.div>
             </AnimatePresence>
           </div>
