@@ -3,7 +3,6 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Calendar, Image as ImageIcon, Pencil, MessageSquare } from 'lucide-react';
 import { renderTextWithHashtags } from '@/utils/textFormatting';
-import { useStore } from '@/context/StoreContext';
 import { useProfile } from '@/context/ProfileContext';
 import { TimelineService } from '@/services/timelineService';
 import { useToast } from '@/components/ui/Toast';
@@ -15,10 +14,10 @@ interface TimelineItemProps {
     events: TimelineEvent[];
     isLeft: boolean;
     setActiveEventId: (id: string) => void;
+    onUpdateEvents?: (updatedEvents: TimelineEvent[]) => Promise<void>;
 }
 
-export const TimelineItem = memo(function TimelineItem({ event, events, isLeft, setActiveEventId }: TimelineItemProps) {
-    const { updateData } = useStore();
+export const TimelineItem = memo(function TimelineItem({ event, events, isLeft, setActiveEventId, onUpdateEvents }: TimelineItemProps) {
     const { profile } = useProfile();
     const { error: notifyError } = useToast();
 
@@ -77,7 +76,7 @@ export const TimelineItem = memo(function TimelineItem({ event, events, isLeft, 
                 : ev
         );
 
-        await updateData({ events: updated });
+        if (onUpdateEvents) await onUpdateEvents(updated);
         setEditingId(null);
         setEditTags([]);
     };
@@ -103,7 +102,7 @@ export const TimelineItem = memo(function TimelineItem({ event, events, isLeft, 
         // Optimistic update
         // ⚡ Bolt Optimization: Single-pass Array.map() replaces double iteration (findIndex + array copy)
         const updatedEvents = events.map(e => e.id === event.id ? { ...e, reactions } : e);
-        await updateData({ events: updatedEvents });
+        if (onUpdateEvents) await onUpdateEvents(updatedEvents);
 
         try {
             await fetch('/api/timeline', {

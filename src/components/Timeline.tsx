@@ -10,9 +10,10 @@ import { TimelineCommentsDrawer } from './timeline/TimelineCommentsDrawer';
 
 interface TimelineProps {
     events: TimelineEvent[];
+    onUpdateEvents?: (updatedEvents: TimelineEvent[]) => Promise<void>;
 }
 
-export function Timeline({ events }: TimelineProps) {
+export function Timeline({ events, onUpdateEvents }: TimelineProps) {
     const { profile } = useProfile();
     const [isAdding, setIsAdding] = useState(false);
     const [activeEventId, setActiveEventId] = useState<string | null>(null);
@@ -32,7 +33,7 @@ export function Timeline({ events }: TimelineProps) {
             
             {profile && (
                 <div className="z-10 mb-16 w-full max-w-2xl">
-                    <TimelineAddForm events={events} isAdding={isAdding} setIsAdding={setIsAdding} />
+                    <TimelineAddForm events={events} isAdding={isAdding} setIsAdding={setIsAdding} onUpdateEvents={onUpdateEvents} />
                 </div>
             )}
 
@@ -72,6 +73,7 @@ export function Timeline({ events }: TimelineProps) {
                             events={events}
                             isLeft={index % 2 === 0}
                             setActiveEventId={setActiveEventId}
+                            onUpdateEvents={onUpdateEvents}
                         />
                     ))}
                 </div>
