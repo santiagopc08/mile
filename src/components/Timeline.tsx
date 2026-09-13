@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { Calendar, Plus } from 'lucide-react';
+import { useStore } from '@/context/StoreContext';
 import { useProfile } from '@/context/ProfileContext';
 import { TimelineEvent } from './timeline/types';
 import { TimelineAddForm } from './timeline/TimelineAddForm';
@@ -13,9 +14,26 @@ interface TimelineProps {
 }
 
 export function Timeline({ events }: TimelineProps) {
+    const { updateData } = useStore();
     const { profile } = useProfile();
     const [isAdding, setIsAdding] = useState(false);
     const [activeEventId, setActiveEventId] = useState<string | null>(null);
+
+    const eventsRef = useRef(events);
+    useEffect(() => {
+        eventsRef.current = events;
+    }, [events]);
+
+    // ⚡ Bolt Optimization: Wrap with useCallback and use 'latest-ref' to maintain referential equality and prevent child React.memo bypass
+    const handleUpdateEvent = useCallback(async (updatedEvent: TimelineEvent) => {
+        const updated = eventsRef.current.map(e => e.id === updatedEvent.id ? updatedEvent : e);
+        await updateData({ events: updated });
+    }, [updateData]);
+
+    // ⚡ Bolt Optimization: Wrap with useCallback and use 'latest-ref' to maintain referential equality and prevent child React.memo bypass
+    const handleAddEvent = useCallback(async (newEvent: TimelineEvent) => {
+        await updateData({ events: [newEvent, ...eventsRef.current] });
+    }, [updateData]);
 
     const activeEvent = useMemo(() => {
         if (!activeEventId) return null;
@@ -32,7 +50,7 @@ export function Timeline({ events }: TimelineProps) {
             
             {profile && (
                 <div className="z-10 mb-16 w-full max-w-2xl">
-                    <TimelineAddForm events={events} isAdding={isAdding} setIsAdding={setIsAdding} />
+                    <TimelineAddForm onAddEvent={handleAddEvent} isAdding={isAdding} setIsAdding={setIsAdding} />
                 </div>
             )}
 
@@ -69,7 +87,7 @@ export function Timeline({ events }: TimelineProps) {
                         <TimelineItem
                             key={event.id}
                             event={event}
-                            events={events}
+                            onUpdateEvent={handleUpdateEvent}
                             isLeft={index % 2 === 0}
                             setActiveEventId={setActiveEventId}
                         />

@@ -3,7 +3,6 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Calendar, Image as ImageIcon, Pencil, MessageSquare } from 'lucide-react';
 import { renderTextWithHashtags } from '@/utils/textFormatting';
-import { useStore } from '@/context/StoreContext';
 import { useProfile } from '@/context/ProfileContext';
 import { TimelineService } from '@/services/timelineService';
 import { useToast } from '@/components/ui/Toast';
@@ -12,13 +11,12 @@ import { TimelineEvent } from './types';
 
 interface TimelineItemProps {
     event: TimelineEvent;
-    events: TimelineEvent[];
+    onUpdateEvent: (event: TimelineEvent) => Promise<void>;
     isLeft: boolean;
     setActiveEventId: (id: string) => void;
 }
 
-export const TimelineItem = memo(function TimelineItem({ event, events, isLeft, setActiveEventId }: TimelineItemProps) {
-    const { updateData } = useStore();
+export const TimelineItem = memo(function TimelineItem({ event, onUpdateEvent, isLeft, setActiveEventId }: TimelineItemProps) {
     const { profile } = useProfile();
     const { error: notifyError } = useToast();
 
@@ -63,21 +61,17 @@ export const TimelineItem = memo(function TimelineItem({ event, events, isLeft, 
             setIsEditUploading(false);
         }
 
-        // ⚡ Bolt Optimization: Single-pass Array.map() replaces double iteration (findIndex + array copy)
-        const updated = events.map(ev =>
-            ev.id === editingId
-                ? {
-                    ...ev,
-                    title: editTitle.trim(),
-                    date: editDate,
-                    description: editDesc.trim(),
-                    imageUrl: finalImageUrl,
-                    tags: editTags
-                }
-                : ev
-        );
+        // Optimistic update via parent
+        const updatedEvent = {
+            ...event,
+            title: editTitle.trim(),
+            date: editDate,
+            description: editDesc.trim(),
+            imageUrl: finalImageUrl,
+            tags: editTags
+        };
 
-        await updateData({ events: updated });
+        await onUpdateEvent(updatedEvent);
         setEditingId(null);
         setEditTags([]);
     };
@@ -101,9 +95,8 @@ export const TimelineItem = memo(function TimelineItem({ event, events, isLeft, 
         }
 
         // Optimistic update
-        // ⚡ Bolt Optimization: Single-pass Array.map() replaces double iteration (findIndex + array copy)
-        const updatedEvents = events.map(e => e.id === event.id ? { ...e, reactions } : e);
-        await updateData({ events: updatedEvents });
+        const updatedEvent = { ...event, reactions };
+        await onUpdateEvent(updatedEvent);
 
         try {
             await fetch('/api/timeline', {
