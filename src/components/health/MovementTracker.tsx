@@ -1,5 +1,6 @@
 'use client';
 
+import { useCallback } from 'react';
 import { useProfile } from '@/context/ProfileContext';
 import { useToast } from '@/components/ui/Toast';
 
@@ -49,7 +50,7 @@ export function MovementTracker() {
         fetchSessions
     });
 
-    const handleDeleteSessionWrapper = async (id: string) => {
+    const handleDeleteSessionWrapper = useCallback(async (id: string) => {
         const ok = await confirm({
             title: 'Eliminar sesión',
             message: 'Se borrará este registro de actividad. No se puede deshacer.',
@@ -64,7 +65,7 @@ export function MovementTracker() {
             // Error handled in hook
             console.error(err);
         }
-    };
+    }, [confirm, handleDeleteSession, notifyError, success]);
 
     // Helper to render chunked progress bars (Brutalist Chunked Progress)
     const renderChunkedBar = (percentage: number, color: string) => {

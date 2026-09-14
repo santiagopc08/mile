@@ -46,7 +46,7 @@ export function useMovementData(profile: string | null) {
         fetchSessions();
     }, [fetchSessions]);
 
-    const handleDeleteSession = async (id: string, notifyError: (msg: string) => void) => {
+    const handleDeleteSession = useCallback(async (id: string, notifyError: (msg: string) => void) => {
         try {
             if (!isUsingLocalStorage) {
                 const { error } = await supabase.from('movement_sessions').delete().eq('id', id);
@@ -63,9 +63,9 @@ export function useMovementData(profile: string | null) {
             notifyError('No se pudo eliminar la sesión. Sigue en tu historial.');
             throw err;
         }
-    };
+    }, [isUsingLocalStorage, fetchSessions, sessions]);
 
-    const handleAddReaction = async (sessionId: string, rxType: ReactionType) => {
+    const handleAddReaction = useCallback(async (sessionId: string, rxType: ReactionType) => {
         if (!profile) return;
         // ⚡ Bolt Optimization: Replace O(N) double pass (.find + .findIndex) with single pass
         const sessionIndex = sessions.findIndex(s => s.id === sessionId);
@@ -108,7 +108,7 @@ export function useMovementData(profile: string | null) {
             sound.playError();
             haptics.triggerError();
         }
-    };
+    }, [profile, sessions, isUsingLocalStorage, fetchSessions]);
 
     return {
         sessions,
