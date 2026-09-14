@@ -18,9 +18,27 @@ const nextConfig = {
   },
   outputFileTracingExcludes: {
     '*': [
-      './platform/**/*',
-      './arcade-engine/**/*',
-      './test-results/**/*',
+      'platform/**',
+      'arcade-engine/**',
+      'test-results/**',
+      'tests/**',
+      '.nyc_output/**',
+      'database/**',
+      'docs/**',
+      'debug.txt',
+      'design.md',
+      'PRODUCT.md',
+    ],
+  },
+  experimental: {
+    optimizePackageImports: [
+      'lucide-react',
+      'recharts',
+      'date-fns',
+      'framer-motion',
+      'three',
+      '@react-three/fiber',
+      '@react-three/drei',
     ],
   },
 };

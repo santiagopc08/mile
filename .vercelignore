@@ -1,0 +1,18 @@
+# Exclude heavy non-web engine, tests, and databases from Vercel deployment builds
+platform/
+arcade-engine/
+tests/
+test-results/
+playwright-report/
+coverage/
+.nyc_output/
+database/
+scripts/
+docs/
+*.md
+debug.txt
+.claude/
+.impeccable/
+.jules/
+scratch/
+test-dir*/

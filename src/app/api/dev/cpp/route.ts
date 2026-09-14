@@ -6,19 +6,16 @@ import { verifyAuth } from '@/lib/auth';
 
 export const runtime = 'nodejs';
 
-const platformRoot = path.join(/*turbopackIgnore: true*/ process.cwd(), 'platform');
-const debugBin = path.join(platformRoot, 'build', 'debug', 'bin');
-
-const commands = {
-  hillClimb: path.join(debugBin, 'hill_climb'),
-  editor: path.join(debugBin, 'editor'),
-  arcade: path.join(debugBin, 'arcade'),
-  tests: path.join(debugBin, 'platform_tests'),
+const COMMAND_BINS = {
+  hillClimb: 'hill_climb',
+  editor: 'editor',
+  arcade: 'arcade',
+  tests: 'platform_tests',
 } as const;
 
-type Action = keyof typeof commands;
+type Action = keyof typeof COMMAND_BINS;
 
-const ACTIONS = Object.keys(commands) as Action[];
+const ACTIONS = Object.keys(COMMAND_BINS) as Action[];
 
 function isAction(value: unknown): value is Action {
   return typeof value === 'string' && (ACTIONS as string[]).includes(value);
@@ -31,10 +28,10 @@ const WINDOW_LABELS: Record<Action, string> = {
   tests: 'Validation Lab',
 };
 
-const SAFE_ENV_VARS = ["PATH", "HOME", "USERPROFILE", "SystemRoot", "TMP", "TEMP"];
+const SAFE_ENV_VARS = ['PATH', 'HOME', 'USERPROFILE', 'SystemRoot', 'TMP', 'TEMP'];
 
 function getSafeEnv(extra: Record<string, string> = {}) {
-  const env: NodeJS.ProcessEnv = { NODE_ENV: process.env.NODE_ENV || "development" };
+  const env: NodeJS.ProcessEnv = { NODE_ENV: process.env.NODE_ENV || 'development' };
   for (const key of SAFE_ENV_VARS) {
     if (process.env[key] !== undefined) {
       env[key] = process.env[key] as string;
@@ -44,6 +41,14 @@ function getSafeEnv(extra: Record<string, string> = {}) {
 }
 
 export async function POST(request: Request) {
+  // Never run native C++ runners in production (Vercel serverless environment)
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json(
+      { error: 'El runner C++ solo está disponible en entorno de desarrollo local.' },
+      { status: 404 }
+    );
+  }
+
   if (process.env.NODE_ENV !== 'development' && !(await verifyAuth())) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -60,11 +65,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Acción C++ no permitida.' }, { status: 400 });
   }
 
-  const executable = commands[body.action];
+  const platformRoot = path.resolve(process.cwd(), 'platform');
+  const binName = COMMAND_BINS[body.action];
+  const executable = path.resolve(platformRoot, 'build', 'debug', 'bin', binName);
+
   if (!existsSync(executable)) {
     return NextResponse.json(
-      { error: `No se encontró el binario ${path.basename(executable)}. Ejecuta el build Debug de platform.` },
-      { status: 404 },
+      { error: `No se encontró el binario ${binName}. Ejecuta el build Debug de platform.` },
+      { status: 404 }
     );
   }
 
@@ -80,7 +88,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, pid: child.pid, action: body.action, window: WINDOW_LABELS[body.action] });
   }
 
-  const testFilter = '[PhysicsScene],[VehicleScene],[TerrainScene],[GameplayScene],[ProgressionScene],[PresentationScene],[AudioScene],[AssetScene],[ContentScene]';
+  const testFilter =
+    '[PhysicsScene],[VehicleScene],[TerrainScene],[GameplayScene],[ProgressionScene],[PresentationScene],[AudioScene],[AssetScene],[ContentScene]';
 
   return new Promise<Response>((resolve) => {
     const child = spawn(executable, [testFilter, '-r', 'compact'], {
@@ -104,3 +113,4 @@ export async function POST(request: Request) {
     });
   });
 }
+
