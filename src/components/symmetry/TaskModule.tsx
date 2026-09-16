@@ -307,6 +307,17 @@ export const TaskModule = memo(({ onTasksUpdate }: { onTasksUpdate: (score: numb
     }
   };
 
+  // ⚡ Bolt Optimization: Wrap edit callbacks in useCallback to provide stable references to TaskCard,
+  // preventing all TaskCards in the list from re-rendering when one enters/exits edit mode.
+  // Impact: O(N) re-renders reduced to O(1) for edit state toggles.
+  const handleEditStart = useCallback((task: Task) => {
+    setEditingTaskId(task.id);
+  }, []);
+
+  const handleEditCancel = useCallback(() => {
+    setEditingTaskId(null);
+  }, []);
+
   const handleEditSave = useCallback((updatedTask: Task) => {
     const taskIndex = tasks.findIndex(t => t.id === editingTaskId);
     if (taskIndex !== -1) {
@@ -600,8 +611,8 @@ export const TaskModule = memo(({ onTasksUpdate }: { onTasksUpdate: (score: numb
                         key={task.id}
                         task={task}
                         isEditing={editingTaskId === task.id}
-                        onEditStart={t => setEditingTaskId(t.id)}
-                        onEditCancel={() => setEditingTaskId(null)}
+                        onEditStart={handleEditStart}
+                        onEditCancel={handleEditCancel}
                         onEditSave={handleEditSave}
                         onDelete={deleteTask}
                         onUpdateStatus={updateTaskStatus}
