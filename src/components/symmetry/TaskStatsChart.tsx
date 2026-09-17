@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, memo } from 'react';
 import {
   BarChart,
   Bar,
@@ -10,7 +10,8 @@ import {
   ResponsiveContainer
 } from 'recharts';
 
-export const TaskStatsChart = ({ tasks, objectives }: { tasks: any[], objectives: any[] }) => {
+/* eslint-disable @typescript-eslint/no-explicit-any */
+export const TaskStatsChart = memo(({ tasks, objectives }: { tasks: any[], objectives: any[] }) => {
   const chartData = useMemo(() => {
     const days = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
     const today = new Date();
@@ -104,4 +105,6 @@ export const TaskStatsChart = ({ tasks, objectives }: { tasks: any[], objectives
       </ResponsiveContainer>
     </div>
   );
-};
+});
+
+TaskStatsChart.displayName = 'TaskStatsChart';

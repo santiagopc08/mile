@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, memo } from 'react';
 import { motion } from 'framer-motion';
 import { useProfile } from '@/context/ProfileContext';
 import { Clock, TrendingUp, Zap, Target } from 'lucide-react';
@@ -15,7 +15,8 @@ interface Task {
   status: string;
 }
 
-export const TaskAnalytics = ({ tasks, objectives }: { tasks: Task[], objectives: any[] }) => {
+/* eslint-disable @typescript-eslint/no-explicit-any */
+export const TaskAnalytics = memo(({ tasks, objectives }: { tasks: Task[], objectives: any[] }) => {
   const { profile } = useProfile();
   const accentColor = profile === 'ella' ? 'var(--color-user-a)' : 'var(--color-user-b)';
   const accentClass = profile === 'ella' ? 'user-a' : 'user-b';
@@ -180,4 +181,6 @@ export const TaskAnalytics = ({ tasks, objectives }: { tasks: Task[], objectives
       </div>
     </div>
   );
-};
+});
+
+TaskAnalytics.displayName = 'TaskAnalytics';
