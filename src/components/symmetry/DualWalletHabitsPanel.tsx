@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Activity, ChevronDown, ChevronRight } from 'lucide-react';
 import { BrutalistPanel } from '@/components/ui/BrutalistPanel';
@@ -23,7 +23,8 @@ interface DualWalletHabitsPanelProps {
   budgetRemaining: number;
 }
 
-export const DualWalletHabitsPanel: React.FC<DualWalletHabitsPanelProps> = ({
+// ⚡ Bolt Optimization: Wrap component in React.memo()
+export const DualWalletHabitsPanel: React.FC<DualWalletHabitsPanelProps> = memo(({
   accentHex,
   isHabitsOpen,
   setIsHabitsOpen,
@@ -109,4 +110,5 @@ export const DualWalletHabitsPanel: React.FC<DualWalletHabitsPanelProps> = ({
       </AnimatePresence>
     </BrutalistPanel>
   );
-};
+});
+DualWalletHabitsPanel.displayName = 'DualWalletHabitsPanel';

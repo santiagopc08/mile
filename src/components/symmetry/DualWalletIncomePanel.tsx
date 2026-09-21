@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { CircleDollarSign, ChevronDown, ChevronRight } from 'lucide-react';
 import { BrutalistPanel } from '@/components/ui/BrutalistPanel';
@@ -15,7 +15,8 @@ interface DualWalletIncomePanelProps {
   savingsRate: number;
 }
 
-export const DualWalletIncomePanel: React.FC<DualWalletIncomePanelProps> = ({
+// ⚡ Bolt Optimization: Wrap component in React.memo()
+export const DualWalletIncomePanel: React.FC<DualWalletIncomePanelProps> = memo(({
   accentHex,
   isIncomeOpen,
   setIsIncomeOpen,
@@ -61,4 +62,5 @@ export const DualWalletIncomePanel: React.FC<DualWalletIncomePanelProps> = ({
       </AnimatePresence>
     </BrutalistPanel>
   );
-};
+});
+DualWalletIncomePanel.displayName = 'DualWalletIncomePanel';
