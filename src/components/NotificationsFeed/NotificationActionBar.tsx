@@ -1,3 +1,4 @@
+import React, { memo } from 'react';
 import { CheckSquare, Trash2 } from 'lucide-react';
 
 interface NotificationActionBarProps {
@@ -5,7 +6,8 @@ interface NotificationActionBarProps {
     onClearAll: () => void;
 }
 
-export function NotificationActionBar({ onMarkAllRead, onClearAll }: NotificationActionBarProps) {
+// ⚡ Bolt Optimization: Wrap with React.memo to prevent unnecessary re-renders when parent state changes.
+export const NotificationActionBar = memo(function NotificationActionBar({ onMarkAllRead, onClearAll }: NotificationActionBarProps) {
     return (
         <div className="flex justify-end gap-4 border-b border-white/5 pb-4">
             <button
@@ -24,4 +26,5 @@ export function NotificationActionBar({ onMarkAllRead, onClearAll }: Notificatio
             </button>
         </div>
     );
-}
+});
+NotificationActionBar.displayName = 'NotificationActionBar';
