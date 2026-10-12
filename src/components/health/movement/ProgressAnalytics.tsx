@@ -12,6 +12,20 @@ interface ProgressAnalyticsProps {
 
 export function ProgressAnalytics({ isElla, weeklyStats, sessions, accentColor, painAnalytics }: ProgressAnalyticsProps) {
     // ⚡ Bolt Optimization: Replace multiple .filter() and .some() with single pass O(N) loop
+    // ⚡ Bolt Optimization: Pre-calculate the 7-day array to avoid Date instantiations in the render loop
+    const memoizedDays = useMemo(() => {
+        const today = new Date();
+        const baseDate = today.getDate() - 6;
+        return Array.from({ length: 7 }).map((_, index) => {
+            const d = new Date(today);
+            d.setDate(baseDate + index);
+            return {
+                dStr: d.toISOString().split('T')[0],
+                label: d.toLocaleDateString('es-ES', { weekday: 'short' })
+            };
+        });
+    }, []);
+
     const dailyStatusMap = useMemo(() => {
         const map = new Map<string, { el: Record<string, boolean>; ella: Record<string, boolean> }>();
         for (const s of sessions) {
@@ -78,12 +92,7 @@ export function ProgressAnalytics({ isElla, weeklyStats, sessions, accentColor, 
                             </label>
 
                             <div className="grid grid-cols-7 gap-1.5 text-center">
-                                {Array.from({ length: 7 }).map((_, index) => {
-                                    const d = new Date();
-                                    d.setDate(d.getDate() - (6 - index));
-                                    const dStr = d.toISOString().split('T')[0];
-                                    const label = d.toLocaleDateString('es-ES', { weekday: 'short' });
-
+                                {memoizedDays.map(({ dStr, label }, index) => {
                                     const dateStats = dailyStatusMap.get(dStr);
 
                                     const isElActive = dateStats?.el?.completed || false;
