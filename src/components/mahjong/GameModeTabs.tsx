@@ -1,13 +1,14 @@
 import React from 'react';
 import { MahjongService } from '@/services/mahjongService';
+import type { CoopGame } from '@/lib/mahjong/logic';
 
 interface GameModeTabsProps {
     gameMode: 'solo' | 'coop' | 'daily';
     setGameMode: (mode: 'solo' | 'coop' | 'daily') => void;
     setIsLoaded: (loaded: boolean) => void;
     requestGameFullscreen: () => void;
-    handleLoadCoopGame: (game: any) => void;
-    setActiveCoopGame: (game: any) => void;
+    handleLoadCoopGame: (game: CoopGame) => void;
+    setActiveCoopGame: (game: CoopGame | null) => void;
 }
 
 export function GameModeTabs({

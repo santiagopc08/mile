@@ -42,7 +42,7 @@ import {
     getComboTier,
     generateSolvableBoard,
 } from '@/lib/mahjong/logic';
-import type { LayoutType, LeaderboardEntry } from '@/lib/mahjong/logic';
+import type { LayoutType, LeaderboardEntry, CoopGame } from '@/lib/mahjong/logic';
 import { DrawingCanvasModal } from '@/components/mahjong/DrawingCanvasModal';
 import { RevealDrawingModal } from '@/components/mahjong/RevealDrawingModal';
 import { useDailyStats } from '@/components/mahjong/useDailyStats';
@@ -160,7 +160,7 @@ export function Mahjong() {
 
     // Cooperative play and interactive features states
     const [gameMode, setGameMode] = useState<'solo' | 'coop' | 'daily'>('solo');
-    const [activeCoopGame, setActiveCoopGame] = useState<any | null>(null);
+    const [activeCoopGame, setActiveCoopGame] = useState<CoopGame | null>(null);
     const [coopTurn, setCoopTurn] = useState<'el' | 'ella'>('el');
     const [dailyUnlockedMemory, setDailyUnlockedMemory] = useState<{ title: string; description: string; imageUrl: string; date: string } | null>(null);
 
@@ -854,7 +854,7 @@ export function Mahjong() {
         }
     };
 
-    const handleLoadCoopGame = async (game: any, signal?: AbortSignal) => {
+    const handleLoadCoopGame = async (game: CoopGame, signal?: AbortSignal) => {
         const images = await MahjongService.getMahjongImages(undefined, signal);
         const detailsMap = new Map<string, { title: string; description: string; date: string }>();
         for (const img of images) {
