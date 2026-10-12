@@ -231,14 +231,20 @@ export function usePomodoroTimer() {
         haptics.triggerTick();
         sound.playTick();
 
-        const updatedTasks = data.tasks.map((t): Task => {
-            if (t.id === taskId) {
-                const list = (t[listType] || []) as any[];
-                const newList = list.map(i => i.id === itemId ? { ...i, checked: !i.checked } : i);
-                return { ...t, [listType]: newList };
-            }
-            return t;
-        });
+        // ⚡ Bolt Optimization: Use targeted updates with findIndex instead of full maps
+        const taskIndex = data.tasks.findIndex(t => t.id === taskId);
+        if (taskIndex === -1) return;
+
+        const updatedTasks = [...data.tasks];
+        const task = updatedTasks[taskIndex];
+        const list = (task[listType] || []) as any[];
+
+        const itemIndex = list.findIndex(i => i.id === itemId);
+        if (itemIndex === -1) return;
+
+        const newList = [...list];
+        newList[itemIndex] = { ...newList[itemIndex], checked: !newList[itemIndex].checked };
+        updatedTasks[taskIndex] = { ...task, [listType]: newList };
 
         try {
             await updateData({ tasks: updatedTasks });
