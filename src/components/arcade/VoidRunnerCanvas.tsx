@@ -263,6 +263,29 @@ export const updateGame = (s: GameState, dt: number, callbacks: GameCallbacks, V
 
         if (s.keys.fire) fireBullet(s);
 
+        // Create Spatial Grid for Collision Detection (⚡ Bolt Optimization)
+        const CELL_SIZE = 100;
+        const cols = Math.ceil(V_WIDTH / CELL_SIZE);
+        const rows = Math.ceil(V_HEIGHT / CELL_SIZE);
+        const grid: (typeof s.rocks)[] = Array.from({ length: cols * rows }, () => []);
+
+        // Populate grid with rocks
+        for (let j = 0; j < s.rocks.length; j++) {
+            const r = s.rocks[j];
+            const minX = Math.max(0, Math.floor((r.x - r.radius) / CELL_SIZE));
+            const maxX = Math.min(cols - 1, Math.floor((r.x + r.radius) / CELL_SIZE));
+            const minY = Math.max(0, Math.floor((r.y - r.radius) / CELL_SIZE));
+            const maxY = Math.min(rows - 1, Math.floor((r.y + r.radius) / CELL_SIZE));
+
+            for (let cy = minY; cy <= maxY; cy++) {
+                for (let cx = minX; cx <= maxX; cx++) {
+                    grid[cy * cols + cx].push(r);
+                }
+            }
+        }
+
+        const rocksToRemove = new Set<number>();
+
         // Update Bullets
         for (let i = s.bullets.length - 1; i >= 0; i--) {
             const b = s.bullets[i];
@@ -281,48 +304,67 @@ export const updateGame = (s: GameState, dt: number, callbacks: GameCallbacks, V
                 continue;
             }
 
-            // Bullet vs Rock Collisions
+            // Bullet vs Rock Collisions (Grid Optimized)
             let bulletHit = false;
-            for (let j = s.rocks.length - 1; j >= 0; j--) {
-                const r = s.rocks[j];
-                const dist = Math.hypot(b.x - r.x, b.y - r.y);
+            const cx = Math.floor(b.x / CELL_SIZE);
+            const cy = Math.floor(b.y / CELL_SIZE);
 
-                if (dist < r.radius) {
-                    bulletHit = true;
-                    VoidAudio.rockHit(r.tier);
-                    spawnParticles(s, r.x, r.y, r.color, r.tier * 10, 180);
-                    addShake(s, r.tier * 2.5);
+            if (cx >= 0 && cx < cols && cy >= 0 && cy < rows) {
+                const cell = grid[cy * cols + cx];
+                for (let k = 0; k < cell.length; k++) {
+                    const r = cell[k];
 
-                    const points = r.tier === 3 ? 50 : r.tier === 2 ? 100 : 200;
-                    s.score += points;
-                    callbacks.setScore(s.score);
+                    if (rocksToRemove.has(r.id)) continue;
 
-                    if (s.score > s.highScore) {
-                        s.highScore = s.score;
-                        callbacks.setHighScore(s.score);
-                        localStorage.setItem('voidrunner_highscore', s.score.toString());
+                    const dist = Math.hypot(b.x - r.x, b.y - r.y);
+
+                    if (dist < r.radius) {
+                        bulletHit = true;
+                        rocksToRemove.add(r.id);
+
+                        VoidAudio.rockHit(r.tier);
+                        spawnParticles(s, r.x, r.y, r.color, r.tier * 10, 180);
+                        addShake(s, r.tier * 2.5);
+
+                        const points = r.tier === 3 ? 50 : r.tier === 2 ? 100 : 200;
+                        s.score += points;
+                        callbacks.setScore(s.score);
+
+                        if (s.score > s.highScore) {
+                            s.highScore = s.score;
+                            callbacks.setHighScore(s.score);
+                            localStorage.setItem('voidrunner_highscore', s.score.toString());
+                        }
+
+                        // Split Rock
+                        if (r.tier > 1) {
+                            const nextTier = r.tier - 1;
+                            const speed1 = Math.hypot(r.vx, r.vy) * 1.35 + 25;
+                            const speed2 = Math.hypot(r.vx, r.vy) * 1.35 + 25;
+                            const baseAngle = Math.atan2(r.vy, r.vx);
+
+                            s.rocks.push(
+                                makeRock(s, r.x, r.y, Math.cos(baseAngle + 0.6) * speed1, Math.sin(baseAngle + 0.6) * speed1, nextTier),
+                                makeRock(s, r.x, r.y, Math.cos(baseAngle - 0.6) * speed2, Math.sin(baseAngle - 0.6) * speed2, nextTier)
+                            );
+                        }
+
+                        break;
                     }
-
-                    // Split Rock
-                    if (r.tier > 1) {
-                        const nextTier = r.tier - 1;
-                        const speed1 = Math.hypot(r.vx, r.vy) * 1.35 + 25;
-                        const speed2 = Math.hypot(r.vx, r.vy) * 1.35 + 25;
-                        const baseAngle = Math.atan2(r.vy, r.vx);
-
-                        s.rocks.push(
-                            makeRock(s, r.x, r.y, Math.cos(baseAngle + 0.6) * speed1, Math.sin(baseAngle + 0.6) * speed1, nextTier),
-                            makeRock(s, r.x, r.y, Math.cos(baseAngle - 0.6) * speed2, Math.sin(baseAngle - 0.6) * speed2, nextTier)
-                        );
-                    }
-
-                    s.rocks.splice(j, 1);
-                    break;
                 }
             }
 
             if (bulletHit) {
                 s.bullets.splice(i, 1);
+            }
+        }
+
+        // Cleanup destroyed rocks
+        if (rocksToRemove.size > 0) {
+            for (let j = s.rocks.length - 1; j >= 0; j--) {
+                if (rocksToRemove.has(s.rocks[j].id)) {
+                    s.rocks.splice(j, 1);
+                }
             }
         }
 
