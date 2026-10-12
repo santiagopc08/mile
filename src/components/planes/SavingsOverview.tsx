@@ -67,7 +67,9 @@ export function SavingsOverview({ items }: { items: WishlistItem[] }) {
                 const safe = Math.floor(available * 0.15 / 1000) * 1000;
                 return `Según tus ingresos y gastos, puedes destinar ${formatCOP(safe)} a tus deseos sin afectar el presupuesto básico.`;
             }
-        } catch {}
+        } catch (error) {
+            console.error('Failed to parse budget allocations for smart suggestion:', error);
+        }
         return null;
     }, []);
 

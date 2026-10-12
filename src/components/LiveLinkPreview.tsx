@@ -122,7 +122,9 @@ function LiveLinkPreviewCard({ preview, debouncedUrl, label }: { preview: LinkPr
     let domain = 'ENLACE';
     try {
         domain = new URL(preview.url || debouncedUrl).hostname.replace('www.', '').toUpperCase();
-    } catch {}
+    } catch (error) {
+        console.error('Failed to parse URL domain for link preview:', error);
+    }
 
     return (
         <motion.div 
