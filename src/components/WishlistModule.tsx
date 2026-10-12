@@ -111,7 +111,7 @@ export function WishlistModule() {
             if (fShared) {
                 const target = profile === 'el' ? 'ella' : 'el';
                 const authorName = profile === 'el' ? 'Santiago' : 'Milena';
-                try { await NotificationService.addNotification(target, 'wishlist', `¡${authorName} editó el plan!: "${fTitle.trim()}"`, supabase); } catch { }
+                try { await NotificationService.addNotification(target, 'wishlist', `¡${authorName} editó el plan!: "${fTitle.trim()}"`, supabase); } catch (error) { console.error('Contextual error message:', error); }
             }
         } else {
             const newItem: WishlistItem = {
@@ -126,12 +126,12 @@ export function WishlistModule() {
             // Log activity
             try {
                 await WishlistService.logWishlistActivity(null, profile || 'el', 'added', fTitle.trim(), supabase);
-            } catch { }
+            } catch (error) { console.error('Contextual error message:', error); }
             // Notify other profile if shared
             if (fShared) {
                 const target = profile === 'el' ? 'ella' : 'el';
                 const authorName = profile === 'el' ? 'Santiago' : 'Milena';
-                try { await NotificationService.addNotification(target, 'wishlist', `¡${authorName} agregó un nuevo plan!: "${fTitle.trim()}"`, supabase); } catch { }
+                try { await NotificationService.addNotification(target, 'wishlist', `¡${authorName} agregó un nuevo plan!: "${fTitle.trim()}"`, supabase); } catch (error) { console.error('Contextual error message:', error); }
             }
         }
 
@@ -175,7 +175,7 @@ export function WishlistModule() {
             if (itemToDelete.shared) {
                 const target = profile === 'el' ? 'ella' : 'el';
                 const authorName = profile === 'el' ? 'Santiago' : 'Milena';
-                try { await NotificationService.addNotification(target, 'wishlist', `${authorName} eliminó un plan de la lista.`, supabase); } catch { }
+                try { await NotificationService.addNotification(target, 'wishlist', `${authorName} eliminó un plan de la lista.`, supabase); } catch (error) { console.error('Contextual error message:', error); }
             }
         }
         const newItems = items.filter(i => i.id !== id);
