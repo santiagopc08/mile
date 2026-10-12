@@ -1,6 +1,6 @@
 import { supabase as defaultSupabase } from '@/lib/supabase';
 import { SupabaseClient } from '@supabase/supabase-js';
-
+import { TileState } from '@/components/MahjongTile';
 
 type MahjongImage = { url: string, source: 'supabase' | 'local', title?: string, description?: string, date?: string };
 let cachedMahjongImages: MahjongImage[] | null = null;
@@ -150,7 +150,7 @@ export const MahjongService = {
         }
     },
 
-    async createCoopGame(layout: string, tiles: any[], activeTurn: 'el' | 'ella', supabase: SupabaseClient = defaultSupabase): Promise<any | null> {
+    async createCoopGame(layout: string, tiles: TileState[], activeTurn: 'el' | 'ella', supabase: SupabaseClient = defaultSupabase): Promise<any | null> {
         try {
             const { data, error } = await supabase
                 .from('coop_games')
@@ -174,9 +174,9 @@ export const MahjongService = {
         }
     },
 
-    async updateCoopGame(gameId: string, tiles: any[], dockIds: string[], activeTurn: 'el' | 'ella', lastMatchedBy?: 'el' | 'ella', supabase: SupabaseClient = defaultSupabase): Promise<void> {
+    async updateCoopGame(gameId: string, tiles: TileState[], dockIds: string[], activeTurn: 'el' | 'ella', lastMatchedBy?: 'el' | 'ella', supabase: SupabaseClient = defaultSupabase): Promise<void> {
         try {
-            const updates: any = {
+            const updates: Partial<{ tiles: TileState[], dock_ids: string[], active_turn: 'el' | 'ella', last_matched_by: 'el' | 'ella', last_matched_at: string }> = {
                 tiles,
                 dock_ids: dockIds,
                 active_turn: activeTurn
