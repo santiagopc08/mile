@@ -349,16 +349,24 @@ function ParticleField({ colors, preset }: { colors: ProfilePalette; preset: Amb
 
                 for (let j = i + 1; j < particles.length; j++) {
                     const p2 = particles[j];
-                    const pdist = Math.hypot(p.x - p2.x, p.y - p2.y);
 
-                    if (pdist < 120) {
-                        ctx.beginPath();
-                        ctx.moveTo(p.x, p.y);
-                        ctx.lineTo(p2.x, p2.y);
-                        ctx.strokeStyle = colors.primary;
-                        ctx.globalAlpha = (1 - pdist / 120) * 0.15;
-                        ctx.lineWidth = 0.6;
-                        ctx.stroke();
+                    // ⚡ Bolt Optimization: Fast bounding box and squared distance check
+                    // before calculating the expensive square root.
+                    const dx = p.x - p2.x;
+                    const dy = p.y - p2.y;
+
+                    if (dx > -120 && dx < 120 && dy > -120 && dy < 120) {
+                        const sqDist = dx * dx + dy * dy;
+                        if (sqDist < 14400) {
+                            const pdist = Math.sqrt(sqDist);
+                            ctx.beginPath();
+                            ctx.moveTo(p.x, p.y);
+                            ctx.lineTo(p2.x, p2.y);
+                            ctx.strokeStyle = colors.primary;
+                            ctx.globalAlpha = (1 - pdist / 120) * 0.15;
+                            ctx.lineWidth = 0.6;
+                            ctx.stroke();
+                        }
                     }
                 }
             }
