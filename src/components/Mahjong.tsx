@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { RealtimePostgresUpdatePayload } from '@supabase/supabase-js';
 import { supabase as defaultSupabase } from '@/lib/supabase';
 import { MahjongService } from '@/services/mahjongService';
 import { NotificationService } from '@/services/notificationService';
@@ -68,6 +69,13 @@ import { CoopSetupModal, CoopTurnModal } from './mahjong/ui/CoopModals';
 import { MahjongHud } from './mahjong/ui/MahjongHud';
 
 const DATE_FORMATTER = new Intl.DateTimeFormat('es-CO', { dateStyle: 'long' });
+
+interface CoopGamePayload {
+    tiles: TileState[];
+    dock_ids: string[] | null;
+    active_turn: 'el' | 'ella';
+    completed_at?: string | null;
+}
 
 export function Mahjong() {
     const { profile } = useProfile();
@@ -271,7 +279,7 @@ export function Mahjong() {
                     table: 'coop_games',
                     filter: `id=eq.${activeCoopGame.id}`
                 },
-                (payload: any) => {
+                (payload: RealtimePostgresUpdatePayload<CoopGamePayload>) => {
                     const newGame = payload.new;
                     if (newGame) {
                         setTiles(newGame.tiles);
