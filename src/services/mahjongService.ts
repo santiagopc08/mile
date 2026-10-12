@@ -384,7 +384,7 @@ export const MahjongService = {
         supabase: SupabaseClient = defaultSupabase
     ): Promise<boolean> {
         try {
-            const updates: any = { status };
+            const updates: { status: 'completed' | 'failed'; time_seconds?: number } = { status };
             if (timeSeconds !== undefined) {
                 updates.time_seconds = timeSeconds;
             }
