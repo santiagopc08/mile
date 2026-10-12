@@ -5,7 +5,7 @@ import { useMovementMetrics } from '../../../../../src/components/health/movemen
 import { MovementSession } from '../../../../../src/components/health/movement/types';
 
 describe('useMovementMetrics', () => {
-    let mockDateStr = '2023-10-25';
+    const mockDateStr = '2023-10-25';
 
     beforeEach(() => {
         vi.useFakeTimers();
@@ -173,7 +173,7 @@ describe('useMovementMetrics', () => {
 
         it('should handle session with unhandled profile correctly', () => {
              const sessions = [
-                // @ts-ignore - explicitly passing invalid profile for edge case testing
+                // @ts-expect-error - explicitly passing invalid profile for edge case testing
                 createSession({ profile: 'unknown', date: mockDateStr }),
             ];
             const { result } = renderHook(() => useMovementMetrics(sessions));
@@ -188,6 +188,40 @@ describe('useMovementMetrics', () => {
             ];
             const { result } = renderHook(() => useMovementMetrics(sessions));
             expect(result.current.weeklyStats.recoveryDays).toBe(1);
+        });
+    });
+
+    describe('pure logic validation', () => {
+        it('should calculate syncStreak correctly with a mix of active and inactive days', () => {
+            const sessions = [
+                createSession({ date: '2023-10-25', profile: 'el' }),
+                createSession({ date: '2023-10-24', profile: 'ella' }),
+                // 23rd is missing
+                createSession({ date: '2023-10-22', profile: 'el' }),
+            ];
+            const { result } = renderHook(() => useMovementMetrics(sessions));
+            expect(result.current.syncStreak).toBe(2); // 24th and 25th
+        });
+
+        it('should validate weeklyStats goalProgressPercentage bounds', () => {
+            // 10 sessions in a week (target is 7, so it should cap at 100%)
+            const sessions = Array(10).fill(null).map((_, i) =>
+                createSession({ date: '2023-10-25', id: `extra-${i}` })
+            );
+            const { result } = renderHook(() => useMovementMetrics(sessions));
+            expect(result.current.weeklyStats.goalProgressPercentage).toBe(100);
+        });
+
+        it('should validate painAnalytics calculates average correctly', () => {
+            const sessions = [
+                createSession({ pain_before: 8, pain_after: 4, id: '1' }),
+                createSession({ pain_before: 6, pain_after: 2, id: '2' }),
+                createSession({ pain_before: 4, pain_after: 0, id: '3' }),
+            ];
+            const { result } = renderHook(() => useMovementMetrics(sessions));
+            expect(result.current.painAnalytics?.averageBefore).toBe(6);
+            expect(result.current.painAnalytics?.averageAfter).toBe(2);
+            expect(result.current.painAnalytics?.totalReduction).toBe(12); // (8-4) + (6-2) + (4-0)
         });
     });
 });
