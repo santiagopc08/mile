@@ -21,10 +21,10 @@ export function useMovementData(profile: string | null) {
             if (error) throw error;
 
             // Format incoming rows if needed
-            const formatted = (data || []).map((row: any) => ({
+            const formatted = (data || []).map((row: Partial<MovementSession>) => ({
                 ...row,
                 reactions: Array.isArray(row.reactions) ? row.reactions : []
-            }));
+            } as MovementSession));
 
             setSessions(formatted);
             setIsUsingLocalStorage(false);
