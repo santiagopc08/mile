@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { verifyServerSession } from '@/lib/auth-utils';
 import { createServerClient } from '@/lib/supabase-server';
 import { verifyAuth } from '@/lib/auth';
 import { WishlistService } from '@/services/wishlistService';
