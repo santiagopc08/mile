@@ -1,10 +1,10 @@
 import React from 'react';
-import { Clock, Shield, Trash2, Heart, Compass, Activity, Smile, Dumbbell, Zap, HelpCircle } from 'lucide-react';
+import { Clock, Shield, Trash2, Heart, Compass, Activity, Smile, Dumbbell, Zap, HelpCircle, LucideIcon } from 'lucide-react';
 import { MovementSession, SessionCategory, ReactionType } from './types';
 import { BrutalistSkeleton } from '@/components/ui/BrutalistSkeleton';
 
 import { ActivitySessionItem } from "./ActivitySessionItem";
-const CATEGORY_LABELS: Record<SessionCategory, { label: string; icon: any; isTherapy: boolean }> = {
+const CATEGORY_LABELS: Record<SessionCategory, { label: string; icon: LucideIcon; isTherapy: boolean }> = {
     physical_therapy: { label: 'Terapia Física', icon: Heart, isTherapy: true },
     occupational_therapy: { label: 'Terapia Ocupacional', icon: Compass, isTherapy: true },
     mobility: { label: 'Movilidad', icon: Activity, isTherapy: false },
