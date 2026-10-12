@@ -1,0 +1,4 @@
+🎯 **What:** Replaced `any[]` and `any` types in `mahjongService.ts` for `updateCoopGame` and `createCoopGame` with the specific `TileState` type and defined explicit object structures.
+💡 **Why:** This improves maintainability, readability, type safety, and autocomplete support by removing vague types.
+✅ **Verification:** Ran `npm run typecheck` and verified there are no errors in `mahjongService.ts`. Also ran `npx vitest run tests/` and confirmed all 208 tests passed.
+✨ **Result:** A safer, well-typed `mahjongService.ts` that explicitly expects `TileState` for tiles, preventing accidental data mismatches.
