@@ -1,6 +1,6 @@
 import { supabase as defaultSupabase } from '@/lib/supabase';
 import { SupabaseClient } from '@supabase/supabase-js';
-
+import type { CoopGame } from '@/lib/mahjong/logic';
 
 type MahjongImage = { url: string, source: 'supabase' | 'local', title?: string, description?: string, date?: string };
 let cachedMahjongImages: MahjongImage[] | null = null;
@@ -129,7 +129,7 @@ export const MahjongService = {
 
     // --- CO-OP GAME OPERATIONS ---
 
-    async getActiveCoopGame(supabase: SupabaseClient = defaultSupabase): Promise<any | null> {
+    async getActiveCoopGame(supabase: SupabaseClient = defaultSupabase): Promise<CoopGame | null> {
         try {
             const { data, error } = await supabase
                 .from('coop_games')
@@ -150,7 +150,7 @@ export const MahjongService = {
         }
     },
 
-    async createCoopGame(layout: string, tiles: any[], activeTurn: 'el' | 'ella', supabase: SupabaseClient = defaultSupabase): Promise<any | null> {
+    async createCoopGame(layout: string, tiles: any[], activeTurn: 'el' | 'ella', supabase: SupabaseClient = defaultSupabase): Promise<CoopGame | null> {
         try {
             const { data, error } = await supabase
                 .from('coop_games')

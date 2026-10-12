@@ -450,6 +450,18 @@ interface LeaderboardEntry {
     highest_combo?: number;
 }
 
+interface CoopGame {
+    id: string;
+    layout: string;
+    tiles: TileState[];
+    dock_ids: string[];
+    active_turn: 'el' | 'ella';
+    last_matched_by?: 'el' | 'ella';
+    last_matched_at?: string;
+    completed_at?: string | null;
+    created_at?: string;
+}
+
 function isSlotFree(
     target: { x: number; y: number; z: number },
     grid: Set<number>
@@ -579,4 +591,4 @@ export {
     isSlotFree,
     generateSolvableBoard,
 };
-export type { LayoutType, LeaderboardEntry };
+export type { LayoutType, LeaderboardEntry, CoopGame };
