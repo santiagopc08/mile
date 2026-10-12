@@ -1,0 +1,7 @@
+🎯 **What:** The `any` type was replaced with a strongly typed `RealtimePostgresUpdatePayload<CoopGamePayload>` in the Supabase real-time channel subscription payload parameter within `src/components/Mahjong.tsx`. A new interface, `CoopGamePayload`, was created to accurately type the properties (`tiles`, `dock_ids`, `active_turn`, and `completed_at`) accessed from the payload's `new` object.
+
+💡 **Why:** Relying on `any` bypasses TypeScript's type checking, making the code prone to runtime errors if the expected payload structure changes or is accessed incorrectly. Defining a specific type ensures the payload structure is validated during compilation, improving code readability and maintainability by explicitly documenting the expected data shape.
+
+✅ **Verification:** I ran `npm run typecheck`, `npm run lint`, and the full Vitest suite (`npx vitest run tests/`) to ensure no type errors, lint issues, or test failures were introduced by this change.
+
+✨ **Result:** The `payload` parameter is now strictly typed, eliminating the `any` type and making the expected data structure explicit, which enhances type safety and makes the component's cooperative game update logic more robust.
