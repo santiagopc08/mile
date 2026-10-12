@@ -1,6 +1,6 @@
 import { supabase as defaultSupabase } from '@/lib/supabase';
 import { SupabaseClient } from '@supabase/supabase-js';
-
+import type { LeaderboardEntry } from '@/lib/mahjong/logic';
 
 type MahjongImage = { url: string, source: 'supabase' | 'local', title?: string, description?: string, date?: string };
 let cachedMahjongImages: MahjongImage[] | null = null;
@@ -41,7 +41,7 @@ export const MahjongService = {
     },
 
 
-    async getMahjongLeaderboard(supabase: SupabaseClient = defaultSupabase): Promise<{ el: any[]; ella: any[] }> {
+    async getMahjongLeaderboard(supabase: SupabaseClient = defaultSupabase): Promise<{ el: LeaderboardEntry[]; ella: LeaderboardEntry[] }> {
         try {
             const { data, error } = await supabase
                 .from('mahjong_scores')
@@ -53,10 +53,8 @@ export const MahjongService = {
             if (error || !data) return { el: [], ella: [] };
 
             // ⚡ Bolt Optimization: Single-pass O(N) allocation replacement for .filter().slice()
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const el: any[] = [];
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const ella: any[] = [];
+            const el: LeaderboardEntry[] = [];
+            const ella: LeaderboardEntry[] = [];
             for (const s of data) {
                 if (s.profile === 'el' && el.length < 5) el.push(s);
                 else if (s.profile === 'ella' && ella.length < 5) ella.push(s);
