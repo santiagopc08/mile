@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { MahjongService } from '@/services/mahjongService';
+import { MahjongService, DailyPuzzlePlay } from '@/services/mahjongService';
 import { getLocalDateString } from '@/lib/mahjong/logic';
 
 interface DailyHistoric {
@@ -17,10 +17,8 @@ interface DailyHistoric {
  * juego: solo lo consume la pantalla de scoreboard diario.
  */
 export function useDailyStats(profile: 'el' | 'ella' | null) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const [dailyPlayRecord, setDailyPlayRecord] = useState<any | null>(null);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const [dailyStats, setDailyStats] = useState<{ el: any | null; ella: any | null }>({ el: null, ella: null });
+    const [dailyPlayRecord, setDailyPlayRecord] = useState<Partial<DailyPuzzlePlay> | null>(null);
+    const [dailyStats, setDailyStats] = useState<{ el: DailyPuzzlePlay | null; ella: DailyPuzzlePlay | null }>({ el: null, ella: null });
     const [historicDailyStats, setHistoricDailyStats] = useState<{
         el: DailyHistoric;
         ella: DailyHistoric;

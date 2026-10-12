@@ -2,6 +2,15 @@ import { supabase as defaultSupabase } from '@/lib/supabase';
 import { SupabaseClient } from '@supabase/supabase-js';
 
 
+export interface DailyPuzzlePlay {
+    id: string;
+    profile: 'el' | 'ella';
+    date: string;
+    status: 'started' | 'completed' | 'failed';
+    time_seconds: number | null;
+    created_at: string;
+}
+
 type MahjongImage = { url: string, source: 'supabase' | 'local', title?: string, description?: string, date?: string };
 let cachedMahjongImages: MahjongImage[] | null = null;
 let mahjongImagesCacheTime = 0;
@@ -335,7 +344,7 @@ export const MahjongService = {
         }
     },
 
-    async getDailyPuzzlePlay(profile: 'el' | 'ella', date: string, supabase: SupabaseClient = defaultSupabase): Promise<any | null> {
+    async getDailyPuzzlePlay(profile: 'el' | 'ella', date: string, supabase: SupabaseClient = defaultSupabase): Promise<DailyPuzzlePlay | null> {
         try {
             const { data, error } = await supabase
                 .from('daily_puzzle_plays')
@@ -405,7 +414,7 @@ export const MahjongService = {
         }
     },
 
-    async getDailyPuzzleStats(date: string, supabase: SupabaseClient = defaultSupabase): Promise<{ el: any | null; ella: any | null }> {
+    async getDailyPuzzleStats(date: string, supabase: SupabaseClient = defaultSupabase): Promise<{ el: DailyPuzzlePlay | null; ella: DailyPuzzlePlay | null }> {
         try {
             const { data, error } = await supabase
                 .from('daily_puzzle_plays')
