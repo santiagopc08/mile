@@ -54,7 +54,7 @@ describe('TimelineAddForm', () => {
 
         const { container } = render(
             <TimelineAddForm
-                events={[]}
+                onAddEvent={vi.fn().mockResolvedValue(undefined)}
                 isAdding={true}
                 setIsAdding={mockSetIsAdding}
             />
