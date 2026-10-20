@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { HABIT_CONFIG, formatCOP } from './constants';
 import type { HealthHabit } from '@/services/storeService';
 import { HealthService } from '@/services/healthService';
@@ -11,7 +11,8 @@ interface HabitHistoryProps {
     onRefresh: () => void;
 }
 
-export function HabitHistory({ recentHabitsForProfile, onRefresh }: HabitHistoryProps) {
+// ⚡ Bolt Optimization: Wrap component in React.memo() to prevent unnecessary re-renders
+export const HabitHistory = memo(function HabitHistory({ recentHabitsForProfile, onRefresh }: HabitHistoryProps) {
     const handleDelete = async (id: string) => {
         try {
             await HealthService.deleteHealthHabit(id, supabase);
@@ -58,4 +59,4 @@ export function HabitHistory({ recentHabitsForProfile, onRefresh }: HabitHistory
             </div>
         </div>
     );
-}
+});
