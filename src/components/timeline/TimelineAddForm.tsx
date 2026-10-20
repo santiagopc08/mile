@@ -1,6 +1,5 @@
 import React, { useState, memo } from 'react';
 import { Plus, Image as ImageIcon } from 'lucide-react';
-import { useStore } from '@/context/StoreContext';
 import { useProfile } from '@/context/ProfileContext';
 import { TimelineService } from '@/services/timelineService';
 import { NotificationService } from '@/services/notificationService';
@@ -12,11 +11,11 @@ interface TimelineAddFormProps {
     events: TimelineEvent[];
     isAdding: boolean;
     setIsAdding: (adding: boolean) => void;
+    onUpdateEvents?: (updatedEvents: TimelineEvent[]) => Promise<void>;
 }
 
 // ⚡ Bolt Optimization: Wrap with React.memo to prevent unnecessary re-renders when parent state changes.
-export const TimelineAddForm = memo(function TimelineAddForm({ events, isAdding, setIsAdding }: TimelineAddFormProps) {
-    const { updateData } = useStore();
+export const TimelineAddForm = memo(function TimelineAddForm({ events, isAdding, setIsAdding, onUpdateEvents }: TimelineAddFormProps) {
     const { profile } = useProfile();
     const { error: notifyError } = useToast();
     const [isUploading, setIsUploading] = useState(false);
@@ -56,7 +55,7 @@ export const TimelineAddForm = memo(function TimelineAddForm({ events, isAdding,
                 reactions: {},
                 comments: []
             };
-            await updateData({ events: [newEvent, ...events] });
+            if (onUpdateEvents) await onUpdateEvents([newEvent, ...events]);
 
             // Send discrete notification to partner
             const target = profile === 'el' ? 'ella' : 'el';
